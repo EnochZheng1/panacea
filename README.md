@@ -1,6 +1,6 @@
 # Panacea
 
-*A Victorian patent-medicine tycoon.* New York, 1885: no FDA, no labeling law, and no limit on what you may bottle and call a cure. Build a medicine empire from one apothecary still before the Pure Food and Drug Act arrives in 1906.
+_A Victorian patent-medicine tycoon._ New York, 1885: no FDA, no labeling law, and no limit on what you may bottle and call a cure. Build a medicine empire from one apothecary still before the Pure Food and Drug Act arrives in 1906.
 
 Working title. Pre-production.
 
@@ -9,6 +9,35 @@ Working title. Pre-production.
 - [Game Design](docs/GAME_DESIGN.md): premise, systems, progression, risks
 - [Technical Plan](docs/TECHNICAL_PLAN.md): TypeScript stack, architecture, milestones
 - [Playtest & Release Pipeline](docs/PLAYTEST_PIPELINE.md): simulated player/critic cycles and release gates
+
+## Development
+
+Requires Node 22.12+ and pnpm 10.
+
+```bash
+pnpm install
+```
+
+```bash
+pnpm check
+```
+
+`pnpm check` runs format, lint, typecheck, content lint and tests. Other commands:
+
+| Command                                                      | What it does                                                    |
+| ------------------------------------------------------------ | --------------------------------------------------------------- |
+| `pnpm test`                                                  | Unit, property and determinism tests                            |
+| `pnpm content:lint`                                          | Validate game data and cross-references                         |
+| `pnpm sim:batch --runs 100`                                  | Run every bot over many seeded games and print a balance report |
+| `pnpm sim:batch --bots shopkeeper --runs 20 --out report.md` | Same, for chosen bots, saved to a file                          |
+
+### Layout
+
+| Package             | Role                                                                                       |
+| ------------------- | ------------------------------------------------------------------------------------------ |
+| `packages/content`  | Game data (JSON), Zod schemas, string tables, content linter                               |
+| `packages/sim`      | Pure, deterministic simulation: state, turn pipeline, actions, machine API for bots/agents |
+| `packages/playtest` | Strategy bots, batch harness, balance reports                                              |
 
 ## Stack
 

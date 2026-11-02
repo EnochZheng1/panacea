@@ -1,0 +1,48 @@
+[
+  {
+    "id": "second_still",
+    "category": "facility",
+    "requirement": { "type": "bottlesSold", "atLeast": 200 },
+    "effects": [{ "type": "capability", "id": "stills", "delta": 1 }]
+  },
+  {
+    "id": "percolator",
+    "category": "facility",
+    "requirement": { "type": "batchesBrewed", "atLeast": 10 }
+  },
+  {
+    "id": "newspaper_ads",
+    "category": "marketing",
+    "requirement": {
+      "type": "all",
+      "of": [
+        { "type": "cash", "atLeastCents": 15000 },
+        { "type": "flag", "id": "testimonial_received" }
+      ]
+    }
+  },
+  {
+    "id": "doctor_title",
+    "category": "marketing",
+    "requirement": {
+      "type": "any",
+      "of": [
+        { "type": "reputation", "atLeast": 50 },
+        { "type": "flag", "id": "bought_diploma" }
+      ]
+    },
+    "effects": [{ "type": "reputation", "delta": 5 }]
+  },
+  {
+    "id": "third_still",
+    "category": "facility",
+    "requirement": {
+      "type": "all",
+      "of": [
+        { "type": "unlocked", "id": "second_still" },
+        { "type": "bottlesSold", "atLeast": 1000 }
+      ]
+    },
+    "effects": [{ "type": "capability", "id": "stills", "delta": 1 }]
+  }
+]

@@ -1,0 +1,194 @@
+[
+  {
+    "id": "mrs_halloran",
+    "displayName": "Mrs. Bridget Halloran",
+    "segment": "mother",
+    "ailment": "teething_infant",
+    "profile": {
+      "baseWillingnessCents": 70,
+      "buyChance": 0.7,
+      "preference": {
+        "kick": 0.2,
+        "calm": 0.8
+      },
+      "bitternessTolerance": 1,
+      "bitternessAversion": 1.5
+    }
+  },
+  {
+    "id": "mr_kowalski",
+    "displayName": "Mr. Jan Kowalski",
+    "segment": "labourer",
+    "ailment": "rheumatism",
+    "profile": {
+      "baseWillingnessCents": 60,
+      "buyChance": 0.6,
+      "preference": {
+        "kick": 0.6,
+        "calm": 0.4
+      },
+      "bitternessTolerance": 3,
+      "bitternessAversion": 0.8
+    }
+  },
+  {
+    "id": "miss_abernathy",
+    "displayName": "Miss Ada Abernathy",
+    "segment": "seamstress",
+    "ailment": "nerves",
+    "profile": {
+      "baseWillingnessCents": 80,
+      "buyChance": 0.7,
+      "preference": {
+        "kick": 0.3,
+        "calm": 0.7
+      },
+      "bitternessTolerance": 1,
+      "bitternessAversion": 1.2
+    }
+  },
+  {
+    "id": "mr_finch",
+    "displayName": "Mr. Horace Finch",
+    "segment": "clerk",
+    "ailment": "dyspepsia",
+    "profile": {
+      "baseWillingnessCents": 100,
+      "buyChance": 0.6,
+      "preference": {
+        "kick": 0.5,
+        "calm": 0.5
+      },
+      "bitternessTolerance": 2,
+      "bitternessAversion": 1
+    }
+  },
+  {
+    "id": "widow_pruitt",
+    "displayName": "Widow Agnes Pruitt",
+    "segment": "elderly",
+    "ailment": "neuralgia",
+    "profile": {
+      "baseWillingnessCents": 60,
+      "buyChance": 0.8,
+      "preference": {
+        "kick": 0.2,
+        "calm": 0.8
+      },
+      "bitternessTolerance": 2,
+      "bitternessAversion": 1
+    }
+  },
+  {
+    "id": "mr_oconnell",
+    "displayName": "Mr. Seamus O'Connell",
+    "segment": "dockworker",
+    "ailment": "cough",
+    "profile": {
+      "baseWillingnessCents": 70,
+      "buyChance": 0.6,
+      "preference": {
+        "kick": 0.7,
+        "calm": 0.3
+      },
+      "bitternessTolerance": 4,
+      "bitternessAversion": 0.5
+    }
+  },
+  {
+    "id": "mrs_vanderhoef",
+    "displayName": "Mrs. Cornelia Vanderhoef",
+    "segment": "well_to_do",
+    "ailment": "melancholy",
+    "profile": {
+      "baseWillingnessCents": 200,
+      "buyChance": 0.5,
+      "preference": {
+        "kick": 0.4,
+        "calm": 0.6
+      },
+      "bitternessTolerance": 1,
+      "bitternessAversion": 1.5
+    }
+  },
+  {
+    "id": "mr_greenbaum",
+    "displayName": "Mr. Isaac Greenbaum",
+    "segment": "clerk",
+    "ailment": "insomnia",
+    "profile": {
+      "baseWillingnessCents": 90,
+      "buyChance": 0.6,
+      "preference": {
+        "kick": 0.2,
+        "calm": 0.8
+      },
+      "bitternessTolerance": 2,
+      "bitternessAversion": 1
+    }
+  },
+  {
+    "id": "mrs_russo",
+    "displayName": "Mrs. Lucia Russo",
+    "segment": "mother",
+    "ailment": "female_complaints",
+    "profile": {
+      "baseWillingnessCents": 70,
+      "buyChance": 0.6,
+      "preference": {
+        "kick": 0.4,
+        "calm": 0.6
+      },
+      "bitternessTolerance": 2,
+      "bitternessAversion": 1
+    }
+  },
+  {
+    "id": "mr_whitlock",
+    "displayName": "Mr. Elias Whitlock",
+    "segment": "elderly",
+    "ailment": "rheumatism",
+    "profile": {
+      "baseWillingnessCents": 80,
+      "buyChance": 0.7,
+      "preference": {
+        "kick": 0.5,
+        "calm": 0.5
+      },
+      "bitternessTolerance": 2,
+      "bitternessAversion": 1
+    }
+  },
+  {
+    "id": "mr_dunne",
+    "displayName": "Mr. Patrick Dunne",
+    "segment": "labourer",
+    "ailment": "catarrh",
+    "profile": {
+      "baseWillingnessCents": 60,
+      "buyChance": 0.5,
+      "preference": {
+        "kick": 0.7,
+        "calm": 0.3
+      },
+      "bitternessTolerance": 3,
+      "bitternessAversion": 0.7
+    }
+  },
+  {
+    "id": "miss_lindqvist",
+    "displayName": "Miss Greta Lindqvist",
+    "segment": "seamstress",
+    "ailment": "consumption",
+    "profile": {
+      "baseWillingnessCents": 70,
+      "buyChance": 0.7,
+      "preference": {
+        "kick": 0.4,
+        "calm": 0.6
+      },
+      "bitternessTolerance": 2,
+      "bitternessAversion": 1
+    }
+  }
+]

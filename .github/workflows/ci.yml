@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Format
+        run: pnpm format:check
+      - name: Lint
+        run: pnpm lint
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Content lint
+        run: pnpm content:lint
+      - name: Tests
+        run: pnpm test
+      - name: Bot batch (balance smoke test)
+        run: pnpm sim:batch --runs 25 --backgrounds druggist,showman --fail-on-bankrupt-bot shopkeeper --out balance-report.md
+      - name: Upload balance report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: balance-report
+          path: balance-report.md
+          if-no-files-found: ignore

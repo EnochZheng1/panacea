@@ -1,0 +1,24 @@
+{
+  "contentVersion": "0.1.0",
+  "startDate": { "year": 1885, "month": 1 },
+  "endDate": { "year": 1906, "month": 12 },
+  "defaultBackground": "druggist",
+  "startingReputation": 10,
+  "rentCents": 500,
+  "bottleCostCents": 3,
+  "bottleCapacity": 8,
+  "maxFormulas": 6,
+  "maxEventsPerMonth": 2,
+  "bankruptcyGraceMonths": 3,
+  "walkIns": {
+    "base": 20,
+    "perReputation": 0.2,
+    "profile": {
+      "baseWillingnessCents": 80,
+      "buyChance": 0.5,
+      "preference": { "kick": 0.6, "calm": 0.4 },
+      "bitternessTolerance": 2,
+      "bitternessAversion": 1
+    }
+  }
+}

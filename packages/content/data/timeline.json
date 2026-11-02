@@ -1,0 +1,54 @@
+[
+  {
+    "id": "antifebrin",
+    "date": { "year": 1886, "month": 1 },
+    "approximateDate": true,
+    "effects": [{ "type": "setFlag", "id": "era_acetanilide" }],
+    "note": "Acetanilide introduced as Antifebrin in 1886."
+  },
+  {
+    "id": "ladies_journal_ad_ban",
+    "date": { "year": 1892, "month": 1 },
+    "approximateDate": true,
+    "effects": [{ "type": "setFlag", "id": "era_magazine_ad_ban" }],
+    "note": "The Ladies' Home Journal stopped accepting patent medicine advertising in 1892."
+  },
+  {
+    "id": "rural_free_delivery",
+    "date": { "year": 1896, "month": 10 },
+    "effects": [{ "type": "setFlag", "id": "era_rural_free_delivery" }],
+    "note": "Rural Free Delivery began experimentally on October 1, 1896; made permanent in 1902."
+  },
+  {
+    "id": "heroin_marketed",
+    "date": { "year": 1898, "month": 9 },
+    "approximateDate": true,
+    "note": "Heroin marketed as a cough suppressant from 1898."
+  },
+  {
+    "id": "aspirin_marketed",
+    "date": { "year": 1899, "month": 3 },
+    "note": "Aspirin trademark registered March 1899."
+  },
+  {
+    "id": "poison_squad",
+    "date": { "year": 1902, "month": 11 },
+    "effects": [{ "type": "setFlag", "id": "era_poison_squad" }],
+    "note": "Harvey Wiley's 'hygienic table trials' (the Poison Squad) began in late 1902."
+  },
+  {
+    "id": "great_american_fraud",
+    "date": { "year": 1905, "month": 10 },
+    "effects": [
+      { "type": "setFlag", "id": "era_great_american_fraud" },
+      { "type": "notoriety", "delta": 5 }
+    ],
+    "note": "Samuel Hopkins Adams's series began in Collier's on October 7, 1905."
+  },
+  {
+    "id": "pure_food_and_drug_act",
+    "date": { "year": 1906, "month": 6 },
+    "effects": [{ "type": "setFlag", "id": "era_pure_food_and_drug_act" }],
+    "note": "Signed June 30, 1906; effective January 1, 1907. Required labeling of listed substances."
+  }
+]

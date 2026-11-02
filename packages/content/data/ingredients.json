@@ -1,0 +1,258 @@
+[
+  {
+    "id": "water",
+    "substanceClass": "base",
+    "properties": {
+      "kick": 0,
+      "calm": 0,
+      "habit": 0,
+      "acuteToxicity": 0,
+      "accumulation": 0,
+      "bitterness": 0,
+      "detectability": 0
+    },
+    "costPerUnitCents": 0,
+    "tags": ["filler"]
+  },
+  {
+    "id": "grain_alcohol",
+    "substanceClass": "base",
+    "properties": {
+      "kick": 3,
+      "calm": 1,
+      "habit": 1,
+      "acuteToxicity": 0.3,
+      "accumulation": 0,
+      "bitterness": 1,
+      "detectability": 1
+    },
+    "costPerUnitCents": 2,
+    "tags": ["solvent"],
+    "note": "Many bestselling 'medicines' and bitters were 20-45% alcohol; alcohol was also the main extraction solvent."
+  },
+  {
+    "id": "sugar_syrup",
+    "substanceClass": "flavour",
+    "properties": {
+      "kick": 0,
+      "calm": 0,
+      "habit": 0,
+      "acuteToxicity": 0,
+      "accumulation": 0,
+      "bitterness": -2,
+      "detectability": 0
+    },
+    "costPerUnitCents": 1,
+    "tags": ["sweetener"]
+  },
+  {
+    "id": "peppermint_oil",
+    "substanceClass": "flavour",
+    "properties": {
+      "kick": 0.5,
+      "calm": 0,
+      "habit": 0,
+      "acuteToxicity": 0,
+      "accumulation": 0,
+      "bitterness": -3,
+      "detectability": 0
+    },
+    "costPerUnitCents": 10,
+    "tags": ["flavour"]
+  },
+  {
+    "id": "gentian",
+    "substanceClass": "botanical",
+    "properties": {
+      "kick": 0.5,
+      "calm": 0,
+      "habit": 0,
+      "acuteToxicity": 0,
+      "accumulation": 0,
+      "bitterness": 5,
+      "detectability": 1
+    },
+    "costPerUnitCents": 3,
+    "tags": ["bitters"],
+    "note": "Classic bittering root; bitterness read as strength."
+  },
+  {
+    "id": "capsicum",
+    "substanceClass": "botanical",
+    "properties": {
+      "kick": 2,
+      "calm": 0,
+      "habit": 0,
+      "acuteToxicity": 0.1,
+      "accumulation": 0,
+      "bitterness": 1,
+      "detectability": 1
+    },
+    "costPerUnitCents": 2,
+    "tags": ["burn"],
+    "note": "Red pepper: a cheap 'warming' sensation. Found in analyses of snake-oil liniments."
+  },
+  {
+    "id": "aloe",
+    "substanceClass": "purgative",
+    "properties": {
+      "kick": 3,
+      "calm": 0,
+      "habit": 0,
+      "acuteToxicity": 0.3,
+      "accumulation": 0,
+      "bitterness": 4,
+      "detectability": 2
+    },
+    "costPerUnitCents": 2,
+    "tags": ["laxative"],
+    "note": "Purgatives gave a very noticeable effect that customers read as 'cleansing'."
+  },
+  {
+    "id": "laudanum",
+    "substanceClass": "narcotic",
+    "properties": {
+      "kick": 2,
+      "calm": 8,
+      "habit": 6,
+      "acuteToxicity": 3,
+      "accumulation": 0,
+      "bitterness": 4,
+      "detectability": 5
+    },
+    "costPerUnitCents": 15,
+    "tags": ["opiate"],
+    "note": "Tincture of opium in alcohol. Cheap, legal, and sold over the counter."
+  },
+  {
+    "id": "morphine",
+    "substanceClass": "narcotic",
+    "properties": {
+      "kick": 3,
+      "calm": 20,
+      "habit": 15,
+      "acuteToxicity": 9,
+      "accumulation": 0,
+      "bitterness": 6,
+      "detectability": 6
+    },
+    "costPerUnitCents": 60,
+    "tags": ["opiate"],
+    "note": "Purified opium alkaloid, far stronger per ounce than laudanum. Infant 'soothing syrups' contained it."
+  },
+  {
+    "id": "coca_extract",
+    "substanceClass": "stimulant",
+    "properties": {
+      "kick": 7,
+      "calm": 1,
+      "habit": 5,
+      "acuteToxicity": 3,
+      "accumulation": 0,
+      "bitterness": 3,
+      "detectability": 4
+    },
+    "costPerUnitCents": 40,
+    "tags": ["cocaine"],
+    "note": "Fluid extract of coca / cocaine. Fashionable in tonics and wines from the mid-1880s."
+  },
+  {
+    "id": "calomel",
+    "substanceClass": "metal",
+    "properties": {
+      "kick": 2,
+      "calm": 0,
+      "habit": 0,
+      "acuteToxicity": 1,
+      "accumulation": 6,
+      "bitterness": 1,
+      "detectability": 3
+    },
+    "costPerUnitCents": 8,
+    "tags": ["mercury", "laxative"],
+    "note": "Mercurous chloride; the period's mercury medicine (also 'blue mass'). Liquid mercury was not the usual form."
+  },
+  {
+    "id": "fowlers_solution",
+    "substanceClass": "poison",
+    "properties": {
+      "kick": 1,
+      "calm": 0,
+      "habit": 0,
+      "acuteToxicity": 4,
+      "accumulation": 5,
+      "bitterness": 0,
+      "detectability": 6
+    },
+    "costPerUnitCents": 5,
+    "tags": ["arsenic"],
+    "note": "1% potassium arsenite. A mainstream 'tonic' of the era."
+  },
+  {
+    "id": "sulfuric_acid_dilute",
+    "substanceClass": "filler",
+    "properties": {
+      "kick": 1,
+      "calm": 0,
+      "habit": 0,
+      "acuteToxicity": 1,
+      "accumulation": 0,
+      "bitterness": 2,
+      "detectability": 2
+    },
+    "costPerUnitCents": 0.5,
+    "tags": ["acid"],
+    "note": "Traces of acid in mostly water, as in the 'microbe killer' style of fraud."
+  },
+  {
+    "id": "acetanilide",
+    "substanceClass": "analgesic",
+    "properties": {
+      "kick": 0.5,
+      "calm": 4,
+      "habit": 1,
+      "acuteToxicity": 3,
+      "accumulation": 1,
+      "bitterness": 2,
+      "detectability": 4
+    },
+    "costPerUnitCents": 10,
+    "availableFrom": { "year": 1886, "month": 1 },
+    "tags": ["headache_powder"],
+    "note": "Marketed as Antifebrin from 1886. Used in headache powders; harmful to the heart and blood."
+  },
+  {
+    "id": "heroin",
+    "substanceClass": "narcotic",
+    "properties": {
+      "kick": 4,
+      "calm": 18,
+      "habit": 20,
+      "acuteToxicity": 8,
+      "accumulation": 0,
+      "bitterness": 5,
+      "detectability": 6
+    },
+    "costPerUnitCents": 50,
+    "availableFrom": { "year": 1898, "month": 9 },
+    "tags": ["opiate"],
+    "note": "Marketed from 1898 as a cough suppressant."
+  },
+  {
+    "id": "aspirin",
+    "substanceClass": "analgesic",
+    "properties": {
+      "kick": 0,
+      "calm": 3,
+      "habit": 0,
+      "acuteToxicity": 0.5,
+      "accumulation": 0,
+      "bitterness": 1,
+      "detectability": 3
+    },
+    "costPerUnitCents": 12,
+    "availableFrom": { "year": 1899, "month": 3 },
+    "tags": ["legitimate"],
+    "note": "Marketed from 1899. An ingredient for the 'go legit' path."
+  }
+]

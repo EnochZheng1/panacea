@@ -22,7 +22,7 @@ Between those dates you can build a national medicine empire: develop secret for
 
 **Comparable games (for feel, not mechanics):** Game Dev Tycoon (approachable management sim), Papers, Please (moral weight through bureaucracy), Frostpunk (systems that make you complicit), Universal Paperclips (escalating unlock pull), Crusader Kings (event cards and characters).
 
-**Tone:** Dark satire. The game never pretends what you're doing is good; it makes it *tempting*. Humour comes from period bombast ("Cures Consumption, Cholera, Melancholy and Bad Temper!") set against plain consequences.
+**Tone:** Dark satire. The game never pretends what you're doing is good; it makes it _tempting_. Humour comes from period bombast ("Cures Consumption, Cholera, Melancholy and Bad Temper!") set against plain consequences.
 
 ---
 
@@ -30,21 +30,21 @@ Between those dates you can build a national medicine empire: develop secret for
 
 The systems should follow history; the flavour can be as loud as the era itself.
 
-| Real practice | In the game |
-|---|---|
-| Ingredients cost pennies; advertising was the main expense | Margins are huge, ad spend is the main sink |
-| Patent medicine makers were among the largest newspaper advertisers | Newspapers are both your biggest channel and your shield |
-| The "red clause": ad contracts voided if the state passed anti-nostrum laws | Unlockable contract term that turns papers into lobbyists |
-| Distribution via wholesale druggists ("jobbers") → retail druggists and general stores | Wholesaler contracts with margin, credit and shelf placement |
-| Medicine shows toured rural territories | Hire troupes; spectacle events; rural awareness |
-| Almanacs, trade cards, painted barns | Ad media with different reach by region and literacy |
-| Letters to a (sometimes long-dead) brand persona, answered by clerks; lists sold to brokers | Letter bureau / mail-order department; letters are a resource |
-| Proprietary Association of America (founded 1881) lobbied as an industry | Membership unlock; industry-level politics |
-| Bitters sold as medicine at ~40% alcohol, often in saloons | Saloon channel; tax-agent risk |
-| Infant "soothing syrups" containing morphine | A heavy, historically central product choice |
-| NYC coroners were elected and notoriously corrupt (replaced by a Medical Examiner in 1918) | The coroner is a real, bribable office |
-| State boards of health and state chemists published analyses | Chemist assays are a scrutiny event |
-| 1906 Pure Food and Drug Act required *labeling* of alcohol, morphine, opium, cocaine, heroin, chloroform, cannabis, chloral hydrate, acetanilide (it did not ban them) | 1906 changes the rules: secret formulas must admit their contents |
+| Real practice                                                                                                                                                          | In the game                                                       |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Ingredients cost pennies; advertising was the main expense                                                                                                             | Margins are huge, ad spend is the main sink                       |
+| Patent medicine makers were among the largest newspaper advertisers                                                                                                    | Newspapers are both your biggest channel and your shield          |
+| The "red clause": ad contracts voided if the state passed anti-nostrum laws                                                                                            | Unlockable contract term that turns papers into lobbyists         |
+| Distribution via wholesale druggists ("jobbers") → retail druggists and general stores                                                                                 | Wholesaler contracts with margin, credit and shelf placement      |
+| Medicine shows toured rural territories                                                                                                                                | Hire troupes; spectacle events; rural awareness                   |
+| Almanacs, trade cards, painted barns                                                                                                                                   | Ad media with different reach by region and literacy              |
+| Letters to a (sometimes long-dead) brand persona, answered by clerks; lists sold to brokers                                                                            | Letter bureau / mail-order department; letters are a resource     |
+| Proprietary Association of America (founded 1881) lobbied as an industry                                                                                               | Membership unlock; industry-level politics                        |
+| Bitters sold as medicine at ~40% alcohol, often in saloons                                                                                                             | Saloon channel; tax-agent risk                                    |
+| Infant "soothing syrups" containing morphine                                                                                                                           | A heavy, historically central product choice                      |
+| NYC coroners were elected and notoriously corrupt (replaced by a Medical Examiner in 1918)                                                                             | The coroner is a real, bribable office                            |
+| State boards of health and state chemists published analyses                                                                                                           | Chemist assays are a scrutiny event                               |
+| 1906 Pure Food and Drug Act required _labeling_ of alcohol, morphine, opium, cocaine, heroin, chloroform, cannabis, chloral hydrate, acetanilide (it did not ban them) | 1906 changes the rules: secret formulas must admit their contents |
 
 **Timeline anchors (fire on their dates):**
 
@@ -60,7 +60,7 @@ The systems should follow history; the flavour can be as loud as the era itself.
 - 1906: Pure Food and Drug Act signed (June 30), effective Jan 1, 1907.
 - Epilogue hooks: 1912 Sherley Amendment (false cure claims), 1914 Harrison Narcotics Act.
 
-**Naming policy:** All player and rival *brands* are fictional. Real historical figures and institutions appear only as era context (e.g. reformers, journalists, legislation). No real trademarks. Legal review before launch.
+**Naming policy:** All player and rival _brands_ are fictional. Real historical figures and institutions appear only as era context (e.g. reformers, journalists, legislation). No real trademarks. Legal review before launch.
 
 ---
 
@@ -77,6 +77,7 @@ The systems should follow history; the flavour can be as loud as the era itself.
 ## 4. Core loops
 
 **Short loop (each month):**
+
 1. Read **The Post**: event cards, letters, news, offers, threats.
 2. Make 2–4 meaningful decisions (brew / reformulate, ads, contracts, crisis responses).
 3. End the month → the **Ledger reveal**: sales, cash, heat, deaths, causes explained. This is the payoff moment and gets full audiovisual polish.
@@ -97,30 +98,31 @@ The lab is the tactile heart of the game and the screen we'll polish most.
 
 **Ingredient properties** (each ingredient carries a vector of these):
 
-| Property | Meaning |
-|---|---|
-| Kick | Felt effect: warmth, buzz, numbness, purging. What customers judge "works" by |
-| Calm | Sedation / pain relief |
-| Habit | Dependency formation |
-| Acute toxicity | Risk per dose, compared against the drinker's tolerance and vulnerability |
-| Accumulation | Chronic load that does not clear (heavy metals) |
-| Bitterness | Too little reads as weak; too much and nobody can stomach it |
-| Detectability | How easily a state chemist identifies it |
-| Stability | Shelf life, separation, spoilage |
-| Cost / supply | Price per unit; subject to shocks |
+| Property       | Meaning                                                                       |
+| -------------- | ----------------------------------------------------------------------------- |
+| Kick           | Felt effect: warmth, buzz, numbness, purging. What customers judge "works" by |
+| Calm           | Sedation / pain relief                                                        |
+| Habit          | Dependency formation                                                          |
+| Acute toxicity | Risk per dose, compared against the drinker's tolerance and vulnerability     |
+| Accumulation   | Chronic load that does not clear (heavy metals)                               |
+| Bitterness     | Too little reads as weak; too much and nobody can stomach it                  |
+| Detectability  | How easily a state chemist identifies it                                      |
+| Stability      | Shelf life, separation, spoilage                                              |
+| Cost / supply  | Price per unit; subject to shocks                                             |
 
 **Ingredient roster (launch target ~24):**
 
-- *Bases:* water, grain alcohol, wine, sugar syrup
-- *Narcotics & stimulants:* laudanum (opium tincture), morphine, coca extract / cocaine, chloroform, cannabis indica tincture, chloral hydrate, heroin (era-gated 1898)
-- *Heavy metals & poisons:* calomel / blue mass (mercury), Fowler's solution (arsenic), nux vomica (strychnine "tonic")
-- *Purgatives (huge real "felt effect"):* aloe, cascara, senna
-- *Fraud fillers:* dilute sulfuric acid (microbe-killer style), turpentine, mineral oil, capsicum (the "burn")
-- *Flavour & colour:* peppermint oil, sassafras, gentian (bitters), burnt-sugar colouring, wintergreen
-- *Era drugs:* acetanilide (1886), aspirin (1899; legitimate path)
-- *Botanicals with real (mild) effect:* ginger, willow bark, wild cherry
+- _Bases:_ water, grain alcohol, wine, sugar syrup
+- _Narcotics & stimulants:_ laudanum (opium tincture), morphine, coca extract / cocaine, chloroform, cannabis indica tincture, chloral hydrate, heroin (era-gated 1898)
+- _Heavy metals & poisons:_ calomel / blue mass (mercury), Fowler's solution (arsenic), nux vomica (strychnine "tonic")
+- _Purgatives (huge real "felt effect"):_ aloe, cascara, senna
+- _Fraud fillers:_ dilute sulfuric acid (microbe-killer style), turpentine, mineral oil, capsicum (the "burn")
+- _Flavour & colour:_ peppermint oil, sassafras, gentian (bitters), burnt-sugar colouring, wintergreen
+- _Era drugs:_ acetanilide (1886), aspirin (1899; legitimate path)
+- _Botanicals with real (mild) effect:_ ginger, willow bark, wild cherry
 
 **Processes** transform the mixture:
+
 - **Maceration / steeping:** time-based extraction; longer is stronger but costs production time.
 - **Percolation:** faster extraction, needs equipment.
 - **Distillation (the brass still):** an interactive gauge-driven process. Heat and pressure raise proof and purity; overpush and you risk boil-over, fire or explosion. This is the signature interaction.
@@ -129,9 +131,10 @@ The lab is the tactile heart of the game and the screen we'll polish most.
 - **Cutting / dilution:** stretches margin and lowers potency.
 - **Ageing / resting:** stability and taste.
 
-**Formula vs batch.** You design a *formula* (a recipe and process). Production runs *batches* of it. At larger scale, batch variance matters: a bad vat can carry 3× the morphine. Quality control is an unlockable investment, and bad batches are crisis events.
+**Formula vs batch.** You design a _formula_ (a recipe and process). Production runs _batches_ of it. At larger scale, batch variance matters: a bad vat can carry 3× the morphine. Quality control is an unlockable investment, and bad batches are crisis events.
 
 **Recurring reasons to return to the lab** (so formulation isn't a one-time task):
+
 - Ingredient price spikes, shortages, adulterated shipments
 - Rivals copying your bestseller
 - Scrutiny forcing you to cut narcotics, which you then have to cover with bitterness, alcohol or purgatives
@@ -162,15 +165,15 @@ Used both for **named customers** (individually simulated) and for **market coho
 
 ### 5.4 Distribution channels
 
-| Channel | Character |
-|---|---|
-| Your shop (always on) | Small volume; named regulars; the human-scale view of your product |
-| Retail druggists | Need wholesaler supply; shelf placement matters |
-| Wholesale druggists | Volume, but margin cuts, credit terms, and they can drop you after a scandal |
-| General stores | Rural reach, low price tolerance |
-| Medicine shows | Spectacle; bursts of rural awareness; troupe quality; local-trouble risk |
-| Mail order / letter bureau | Letters → testimonials and lists; boosted by RFD (1896) |
-| Saloons | Bitters; strong volume; tax agents and temperance backlash |
+| Channel                    | Character                                                                    |
+| -------------------------- | ---------------------------------------------------------------------------- |
+| Your shop (always on)      | Small volume; named regulars; the human-scale view of your product           |
+| Retail druggists           | Need wholesaler supply; shelf placement matters                              |
+| Wholesale druggists        | Volume, but margin cuts, credit terms, and they can drop you after a scandal |
+| General stores             | Rural reach, low price tolerance                                             |
+| Medicine shows             | Spectacle; bursts of rural awareness; troupe quality; local-trouble risk     |
+| Mail order / letter bureau | Letters → testimonials and lists; boosted by RFD (1896)                      |
+| Saloons                    | Bitters; strong volume; tax agents and temperance backlash                   |
 
 ### 5.5 Advertising & brand
 
@@ -185,7 +188,7 @@ Used both for **named customers** (individually simulated) and for **market coho
 - **Heat** per region plus national **Notoriety**. Heat decays slowly and non-linearly: one inquest is noise, three in a county starts a campaign.
 - **Incidents** are generated from the simulation (deaths, complaints, bad batches, a rival's sabotage): coroner's inquests, doctors' letters to the editor, state-chemist assays, a temperance-league campaign, a journalist's investigation (a visible multi-month progress bar once you have an informant).
 - **Responses:** bribe, silence (red clause), sue (libel lawyer), counter-advertise, reformulate, rename and relaunch, frame a rival, ride it out.
-- **Escalation:** bribed officials come back for more; bought editors become liabilities; opposition scales with your size and targets the biggest name; reformers react to your strategy (heavy opium makes *you* the chemists' first target).
+- **Escalation:** bribed officials come back for more; bought editors become liabilities; opposition scales with your size and targets the biggest name; reformers react to your strategy (heavy opium makes _you_ the chemists' first target).
 - **Leading indicators** so consequences feel fair: regional toxic-load meter, druggist rumours, informants.
 
 ### 5.7 People & relationships
@@ -214,31 +217,32 @@ Every expansion is earned. The game always shows the **next 2–3 unlocks with p
 
 **Example unlock tree (launch target ~60 unlocks):**
 
-| Unlock | Requirement |
-|---|---|
-| Second still | Sell 200 bottles |
-| Percolator | Brew 10 batches of one formula |
-| "Dr." title | Reputation 50 **or** buy a diploma-mill degree |
-| Newspaper advertising | $150 saved + 1 testimonial |
-| Almanac printing | Newspaper ads in 2 regions |
-| Wholesale druggist contract | Sustain 300 bottles a month for 3 months with low complaints |
-| Coroner "consulting fees" | Survive your first inquest |
-| Libel lawyer | Survive your first exposé |
-| Red clause | Ad contracts with 3+ papers |
-| Bottling works | Wholesale contract + $2,000 |
-| Quality control | Suffer a bad batch, or Bottling works + $X |
-| Medicine show troupe | Brand persona + sales in a rural region |
-| Letter bureau / mail order | Receive 100 customer letters |
-| Rural mail push | Era: 1896 (RFD) + Letter bureau |
-| Saloon bitters line | A formula ≥ 35% alcohol + a saloon-keeper connection |
-| Regional manager (automation) | A region running steadily for 6 months |
-| Proprietary Association seat | Become a top-3 brand in your region |
-| State lobbying | Association seat + a legislator connection |
-| "Go legit" product line | A low-toxicity formula that still sells well |
+| Unlock                        | Requirement                                                  |
+| ----------------------------- | ------------------------------------------------------------ |
+| Second still                  | Sell 200 bottles                                             |
+| Percolator                    | Brew 10 batches of one formula                               |
+| "Dr." title                   | Reputation 50 **or** buy a diploma-mill degree               |
+| Newspaper advertising         | $150 saved + 1 testimonial                                   |
+| Almanac printing              | Newspaper ads in 2 regions                                   |
+| Wholesale druggist contract   | Sustain 300 bottles a month for 3 months with low complaints |
+| Coroner "consulting fees"     | Survive your first inquest                                   |
+| Libel lawyer                  | Survive your first exposé                                    |
+| Red clause                    | Ad contracts with 3+ papers                                  |
+| Bottling works                | Wholesale contract + $2,000                                  |
+| Quality control               | Suffer a bad batch, or Bottling works + $X                   |
+| Medicine show troupe          | Brand persona + sales in a rural region                      |
+| Letter bureau / mail order    | Receive 100 customer letters                                 |
+| Rural mail push               | Era: 1896 (RFD) + Letter bureau                              |
+| Saloon bitters line           | A formula ≥ 35% alcohol + a saloon-keeper connection         |
+| Regional manager (automation) | A region running steadily for 6 months                       |
+| Proprietary Association seat  | Become a top-3 brand in your region                          |
+| State lobbying                | Association seat + a legislator connection                   |
+| "Go legit" product line       | A low-toxicity formula that still sells well                 |
 
 **Rules**
+
 - Multiple routes to most unlocks (honest vs crooked).
-- Some unlocks are **exclusive or costly** (deep medicine shows *or* deep mail order), so runs diverge.
+- Some unlocks are **exclusive or costly** (deep medicine shows _or_ deep mail order), so runs diverge.
 - **Failure unlocks things** (first death → the coroner relationship; first exposé → the libel lawyer).
 - **Unlocks can be lost** (a wholesaler drops you; an editor turns).
 - The shop never closes. Once wholesale unlocks, the regulars become the named sample of the wider market.
@@ -248,12 +252,12 @@ Every expansion is earned. The game always shows the **next 2–3 unlocks with p
 
 ## 7. Backgrounds (starting characters)
 
-| Background | Strength | Weakness |
-|---|---|---|
-| The Druggist | Lab precision, low batch variance, druggist trust | Little capital, weak marketing |
-| The Showman | Ad and show bonuses, persona charisma | Sloppy lab work, rural heat |
-| The Disgraced Physician | Instant credibility, medical knowledge | A past that resurfaces; doctors hostile |
-| The Kitchen Remedy | Trusted by mothers, letter-bureau bonus | Small scale; temperance expectations |
+| Background              | Strength                                          | Weakness                                |
+| ----------------------- | ------------------------------------------------- | --------------------------------------- |
+| The Druggist            | Lab precision, low batch variance, druggist trust | Little capital, weak marketing          |
+| The Showman             | Ad and show bonuses, persona charisma             | Sloppy lab work, rural heat             |
+| The Disgraced Physician | Instant credibility, medical knowledge            | A past that resurfaces; doctors hostile |
+| The Kitchen Remedy      | Trusted by mothers, letter-bureau bonus           | Small scale; temperance expectations    |
 
 Each background has its own event chains and at least one unique ending.
 
@@ -269,7 +273,7 @@ Resolved in the epilogue (~1907–1910) from wealth, notoriety, the human ledger
 - **Exposed:** ruin, prison or flight (to Canada).
 - **Undone by your own product.**
 
-**Legacy screen:** wealth, notoriety, lives lost (named), brands built, a period-style obituary *of you*. Scoring rewards both success and how you got there, so there's more than one way to "win".
+**Legacy screen:** wealth, notoriety, lives lost (named), brands built, a period-style obituary _of you_. Scoring rewards both success and how you got there, so there's more than one way to "win".
 
 ---
 
@@ -318,20 +322,20 @@ Premium one-time purchase (expected $15–$20 range). No microtransactions. Poss
 
 ## 14. Risk audit (and mitigations)
 
-| Risk | Mitigation |
-|---|---|
-| Spreadsheet fatigue / opaque causality | Causal breakdown of every change; diegetic newspapers and letters; hover explanations |
-| Lab becomes a one-time task | Supply shocks, scrutiny-driven reformulation, new segments, era ingredients, bad batches, the 1906 rule |
-| Monthly turns feel slow or spammy | 2–4 decisions per month via The Post; auto-advance of quiet months |
-| Statistical deaths lose moral weight | Named sample customers, event chains, the human ledger, lagging newspaper truth |
-| Dominant strategy (max narcotics + bribes) | Compounding bribe costs, non-linear heat, adaptive reformers, the 1906 deadline |
-| Snowballing / late-game boredom | Opposition scales with size; late game shifts to politics |
-| Early death spiral | Loans, forgiving early months, cheap recovery routes |
-| Long feedback lag makes learning hard | Leading indicators, rumours, informants; "you saw it coming" design |
-| Micromanagement overload | Policies, managers as unlocks; caps on regions and products |
-| Dry history | Accurate systems, flamboyant presentation; hands-on ad copy, medicine shows |
-| Tone / sensitivity backlash | Section 11 guidelines; consequences always visible |
-| Low replayability | Backgrounds, exclusive unlocks, map variation, multiple endings |
+| Risk                                       | Mitigation                                                                                              |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| Spreadsheet fatigue / opaque causality     | Causal breakdown of every change; diegetic newspapers and letters; hover explanations                   |
+| Lab becomes a one-time task                | Supply shocks, scrutiny-driven reformulation, new segments, era ingredients, bad batches, the 1906 rule |
+| Monthly turns feel slow or spammy          | 2–4 decisions per month via The Post; auto-advance of quiet months                                      |
+| Statistical deaths lose moral weight       | Named sample customers, event chains, the human ledger, lagging newspaper truth                         |
+| Dominant strategy (max narcotics + bribes) | Compounding bribe costs, non-linear heat, adaptive reformers, the 1906 deadline                         |
+| Snowballing / late-game boredom            | Opposition scales with size; late game shifts to politics                                               |
+| Early death spiral                         | Loans, forgiving early months, cheap recovery routes                                                    |
+| Long feedback lag makes learning hard      | Leading indicators, rumours, informants; "you saw it coming" design                                     |
+| Micromanagement overload                   | Policies, managers as unlocks; caps on regions and products                                             |
+| Dry history                                | Accurate systems, flamboyant presentation; hands-on ad copy, medicine shows                             |
+| Tone / sensitivity backlash                | Section 11 guidelines; consequences always visible                                                      |
+| Low replayability                          | Backgrounds, exclusive unlocks, map variation, multiple endings                                         |
 
 ---
 

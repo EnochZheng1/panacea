@@ -1,0 +1,14 @@
+[
+  {
+    "id": "druggist",
+    "startingCashCents": 15000,
+    "capabilities": { "stills": 1 },
+    "flags": []
+  },
+  {
+    "id": "showman",
+    "startingCashCents": 10000,
+    "capabilities": { "stills": 1 },
+    "flags": ["showman_patter"]
+  }
+]

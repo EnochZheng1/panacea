@@ -42,10 +42,12 @@ public partial class ProofView : Control
 	}
 
 	private string? _note;
+	private bool _punch;
 
 	private void Act(string? error)
 	{
 		_note = error;
+		_punch = error == null;
 		Rebuild();
 	}
 
@@ -162,6 +164,7 @@ public partial class ProofView : Control
 	private Control YourSpace(DeskModel m, int tier, FormulaRow? product)
 	{
 		var box = new Dashed(8) { Accent = tier > 0 && product != null ? Print.Green : null };
+		if (_punch) { _punch = false; Anim.Punch(box, 1.07f); }
 		var v = new VBoxContainer();
 		v.AddThemeConstantOverride("separation", 3);
 		var tag = Print.Panel(Print.Label($"YOUR SPACE · {AdSpace.Tiers[tier].Short}{(tier > 0 ? " · " + EditionWriter.Money(AdSpace.Tiers[tier].Cents) : "")}", Print.Rye, 11, HorizontalAlignment.Center, Print.Paper), Print.Box(Print.Ink, Print.Ink, 0, 3));
@@ -228,20 +231,30 @@ public partial class ProofView : Control
 			var r = shown[i];
 			var x = start + i * slot;
 			// Death stands at the shoulder of whoever is nearest the end, a head taller than anyone
-			if (r == atRisk) AddFigure(strip, "wc_death", x - 44, 230, 1f);
+			// he leans toward the one he is waiting for
+			if (r == atRisk && AddFigure(strip, "wc_death", x - 44, 230, 1f) is { } death)
+				Anim.Sway(death, 1.4f, 4.2f, lean: 3.5f);
 			// the same stock cut twice in a row is printed the other way round
 			var cut = CutFor(r);
 			var flip = shown.Take(i).Count(o => CutFor(o) == cut) % 2 == 1;
 			// people are not all one height, even when the printer owns one engraving of them
 			var h = 176 + (int)(StableHash(r.Id) % 28u);
-			AddFigure(strip, cut, x + 10, h, 1f, flip);
+			var fig = AddFigure(strip, cut, x + 10, h, 1f, flip);
+			if (fig != null)
+			{
+				var phase = (StableHash(r.Id) % 100u) / 100f * 2f;
+				if (r.Looks == "gravely_ill") Anim.Sway(fig, 1.6f, 3.0f + phase * 0.5f);
+				else Anim.Breathe(fig, r.Looks == "poorly" ? 0.006f : 0.012f, 2.4f + phase * 0.4f, phase);
+				if (r.Withdrawal) Anim.Shake(fig);
+			}
 			var tag = Print.Slip(Tag(r), 5);
 			tag.Position = new Vector2(x, CounterTop + 6);
 			tag.CustomMinimumSize = new Vector2(slot - 10, 0);
 			strip.AddChild(tag);
 		}
 		// nobody close to the end yet: he waits at the far end of the counter, faintly
-		if (atRisk == null) AddFigure(strip, "wc_death", start + shown.Count * slot + 6, 230, 0.2f);
+		if (atRisk == null && AddFigure(strip, "wc_death", start + shown.Count * slot + 6, 230, 0.2f) is { } waiting)
+			Anim.Sway(waiting, 0.8f, 5.5f);
 		return strip;
 	}
 
@@ -256,12 +269,12 @@ public partial class ProofView : Control
 	private const float CounterTop = 226f;
 	private const int BenchWidth = 372;
 
-	private static void AddFigure(Control parent, string cut, float x, float height, float alpha, bool flip = false)
+	private static TextureRect? AddFigure(Control parent, string cut, float x, float height, float alpha, bool flip = false)
 	{
 		var tex = Print.Cut(cut);
-		if (tex == null) return;
+		if (tex == null) return null;
 		var w = height * tex.GetWidth() / tex.GetHeight();
-		parent.AddChild(new TextureRect
+		var rect = new TextureRect
 		{
 			Texture = tex,
 			ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
@@ -271,7 +284,9 @@ public partial class ProofView : Control
 			Modulate = new Color(1, 1, 1, alpha),
 			FlipH = flip,
 			MouseFilter = MouseFilterEnum.Ignore,
-		});
+		};
+		parent.AddChild(rect);
+		return rect;
 	}
 
 	private static string CutFor(Regular r) => CutFor(r.Segment, !r.Name.StartsWith("Mr."));
@@ -443,6 +458,7 @@ public partial class ProofView : Control
 		holder.AddChild(desk);
 		desk.Bind(_game);
 		shade.AddChild(holder);
+		Anim.SlideIn(holder, new Vector2(0, 60), 0.24f);
 		shade.GuiInput += e => { if (e is InputEventMouseButton { Pressed: true } mb && mb.ButtonIndex == MouseButton.Left && !holder.GetGlobalRect().HasPoint(mb.GlobalPosition)) { _drawer = null; CallDeferred(nameof(Refresh)); } };
 		return shade;
 	}

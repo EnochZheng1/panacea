@@ -17,6 +17,52 @@ public partial class EditionView : ScrollContainer
 		Print.QuietScrollbar(this);
 	}
 
+	private PanelContainer? _sheet;
+	private Label? _headline;
+	private ColorRect? _mask;
+	private Tween? _reveal;
+
+	/// <summary>
+	/// The impression: an inked roller passes down the sheet, printing the edition as it goes,
+	/// and the headline comes down hard when the roller reaches it.
+	/// </summary>
+	public void PlayReveal(float seconds = 1.5f, Action? done = null)
+	{
+		if (_sheet == null) { done?.Invoke(); return; }
+		var mat = new ShaderMaterial { Shader = GD.Load<Shader>("res://shaders/roller.gdshader") };
+		mat.SetShaderParameter("progress", 0f);
+		_mask = new ColorRect { Material = mat, MouseFilter = MouseFilterEnum.Ignore };
+		_sheet.AddChild(_mask);
+		var head = _headline;
+		if (head != null) head.Modulate = new Color(1, 1, 1, 0);
+		_reveal = CreateTween();
+		// the visible top of the sheet prints first and fastest; the long tail follows
+		_reveal.TweenMethod(Callable.From<float>(p => mat.SetShaderParameter("progress", p)), 0f, 1.06f, seconds)
+			.SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.In);
+		_reveal.Parallel().TweenCallback(Callable.From(() => Slam(head))).SetDelay(seconds * 0.32f);
+		_reveal.TweenCallback(Callable.From(() => { FinishReveal(); done?.Invoke(); }));
+	}
+
+	/// <summary>Ends the reveal at once (the player clicked through).</summary>
+	public void FinishReveal()
+	{
+		_reveal?.Kill();
+		_reveal = null;
+		if (_mask != null && IsInstanceValid(_mask)) { _mask.QueueFree(); _mask = null; }
+		if (_headline != null) { _headline.Modulate = Colors.White; _headline.Scale = Vector2.One; }
+	}
+
+	private void Slam(Label? head)
+	{
+		if (head == null || !IsInstanceValid(head)) return;
+		head.PivotOffset = head.Size / 2;
+		head.Scale = new Vector2(1.45f, 1.45f);
+		head.Modulate = Colors.White;
+		var t = head.CreateTween();
+		t.TweenProperty(head, "scale", Vector2.One, 0.22f).SetTrans(Tween.TransitionType.Quad).SetEase(Tween.EaseType.In);
+		t.TweenCallback(Callable.From(() => { if (_sheet != null) Anim.Jolt(_sheet, 7f); }));
+	}
+
 	public void Show(Edition e)
 	{
 		foreach (var c in GetChildren()) { RemoveChild(c); c.QueueFree(); }
@@ -35,6 +81,7 @@ public partial class EditionView : ScrollContainer
 		sheetStyle.ShadowSize = 18;
 		sheetStyle.ShadowOffset = new Vector2(0, 6);
 		var sheet = Print.Panel(page, sheetStyle);
+		_sheet = sheet;
 		var margin = new MarginContainer();
 		margin.AddThemeConstantOverride("margin_top", 28);
 		margin.AddThemeConstantOverride("margin_bottom", 110);
@@ -164,9 +211,10 @@ public partial class EditionView : ScrollContainer
 		}
 	}
 
-	private static void AddLead(VBoxContainer col, Story s)
+	private void AddLead(VBoxContainer col, Story s)
 	{
-		col.AddChild(Print.Label(s.Headline, Print.Rye, 52, HorizontalAlignment.Center));
+		_headline = Print.Label(s.Headline, Print.Rye, 52, HorizontalAlignment.Center);
+		col.AddChild(_headline);
 		for (var i = 0; i < s.Decks.Count; i++)
 		{
 			col.AddChild(Print.Dash());

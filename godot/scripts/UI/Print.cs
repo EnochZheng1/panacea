@@ -132,6 +132,7 @@ public static class Print
 		b.AddThemeStyleboxOverride("pressed", Make(fg, Ink, 3));
 		b.AddThemeStyleboxOverride("hover_pressed", Make(fg, Ink, 3));
 		b.AddThemeStyleboxOverride("disabled", Make(bg, new Color(Ink, 0.3f), 1));
+		Anim.LiftOnHover(b);
 		var focus = Make(new Color(0, 0, 0, 0), Ink, 1);
 		focus.ExpandMarginLeft = focus.ExpandMarginRight = focus.ExpandMarginTop = focus.ExpandMarginBottom = 3;
 		b.AddThemeStyleboxOverride("focus", focus);

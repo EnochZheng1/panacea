@@ -33,6 +33,7 @@ public partial class DeskView : ScrollContainer
 	{
 		HorizontalScrollMode = ScrollMode.Disabled;
 		SetAnchorsPreset(LayoutPreset.FullRect);
+		Print.QuietScrollbar(this);
 	}
 
 	public void Bind(IGame game)
@@ -97,17 +98,26 @@ public partial class DeskView : ScrollContainer
 		var h = new HBoxContainer();
 		h.AddThemeConstantOverride("separation", 24);
 		var title = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-		title.AddChild(Print.Label("THE PROPRIETOR'S DESK", Print.Rye, 34, color: Print.Cream));
+		title.AddChild(Print.Label("THE PROPRIETOR'S DESK", Print.Rye, 34, color: Print.Paper));
 		var when = new DateTime(m.Year, m.Month, 1).ToString("MMMM yyyy", CultureInfo.InvariantCulture);
-		title.AddChild(Print.Label($"{when}. The next edition goes to press when you pull the lever.", Print.FellIt, 17, color: Print.Cream));
+		title.AddChild(Print.Label($"{when}. The next edition goes to press when you pull the lever.", Print.FellIt, 17, color: Print.Paper));
 		h.AddChild(title);
+		var lever = Print.Button("GO TO PRESS ▸", 26, solid: true);
+		lever.CustomMinimumSize = new Vector2(300, 70);
+		lever.SizeFlagsVertical = SizeFlags.ShrinkCenter;
+		lever.TooltipText = "End the month and print the next edition.";
+		lever.Pressed += () => PressRequested?.Invoke();
+		lever.AddThemeColorOverride("font_hover_color", Print.Ink);
+		lever.AddThemeStyleboxOverride("normal", Print.Box(Print.Ink, Print.Paper, 3, 10));
+		lever.AddThemeStyleboxOverride("hover", Print.Box(Print.Paper, Print.Paper, 3, 10));
+		h.AddChild(lever);
 		var books = new VBoxContainer();
 		books.AddChild(Print.Label("THE BOOKS", Print.Rye, 15, HorizontalAlignment.Center));
 		books.AddChild(Print.Label($"Cash in hand: {EditionWriter.Money(m.CashCents)}", Print.Fell, 16));
 		books.AddChild(Print.Label($"Standing in the ward: {m.Reputation:0}", Print.Fell, 16));
 		books.AddChild(Print.Label($"Talk about the shop: {Talk(m.Heat)}", Print.Fell, 16));
 		books.AddChild(Print.Label($"Regulars: {m.Customers} of {m.CustomerCapacity}", Print.Fell, 16));
-		h.AddChild(Slip(books, Print.Cream, 230));
+		h.AddChild(Print.Slip(books, 12, 240));
 		return h;
 	}
 
@@ -135,7 +145,7 @@ public partial class DeskView : ScrollContainer
 			}
 			v.AddChild(Print.Dash(80));
 		}
-		return Slip(v, Print.Paper);
+		return Print.Slip(v);
 	}
 
 	private Control Supplies(DeskModel m)
@@ -159,7 +169,7 @@ public partial class DeskView : ScrollContainer
 			}
 			v.AddChild(row);
 		}
-		return Slip(v, Print.Cream);
+		return Print.Slip(v);
 	}
 
 	private Control FormulaBook(DeskModel m)
@@ -240,7 +250,7 @@ public partial class DeskView : ScrollContainer
 		var record = Print.Button("ENTER IT IN THE BOOK", 16, solid: true);
 		record.Pressed += () => Act(_game!.CreateFormula(_draftName, comps, _draftProcess, _draftPrice), $"\"{_draftName}\" is entered in the book.");
 		v.AddChild(record);
-		return Slip(v, Print.Cream);
+		return Print.Slip(v);
 	}
 
 	private Control Still(DeskModel m)
@@ -271,7 +281,7 @@ public partial class DeskView : ScrollContainer
 			brew.Pressed += () => Act(_game!.Brew(fid, count), $"{count} bottles of {fname} are on the still.");
 			v.AddChild(brew);
 		}
-		return Slip(v, Print.Paper);
+		return Print.Slip(v);
 	}
 
 	private Control ProofSheet(DeskModel m)
@@ -280,7 +290,7 @@ public partial class DeskView : ScrollContainer
 		if (m.Formulas.Count == 0)
 		{
 			v.AddChild(Print.Body("[i]Nothing to advertise yet.[/i]", 15, justify: false));
-			return Slip(v, Print.Cream);
+			return Print.Slip(v);
 		}
 		var f = m.Formulas.FirstOrDefault(x => x.Id == _proofFormula) ?? m.Formulas[0];
 		_proofFormula = f.Id;
@@ -317,7 +327,7 @@ public partial class DeskView : ScrollContainer
 			}
 			v.AddChild(row);
 		}
-		return Slip(v, Print.Cream);
+		return Print.Slip(v);
 	}
 
 	private Control Prospects(DeskModel m)
@@ -327,17 +337,14 @@ public partial class DeskView : ScrollContainer
 		{
 			v.AddChild(Print.Label(name, Print.Fell, 15));
 			var bar = new HBoxContainer();
+			bar.AddThemeConstantOverride("separation", 0);
 			bar.AddChild(new ColorRect { Color = Print.Ink, CustomMinimumSize = new Vector2((float)(200 * Math.Clamp(progress, 0, 1)), 8) });
-			bar.AddChild(new ColorRect { Color = new Color(Print.Ink, 0.18f), CustomMinimumSize = new Vector2((float)(200 * (1 - Math.Clamp(progress, 0, 1))), 8) });
+			bar.AddChild(new ColorRect { Color = new Color(Print.Ink, 0.15f), CustomMinimumSize = new Vector2((float)(200 * (1 - Math.Clamp(progress, 0, 1))), 8) });
 			v.AddChild(bar);
 		}
-		var press = Print.Button("GO TO PRESS ▸", 26, solid: true);
-		press.CustomMinimumSize = new Vector2(0, 64);
-		press.Pressed += () => PressRequested?.Invoke();
-		v.AddChild(press);
 		if (!string.IsNullOrEmpty(_note))
-			v.AddChild(Print.Body($"[i]{Print.Escape(_note)}[/i]", 15, _noteIsError ? new Color("8e2f22") : Print.Ink));
-		return Slip(v, Print.Paper);
+			v.AddChild(Print.Body((_noteIsError ? "[b]Refused.[/b] " : "") + $"[i]{Print.Escape(_note)}[/i]", 15, justify: false));
+		return Print.Slip(v);
 	}
 
 	// ---------- helpers ----------
@@ -359,7 +366,7 @@ public partial class DeskView : ScrollContainer
 			g.AddChild(Print.Label(label, Print.FellIt, 13, wrap: false));
 			var bar = new HBoxContainer();
 			var w = (float)Math.Clamp(value / 10.0, 0, 1) * 140;
-			bar.AddChild(new ColorRect { Color = key is "acuteToxicity" or "habit" ? Print.Green : Print.Ink, CustomMinimumSize = new Vector2(Math.Max(2, w), 9), SizeFlagsVertical = SizeFlags.ShrinkCenter });
+			bar.AddChild(new ColorRect { Color = Print.Ink, CustomMinimumSize = new Vector2(Math.Max(2, w), 9), SizeFlagsVertical = SizeFlags.ShrinkCenter });
 			bar.AddChild(Print.Label($"{value:0.0}", Print.Fell, 12, wrap: false));
 			g.AddChild(bar);
 		}
@@ -382,10 +389,4 @@ public partial class DeskView : ScrollContainer
 		return v;
 	}
 
-	private static Control Slip(Control body, Color paper, int minWidth = 0)
-	{
-		var p = Print.Panel(body, Print.Box(paper, new Color("2a1e18"), 1, 16));
-		p.CustomMinimumSize = new Vector2(minWidth, 0);
-		return p;
-	}
 }

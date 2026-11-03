@@ -9,7 +9,7 @@
     <path class="ln" d="M244,404 L300,392 L356,404 L366,520 L360,660 L240,660 L234,520 Z" stroke-width="2.6"/>
     <path class="k" d="M252,424 L300,446 L348,424 L362,656 L300,680 L238,656 Z"/>
     <path class="cut" d="M262,470 C268,560 266,620 262,650 M340,470 C334,560 336,620 340,650"/>
-    <g class="p" stroke="#161112" stroke-width="1.6"><circle cx="300" cy="480" r="4"/><circle cx="300" cy="520" r="4"/><circle cx="300" cy="560" r="4"/><circle cx="300" cy="600" r="4"/></g>
+    <g class="p" stroke="#141212" stroke-width="1.6"><circle cx="300" cy="480" r="4"/><circle cx="300" cy="520" r="4"/><circle cx="300" cy="560" r="4"/><circle cx="300" cy="600" r="4"/></g>
     <!-- thin neck, the too-big collar -->
     <path class="p" d="M288,336 L312,336 L314,394 L286,394 Z"/>
     <path class="ln" d="M288,336 L286,394 M312,336 L314,394" stroke-width="2.2"/>
@@ -27,8 +27,8 @@
     <path class="g2" d="M226,230 C262,218 338,218 374,230 L386,250 C340,238 260,238 214,250 Z"/>
     <path class="ln" d="M226,230 C262,218 338,218 374,230 L386,250 C340,238 260,238 214,250 Z" stroke-width="2.2"/>
     <!-- wide hopeful eyes, pinpoint pupils -->
-    <ellipse cx="276" cy="268" rx="17" ry="19" class="p" stroke="#161112" stroke-width="2.8"/>
-    <ellipse cx="324" cy="268" rx="17" ry="19" class="p" stroke="#161112" stroke-width="2.8"/>
+    <ellipse cx="276" cy="268" rx="17" ry="19" class="p" stroke="#141212" stroke-width="2.8"/>
+    <ellipse cx="324" cy="268" rx="17" ry="19" class="p" stroke="#141212" stroke-width="2.8"/>
     <path class="k" d="M258,290 C268,300 284,300 294,290 C286,304 266,304 258,290 Z M306,290 C316,300 332,300 342,290 C334,304 314,304 306,290 Z"/>
     <path class="g" d="M240,284 C244,304 254,318 266,324 L262,296 Z M360,284 C356,304 346,318 334,324 L338,296 Z"/>
     <!-- coughing into the handkerchief -->
@@ -37,13 +37,13 @@
     <g class="k"><circle cx="284" cy="326" r="3.4"/><circle cx="296" cy="332" r="2.4"/><circle cx="276" cy="334" r="2"/><circle cx="304" cy="322" r="1.8"/></g>
     <path class="ln" d="M338,300 L352,296 M340,314 L356,316 M336,328 L348,336" stroke-width="2"/>
     <path class="ln" d="M246,408 C210,436 204,500 222,504 C244,508 252,420 262,340" stroke-width="30"/>
-    <path d="M246,408 C210,436 204,500 222,504 C244,508 252,420 262,340" fill="none" stroke="#f0c4bd" stroke-width="22" stroke-linecap="round"/>
+    <path d="M246,408 C210,436 204,500 222,504 C244,508 252,420 262,340" fill="none" stroke="#efece4" stroke-width="22" stroke-linecap="round"/>
     <path class="k" d="M214,452 L238,446 L238,458 L214,464 Z"/>
     <path class="p" d="M248,326 C254,312 276,312 278,326 C280,338 268,346 258,344 C250,342 246,334 248,326 Z"/>
     <path class="ln" d="M248,326 C254,312 276,312 278,326 C280,338 268,346 258,344 C250,342 246,334 248,326 Z" stroke-width="2"/>
     <!-- the bottle clutched to his chest -->
     <path class="ln" d="M354,410 C392,446 390,500 350,514" stroke-width="30"/>
-    <path d="M354,410 C392,446 390,500 350,514" fill="none" stroke="#f0c4bd" stroke-width="22" stroke-linecap="round"/>
+    <path d="M354,410 C392,446 390,500 350,514" fill="none" stroke="#efece4" stroke-width="22" stroke-linecap="round"/>
     <path class="k" d="M364,446 L386,438 L390,450 L368,458 Z"/>
     <path class="k" d="M312,470 L344,470 L344,540 L312,540 Z M320,446 L336,446 L336,470 L320,470 Z"/>
     <path class="gr" d="M317,478 L339,478 L339,534 L317,534 Z"/>

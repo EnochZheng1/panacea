@@ -12,7 +12,7 @@
     <path class="ln" d="M142,330 L258,330 L258,506 L142,506 Z M148,336 L252,336 L252,500 L148,500 Z" stroke-width="1.6"/>
     <path class="ln" d="M164,404 L236,404 M164,462 L236,462" stroke-width="1.2"/>
   </g>
-  <g filter="url(#soft)" font-family="Fell" fill="#161112" text-anchor="middle">
+  <g filter="url(#soft)" font-family="Fell" fill="#141212" text-anchor="middle">
     <text x="200" y="356" font-size="11" letter-spacing="2">DR. ——'S</text>
     <text x="200" y="374" font-family="FellIt" font-size="14">Celebrated</text>
     <text x="200" y="398" font-family="Rye" font-size="24" textLength="96" lengthAdjust="spacingAndGlyphs">PANACEA</text>

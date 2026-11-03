@@ -5,14 +5,14 @@
       @font-face { font-family: Fell; src: url(../../assets/fonts/IMFeENrm28P.ttf); }
       @font-face { font-family: FellIt; src: url(../../assets/fonts/IMFeENit28P.ttf); }
       @font-face { font-family: Rye; src: url(../../assets/fonts/Rye-Regular.ttf); }
-      .k { fill: #161112; }
-      .p { fill: #f0c4bd; }
-      .cr { fill: #efe2c6; }
+      .k { fill: #141212; }
+      .p { fill: #efece4; }
+      .cr { fill: #ebe4d4; }
       .g { fill: url(#gouge); }
       .g2 { fill: url(#gouge2); }
       .gr { fill: #23a862; }
-      .ln { fill: none; stroke: #161112; stroke-linecap: round; stroke-linejoin: round; }
-      .cut { fill: none; stroke: #f0c4bd; stroke-linecap: round; }
+      .ln { fill: none; stroke: #141212; stroke-linecap: round; stroke-linejoin: round; }
+      .cut { fill: none; stroke: #efece4; stroke-linecap: round; }
       .grl { fill: none; stroke: #23a862; stroke-linecap: square; }
       /* defaults only: a stroke-width attribute on the element wins */
       .ln:not([stroke-width]) { stroke-width: 2.6; }
@@ -35,32 +35,32 @@
     </filter>
     <filter id="paper">
       <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" seed="3" result="f"/>
-      <feColorMatrix in="f" type="matrix" values="0 0 0 0 0.55  0 0 0 0 0.3  0 0 0 0 0.3  0 0 0 0.16 0" result="f1"/>
+      <feColorMatrix in="f" type="matrix" values="0 0 0 0 0.42  0 0 0 0 0.4  0 0 0 0 0.37  0 0 0 0.14 0" result="f1"/>
       <feTurbulence type="fractalNoise" baseFrequency="0.004" numOctaves="3" seed="8" result="b"/>
-      <feColorMatrix in="b" type="matrix" values="0 0 0 0 0.6  0 0 0 0 0.35  0 0 0 0 0.3  -1.2 0 0 0 0.62" result="f2"/>
+      <feColorMatrix in="b" type="matrix" values="0 0 0 0 0.5  0 0 0 0 0.46  0 0 0 0 0.4  -1.2 0 0 0 0.5" result="f2"/>
       <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="f2"/><feMergeNode in="f1"/></feMerge>
     </filter>
     <pattern id="gouge" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(-30)">
-      <rect width="7" height="7" fill="#161112"/><path d="M0,3.5 L7,3.5" stroke="#f0c4bd" stroke-width="2.1"/>
+      <rect width="7" height="7" fill="#141212"/><path d="M0,3.5 L7,3.5" stroke="#efece4" stroke-width="2.1"/>
     </pattern>
     <pattern id="gouge2" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(32)">
-      <rect width="7" height="7" fill="#161112"/><path d="M0,3.5 L7,3.5" stroke="#f0c4bd" stroke-width="1.8"/>
+      <rect width="7" height="7" fill="#141212"/><path d="M0,3.5 L7,3.5" stroke="#efece4" stroke-width="1.8"/>
     </pattern>
     <pattern id="plaid" width="18" height="18" patternUnits="userSpaceOnUse">
-      <rect width="18" height="18" fill="#f0c4bd"/>
-      <path d="M0,4 H18 M0,7 H18 M4,0 V18 M7,0 V18" stroke="#161112" stroke-width="1.6"/>
-      <path d="M0,13 H18 M13,0 V18" stroke="#161112" stroke-width="3.2"/>
+      <rect width="18" height="18" fill="#efece4"/>
+      <path d="M0,4 H18 M0,7 H18 M4,0 V18 M7,0 V18" stroke="#141212" stroke-width="1.6"/>
+      <path d="M0,13 H18 M13,0 V18" stroke="#141212" stroke-width="3.2"/>
     </pattern>
     <pattern id="tint" width="8" height="7" patternUnits="userSpaceOnUse">
-      <path d="M0,6 L8,6" stroke="#161112" stroke-width="1.3" opacity="0.28"/>
+      <path d="M0,6 L8,6" stroke="#141212" stroke-width="1.3" opacity="0.28"/>
     </pattern>
   </defs>
   <g id="backdrop">
-    <rect width="600" height="1000" fill="#f0c4bd" filter="url(#paper)"/>
+    <rect width="600" height="1000" fill="#efece4" filter="url(#paper)"/>
     <rect x="40" y="40" width="520" height="840" fill="url(#tint)"/>
     <g filter="url(#soft)">
-      <rect x="40" y="40" width="520" height="840" fill="none" stroke="#161112" stroke-width="4"/>
-      <rect x="47" y="47" width="506" height="826" fill="none" stroke="#161112" stroke-width="1.4"/>
+      <rect x="40" y="40" width="520" height="840" fill="none" stroke="#141212" stroke-width="4"/>
+      <rect x="47" y="47" width="506" height="826" fill="none" stroke="#141212" stroke-width="1.4"/>
     </g>
   </g>
   <g id="figure" filter="url(#carve)">
@@ -74,7 +74,7 @@
     <!-- wasp-waisted bodice -->
     <path class="k" d="M266,388 C252,440 258,492 274,530 L362,530 C376,492 380,440 366,388 C344,376 286,376 266,388 Z"/>
     <path class="p" d="M272,400 C264,440 266,490 278,526 L288,526 C280,490 278,444 284,402 Z"/>
-    <g class="p" stroke="#161112" stroke-width="1.4"><circle cx="316" cy="410" r="3.4"/><circle cx="316" cy="434" r="3.4"/><circle cx="316" cy="458" r="3.4"/><circle cx="316" cy="482" r="3.4"/><circle cx="316" cy="506" r="3.4"/></g>
+    <g class="p" stroke="#141212" stroke-width="1.4"><circle cx="316" cy="410" r="3.4"/><circle cx="316" cy="434" r="3.4"/><circle cx="316" cy="458" r="3.4"/><circle cx="316" cy="482" r="3.4"/><circle cx="316" cy="506" r="3.4"/></g>
     <!-- high lace collar -->
     <path class="p" d="M296,346 L336,346 L340,388 L292,388 Z"/>
     <path class="ln" d="M296,346 L292,388 M336,346 L340,388 M294,356 L338,356 M293,366 L339,366 M293,376 L339,376" stroke-width="1.4"/>
@@ -101,7 +101,7 @@
     <path class="k" d="M206,520 C214,460 220,430 220,420 C222,430 230,460 238,520 C228,530 216,530 206,520 Z"/>
     <path class="ln" d="M218,420 C210,404 196,404 196,418" stroke-width="4"/>
     <path class="ln" d="M270,410 C240,430 226,460 224,486" stroke-width="22"/>
-    <path class="k" d="M270,410 C240,430 226,460 224,486" fill="none" stroke="#161112" stroke-width="18" stroke-linecap="round"/>
+    <path class="k" d="M270,410 C240,430 226,460 224,486" fill="none" stroke="#141212" stroke-width="18" stroke-linecap="round"/>
     <path class="p" d="M214,480 C214,470 230,466 234,476 C238,486 230,494 222,494 C216,492 212,488 214,480 Z"/>
     <!-- the other hand offers her complexion wafers -->
     <path class="k" d="M362,404 C396,420 410,460 404,494 L382,494 C384,466 376,440 356,428 Z"/>
@@ -111,10 +111,10 @@
   </g>
   <!-- the arsenic shows in her cheeks -->
   <ellipse cx="300" cy="300" rx="10" ry="6" class="gr" opacity="0.45"/><ellipse cx="346" cy="300" rx="9" ry="6" class="gr" opacity="0.35"/>
-  <g filter="url(#soft)"><text x="402" y="521" font-family="Fell" font-size="7.5" text-anchor="middle" fill="#161112">ARSENIC</text><text x="402" y="528" font-family="Fell" font-size="5.5" text-anchor="middle" fill="#161112">WAFERS</text></g>
+  <g filter="url(#soft)"><text x="402" y="521" font-family="Fell" font-size="7.5" text-anchor="middle" fill="#141212">ARSENIC</text><text x="402" y="528" font-family="Fell" font-size="5.5" text-anchor="middle" fill="#141212">WAFERS</text></g>
 
   <g id="caption" filter="url(#soft)">
-    <text x="300.0" y="922" font-family="Rye" font-size="30" text-anchor="middle" fill="#161112">THE LADY OF FASHION.</text>
-    <text x="300.0" y="954" font-family="FellIt" font-size="18" text-anchor="middle" fill="#161112">Her complexion is the talk of the cemetery.</text>
+    <text x="300.0" y="922" font-family="Rye" font-size="30" text-anchor="middle" fill="#141212">THE LADY OF FASHION.</text>
+    <text x="300.0" y="954" font-family="FellIt" font-size="18" text-anchor="middle" fill="#141212">Her complexion is the talk of the cemetery.</text>
   </g>
 </svg>

@@ -1,14 +1,14 @@
-  <g id="backdrop"><rect width="600" height="800" fill="#f0c4bd" filter="url(#paper)"/></g>
+  <g id="backdrop"><rect width="600" height="800" fill="#efece4" filter="url(#paper)"/></g>
   <foreignObject x="0" y="0" width="600" height="800" filter="url(#soft)">
     <div xmlns="http://www.w3.org/1999/xhtml" class="ad">
       <style>
-        .ad { box-sizing: border-box; width: 600px; height: 800px; padding: 20px; color: #161112; font-family: Fell, serif; }
+        .ad { box-sizing: border-box; width: 600px; height: 800px; padding: 20px; color: #141212; font-family: Fell, serif; }
         .ad * { margin: 0; box-sizing: border-box; }
-        .box { height: 100%; border: 7px solid #161112; outline: 1.6px solid #161112; outline-offset: -14px; padding: 26px 30px; text-align: center; }
+        .box { height: 100%; border: 7px solid #141212; outline: 1.6px solid #141212; outline-offset: -14px; padding: 26px 30px; text-align: center; }
         .over { font-family: FellIt; font-size: 22px; letter-spacing: 2px; }
         .dr { font-size: 18px; letter-spacing: 5px; margin-top: 6px; }
         .name { font-family: Rye; font-size: 60px; line-height: 0.98; }
-        .rule { border-top: 4px solid #161112; border-bottom: 1.4px solid #161112; height: 8px; margin: 10px 0; }
+        .rule { border-top: 4px solid #141212; border-bottom: 1.4px solid #141212; height: 8px; margin: 10px 0; }
         .mid { display: grid; grid-template-columns: 160px 1fr; gap: 16px; align-items: center; text-align: left; }
         .mid img { width: 160px; height: 330px; object-fit: contain; }
         .cures { font-size: 19px; line-height: 1.5; letter-spacing: 1px; }
@@ -16,7 +16,7 @@
         .quote { font-family: FellIt; font-size: 18px; margin: 8px 0 4px; }
         .sig { font-size: 13px; letter-spacing: 1.5px; }
         .price { font-family: Rye; font-size: 40px; margin-top: 6px; }
-        .beware { background: #161112; color: #f0c4bd; font-family: Rye; font-size: 19px; padding: 6px; margin-top: 8px; letter-spacing: 1px; }
+        .beware { background: #141212; color: #efece4; font-family: Rye; font-size: 19px; padding: 6px; margin-top: 8px; letter-spacing: 1px; }
         .fine { font-family: FellIt; font-size: 12.5px; margin-top: 6px; }
       </style>
       <div class="box">

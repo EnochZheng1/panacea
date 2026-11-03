@@ -41,7 +41,7 @@
     <path class="gr" d="M380,282 L404,282 L405,322 L379,322 Z"/>
     <path class="p" d="M380,292 L404,292 L404,310 L380,310 Z"/>
   </g>
-  <g filter="url(#soft)" font-family="FellIt" fill="#161112">
+  <g filter="url(#soft)" font-family="FellIt" fill="#141212">
     <text x="190" y="404" font-size="16">z</text><text x="176" y="388" font-size="12">z</text><text x="166" y="376" font-size="9">z</text>
   </g>
   <g class="grl" stroke-width="3.5"><path d="M392,246 L392,232 M372,252 L362,242 M412,252 L422,242"/></g>

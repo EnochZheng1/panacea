@@ -2,7 +2,7 @@
 
 ## Chosen direction: the Gazette
 
-The player chose the pink-paper sensational weekly of 1880s–1900s New York, printed as a woodcut: black, plus Scheele's green on pink newsprint, with woodtype headlines (`style_woodcut`, `gazette_page`).
+The direction is the sensational weekly of 1880s–1900s New York, printed as a woodcut. **Black ink on white newsprint is the main theme**; Scheele's green appears only on the product. Headlines are set in woodtype. The `wc_*` set is printed this way. The earlier pink-newsprint explorations (`style_woodcut`, `gazette_page`) are kept only for reference.
 
 The newspaper is the game's main surface, not just a style. Patent medicine was the period's largest newspaper advertiser, so each turn is an edition. The humour comes from juxtaposition on the page, for example the player's advert dressed as news next to the obituary of the man it describes.
 

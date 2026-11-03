@@ -1,12 +1,12 @@
-  <g id="backdrop"><rect width="460" height="1000" fill="#f0c4bd" filter="url(#paper)"/></g>
+  <g id="backdrop"><rect width="460" height="1000" fill="#efece4" filter="url(#paper)"/></g>
   <foreignObject x="0" y="0" width="460" height="1000" filter="url(#soft)">
     <div xmlns="http://www.w3.org/1999/xhtml" class="col">
       <style>
-        .col { box-sizing: border-box; width: 460px; height: 1000px; padding: 26px 28px; color: #161112; font-family: Fell, serif;
-               font-size: 16px; line-height: 1.24; border-left: 1.6px solid #161112; border-right: 1.6px solid #161112; }
+        .col { box-sizing: border-box; width: 460px; height: 1000px; padding: 26px 28px; color: #141212; font-family: Fell, serif;
+               font-size: 16px; line-height: 1.24; border-left: 1.6px solid #141212; border-right: 1.6px solid #141212; }
         .col * { margin: 0; box-sizing: border-box; }
         h3 { font-family: Rye; font-weight: normal; text-align: center; font-size: 40px; line-height: 1.02; }
-        .sep { width: 40%; margin: 8px auto; border-top: 1.3px solid #161112; }
+        .sep { width: 40%; margin: 8px auto; border-top: 1.3px solid #141212; }
         .deck { text-align: center; }
         .a { font-family: FellIt; font-size: 22px; }
         .b { font-size: 14px; letter-spacing: 1.4px; line-height: 1.32; }

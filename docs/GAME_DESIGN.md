@@ -349,7 +349,7 @@ Production art comes from the Gazette woodcut set (see `godot/art/README.md`). L
 
 _Revised: this replaces the earlier 3D engraving direction._
 
-- **A pink-paper sensational weekly, printed from wood.** Black ink and one spot colour on pink newsprint. Midtones are carved gouges, edges are unevenly inked, and the paper is folded and worn. The model is the sensational press of 1880s–1900s New York, but the papers, products and people are all fictional.
+- **Black and white first: a sensational weekly, printed from wood.** Black ink on white newsprint is the main theme everywhere: the paper itself, and the desk (white slips on black). Midtones are carved gouges, edges are unevenly inked, and the paper is folded and worn. The model is the sensational press of 1880s–1900s New York, but the papers, products and people are all fictional. (An earlier pink-newsprint version was retired in favour of black and white.)
 - **One spot colour: Scheele's green,** the arsenic pigment that poisoned Victorians through wallpaper, dresses and sweets. It is reserved for the product and its pull: the liquid, the rays around a bottle, the tinge in an arsenic-eater's cheeks.
 - **Woodtype and book type:** Rye for headlines and IM Fell for text (both SIL OFL).
 - **Stock cuts:** one engraving is reused across different products, people and captions. This is period-accurate and a running gag, and it keeps the art budget small.

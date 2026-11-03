@@ -9,7 +9,7 @@
     <!-- wasp-waisted bodice -->
     <path class="k" d="M266,388 C252,440 258,492 274,530 L362,530 C376,492 380,440 366,388 C344,376 286,376 266,388 Z"/>
     <path class="p" d="M272,400 C264,440 266,490 278,526 L288,526 C280,490 278,444 284,402 Z"/>
-    <g class="p" stroke="#161112" stroke-width="1.4"><circle cx="316" cy="410" r="3.4"/><circle cx="316" cy="434" r="3.4"/><circle cx="316" cy="458" r="3.4"/><circle cx="316" cy="482" r="3.4"/><circle cx="316" cy="506" r="3.4"/></g>
+    <g class="p" stroke="#141212" stroke-width="1.4"><circle cx="316" cy="410" r="3.4"/><circle cx="316" cy="434" r="3.4"/><circle cx="316" cy="458" r="3.4"/><circle cx="316" cy="482" r="3.4"/><circle cx="316" cy="506" r="3.4"/></g>
     <!-- high lace collar -->
     <path class="p" d="M296,346 L336,346 L340,388 L292,388 Z"/>
     <path class="ln" d="M296,346 L292,388 M336,346 L340,388 M294,356 L338,356 M293,366 L339,366 M293,376 L339,376" stroke-width="1.4"/>
@@ -36,7 +36,7 @@
     <path class="k" d="M206,520 C214,460 220,430 220,420 C222,430 230,460 238,520 C228,530 216,530 206,520 Z"/>
     <path class="ln" d="M218,420 C210,404 196,404 196,418" stroke-width="4"/>
     <path class="ln" d="M270,410 C240,430 226,460 224,486" stroke-width="22"/>
-    <path class="k" d="M270,410 C240,430 226,460 224,486" fill="none" stroke="#161112" stroke-width="18" stroke-linecap="round"/>
+    <path class="k" d="M270,410 C240,430 226,460 224,486" fill="none" stroke="#141212" stroke-width="18" stroke-linecap="round"/>
     <path class="p" d="M214,480 C214,470 230,466 234,476 C238,486 230,494 222,494 C216,492 212,488 214,480 Z"/>
     <!-- the other hand offers her complexion wafers -->
     <path class="k" d="M362,404 C396,420 410,460 404,494 L382,494 C384,466 376,440 356,428 Z"/>
@@ -46,4 +46,4 @@
   </g>
   <!-- the arsenic shows in her cheeks -->
   <ellipse cx="300" cy="300" rx="10" ry="6" class="gr" opacity="0.45"/><ellipse cx="346" cy="300" rx="9" ry="6" class="gr" opacity="0.35"/>
-  <g filter="url(#soft)"><text x="402" y="521" font-family="Fell" font-size="7.5" text-anchor="middle" fill="#161112">ARSENIC</text><text x="402" y="528" font-family="Fell" font-size="5.5" text-anchor="middle" fill="#161112">WAFERS</text></g>
+  <g filter="url(#soft)"><text x="402" y="521" font-family="Fell" font-size="7.5" text-anchor="middle" fill="#141212">ARSENIC</text><text x="402" y="528" font-family="Fell" font-size="5.5" text-anchor="middle" fill="#141212">WAFERS</text></g>

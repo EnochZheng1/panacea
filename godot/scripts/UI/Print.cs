@@ -8,9 +8,11 @@ namespace Panacea.UI;
 /// </summary>
 public static class Print
 {
-	public static readonly Color Ink = new("161112");
-	public static readonly Color Paper = new("f0c4bd");
-	public static readonly Color Cream = new("efe2c6");
+	// Black ink on white newsprint. Scheele's green is reserved for the product.
+	public static readonly Color Ink = new("141212");
+	public static readonly Color Paper = new("efece4");
+	public static readonly Color Table = new("0d0c0b");
+	public static readonly Color Faint = new("141212", 0.55f);
 	public static readonly Color Green = new("23a862");
 
 	private static FontFile? _rye, _fell, _fellIt;
@@ -101,33 +103,64 @@ public static class Print
 	public static Texture2D? Cut(string name) =>
 		string.IsNullOrEmpty(name) ? null : ResourceLoader.Exists($"res://assets/art/cuts/{name}.png") ? GD.Load<Texture2D>($"res://assets/art/cuts/{name}.png") : null;
 
-	/// <summary>A printed ticket-style button: ink border, woodtype caption.</summary>
+	/// <summary>
+	/// A printed ticket: woodtype caption inside a ruled border. Hovering inks it in (the colours
+	/// invert); "solid" tickets are the main action of a slip and start inked.
+	/// </summary>
 	public static Button Button(string text, int size = 18, bool solid = false)
 	{
-		var b = new Button { Text = text, FocusMode = Control.FocusModeEnum.All };
+		var b = new Button { Text = text, FocusMode = Control.FocusModeEnum.All, MouseDefaultCursorShape = Control.CursorShape.PointingHand };
 		b.AddThemeFontOverride("font", Rye);
 		b.AddThemeFontSizeOverride("font_size", size);
 		var fg = solid ? Paper : Ink;
 		var bg = solid ? Ink : Paper;
 		b.AddThemeColorOverride("font_color", fg);
-		b.AddThemeColorOverride("font_hover_color", solid ? Green : Ink);
-		b.AddThemeColorOverride("font_pressed_color", fg);
+		b.AddThemeColorOverride("font_hover_color", bg);
+		b.AddThemeColorOverride("font_pressed_color", bg);
+		b.AddThemeColorOverride("font_hover_pressed_color", bg);
 		b.AddThemeColorOverride("font_focus_color", fg);
-		b.AddThemeColorOverride("font_disabled_color", new Color(fg, 0.4f));
-		var normal = Box(bg, Ink, 2, 6);
-		normal.ContentMarginLeft = normal.ContentMarginRight = 12;
-		var hover = (StyleBoxFlat)normal.Duplicate();
-		hover.BorderColor = solid ? Green : Ink;
-		hover.SetBorderWidthAll(3);
-		var pressed = (StyleBoxFlat)normal.Duplicate();
-		pressed.BgColor = solid ? new Color("2c2224") : new Color("e2b3ab");
-		var focus = (StyleBoxFlat)hover.Duplicate();
-		focus.BgColor = new Color(0, 0, 0, 0);
-		b.AddThemeStyleboxOverride("normal", normal);
-		b.AddThemeStyleboxOverride("hover", hover);
-		b.AddThemeStyleboxOverride("pressed", pressed);
-		b.AddThemeStyleboxOverride("disabled", normal);
+		b.AddThemeColorOverride("font_disabled_color", new Color(fg, 0.35f));
+		StyleBoxFlat Make(Color fill, Color border, int width)
+		{
+			var st = Box(fill, border, width, 6);
+			st.ContentMarginLeft = st.ContentMarginRight = Mathf.Max(10, size * 0.7f);
+			st.ContentMarginTop = st.ContentMarginBottom = Mathf.Max(4, size * 0.3f);
+			return st;
+		}
+		b.AddThemeStyleboxOverride("normal", Make(bg, Ink, 2));
+		b.AddThemeStyleboxOverride("hover", Make(fg, Ink, 2));
+		b.AddThemeStyleboxOverride("pressed", Make(fg, Ink, 3));
+		b.AddThemeStyleboxOverride("hover_pressed", Make(fg, Ink, 3));
+		b.AddThemeStyleboxOverride("disabled", Make(bg, new Color(Ink, 0.3f), 1));
+		var focus = Make(new Color(0, 0, 0, 0), Ink, 1);
+		focus.ExpandMarginLeft = focus.ExpandMarginRight = focus.ExpandMarginTop = focus.ExpandMarginBottom = 3;
 		b.AddThemeStyleboxOverride("focus", focus);
 		return b;
+	}
+
+	/// <summary>A thin paper-white scrollbar that suits the black table.</summary>
+	public static void QuietScrollbar(ScrollContainer sc)
+	{
+		var bar = sc.GetVScrollBar();
+		var track = new StyleBoxFlat { BgColor = new Color(Paper, 0.06f) };
+		track.ContentMarginLeft = track.ContentMarginRight = 3;
+		var grab = new StyleBoxFlat { BgColor = new Color(Paper, 0.45f) };
+		grab.SetCornerRadiusAll(3);
+		var hot = (StyleBoxFlat)grab.Duplicate();
+		hot.BgColor = new Color(Paper, 0.8f);
+		bar.AddThemeStyleboxOverride("scroll", track);
+		bar.AddThemeStyleboxOverride("grabber", grab);
+		bar.AddThemeStyleboxOverride("grabber_highlight", hot);
+		bar.AddThemeStyleboxOverride("grabber_pressed", hot);
+		bar.CustomMinimumSize = new Vector2(8, 0);
+	}
+
+	/// <summary>A sheet of paper with a double rule: an outer ink border and a fine inner one.</summary>
+	public static PanelContainer Slip(Control body, int pad = 16, int minWidth = 0)
+	{
+		var inner = Panel(body, Box(new Color(0, 0, 0, 0), Ink, 1, pad));
+		var outer = Panel(inner, Box(Paper, Ink, 3, 4));
+		outer.CustomMinimumSize = new Vector2(minWidth, 0);
+		return outer;
 	}
 }

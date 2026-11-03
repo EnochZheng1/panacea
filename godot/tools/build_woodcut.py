@@ -19,7 +19,7 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 TPL = os.path.join(ROOT, 'art', 'templates', 'wc')
 OUT = os.path.join(ROOT, 'art', 'src')
 
-INK, PAPER, GREEN, CREAM = '#161112', '#f0c4bd', '#23a862', '#efe2c6'
+INK, PAPER, GREEN, CREAM = '#141212', '#efece4', '#23a862', '#ebe4d4'
 
 DEFS = f'''  <defs>
     <style>
@@ -56,9 +56,9 @@ DEFS = f'''  <defs>
     </filter>
     <filter id="paper">
       <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" seed="3" result="f"/>
-      <feColorMatrix in="f" type="matrix" values="0 0 0 0 0.55  0 0 0 0 0.3  0 0 0 0 0.3  0 0 0 0.16 0" result="f1"/>
+      <feColorMatrix in="f" type="matrix" values="0 0 0 0 0.42  0 0 0 0 0.4  0 0 0 0 0.37  0 0 0 0.14 0" result="f1"/>
       <feTurbulence type="fractalNoise" baseFrequency="0.004" numOctaves="3" seed="8" result="b"/>
-      <feColorMatrix in="b" type="matrix" values="0 0 0 0 0.6  0 0 0 0 0.35  0 0 0 0 0.3  -1.2 0 0 0 0.62" result="f2"/>
+      <feColorMatrix in="b" type="matrix" values="0 0 0 0 0.5  0 0 0 0 0.46  0 0 0 0 0.4  -1.2 0 0 0 0.5" result="f2"/>
       <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="f2"/><feMergeNode in="f1"/></feMerge>
     </filter>
     <pattern id="gouge" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(-30)">

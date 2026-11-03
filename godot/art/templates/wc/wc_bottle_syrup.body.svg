@@ -9,11 +9,11 @@
     <path class="k" d="M184,222 L216,222 L218,252 L182,252 Z"/>
     <path class="p" d="M150,378 L250,378 L250,530 L150,530 Z"/>
     <path class="ln" d="M150,378 L250,378 L250,530 L150,530 Z M156,384 L244,384 L244,524 L156,524 Z" stroke-width="1.6"/>
-    <circle cx="200" cy="466" r="20" class="p" stroke="#161112" stroke-width="1.6"/>
+    <circle cx="200" cy="466" r="20" class="p" stroke="#141212" stroke-width="1.6"/>
     <path class="k" d="M182,464 C180,448 196,440 210,446 C218,450 220,460 216,464 C210,454 198,450 188,458 Z"/>
     <path class="ln" d="M190,468 C193,471 196,471 198,468 M204,468 C207,471 210,471 212,468 M196,476 C199,478 203,478 206,476" stroke-width="1.3"/>
   </g>
-  <g filter="url(#soft)" font-family="Fell" fill="#161112" text-anchor="middle">
+  <g filter="url(#soft)" font-family="Fell" fill="#141212" text-anchor="middle">
     <text x="200" y="402" font-size="10" letter-spacing="2" textLength="80" lengthAdjust="spacingAndGlyphs">MOTHER'S FRIEND</text>
     <text x="200" y="424" font-family="Rye" font-size="17" textLength="78" lengthAdjust="spacingAndGlyphs">SOOTHING</text>
     <text x="200" y="442" font-family="Rye" font-size="17">SYRUP</text>

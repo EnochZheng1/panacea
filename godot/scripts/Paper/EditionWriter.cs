@@ -239,7 +239,7 @@ public sealed class EditionWriter
             var (headline, body) = f.Era[0];
             return new Story { Headline = headline.ToUpperInvariant(), Body = body };
         }
-        if (f.Deaths.Count > 0)
+        if (f.Deaths.Count >= 3)
         {
             return new Story
             {

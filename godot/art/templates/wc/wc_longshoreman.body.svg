@@ -37,13 +37,13 @@
     <g class="p"><rect x="282" y="322" width="7" height="7"/><rect x="291" y="324" width="7" height="7"/><rect x="309" y="323" width="7" height="7"/></g>
     <!-- fist on the hip -->
     <path class="ln" d="M212,412 C170,450 176,532 222,552" stroke-width="44"/>
-    <path d="M212,412 C170,450 176,532 222,552" fill="none" stroke="#f0c4bd" stroke-width="36" stroke-linecap="round"/>
+    <path d="M212,412 C170,450 176,532 222,552" fill="none" stroke="#efece4" stroke-width="36" stroke-linecap="round"/>
     <path class="p" d="M196,420 L232,404 L240,428 L204,444 Z"/>
     <path class="ln" d="M196,420 L232,404 L240,428 L204,444 Z" stroke-width="2.2"/>
     <path class="ln" d="M186,480 C190,500 198,520 210,532" stroke-width="1.6"/>
     <!-- the other arm raises a toast: anchor tattoo on the forearm -->
     <path class="ln" d="M388,412 C440,420 462,380 450,312" stroke-width="44"/>
-    <path d="M388,412 C440,420 462,380 450,312" fill="none" stroke="#f0c4bd" stroke-width="36" stroke-linecap="round"/>
+    <path d="M388,412 C440,420 462,380 450,312" fill="none" stroke="#efece4" stroke-width="36" stroke-linecap="round"/>
     <path class="p" d="M372,400 L410,394 L414,420 L378,428 Z"/>
     <path class="ln" d="M372,400 L410,394 L414,420 L378,428 Z" stroke-width="2.2"/>
     <path class="ln" d="M452,352 L452,384 M444,360 L460,360 M442,378 C446,388 458,388 462,378" stroke-width="2.2"/>
@@ -54,5 +54,5 @@
     <path class="p" d="M430,290 C432,276 466,274 470,290 C472,306 456,316 444,314 C434,312 428,302 430,290 Z"/>
     <path class="ln" d="M430,290 C432,276 466,274 470,290 C472,306 456,316 444,314 C434,312 428,302 430,290 Z" stroke-width="2"/>
   </g>
-  <g filter="url(#soft)"><text x="449" y="253" font-family="Fell" font-size="7" text-anchor="middle" fill="#161112">TEMPERANCE</text><text x="449" y="263" font-family="Fell" font-size="7" text-anchor="middle" fill="#161112">BITTERS</text></g>
+  <g filter="url(#soft)"><text x="449" y="253" font-family="Fell" font-size="7" text-anchor="middle" fill="#141212">TEMPERANCE</text><text x="449" y="263" font-family="Fell" font-size="7" text-anchor="middle" fill="#141212">BITTERS</text></g>
   <g class="grl" stroke-width="3.5"><path d="M449,170 L449,154 M426,184 L414,172 M472,184 L484,172"/></g>

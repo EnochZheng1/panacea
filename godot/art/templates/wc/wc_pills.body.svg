@@ -3,8 +3,8 @@
     <!-- the lid, set aside -->
     <ellipse cx="292" cy="526" rx="56" ry="18" class="k"/>
     <path class="k" d="M236,500 L348,500 L348,526 L236,526 Z"/>
-    <ellipse cx="292" cy="500" rx="56" ry="18" class="p" stroke="#161112" stroke-width="2.6"/>
-    <ellipse cx="292" cy="500" rx="44" ry="12" fill="none" stroke="#161112" stroke-width="1.2"/>
+    <ellipse cx="292" cy="500" rx="56" ry="18" class="p" stroke="#141212" stroke-width="2.6"/>
+    <ellipse cx="292" cy="500" rx="44" ry="12" fill="none" stroke="#141212" stroke-width="1.2"/>
     <!-- the chip box -->
     <path class="k" d="M96,330 L232,330 L232,520 C232,540 202,550 164,550 C126,550 96,540 96,520 Z"/>
     <path class="g" d="M196,334 L232,334 L232,520 C232,534 220,542 204,546 Z"/>
@@ -12,13 +12,13 @@
     <path class="ln" d="M100,380 L228,380 M100,470 L228,470 M106,386 L222,386 M106,464 L222,464" stroke-width="1.4"/>
     <ellipse cx="164" cy="330" rx="68" ry="22" class="k"/>
     <ellipse cx="164" cy="330" rx="60" ry="17" class="gr"/>
-    <g class="gr" stroke="#161112" stroke-width="2">
+    <g class="gr" stroke="#141212" stroke-width="2">
       <circle cx="140" cy="322" r="9"/><circle cx="160" cy="316" r="9"/><circle cx="180" cy="322" r="9"/><circle cx="150" cy="336" r="9"/><circle cx="172" cy="338" r="9"/><circle cx="192" cy="332" r="8"/>
       <circle cx="210" cy="548" r="8"/><circle cx="228" cy="556" r="8"/><circle cx="96" cy="560" r="8"/><circle cx="246" cy="552" r="7"/>
     </g>
   </g>
   <g class="grl" stroke-width="4.5"><path d="M164,290 L164,262 M132,296 L116,274 M196,296 L212,274"/></g>
-  <g filter="url(#soft)" font-family="Fell" fill="#161112" text-anchor="middle">
+  <g filter="url(#soft)" font-family="Fell" fill="#141212" text-anchor="middle">
     <text x="162" y="406" font-size="10" letter-spacing="2">DR. ——'S</text>
     <text x="162" y="426" font-family="Rye" font-size="15" textLength="104" lengthAdjust="spacingAndGlyphs">LITTLE LIVER</text>
     <text x="162" y="444" font-family="Rye" font-size="15">PILLS</text>

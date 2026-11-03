@@ -22,7 +22,7 @@ public partial class Main : Control
 	private DeskView _desk = null!;
 	private Button _nav = null!;
 	private ColorRect _press = null!;
-	private TextureRect _wood = null!;
+	private ColorRect _wood = null!;
 	private bool _onDesk;
 
 	public override void _Ready()
@@ -39,22 +39,19 @@ public partial class Main : Control
 		using (var f = FileAccess.Open("res://data/paper.en.json", FileAccess.ModeFlags.Read))
 			_writer = new EditionWriter(f.GetAsText());
 
-		AddChild(new ColorRect { Color = Print.Paper, AnchorRight = 1, AnchorBottom = 1 });
-		_wood = new TextureRect
+		AddChild(new ColorRect { Color = Print.Table, AnchorRight = 1, AnchorBottom = 1 });
+		_wood = new ColorRect
 		{
-			Texture = GD.Load<Texture2D>("res://assets/polyhaven/dark_wood/albedo.jpg"),
-			StretchMode = TextureRect.StretchModeEnum.Tile,
-			ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-			Modulate = new Color(0.55f, 0.45f, 0.4f),
+			Material = new ShaderMaterial { Shader = GD.Load<Shader>("res://shaders/desk.gdshader") },
 			AnchorRight = 1,
 			AnchorBottom = 1,
 			Visible = false,
 		};
 		AddChild(_wood);
 
-		_edition = new EditionView();
+		_edition = new EditionView { OffsetBottom = -FooterHeight };
 		AddChild(_edition);
-		_desk = new DeskView { Visible = false };
+		_desk = new DeskView { Visible = false, OffsetBottom = -FooterHeight };
 		_desk.PressRequested += GoToPress;
 		AddChild(_desk);
 
@@ -63,19 +60,65 @@ public partial class Main : Control
 		_press = new ColorRect { MouseFilter = MouseFilterEnum.Ignore, AnchorRight = 1, AnchorBottom = 1, Material = new ShaderMaterial { Shader = GD.Load<Shader>("res://shaders/press.gdshader") } };
 		layer.AddChild(_press);
 
+		// the footer strip: where you are, and the way to the other side of the table
 		var ui = new CanvasLayer { Layer = 10 };
 		AddChild(ui);
-		_nav = Print.Button("TO THE DESK ▸", 18, solid: true);
-		_nav.AnchorLeft = _nav.AnchorRight = _nav.AnchorTop = _nav.AnchorBottom = 1;
-		_nav.OffsetLeft = -250; _nav.OffsetRight = -24; _nav.OffsetTop = -68; _nav.OffsetBottom = -22;
-		_nav.Pressed += () => SetDesk(!_onDesk);
-		ui.AddChild(_nav);
+		var footer = new PanelContainer { AnchorTop = 1, AnchorRight = 1, AnchorBottom = 1, OffsetTop = -FooterHeight };
+		var bar = Print.Box(Print.Table, Print.Paper, 0, 0);
+		bar.BorderWidthTop = 2;
+		bar.ContentMarginLeft = bar.ContentMarginRight = 28;
+		footer.AddThemeStyleboxOverride("panel", bar);
+		var row = new HBoxContainer();
+		row.AddThemeConstantOverride("separation", 18);
+		_status = Print.Label("", Print.FellIt, 17, color: Print.Paper);
+		_status.SizeFlagsVertical = SizeFlags.ShrinkCenter;
+		row.AddChild(_status);
+		_nav = InvertedButton("TO THE DESK ▸");
+		_nav.SizeFlagsVertical = SizeFlags.ShrinkCenter;
+		_nav.CustomMinimumSize = new Vector2(230, 0);
+		_nav.Pressed += Navigate;
+		row.AddChild(_nav);
+		footer.AddChild(row);
+		ui.AddChild(footer);
+		_seed = Arg("--seed", "gazette-1885");
 
 		var play = int.Parse(Arg("--play", "0"));
 		Autoplay.Laudanum = double.Parse(Arg("--dose", "0.25"), System.Globalization.CultureInfo.InvariantCulture);
 		for (var i = 0; i < play && !_game.Ended; i++) Autoplay.OneMonth(_game);
 		ShowEdition();
 		if (Arg("--screen", "edition") == "desk") SetDesk(true);
+	}
+
+	private const int FooterHeight = 64;
+	private Label _status = null!;
+	private string _seed = "";
+	private int _restarts;
+
+	/// <summary>On the black footer the ticket is printed white-on-black, inking white on hover.</summary>
+	private static Button InvertedButton(string text)
+	{
+		var b = Print.Button(text, 18);
+		b.AddThemeColorOverride("font_color", Print.Paper);
+		b.AddThemeColorOverride("font_hover_color", Print.Ink);
+		b.AddThemeColorOverride("font_pressed_color", Print.Ink);
+		b.AddThemeColorOverride("font_focus_color", Print.Paper);
+		b.AddThemeStyleboxOverride("normal", Print.Box(Print.Table, Print.Paper, 2, 8));
+		b.AddThemeStyleboxOverride("hover", Print.Box(Print.Paper, Print.Paper, 2, 8));
+		b.AddThemeStyleboxOverride("pressed", Print.Box(Print.Paper, Print.Paper, 3, 8));
+		b.AddThemeStyleboxOverride("focus", Print.Box(new Color(0, 0, 0, 0), Print.Paper, 1, 8));
+		return b;
+	}
+
+	private void Navigate()
+	{
+		if (_game.Ended)
+		{
+			_restarts++;
+			_game = SimGame.Start($"{_seed}-{_restarts}");
+			ShowEdition();
+			return;
+		}
+		SetDesk(!_onDesk);
 	}
 
 	private void GoToPress()
@@ -98,8 +141,12 @@ public partial class Main : Control
 		_desk.Visible = _onDesk;
 		_wood.Visible = _onDesk;
 		_edition.Visible = !_onDesk;
-		_nav.Text = _onDesk ? "◂ THE PAPER" : (_game.Ended ? "THE END" : "TO THE DESK ▸");
-		_nav.Disabled = _game.Ended;
+		_nav.Text = _onDesk ? "◂ THE PAPER" : (_game.Ended ? "BEGIN AGAIN" : "TO THE DESK ▸");
+		var d = _game.Desk();
+		var when = new System.DateTime(d.Year, d.Month, 1).ToString("MMMM yyyy", System.Globalization.CultureInfo.InvariantCulture);
+		_status.Text = _game.Ended
+			? "The business is closed. The paper has the last word."
+			: $"{when} · cash in hand {EditionWriter.Money(d.CashCents)} · {d.Customers} regulars · {d.Letters.Count} letter{(d.Letters.Count == 1 ? "" : "s")} waiting";
 		var m = (ShaderMaterial)_press.Material;
 		m.SetShaderParameter("speck", _onDesk ? 0.0f : 0.16f);
 		m.SetShaderParameter("wobble", _onDesk ? 0.25f : 0.55f);

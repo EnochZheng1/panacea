@@ -8,12 +8,13 @@ namespace Panacea.UI;
 /// <summary>Renders an <see cref="Edition"/> as a front page of the Gazette.</summary>
 public partial class EditionView : ScrollContainer
 {
-	private const int PageWidth = 1180;
+	private const int PageWidth = 1110;
 
 	public EditionView()
 	{
 		HorizontalScrollMode = ScrollMode.Disabled;
 		SetAnchorsPreset(LayoutPreset.FullRect);
+		Print.QuietScrollbar(this);
 	}
 
 	public void Show(Edition e)
@@ -25,10 +26,19 @@ public partial class EditionView : ScrollContainer
 		AddChild(centre);
 		var page = new VBoxContainer { CustomMinimumSize = new Vector2(PageWidth, 0) };
 		page.AddThemeConstantOverride("separation", 6);
+		// the edition is a sheet of newsprint lying on the black table
+		var sheetStyle = Print.Box(Print.Paper, new Color(0, 0, 0, 0), 0, 0);
+		sheetStyle.ContentMarginLeft = sheetStyle.ContentMarginRight = 34;
+		sheetStyle.ContentMarginTop = 26;
+		sheetStyle.ContentMarginBottom = 34;
+		sheetStyle.ShadowColor = new Color(0, 0, 0, 0.6f);
+		sheetStyle.ShadowSize = 18;
+		sheetStyle.ShadowOffset = new Vector2(0, 6);
+		var sheet = Print.Panel(page, sheetStyle);
 		var margin = new MarginContainer();
-		margin.AddThemeConstantOverride("margin_top", 26);
-		margin.AddThemeConstantOverride("margin_bottom", 90);
-		margin.AddChild(page);
+		margin.AddThemeConstantOverride("margin_top", 28);
+		margin.AddThemeConstantOverride("margin_bottom", 110);
+		margin.AddChild(sheet);
 		centre.AddChild(margin);
 
 		// ---- masthead ----

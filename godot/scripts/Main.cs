@@ -106,6 +106,7 @@ public partial class Main : Control
 		ShowEdition();
 		if (Arg("--screen", "edition") is "desk" or "proof") SetDesk(true);
 		if (Arg("--drawer", "") is { Length: > 0 } drawer) _desk.OpenDrawer(drawer);
+		if (Arg("--pour", "") is { Length: > 0 } pour) _desk.DemoPour(pour.Split(','));
 		if (Arg("--hover", "") is { Length: > 0 } hover)
 		{
 			// dev: move a pretend cursor to x,y after the screen settles (for hover screenshots)

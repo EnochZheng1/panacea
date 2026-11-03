@@ -1,0 +1,359 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Godot;
+using Panacea.Game;
+using Panacea.Paper;
+
+namespace Panacea.UI;
+
+/// <summary>
+/// The formula book as a bench: the drug shelf on the left (click a jar to pour half an ounce,
+/// right-click to take it back), the measuring glass in the middle, and the assay on the right,
+/// whose gauges slide to the mixture's properties and say plainly what they mean. The recipe can
+/// be entered as a new remedy, or poured quietly into an existing one: the label stays the same.
+/// </summary>
+public partial class FormulaBench : HBoxContainer
+{
+	private readonly IGame _game;
+	private readonly MeasuringGlass _glass = new();
+	private readonly Dictionary<string, double> _recipe = new();
+	private readonly List<string> _order = new();
+	private string _process = "simple_mix";
+	private string? _editing;
+	private string _name = "Dr. ——'s Celebrated Panacea";
+	private long _price = 60;
+	private readonly Dictionary<string, Gauge> _gauges = new();
+	private Label _cost = null!;
+	private RichTextLabel _verdict = null!;
+	private VBoxContainer _actions = null!;
+	private GridContainer _shelf = null!;
+	private string? _note;
+	public event Action? Changed;
+
+	public FormulaBench(IGame game)
+	{
+		_game = game;
+		AddThemeConstantOverride("separation", 10);
+		var d = game.Desk();
+		var f = d.Formulas.FirstOrDefault();
+		if (f != null)
+		{
+			_editing = f.Id;
+			_name = f.Name;
+			_price = f.PriceCents;
+			_process = f.ProcessId;
+			foreach (var (id, oz) in f.Components) { _recipe[id] = oz; _order.Add(id); }
+		}
+		else
+		{
+			foreach (var (id, oz) in new[] { ("water", 4.0), ("grain_alcohol", 2.0), ("sugar_syrup", 1.0), ("peppermint_oil", 0.5) })
+			{ _recipe[id] = oz; _order.Add(id); }
+		}
+		_glass.Capacity = d.BottleCapacityOunces;
+
+		AddChild(Print.Slip(ShelfColumn(d), 8, 282));
+		var mid = new VBoxContainer();
+		mid.AddChild(Print.Label("THE GLASS", Print.Rye, 18, HorizontalAlignment.Center));
+		mid.AddChild(_glass);
+		AddChild(Print.Slip(mid, 6, 0));
+		var assay = AssayColumn(d);
+		assay.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+		AddChild(Print.Slip(assay, 10));
+		Refresh(animateFrom: true);
+	}
+
+	// ---------- the shelf ----------
+
+	private Control ShelfColumn(DeskModel d)
+	{
+		var v = new VBoxContainer();
+		v.AddThemeConstantOverride("separation", 6);
+		v.AddChild(Print.Label("THE DRUG SHELF", Print.Rye, 18, HorizontalAlignment.Center));
+		v.AddChild(Print.Body("[i]Click a jar to pour half an ounce. Right-click to take it back.[/i]", 13, centre: true));
+		var scroll = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled, SizeFlagsVertical = SizeFlags.ExpandFill, CustomMinimumSize = new Vector2(0, 380) };
+		Print.QuietScrollbar(scroll);
+		_shelf = new GridContainer { Columns = 3, SizeFlagsHorizontal = SizeFlags.ExpandFill };
+		_shelf.AddThemeConstantOverride("h_separation", 6);
+		_shelf.AddThemeConstantOverride("v_separation", 6);
+		scroll.AddChild(_shelf);
+		v.AddChild(scroll);
+		BuildShelf(d);
+		return v;
+	}
+
+	private void BuildShelf(DeskModel d)
+	{
+		foreach (var c in _shelf.GetChildren()) { _shelf.RemoveChild(c); c.QueueFree(); }
+		foreach (var i in d.Ingredients) _shelf.AddChild(Jar(i));
+	}
+
+	private static string JarCut(IngredientRow i) => i.DrugClass switch
+	{
+		"opiate" => "wc_bottle_syrup",
+		"alcohol" => "wc_bottle_bitters",
+		"cocaine" => "wc_bottle_panacea",
+		_ => i.Id is "calomel" or "fowlers_solution" or "acetanilide" or "aspirin" ? "wc_pills" : "wc_bottle_panacea",
+	};
+
+	private Control Jar(IngredientRow i)
+	{
+		var inGlass = _recipe.GetValueOrDefault(i.Id);
+		var box = new PanelContainer { CustomMinimumSize = new Vector2(84, 108), MouseFilter = MouseFilterEnum.Stop, MouseDefaultCursorShape = CursorShape.PointingHand };
+		var on = inGlass > 0;
+		box.AddThemeStyleboxOverride("panel", Print.Box(on ? new Color(Print.Ink, 0.08f) : new Color(0, 0, 0, 0), Print.Ink, on ? 2 : 1, 4));
+		box.TooltipText = $"{i.Name}: {EditionWriter.Money(i.CostPerOunceCents)} the ounce, {i.OnHand:0.#} oz on hand.\n{i.Description}";
+		var v = new VBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
+		v.AddThemeConstantOverride("separation", 0);
+		var tex = Print.Cut(JarCut(i));
+		if (tex != null)
+		{
+			var img = new TextureRect { Texture = tex, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered, CustomMinimumSize = new Vector2(0, 54), MouseFilter = MouseFilterEnum.Ignore };
+			// the shelf is not the product: jars are printed in plain ink until poured from
+			if (!on) img.Modulate = new Color(0.55f, 0.55f, 0.55f);
+			v.AddChild(img);
+		}
+		var name = Print.Label(i.Name, Print.Fell, 13, HorizontalAlignment.Center);
+		name.MouseFilter = MouseFilterEnum.Ignore;
+		v.AddChild(name);
+		var sub = Print.Label(on ? $"{inGlass:0.##} oz in the glass" : $"{EditionWriter.Money(i.CostPerOunceCents)}/oz", Print.FellIt, 11, HorizontalAlignment.Center);
+		sub.MouseFilter = MouseFilterEnum.Ignore;
+		v.AddChild(sub);
+		box.AddChild(v);
+		Anim.LiftOnHover(box, 1.05f);
+		box.MouseEntered += () => Sfx.Play("tick", -14f, 0.15f);
+		box.GuiInput += e =>
+		{
+			if (e is not InputEventMouseButton { Pressed: true } mb) return;
+			if (mb.ButtonIndex == MouseButton.Left) Add(i.Id, 0.5);
+			else if (mb.ButtonIndex == MouseButton.Right) Add(i.Id, -0.5);
+		};
+		return box;
+	}
+
+	/// <summary>Dev: pours the given ingredients one by one, for recordings.</summary>
+	public void Demo(IReadOnlyList<string> ids, float every = 0.55f)
+	{
+		var t = CreateTween();
+		t.TweenInterval(0.8f);
+		foreach (var id in ids)
+		{
+			var i = id;
+			t.TweenCallback(Callable.From(() => { if (i.StartsWith('-')) Add(i[1..], -0.5); else Add(i, 0.5); }));
+			t.TweenInterval(every);
+		}
+	}
+
+	private void Add(string id, double oz)
+	{
+		var now = Math.Max(0, _recipe.GetValueOrDefault(id) + oz);
+		if (now == _recipe.GetValueOrDefault(id)) return;
+		_recipe[id] = now;
+		if (!_order.Contains(id)) _order.Add(id);
+		if (oz > 0) { _glass.Pour(); Sfx.Play("pour", -2f, 0.1f); }
+		else Sfx.Play("slip", -8f, 0.05f, 1.2f);
+		_note = null;
+		Refresh();
+	}
+
+	// ---------- the assay ----------
+
+	private static readonly (string Key, string Label)[] Order =
+	{
+		("kick", "Kick"), ("calm", "Calm"), ("habit", "Habit"), ("acuteToxicity", "Danger"),
+		("bitterness", "Taste"), ("accumulation", "Lingers"), ("detectability", "In an assay"),
+	};
+
+	private Control AssayColumn(DeskModel d)
+	{
+		var v = new VBoxContainer();
+		v.AddThemeConstantOverride("separation", 6);
+		v.AddChild(Print.Label("THE ASSAY", Print.Rye, 18, HorizontalAlignment.Center));
+		v.AddChild(Print.Rule(2.5f, 1, 2));
+		foreach (var (key, label) in Order)
+		{
+			var g = new Gauge(label);
+			_gauges[key] = g;
+			v.AddChild(g);
+		}
+		_cost = Print.Label("", Print.FellIt, 14);
+		v.AddChild(_cost);
+		_verdict = Print.Body("", 14, justify: false);
+		v.AddChild(_verdict);
+		v.AddChild(Print.Rule(1.4f, 0));
+		_procs = new HBoxContainer();
+		_procs.AddThemeConstantOverride("separation", 4);
+		v.AddChild(_procs);
+		_actions = new VBoxContainer();
+		_actions.AddThemeConstantOverride("separation", 5);
+		v.AddChild(_actions);
+		return v;
+	}
+
+	private HBoxContainer _procs = null!;
+
+	private void BuildProcs(DeskModel d)
+	{
+		foreach (var c in _procs.GetChildren()) { _procs.RemoveChild(c); c.QueueFree(); }
+		foreach (var (id, name) in d.Processes)
+		{
+			var b = Print.Button(name.ToUpperInvariant(), 11, solid: id == _process);
+			b.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+			var pid = id;
+			b.Pressed += () => { _process = pid; Refresh(); };
+			_procs.AddChild(b);
+		}
+	}
+
+	private List<(string, double)> Recipe() => _order.Where(id => _recipe.GetValueOrDefault(id) > 0).Select(id => (id, _recipe[id])).ToList();
+
+	private void Refresh(bool animateFrom = false)
+	{
+		var d = _game.Desk();
+		var names = d.Ingredients.ToDictionary(i => i.Id, i => i);
+		_glass.Set(Recipe().Select(r => (names.TryGetValue(r.Item1, out var n) ? n.Name : r.Item1, r.Item2, names.TryGetValue(r.Item1, out var m) ? m.Opacity : 0.5)).ToList());
+		BuildShelf(d);
+		BuildProcs(d);
+
+		var p = _game.Preview(Recipe(), _process);
+		// an impossible mixture can't be assayed: the gauges keep the last reading, faded
+		foreach (var (key, _) in Order)
+		{
+			var g = _gauges[key];
+			g.Modulate = new Color(1, 1, 1, p.Error == null ? 1f : 0.35f);
+			if (p.Error != null) continue;
+			var value = p.Properties.GetValueOrDefault(key);
+			g.Set(value, Words(key, value), animateFrom);
+		}
+		_cost.Text = p.Error == null ? $"Costs {EditionWriter.Money(p.UnitCostCents)} a bottle to make." : "";
+		_verdict.Text = p.Error != null ? $"[b]Not yet.[/b] [i]{Print.Escape(p.Error)}[/i]" : Verdict(p.Properties);
+
+		foreach (var c in _actions.GetChildren()) { _actions.RemoveChild(c); c.QueueFree(); }
+		var nameEdit = new LineEdit { Text = _name };
+		nameEdit.AddThemeFontOverride("font", Print.Fell);
+		nameEdit.AddThemeFontSizeOverride("font_size", 15);
+		nameEdit.AddThemeColorOverride("font_color", Print.Ink);
+		nameEdit.AddThemeStyleboxOverride("normal", Print.Box(Print.Paper, Print.Ink, 1, 5));
+		nameEdit.AddThemeStyleboxOverride("focus", Print.Box(Print.Paper, Print.Ink, 2, 5));
+		nameEdit.TextChanged += t => _name = t;
+		var editing = d.Formulas.FirstOrDefault(f => f.Id == _editing);
+		if (editing == null) _actions.AddChild(nameEdit);
+		var priceRow = new HBoxContainer();
+		priceRow.AddThemeConstantOverride("separation", 4);
+		var shown = editing?.PriceCents ?? _price;
+		priceRow.AddChild(Print.Label($"Sold at {EditionWriter.Money(shown)}", Print.Fell, 15, wrap: false));
+		priceRow.AddChild(new Control { SizeFlagsHorizontal = SizeFlags.ExpandFill });
+		foreach (var step in new[] { -5, 5 })
+		{
+			var b = Print.Button(step > 0 ? $"+{step}c" : $"{step}c", 11);
+			var s = step;
+			b.Pressed += () =>
+			{
+				if (editing != null) _note = _game.SetPrice(editing.Id, Math.Max(1, editing.PriceCents + s));
+				else _price = Math.Max(1, _price + s);
+				Refresh();
+				Changed?.Invoke();
+			};
+			priceRow.AddChild(b);
+		}
+		_actions.AddChild(priceRow);
+		if (editing != null)
+		{
+			var re = Print.Button("POUR IT INTO THE BOTTLE", 13, solid: true, sound: "lever");
+			re.TooltipText = "Change what goes in the bottle. The label stays the same; stock already brewed is unaffected.";
+			re.Disabled = p.Error != null;
+			re.Pressed += () => { _note = _game.Reformulate(editing.Id, Recipe(), _process) ?? "Reformulated. The next batch will be the new recipe; the customers will not be told."; Refresh(); Changed?.Invoke(); };
+			_actions.AddChild(re);
+			var fresh = Print.Button("ENTER IT AS A NEW REMEDY", 12);
+			fresh.Pressed += () => { _editing = null; _name = "A New Remedy"; _price = 50; Refresh(); };
+			_actions.AddChild(fresh);
+		}
+		else
+		{
+			var create = Print.Button("ENTER IT IN THE BOOK", 15, solid: true, sound: "lever");
+			create.Disabled = p.Error != null;
+			create.Pressed += () =>
+			{
+				var err = _game.CreateFormula(_name, Recipe(), _process, _price);
+				_note = err ?? $"“{_name}” is entered in the book.";
+				if (err == null) _editing = _game.Desk().Formulas.LastOrDefault()?.Id;
+				Refresh();
+				Changed?.Invoke();
+			};
+			_actions.AddChild(create);
+		}
+		var empty = Print.Button("EMPTY THE GLASS", 11, sound: "slip");
+		empty.Pressed += () => { _recipe.Clear(); _order.Clear(); Refresh(); };
+		_actions.AddChild(empty);
+		if (_note != null) _actions.AddChild(Print.Body($"[i]{Print.Escape(_note)}[/i]", 13, justify: false));
+	}
+
+	private static string Short(string name) => (name.Length > 22 ? name[..20].TrimEnd() + "…" : name).ToUpperInvariant();
+
+	/// <summary>What each reading means, in the words a druggist would use.</summary>
+	public static string Words(string key, double v) => key switch
+	{
+		"kick" => v < 2 ? "does nothing" : v < 5 ? "you feel it" : v < 9 ? "a warm wallop" : "knocks them flat",
+		"calm" => v < 2 ? "no comfort" : v < 6 ? "soothing" : v < 11 ? "they sleep" : "they sleep very soundly",
+		"habit" => v < 1 ? "none" : v < 3 ? "they'll come back" : v < 6 ? "they'll come back shaking" : "they cannot stop",
+		"acuteToxicity" => v < 0.8 ? "harmless" : v < 2 ? "a risk to infants" : v < 4 ? "a risk to the frail" : "fatal in a large dose",
+		"bitterness" => v < 1 ? "sweet" : v < 3 ? "medicinal" : v < 6 ? "bitter" : "undrinkable",
+		"accumulation" => v < 0.3 ? "passes through" : v < 1.5 ? "builds up slowly" : "builds up in the body",
+		"detectability" => v < 2 ? "hard to find" : v < 5 ? "a chemist might find it" : "any chemist would find it",
+		_ => "",
+	};
+
+	private static string Verdict(Dictionary<string, double> p)
+	{
+		var habit = p.GetValueOrDefault("habit");
+		var danger = p.GetValueOrDefault("acuteToxicity");
+		var kick = p.GetValueOrDefault("kick");
+		if (danger >= 4) return "[i]It will sell. Some of the customers will not be back to buy it again.[/i]";
+		if (habit >= 6) return "[i]Customers will return to this bottle whether they like it or not.[/i]";
+		if (kick < 2) return "[i]Perfectly safe and perfectly useless. The ward will say so.[/i]";
+		if (habit >= 3) return "[i]A good, steady seller. The regulars will grow fond of it.[/i]";
+		return "[i]An honest mixture, by the standards of the trade.[/i]";
+	}
+
+	/// <summary>An engraved gauge: a bar that slides to its reading, and the reading in words.</summary>
+	private sealed partial class Gauge : VBoxContainer
+	{
+		private readonly ColorRect _bar = new() { Color = Print.Ink, CustomMinimumSize = new Vector2(2, 9) };
+		private readonly Label _words;
+		private readonly Label _value;
+		private Tween? _t;
+		private const float Track = 190f;
+
+		public Gauge(string label)
+		{
+			AddThemeConstantOverride("separation", 0);
+			var top = new HBoxContainer();
+			top.AddChild(Print.Label(label, Print.Rye, 13, wrap: false));
+			_words = Print.Label("", Print.FellIt, 13, HorizontalAlignment.Right, wrap: false);
+			_words.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+			top.AddChild(_words);
+			AddChild(top);
+			var row = new HBoxContainer();
+			row.AddThemeConstantOverride("separation", 6);
+			var track = new Control { CustomMinimumSize = new Vector2(Track, 9) };
+			track.AddChild(new ColorRect { Color = new Color(Print.Ink, 0.12f), Size = new Vector2(Track, 9) });
+			track.AddChild(_bar);
+			row.AddChild(track);
+			_value = Print.Label("", Print.Fell, 12, wrap: false);
+			row.AddChild(_value);
+			AddChild(row);
+		}
+
+		public void Set(double value, string words, bool fromZero)
+		{
+			var target = (float)Math.Clamp(value / 15.0, 0, 1) * Track;
+			if (fromZero) _bar.Size = new Vector2(2, 9);
+			_t?.Kill();
+			_t = CreateTween();
+			_t.TweenProperty(_bar, "size:x", Math.Max(2, target), 0.35f).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.Out);
+			if (_words.Text != words && !fromZero) Anim.Punch(_words, 1.12f);
+			_words.Text = words;
+			_value.Text = $"{value:0.0}";
+		}
+	}
+}

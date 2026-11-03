@@ -19,6 +19,8 @@ public interface IGame
 	string? Buy(string ingredientId, double ounces);
 	string? CreateFormula(string name, IReadOnlyList<(string IngredientId, double Ounces)> components, string processId, long priceCents);
 	string? SetPrice(string formulaId, long priceCents);
+	/// <summary>Quietly changes what goes in the bottle. Stock already brewed is unaffected.</summary>
+	string? Reformulate(string formulaId, IReadOnlyList<(string IngredientId, double Ounces)> components, string processId);
 	string? SetClaims(string formulaId, IReadOnlyList<string> claimIds);
 	string? SetAdSpend(long cents);
 	string? Brew(string formulaId, int bottles);
@@ -82,6 +84,10 @@ public sealed class IngredientRow
 	public string Description = "";
 	public double OnHand;
 	public long CostPerOunceCents;
+	/// <summary>0..1: how much the drug colours the liquid (from the content's appearance).</summary>
+	public double Opacity = 0.5;
+	/// <summary>alcohol, opiate, cocaine, or empty.</summary>
+	public string DrugClass = "";
 }
 
 public sealed class FormulaRow
@@ -94,6 +100,8 @@ public sealed class FormulaRow
 	public int MaxBrewable;
 	public List<string> ClaimIds = new();
 	public Dictionary<string, double> Properties = new();
+	public List<(string IngredientId, double Ounces)> Components = new();
+	public string ProcessId = "simple_mix";
 }
 
 public sealed class Letter

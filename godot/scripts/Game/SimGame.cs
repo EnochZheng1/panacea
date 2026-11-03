@@ -52,6 +52,8 @@ public sealed class SimGame : IGame
 		Do(new CreateFormula(name, Components(components), processId, (int)priceCents));
 
 	public string? SetPrice(string formulaId, long priceCents) => Do(new SetPrice(formulaId, (int)priceCents));
+	public string? Reformulate(string formulaId, IReadOnlyList<(string IngredientId, double Ounces)> components, string processId) =>
+		Do(new Reformulate(formulaId, Components(components), processId));
 	public string? SetClaims(string formulaId, IReadOnlyList<string> claimIds) => Do(new SetClaims(formulaId, claimIds.ToList()));
 	public string? SetAdSpend(long cents) => Do(new SetAdSpend((int)cents));
 	public string? Brew(string formulaId, int bottles) => Do(new BrewBatch(formulaId, bottles));
@@ -116,6 +118,8 @@ public sealed class SimGame : IGame
 				Description = _content.Text($"ingredient.{i.Id}.description"),
 				OnHand = onHand,
 				CostPerOunceCents = (long)Math.Round(i.CostPerUnitCents),
+				Opacity = _content.ById.Ingredients.TryGetValue(i.Id, out var ing) ? ing.Appearance.Opacity : 0.5,
+				DrugClass = ing?.DrugClass ?? "",
 			});
 		}
 		foreach (var p in o.Processes) d.Processes.Add((p, _content.Text($"process.{p}.name")));
@@ -145,6 +149,8 @@ public sealed class SimGame : IGame
 				MaxBrewable = maxBrew.GetValueOrDefault(f.Id),
 				ClaimIds = f.Claims.ToList(),
 				Properties = Props(f.Properties),
+				Components = _state.Lab.Formulas.First(x => x.Id == f.Id).Components.Select(c => (c.IngredientId, c.Amount)).ToList(),
+				ProcessId = _state.Lab.Formulas.First(x => x.Id == f.Id).ProcessId,
 			});
 		}
 		foreach (var b in o.BatchesInProgress)

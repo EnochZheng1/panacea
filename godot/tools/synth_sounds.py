@@ -250,7 +250,22 @@ def death():  # Death at someone's shoulder: a low, slow, beating breath (6 s lo
     return x
 
 
+def pour():  # half an ounce poured into the measuring glass: a short glug and a few bubbles
+    d = 0.6
+    tt = t(d)
+    rng = np.random.default_rng(180)
+    x = filt(noise(d, 181), 300, 2500) * np.clip(tt / 0.04, 0, 1) * np.exp(-tt / 0.25) * 0.25
+    for k in range(6):
+        at = 0.05 + k * 0.07 + rng.uniform(-0.02, 0.02)
+        f0 = rng.uniform(500, 900)
+        b = t(0.08)
+        bub = np.sin(2 * np.pi * np.cumsum(f0 * (1 + 3 * b)) / SR) * np.exp(-b / 0.018)
+        place(x, bub * (0.9 - 0.1 * k), at)
+    return reverb(x, 0.3, 0.15)
+
+
 SOUNDS = {
+    'pour': (pour, 0.4, False),
     'tick': (tick, 0.25, False), 'ticket': (ticket, 0.5, False), 'slug': (slug, 0.55, False),
     'slip': (slip, 0.4, False), 'page': (page, 0.45, False), 'lever': (lever, 0.8, False),
     'press_loop': (press_loop, 0.6, True), 'sheet': (sheet, 0.55, False), 'roller': (roller, 0.5, False),

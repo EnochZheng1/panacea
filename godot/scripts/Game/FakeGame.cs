@@ -58,6 +58,7 @@ public sealed class FakeGame : IGame
 	public string? Buy(string ingredientId, double ounces) => null;
 	public string? CreateFormula(string name, IReadOnlyList<(string IngredientId, double Ounces)> components, string processId, long priceCents) => null;
 	public string? SetPrice(string formulaId, long priceCents) => null;
+	public string? Reformulate(string formulaId, IReadOnlyList<(string IngredientId, double Ounces)> components, string processId) => null;
 	public string? SetClaims(string formulaId, IReadOnlyList<string> claimIds) => null;
 	public string? SetAdSpend(long cents) => null;
 	public string? Brew(string formulaId, int bottles) => null;

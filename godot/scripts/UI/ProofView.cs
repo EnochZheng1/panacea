@@ -29,6 +29,7 @@ public partial class ProofView : Control
 	{
 		_game = game;
 		_drawer = null;
+		DropBench();
 		Rebuild();
 	}
 
@@ -36,9 +37,20 @@ public partial class ProofView : Control
 
 	/// <summary>Opens a tool over the proof: letters, still, formula or supplies.</summary>
 	private bool _drawerOpened;
+	private FormulaBench? _bench;
+
+	private void DropBench()
+	{
+		if (_bench == null) return;
+		_bench.GetParent()?.RemoveChild(_bench);
+		_bench.QueueFree();
+		_bench = null;
+	}
 
 	/// <summary>True while Death stands at someone's shoulder on the counter.</summary>
 	public bool DeathPresent { get; private set; }
+
+	public void DemoPour(IReadOnlyList<string> ids) => _bench?.Demo(ids);
 
 	public void OpenDrawer(string which)
 	{
@@ -59,6 +71,7 @@ public partial class ProofView : Control
 
 	public void Rebuild()
 	{
+		_bench?.GetParent()?.RemoveChild(_bench);
 		foreach (var c in GetChildren()) { RemoveChild(c); c.QueueFree(); }
 		var m = _game.Desk();
 
@@ -453,21 +466,50 @@ public partial class ProofView : Control
 		shade.SetAnchorsPreset(LayoutPreset.FullRect);
 		var holder = new VBoxContainer();
 		holder.SetAnchorsPreset(LayoutPreset.FullRect);
-		holder.OffsetLeft = 40; holder.OffsetRight = -40; holder.OffsetTop = 10; holder.OffsetBottom = -6;
+		void Fit()
+		{
+			if (!IsInstanceValid(holder)) return;
+			holder.SetAnchorsPreset(LayoutPreset.FullRect);
+			holder.OffsetLeft = 14; holder.OffsetRight = -14; holder.OffsetTop = 6; holder.OffsetBottom = -6;
+		}
+		Fit();
+		// an anchored box keeps any size its contents once demanded (text laid out before it had a
+		// width asks for a great deal); put it back to the drawer's size whenever that settles
+		holder.MinimumSizeChanged += () => Callable.From(Fit).CallDeferred();
+		holder.Ready += () => Callable.From(Fit).CallDeferred();
 		var close = Print.Button("CLOSE ✕", 14, solid: true);
 		close.SizeFlagsHorizontal = SizeFlags.ShrinkEnd;
 		close.AddThemeStyleboxOverride("normal", Print.Box(Print.Ink, Print.Paper, 2, 6));
-		close.Pressed += () => { Sfx.Play("slip", -4f, 0.04f, 0.85f); _drawer = null; Rebuild(); };
+		close.Pressed += () => { Sfx.Play("slip", -4f, 0.04f, 0.85f); _drawer = null; DropBench(); Rebuild(); };
 		holder.AddChild(close);
-		var desk = new DeskView { Only = which, SizeFlagsVertical = SizeFlags.ExpandFill };
-		desk.SetAnchorsPreset(LayoutPreset.TopLeft);
-		desk.Changed += Rebuild;
-		holder.AddChild(desk);
-		desk.Bind(_game);
+		if (which == "formula")
+		{
+			// the bench keeps the glass as poured while the proof around it refreshes
+			if (_bench == null)
+			{
+				_bench = new FormulaBench(_game) { SizeFlagsVertical = SizeFlags.ExpandFill };
+				_bench.Changed += Rebuild;
+			}
+			_bench.GetParent()?.RemoveChild(_bench);
+			// a scroll frame holds the bench at the drawer's size, whatever its text asks for
+			var frame = new ScrollContainer { SizeFlagsVertical = SizeFlags.ExpandFill, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
+			Print.QuietScrollbar(frame);
+			_bench.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+			frame.AddChild(_bench);
+			holder.AddChild(frame);
+		}
+		else
+		{
+			var desk = new DeskView { Only = which, SizeFlagsVertical = SizeFlags.ExpandFill };
+			desk.SetAnchorsPreset(LayoutPreset.TopLeft);
+			desk.Changed += Rebuild;
+			holder.AddChild(desk);
+			desk.Bind(_game);
+		}
 		shade.AddChild(holder);
 		Anim.SlideIn(holder, new Vector2(0, 60), 0.24f);
 		if (_drawerOpened) { _drawerOpened = false; Sfx.Play("slip"); }
-		shade.GuiInput += e => { if (e is InputEventMouseButton { Pressed: true } mb && mb.ButtonIndex == MouseButton.Left && !holder.GetGlobalRect().HasPoint(mb.GlobalPosition)) { _drawer = null; CallDeferred(nameof(Refresh)); } };
+		shade.GuiInput += e => { if (e is InputEventMouseButton { Pressed: true } mb && mb.ButtonIndex == MouseButton.Left && !holder.GetGlobalRect().HasPoint(mb.GlobalPosition)) { _drawer = null; DropBench(); CallDeferred(nameof(Refresh)); } };
 		return shade;
 	}
 

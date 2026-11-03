@@ -1,0 +1,191 @@
+{
+  "contentVersion": "0.2.0",
+  "runs": [
+    {
+      "file": "runs/greedy-parity-1.json.gz",
+      "bot": "greedy",
+      "options": {
+        "seed": "parity-1"
+      },
+      "turns": 38,
+      "endReason": "bankrupt",
+      "finalHash": "1288e9e70e2572"
+    },
+    {
+      "file": "runs/briber-parity-1.json.gz",
+      "bot": "briber",
+      "options": {
+        "seed": "parity-1"
+      },
+      "turns": 264,
+      "endReason": "timeline_end",
+      "finalHash": "169dba22ccf13d"
+    },
+    {
+      "file": "runs/adaptive-parity-1.json.gz",
+      "bot": "adaptive",
+      "options": {
+        "seed": "parity-1"
+      },
+      "turns": 264,
+      "endReason": "timeline_end",
+      "finalHash": "0bd3b817169377"
+    },
+    {
+      "file": "runs/mercurial-parity-1.json.gz",
+      "bot": "mercurial",
+      "options": {
+        "seed": "parity-1"
+      },
+      "turns": 94,
+      "endReason": "bankrupt",
+      "finalHash": "1b4aeaf05f2059"
+    },
+    {
+      "file": "runs/shopkeeper-parity-1.json.gz",
+      "bot": "shopkeeper",
+      "options": {
+        "seed": "parity-1"
+      },
+      "turns": 264,
+      "endReason": "timeline_end",
+      "finalHash": "1e7586a03a9dad"
+    },
+    {
+      "file": "runs/random-parity-1.json.gz",
+      "bot": "random",
+      "options": {
+        "seed": "parity-1"
+      },
+      "turns": 20,
+      "endReason": "bankrupt",
+      "finalHash": "064fd118d4b442"
+    },
+    {
+      "file": "runs/greedy-parity-2.json.gz",
+      "bot": "greedy",
+      "options": {
+        "seed": "parity-2"
+      },
+      "turns": 26,
+      "endReason": "shut_down",
+      "finalHash": "0c312d3706f895"
+    },
+    {
+      "file": "runs/briber-parity-2.json.gz",
+      "bot": "briber",
+      "options": {
+        "seed": "parity-2"
+      },
+      "turns": 264,
+      "endReason": "timeline_end",
+      "finalHash": "09d7e538121a97"
+    },
+    {
+      "file": "runs/adaptive-parity-2.json.gz",
+      "bot": "adaptive",
+      "options": {
+        "seed": "parity-2"
+      },
+      "turns": 264,
+      "endReason": "timeline_end",
+      "finalHash": "1d577fec218ad7"
+    },
+    {
+      "file": "runs/mercurial-parity-2.json.gz",
+      "bot": "mercurial",
+      "options": {
+        "seed": "parity-2"
+      },
+      "turns": 101,
+      "endReason": "bankrupt",
+      "finalHash": "18eb4d935bd9dc"
+    },
+    {
+      "file": "runs/shopkeeper-parity-2.json.gz",
+      "bot": "shopkeeper",
+      "options": {
+        "seed": "parity-2"
+      },
+      "turns": 264,
+      "endReason": "timeline_end",
+      "finalHash": "1950d0e7d4e1e7"
+    },
+    {
+      "file": "runs/random-parity-2.json.gz",
+      "bot": "random",
+      "options": {
+        "seed": "parity-2"
+      },
+      "turns": 26,
+      "endReason": "bankrupt",
+      "finalHash": "0a7e1ad983d588"
+    },
+    {
+      "file": "runs/greedy-parity-3.json.gz",
+      "bot": "greedy",
+      "options": {
+        "seed": "parity-3",
+        "backgroundId": "showman"
+      },
+      "turns": 97,
+      "endReason": "bankrupt",
+      "finalHash": "078ea5698821c9"
+    },
+    {
+      "file": "runs/briber-parity-3.json.gz",
+      "bot": "briber",
+      "options": {
+        "seed": "parity-3",
+        "backgroundId": "showman"
+      },
+      "turns": 264,
+      "endReason": "timeline_end",
+      "finalHash": "00af631b741abd"
+    },
+    {
+      "file": "runs/adaptive-parity-3.json.gz",
+      "bot": "adaptive",
+      "options": {
+        "seed": "parity-3",
+        "backgroundId": "showman"
+      },
+      "turns": 264,
+      "endReason": "timeline_end",
+      "finalHash": "158b78246078f1"
+    },
+    {
+      "file": "runs/mercurial-parity-3.json.gz",
+      "bot": "mercurial",
+      "options": {
+        "seed": "parity-3",
+        "backgroundId": "showman"
+      },
+      "turns": 73,
+      "endReason": "bankrupt",
+      "finalHash": "0edf8049226d5b"
+    },
+    {
+      "file": "runs/shopkeeper-parity-3.json.gz",
+      "bot": "shopkeeper",
+      "options": {
+        "seed": "parity-3",
+        "backgroundId": "showman"
+      },
+      "turns": 264,
+      "endReason": "timeline_end",
+      "finalHash": "06c399538acd0c"
+    },
+    {
+      "file": "runs/random-parity-3.json.gz",
+      "bot": "random",
+      "options": {
+        "seed": "parity-3",
+        "backgroundId": "showman"
+      },
+      "turns": 16,
+      "endReason": "bankrupt",
+      "finalHash": "1d3fef96db00ae"
+    }
+  ]
+}

@@ -1,3 +1,5 @@
+import { cos, log } from './dmath.ts';
+
 /**
  * Seeded, serialisable pseudo-random number generator (sfc32).
  *
@@ -114,9 +116,9 @@ export class Rng {
   }
 }
 
-/** Standard normal sample (Box–Muller). */
+/** Standard normal sample (Box–Muller). Uses the portable `dmath` functions (see dmath.ts). */
 export function gaussian(rng: Rng): number {
   const u = Math.max(rng.float(), 1e-12);
   const v = rng.float();
-  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  return Math.sqrt(-2 * log(u)) * cos(2 * Math.PI * v);
 }

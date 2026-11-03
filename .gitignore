@@ -12,3 +12,7 @@ godot/.godot/
 godot/.mono/
 godot/bin/
 godot/obj/
+# C# sim port build output
+sim-cs/**/bin/
+sim-cs/**/obj/
+sim-cs/**/TestResults/

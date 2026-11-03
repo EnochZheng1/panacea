@@ -2,6 +2,7 @@ export * from './core/index.ts';
 export {
   applyAction,
   applyActionInPlace,
+  canonicalAction,
   endTurn,
   endTurnInPlace,
   newGame,

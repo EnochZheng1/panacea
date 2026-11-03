@@ -53,9 +53,12 @@ export function nextUnlocks(state: GameState, content: ContentPack, limit = 3): 
       id: u.id,
       progress: evaluateRequirement(u.requirement, state, content).progress,
     }))
-    .sort((a, b) => b.progress - a.progress || a.id.localeCompare(b.id))
+    .sort((a, b) => b.progress - a.progress || compareOrdinal(a.id, b.id))
     .slice(0, limit);
 }
+
+/** Locale-independent string order (UTF-16 code units), identical in every engine. */
+const compareOrdinal = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
 
 const isRandomPending = (p: PendingEvent, content: ContentPack) =>
   content.byId.events.get(p.eventId)?.trigger !== 'system';

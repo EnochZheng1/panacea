@@ -1,5 +1,6 @@
 import { DRUG_CLASSES, type ContentPack, type DrugClass } from '@panacea/content';
 import { CAUSES } from '../core/causes.ts';
+import { tanh } from '../core/dmath.ts';
 import { adjust } from '../core/ledger.ts';
 import type { Rng } from '../core/rng.ts';
 import type { Bought, Customer, DeathCause, GameState, LeaveReason, Phase } from '../core/index.ts';
@@ -222,7 +223,7 @@ function monthForCustomer(
   if (bought.length > 0) {
     const felt = (reliefSum / bought.length) * (1 + 0.5 * (bought.length - 1));
     const relief = felt - (ailment?.severity ?? 3);
-    c.satisfaction = 0.6 * c.satisfaction + 0.4 * Math.tanh(relief / 3);
+    c.satisfaction = 0.6 * c.satisfaction + 0.4 * tanh(relief / 3);
   } else {
     c.satisfaction *= 0.8;
   }

@@ -3,7 +3,13 @@ import type { Action, ActionResult } from './core/actions.ts';
 import { addMonths, compareDates } from './core/date.ts';
 import { closeMonth, openMonth } from './core/ledger.ts';
 import { Rng, seedRng } from './core/rng.ts';
-import { STATE_VERSION, type GameState, type LedgerEntry, type LogEntry } from './core/state.ts';
+import {
+  STATE_VERSION,
+  type FormulaComponent,
+  type GameState,
+  type LedgerEntry,
+  type LogEntry,
+} from './core/state.ts';
 import { newScratch, type Phase, type TurnContext } from './core/turn.ts';
 import { bodyPhase } from './systems/body.ts';
 import { initialCustomers } from './systems/customers.ts';
@@ -189,8 +195,49 @@ export function applyActionInPlace(
   }
   if (!result.ok) return result;
   draft.meta.rng = rng.state();
-  draft.log.push({ turn: draft.meta.turn, action: structuredClone(action) });
+  draft.log.push({ turn: draft.meta.turn, action: canonicalAction(action) });
   return result;
+}
+
+/**
+ * The action as recorded in the replay log: a fresh copy holding exactly the fields the rules
+ * read. Callers often build actions by spreading other objects (e.g. an `ActionSpec`), and
+ * stray fields would otherwise end up in the log and the state hash, so that a replay of the
+ * same game through another implementation (the C# port) could not reproduce it.
+ */
+export function canonicalAction(action: Action): Action {
+  const components = (cs: readonly FormulaComponent[]) =>
+    cs.map((c) => ({ ingredientId: c.ingredientId, amount: c.amount }));
+  switch (action.type) {
+    case 'BuyIngredient':
+      return { type: action.type, ingredientId: action.ingredientId, units: action.units };
+    case 'CreateFormula':
+      return {
+        type: action.type,
+        name: action.name,
+        components: components(action.components),
+        processId: action.processId,
+        priceCents: action.priceCents,
+        ...(action.claims === undefined ? {} : { claims: [...action.claims] }),
+      };
+    case 'SetPrice':
+      return { type: action.type, formulaId: action.formulaId, priceCents: action.priceCents };
+    case 'Reformulate':
+      return {
+        type: action.type,
+        formulaId: action.formulaId,
+        components: components(action.components),
+        processId: action.processId,
+      };
+    case 'SetClaims':
+      return { type: action.type, formulaId: action.formulaId, claims: [...action.claims] };
+    case 'SetAdSpend':
+      return { type: action.type, cents: action.cents };
+    case 'BrewBatch':
+      return { type: action.type, formulaId: action.formulaId, bottles: action.bottles };
+    case 'ResolveEvent':
+      return { type: action.type, instanceId: action.instanceId, choiceId: action.choiceId };
+  }
 }
 
 /**

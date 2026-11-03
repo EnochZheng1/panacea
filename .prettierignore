@@ -3,3 +3,7 @@ node_modules
 dist
 coverage
 playtest-reports
+# third-party assets, kept byte-for-byte as downloaded
+godot/assets/polyhaven
+# Godot's own files
+godot/.godot

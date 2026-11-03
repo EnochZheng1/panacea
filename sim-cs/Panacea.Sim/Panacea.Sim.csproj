@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Panacea.Sim</RootNamespace>
+    <AssemblyName>Panacea.Sim</AssemblyName>
+    <LangVersion>12</LangVersion>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <!-- The game's content, embedded so the library is self-contained (the Godot export does not
+       ship the repository). Resource names: Panacea.Content.data.<file>.json and
+       Panacea.Content.strings.en.json. -->
+  <ItemGroup>
+    <EmbeddedResource Include="../../packages/content/data/*.json">
+      <Link>ContentData/%(Filename)%(Extension)</Link>
+      <LogicalName>Panacea.Content.data.%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="../../packages/content/strings/en.json">
+      <Link>ContentData/strings/en.json</Link>
+      <LogicalName>Panacea.Content.strings.en.json</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Panacea.Sim.Tests" />
+  </ItemGroup>
+
+</Project>

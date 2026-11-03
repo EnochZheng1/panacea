@@ -7,6 +7,13 @@ export default defineConfig(
   js.configs.recommended,
   tseslint.configs.recommended,
   {
+    // Art tooling: a Node script that drives a browser page.
+    files: ['godot/tools/**/*.mjs'],
+    languageOptions: {
+      globals: { process: 'readonly', console: 'readonly', document: 'readonly' },
+    },
+  },
+  {
     // The simulation must be deterministic: no ambient randomness or wall-clock time.
     files: ['packages/sim/src/**/*.ts'],
     rules: {

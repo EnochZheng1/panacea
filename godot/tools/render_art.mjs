@@ -18,7 +18,11 @@ mkdirSync(out, { recursive: true });
 const args = process.argv.slice(2);
 const si = args.indexOf('--scale');
 const scale = si >= 0 ? Number(args.splice(si, 2)[1]) : 2;
-const names = args.length ? args : readdirSync(src).filter((f) => f.endsWith('.svg')).map((f) => basename(f, '.svg'));
+const names = args.length
+  ? args
+  : readdirSync(src)
+      .filter((f) => f.endsWith('.svg'))
+      .map((f) => basename(f, '.svg'));
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ deviceScaleFactor: scale });
@@ -28,7 +32,8 @@ for (const name of names) {
   const svg = page.locator('svg').first();
   await svg.screenshot({ path: join(out, `${name}.card.png`) });
   await page.evaluate(() => {
-    for (const id of ['backdrop', 'caption', 'frame', 'frame-beads', 'grain-overlay', 'wear']) document.getElementById(id)?.setAttribute('display', 'none');
+    for (const id of ['backdrop', 'caption', 'frame', 'frame-beads', 'grain-overlay', 'wear'])
+      document.getElementById(id)?.setAttribute('display', 'none');
   });
   await svg.screenshot({ path: join(out, `${name}.png`), omitBackground: true });
   console.log('rendered', name);

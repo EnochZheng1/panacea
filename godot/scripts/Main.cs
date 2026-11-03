@@ -29,6 +29,13 @@ public partial class Main : Control
 	public override void _Ready()
 	{
 		SetAnchorsPreset(LayoutPreset.FullRect);
+		// tooltips are printed slips too
+		var theme = new Theme();
+		theme.SetStylebox("panel", "TooltipPanel", Print.Box(Print.Paper, Print.Ink, 2, 7));
+		theme.SetFont("font", "TooltipLabel", Print.FellIt);
+		theme.SetFontSize("font_size", "TooltipLabel", 15);
+		theme.SetColor("font_color", "TooltipLabel", Print.Ink);
+		Theme = theme;
 		var args = OS.GetCmdlineUserArgs();
 		string Arg(string name, string fallback)
 		{
@@ -54,6 +61,7 @@ public partial class Main : Control
 		AddChild(_wood);
 
 		_edition = new EditionView { OffsetBottom = -FooterHeight };
+		_edition.ClippingRequested += ShowClipping;
 		AddChild(_edition);
 		_desk = new ProofView { Visible = false, OffsetBottom = -FooterHeight };
 		_desk.PressRequested += GoToPress;
@@ -98,6 +106,25 @@ public partial class Main : Control
 		ShowEdition();
 		if (Arg("--screen", "edition") is "desk" or "proof") SetDesk(true);
 		if (Arg("--drawer", "") is { Length: > 0 } drawer) _desk.OpenDrawer(drawer);
+		if (Arg("--hover", "") is { Length: > 0 } hover)
+		{
+			// dev: move a pretend cursor to x,y after the screen settles (for hover screenshots)
+			var xy = hover.Split(',');
+			var at = new Vector2(float.Parse(xy[0]), float.Parse(xy[1]));
+			GetTree().CreateTimer(0.4).Timeout += () =>
+			{
+				Input.WarpMouse(at);
+				Input.ParseInputEvent(new InputEventMouseMotion { Position = at, GlobalPosition = at, Relative = new Vector2(1, 1) });
+			};
+		}
+		if (Arg("--clip", "") is { Length: > 0 } clipKind)
+		{
+			// dev: open the first clipping of a kind (death, books, inquest, notice) for review
+			var ed = _writer.Write(_game.Facts);
+			var all = ed.Left.Concat(ed.LeadFoot).Concat(ed.Right).SelectMany(x => x.Blocks).Select(b => b.Clip).Where(c => c != null).ToList();
+			var want = clipKind switch { "death" => "IN MEMORIAM", "books" => "THE LEDGER", "inquest" => "THE INQUEST", _ => "YOUR NOTICE" };
+			if (all.FirstOrDefault(c => c!.Kicker == want) is { } found) ShowClipping(found);
+		}
 		if (float.TryParse(Arg("--autopress", ""), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var after))
 			GetTree().CreateTimer(after).Timeout += GoToPress;
 	}
@@ -261,6 +288,59 @@ public partial class Main : Control
 		run.AddChild(copies); // above the pile
 		AddChild(run);
 		return run;
+	}
+
+	private Control? _clipping;
+
+	/// <summary>The cutting behind a paper item: laid over the edition; any click puts it down.</summary>
+	private void ShowClipping(Clipping c)
+	{
+		_clipping?.QueueFree();
+		Sfx.Play("slip");
+		var shade = new ColorRect { Color = new Color(0, 0, 0, 0.6f), MouseFilter = MouseFilterEnum.Stop };
+		shade.SetAnchorsPreset(LayoutPreset.FullRect);
+		shade.OffsetBottom = -FooterHeight;
+		var centre = new CenterContainer { MouseFilter = MouseFilterEnum.Ignore };
+		centre.SetAnchorsPreset(LayoutPreset.FullRect);
+		shade.AddChild(centre);
+
+		var row = new HBoxContainer();
+		row.AddThemeConstantOverride("separation", 22);
+		var tex = Print.Cut(c.Cut);
+		if (tex != null)
+		{
+			var img = new TextureRect { Texture = tex, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered, CustomMinimumSize = new Vector2(170, 290) };
+			var framed = Print.Panel(img, Print.Box(new Color(0, 0, 0, 0), Print.Ink, 2, 8));
+			framed.SizeFlagsVertical = SizeFlags.ShrinkCenter;
+			row.AddChild(framed);
+			Anim.Breathe(img, 0.01f, 2.8f);
+		}
+		var text = new VBoxContainer { CustomMinimumSize = new Vector2(400, 0) };
+		text.AddThemeConstantOverride("separation", 6);
+		text.AddChild(Print.Label(c.Kicker, Print.Fell, 14));
+		text.AddChild(Print.Label(c.Title, Print.Rye, 30));
+		text.AddChild(Print.Rule(3, 1, 2));
+		foreach (var line in c.Lines) text.AddChild(Print.Body(Print.Escape(line), 17, justify: false));
+		text.AddChild(new Control { CustomMinimumSize = new Vector2(0, 8) });
+		text.AddChild(Print.Label("Click anywhere to put it down.", Print.FellIt, 13, color: Print.Faint));
+		row.AddChild(text);
+		var card = Print.Slip(row, 20);
+		card.RotationDegrees = -1.2f;
+		centre.AddChild(card);
+		shade.GuiInput += e =>
+		{
+			if (e is InputEventMouseButton { Pressed: true })
+			{
+				Sfx.Play("slip", -4f, 0.04f, 0.85f);
+				shade.QueueFree();
+				_clipping = null;
+				((ShaderMaterial)_press.Material).SetShaderParameter("speck", _onDesk ? 0.0f : 0.16f);
+			}
+		};
+		AddChild(shade);
+		_clipping = shade;
+		Anim.Settle(card);
+		((ShaderMaterial)_press.Material).SetShaderParameter("speck", 0.0f);
 	}
 
 	private void CountCash(long from, long to, float seconds)

@@ -66,9 +66,13 @@ public sealed class SimGame : IGame
 		return new FormulaPreview { UnitCostCents = (long)Math.Ceiling(a.UnitCostCents), Properties = Props(a.Properties) };
 	}
 
+	/// <summary>Everyone ever seen at the counter, as last seen (the paper remembers them).</summary>
+	private readonly Dictionary<string, Regular> _known = new();
+
 	public void GoToPress()
 	{
 		if (Ended) return;
+		foreach (var r in Desk().Regulars) _known[r.Name] = r;
 		var report = Sim.Game.EndTurnInPlace(_state, _content);
 		Facts = BuildFacts(report);
 	}
@@ -203,6 +207,15 @@ public sealed class SimGame : IGame
 		foreach (var c in o.Customers.Where(c => c.Mood == "delighted" || c.Craving))
 			f.Enthusiasts.Add(Person(c));
 
+		if (report != null)
+		{
+			f.CashStartCents = report.CashStartCents;
+			foreach (var g in report.Deltas.Where(x => x.Metric == "cash").GroupBy(x => x.Cause))
+				f.CashLines.Add((_content.Text($"cause.{g.Key}"), (long)Math.Round(g.Sum(x => x.Amount))));
+			foreach (var g in report.Deltas.Where(x => x.Metric == "heat").GroupBy(x => x.Cause))
+				f.HeatLines.Add((_content.Text($"cause.{g.Key}"), g.Sum(x => x.Amount)));
+		}
+
 		if (report == null)
 		{
 			foreach (var c in o.Customers.Take(4)) f.Joined.Add(Person(c));
@@ -238,7 +251,7 @@ public sealed class SimGame : IGame
 					break;
 				}
 				case CustomerLeftNews l:
-					f.Left.Add(new LeftFact(new PersonFact { Id = l.CustomerId, Name = l.Name, Female = IsFemale(l.Name) }, l.Reason));
+					f.Left.Add(new LeftFact(Remembered(new PersonFact { Id = l.CustomerId, Name = l.Name, Female = IsFemale(l.Name) }), l.Reason));
 					break;
 				case TimelineNews t:
 					f.Era.Add((_content.Text($"timeline.{t.Id}.headline"), _content.Text($"timeline.{t.Id}.body")));
@@ -263,6 +276,26 @@ public sealed class SimGame : IGame
 		return f;
 	}
 
+	public static string Describe(Regular r)
+	{
+		var looks = r.Looks switch { "gravely_ill" => "gravely ill", "poorly" => "poorly", "peaky" => "a little peaky", _ => "hale" };
+		var extra = r.Withdrawal ? "shaking for want of a dose" : r.Craving ? "asking for it by name" : r.Mood switch
+		{
+			"delighted" => "delighted with it", "unhappy" => "unhappy with it", "grumbling" => "grumbling", _ => "content",
+		};
+		return $"{looks}, {extra}";
+	}
+
+	private PersonFact Remembered(PersonFact p)
+	{
+		if (!_known.TryGetValue(p.Name, out var r)) return p;
+		p.Months = r.MonthsAsCustomer;
+		p.LastSeen = Describe(r);
+		if (string.IsNullOrEmpty(p.Segment)) p.Segment = r.Segment;
+		if (string.IsNullOrEmpty(p.Ailment)) p.Ailment = r.Ailment;
+		return p;
+	}
+
 	private PersonFact Person(ObservedCustomer c) => new()
 	{
 		Id = c.Id,
@@ -271,9 +304,11 @@ public sealed class SimGame : IGame
 		Ailment = _content.Text($"ailment.{c.Ailment}.name"),
 		Infant = c.Consumer == "infant",
 		Female = IsFemale(c.Name),
+		Months = c.MonthsAsCustomer,
+		LastSeen = Describe(new Regular { Looks = c.Looks, Mood = c.Mood, Craving = c.Craving, Withdrawal = c.Withdrawal }),
 	};
 
-	private static PersonFact Person(ObservedDeath d) => new()
+	private PersonFact Person(ObservedDeath d) => Remembered(new PersonFact
 	{
 		Id = d.Id,
 		Name = d.Name,
@@ -281,7 +316,7 @@ public sealed class SimGame : IGame
 		Infant = d.Consumer == "infant",
 		Anonymous = d.Anonymous,
 		Female = IsFemale(d.Name),
-	};
+	});
 
 	private static bool IsFemale(string name) => name.StartsWith("Mrs.") || name.StartsWith("Miss");
 }

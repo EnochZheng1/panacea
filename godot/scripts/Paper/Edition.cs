@@ -43,6 +43,17 @@ public sealed class Block
     public string Fine = "";
     /// <summary>Name of an engraved cut in res://assets/art/cuts (without extension).</summary>
     public string Cut = "";
+    /// <summary>What opens when the reader clicks this item: the cause behind the print.</summary>
+    public Clipping? Clip;
+}
+
+/// <summary>The cutting the proprietor keeps: who or what an item was about, and why.</summary>
+public sealed class Clipping
+{
+    public string Kicker = "";
+    public string Title = "";
+    public string Cut = "";
+    public List<string> Lines = new();
 }
 
 public sealed class Story
@@ -53,4 +64,5 @@ public sealed class Story
     public string Cutline = "";
     public string Body = "";
     public bool IsAdvertisement;
+    public Clipping? Clip;
 }

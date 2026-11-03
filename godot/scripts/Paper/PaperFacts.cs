@@ -39,6 +39,11 @@ public sealed class PaperFacts
     public List<(string Name, long CostCents)> Markets = new();
     public bool Ended;
     public string? EndReason;
+
+    /// <summary>The month's books by cause, as the Ledger keeps them.</summary>
+    public long CashStartCents;
+    public List<(string Label, long Cents)> CashLines = new();
+    public List<(string Label, double Amount)> HeatLines = new();
 }
 
 public sealed class ProductFact
@@ -62,6 +67,10 @@ public sealed class PersonFact
     public bool Infant;
     public bool Anonymous;
     public bool Female;
+    /// <summary>How long they had been a regular (-1: never known at the shop).</summary>
+    public int Months = -1;
+    /// <summary>How they looked across the counter the last time they came in.</summary>
+    public string LastSeen = "";
 }
 
 public sealed record InquestFact(PersonFact Person, string Outcome, string Verdict, string? Product);

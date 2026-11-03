@@ -84,6 +84,22 @@ public static class Anim
 		t.TweenProperty(c, "modulate:a", 1f, seconds * 0.8f);
 	});
 
+	/// <summary>
+	/// Fades a control in with a small settle in scale. Safe for children of containers (it never
+	/// touches position, which the container owns).
+	/// </summary>
+	public static void Settle(Control c, float seconds = 0.22f)
+	{
+		c.Modulate = new Color(1, 1, 1, 0);
+		WhenReady(c, () =>
+		{
+			var t = c.CreateTween();
+			t.TweenCallback(Callable.From(() => { c.PivotOffset = c.Size / 2; c.Scale = new Vector2(0.95f, 0.95f); }));
+			t.TweenProperty(c, "modulate:a", 1f, seconds * 0.8f);
+			t.Parallel().TweenProperty(c, "scale", Vector2.One, seconds).SetTrans(Tween.TransitionType.Back).SetEase(Tween.EaseType.Out);
+		});
+	}
+
 	/// <summary>A jolt, as when a sheet lands or the platen comes down.</summary>
 	public static void Jolt(Control c, float px = 6f)
 	{

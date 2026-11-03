@@ -17,7 +17,40 @@ public partial class EditionView : ScrollContainer
 		Print.QuietScrollbar(this);
 	}
 
+	/// <summary>Raised when the reader clicks an item that has a cause behind it.</summary>
+	public event Action<Clipping>? ClippingRequested;
 	private PanelContainer? _sheet;
+
+	private static StyleBoxFlat Wash(bool on)
+	{
+		var st = new StyleBoxFlat { BgColor = on ? new Color(Print.Ink, 0.07f) : new Color(0, 0, 0, 0) };
+		st.BorderColor = Print.Ink;
+		st.BorderWidthLeft = on ? 3 : 0;
+		st.ContentMarginLeft = 6; st.ContentMarginRight = 4; st.ContentMarginTop = 2; st.ContentMarginBottom = 2;
+		return st;
+	}
+
+	/// <summary>An item the reader can take up: it inks faintly under the hand, and opens its clipping.</summary>
+	private Control Clickable(Control inner, Clipping? clip)
+	{
+		if (clip == null) return inner;
+		var p = new PanelContainer { MouseFilter = MouseFilterEnum.Stop, MouseDefaultCursorShape = CursorShape.PointingHand, TooltipText = "Click to read the cutting." };
+		p.AddThemeStyleboxOverride("panel", Wash(false));
+		p.AddChild(inner);
+		p.MouseEntered += () =>
+		{
+			if (_reveal != null) return;
+			p.AddThemeStyleboxOverride("panel", Wash(true));
+			Sfx.Play("tick", -12f, 0.2f);
+		};
+		p.MouseExited += () => p.AddThemeStyleboxOverride("panel", Wash(false));
+		p.GuiInput += e =>
+		{
+			if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } && _reveal == null)
+				ClippingRequested?.Invoke(clip);
+		};
+		return p;
+	}
 	private Label? _headline;
 	private ColorRect? _mask;
 	private Tween? _reveal;
@@ -164,17 +197,17 @@ public partial class EditionView : ScrollContainer
 		return m;
 	}
 
-	private static void AddSection(VBoxContainer col, Section s)
+	private void AddSection(VBoxContainer col, Section s)
 	{
 		if (!string.IsNullOrEmpty(s.Title))
 		{
 			col.AddChild(Print.Label(s.Title, Print.Rye, 21, HorizontalAlignment.Center));
 			col.AddChild(Print.Dash(90));
 		}
-		foreach (var b in s.Blocks) col.AddChild(BlockControl(b));
+		foreach (var b in s.Blocks) col.AddChild(Clickable(BlockControl(b), b.Clip));
 	}
 
-	private static Control BlockControl(Block b)
+	private Control BlockControl(Block b)
 	{
 		switch (b.Kind)
 		{
@@ -251,7 +284,7 @@ public partial class EditionView : ScrollContainer
 		two.AddThemeConstantOverride("separation", 22);
 		two.AddChild(Print.Body(DropCap(Print.Escape(a)), 16));
 		if (b.Length > 0) two.AddChild(Print.Body(Print.Escape(b), 16));
-		col.AddChild(two);
+		col.AddChild(Clickable(two, s.Clip));
 	}
 
 	private static string DropCap(string s) =>

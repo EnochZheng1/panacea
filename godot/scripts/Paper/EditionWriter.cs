@@ -53,7 +53,11 @@ public sealed class EditionWriter
                 var key = d.Anonymous ? "deathAnonymous" : d.Infant ? "deathInfant" : "deathSelf";
                 var text = Fill(Pick(f, key + d.Id, _copy.GetProperty(key)), f, d, productName);
                 SplitLead(text, out var lead, out var rest);
-                deaths.Blocks.Add(new Block { Kind = BlockKind.Notice, Lead = lead, Text = rest });
+                var q = f.Inquests.FirstOrDefault(x => x.Person.Id == d.Id);
+                var extra = new List<string>();
+                if (d.Infant) extra.Add("The medicine was for an infant in the family's care.");
+                extra.Add(q != null ? $"The coroner's jury found: \u201c{q.Verdict}.\u201d" : "No inquest has been called. Yet.");
+                deaths.Blocks.Add(new Block { Kind = BlockKind.Notice, Lead = lead, Text = rest, Clip = PersonClip(f, d, "IN MEMORIAM", extra.ToArray()) });
             }
             e.Left.Add(deaths);
         }
@@ -65,7 +69,13 @@ public sealed class EditionWriter
                 var key = q.Outcome switch { "bribed" => "inquestBribed", "implicated" => "inquestImplicated", _ => "inquestCleared" };
                 var text = Fill(Pick(f, key + q.Person.Id, _copy.GetProperty(key)), f, q.Person, q.Product ?? productName)
                     .Replace("{verdict}", q.Verdict);
-                court.Blocks.Add(new Block { Text = text });
+                var meaning = q.Outcome switch
+                {
+                    "bribed" => "Your envelope reached the coroner. The verdict is the one you paid for.",
+                    "implicated" => "Your product is named in the findings. The Board of Health will take an interest, and the ward will talk.",
+                    _ => "The jury found nothing to say against you. This time.",
+                };
+                court.Blocks.Add(new Block { Text = text, Clip = PersonClip(f, q.Person, "THE INQUEST", $"Verdict: \u201c{q.Verdict}.\u201d", meaning) });
             }
             e.Left.Add(court);
         }
@@ -73,7 +83,7 @@ public sealed class EditionWriter
         foreach (var p in f.Joined)
         {
             var template = f.FirstEdition ? S(_copy, "regularsIntro") : Pick(f, "joined" + p.Id, _copy.GetProperty("joined"));
-            personal.Blocks.Add(new Block { Text = Fill(template, f, p, productName) });
+            personal.Blocks.Add(new Block { Text = Fill(template, f, p, productName), Clip = PersonClip(f, p, "A NEW CUSTOMER", $"Looking for something for {p.Ailment.ToLowerInvariant()}.") });
         }
         var drifted = f.Left.Where(l => l.Reason == "drifted").ToList();
         if (drifted.Count > 2)
@@ -84,7 +94,14 @@ public sealed class EditionWriter
         foreach (var l in f.Left.Where(l => drifted.Count <= 2 || l.Reason != "drifted"))
         {
             var key = l.Reason switch { "recovered" => "leftRecovered", "dissatisfied" => "leftDissatisfied", "bereaved" => "leftBereaved", _ => "leftDrifted" };
-            personal.Blocks.Add(new Block { Text = Fill(Pick(f, key + l.Person.Id, _copy.GetProperty(key)), f, l.Person, productName) });
+            var why = l.Reason switch
+            {
+                "recovered" => "Got better on their own. It happens; the trade does not advertise it.",
+                "dissatisfied" => "Felt it did nothing for them, and said so. Something stronger, or something cheaper, might have kept them.",
+                "bereaved" => "Someone in the household died. The family has no further need of the remedy.",
+                _ => "Simply stopped coming. Perhaps a rival's bottle; perhaps the price.",
+            };
+            personal.Blocks.Add(new Block { Text = Fill(Pick(f, key + l.Person.Id, _copy.GetProperty(key)), f, l.Person, productName), Clip = PersonClip(f, l.Person, "GONE FROM THE SHOP", why) });
         }
         if (personal.Blocks.Count > 0) e.Left.Add(personal);
 
@@ -98,7 +115,11 @@ public sealed class EditionWriter
         if (f.AdsLapsed)
             notices.Blocks.Add(new Block { Text = Fill(Pick(f, "lapsed", _copy.GetProperty("adsLapsed")), f, null, productName) });
         foreach (var (title, description) in f.Unlocks)
-            notices.Blocks.Add(new Block { Text = Pick(f, "unlock", _copy.GetProperty("unlock")).Replace("{title}", title.ToUpperInvariant()).Replace("{description}", description) });
+            notices.Blocks.Add(new Block
+            {
+                Text = Pick(f, "unlock", _copy.GetProperty("unlock")).Replace("{title}", title.ToUpperInvariant()).Replace("{description}", description),
+                Clip = new Clipping { Kicker = "A NEW CAPABILITY", Title = title, Cut = "wc_proprietor", Lines = { description, "Earned this month. It is yours to use from the next." } },
+            });
         if (notices.Blocks.Count > 0) e.Left.Add(notices);
 
         // a quiet month still fills the column: the classifieds
@@ -116,8 +137,9 @@ public sealed class EditionWriter
 
         // ---- under the lead: the trade, and the era ----
         var trade = new Section { Title = S(sec, "trade") };
+        var books = BooksClip(f);
         if (f.Sales.Count == 0 && !f.FirstEdition)
-            trade.Blocks.Add(new Block { Text = Pick(f, "nosales", _copy.GetProperty("tradeNoSales")) });
+            trade.Blocks.Add(new Block { Text = Pick(f, "nosales", _copy.GetProperty("tradeNoSales")), Clip = books });
         foreach (var s in f.Sales)
         {
             var price = f.Products.FirstOrDefault(p => p.Name == s.Product)?.PriceCents ?? 0;
@@ -127,9 +149,10 @@ public sealed class EditionWriter
                     .Replace("{product}", s.Product)
                     .Replace("{bottles}", s.Bottles.ToString(CultureInfo.InvariantCulture))
                     .Replace("{price}", Money(price)),
+                Clip = books,
             });
         }
-        trade.Blocks.Add(new Block { Text = Pick(f, "books", _copy.GetProperty("tradeBooks")).Replace("{cash}", Money(f.CashCents)) });
+        trade.Blocks.Add(new Block { Text = Pick(f, "books", _copy.GetProperty("tradeBooks")).Replace("{cash}", Money(f.CashCents)), Clip = books });
         e.LeadFoot.Add(trade);
         if (f.Era.Count > 0 && !(e.Lead.Headline == f.Era[0].Headline.ToUpperInvariant() && f.Era.Count == 1))
         {
@@ -155,6 +178,18 @@ public sealed class EditionWriter
                 Text = product.ClaimNames.Count > 0 ? string.Join(" · ", product.ClaimNames).ToUpperInvariant() : "FOR ALL COMPLAINTS",
                 Fine = tier >= 2 ? $"{Money(product.PriceCents)} the bottle, at the shop on Mulberry street." : "",
                 Cut = tier >= 2 ? "wc_bottle_panacea" : "",
+                Clip = new Clipping
+                {
+                    Kicker = "YOUR NOTICE",
+                    Title = product.Name,
+                    Cut = "wc_bottle_panacea",
+                    Lines =
+                    {
+                        $"Space bought: {AdSpace.Tiers[tier].Name.ToLowerInvariant()}, {Money(AdSpace.Tiers[tier].Cents)} a month.",
+                        product.ClaimNames.Count > 0 ? "Claims set in type: " + string.Join("; ", product.ClaimNames) + "." : "No claims: just the name and the price.",
+                        "Bolder claims bring in more custom, and more talk in the ward. Change them on the proof.",
+                    },
+                },
             });
         }
         var rivals = _copy.GetProperty("rivals").EnumerateArray().ToList();
@@ -233,6 +268,7 @@ public sealed class EditionWriter
                 Cutline = subject == null ? "THE REMEDY.—Actual size." : $"{subject.Name.ToUpperInvariant()}.—From a stock likeness.",
                 Body = Sub(body),
                 IsAdvertisement = true,
+                Clip = subject == null ? null : PersonClip(f, subject, "QUOTED IN YOUR NOTICE", "The Gazette set your advertisement as news, and found this customer to quote. Nobody asked them."),
             };
         }
         if (f.Era.Count > 0)
@@ -318,6 +354,52 @@ public sealed class EditionWriter
             .Replace("{coroner}", Pick(f, "coroner", _copy.GetProperty("coroners")))
             .Replace("{cash}", Money(f.CashCents));
         return s;
+    }
+
+    private Clipping PersonClip(PaperFacts f, PersonFact p, string kicker, params string[] extra)
+    {
+        var c = new Clipping { Kicker = kicker, Cut = CutFor(p) };
+        if (p.Anonymous)
+        {
+            var female = p.Female || (Hash(f.Seed, 2, p.Id) & 1) == 0;
+            c.Title = "Name Unknown";
+            c.Lines.Add(Cap(Anonymous(p.Segment, female)) + ". Nobody at the shop knew the name.");
+        }
+        else
+        {
+            c.Title = p.Name;
+            var line = Cap(Occupation(p));
+            if (!string.IsNullOrEmpty(p.Ailment)) line += $", who came to the shop for {p.Ailment.ToLowerInvariant()}";
+            c.Lines.Add(line + ".");
+            c.Lines.Add(p.Months switch
+            {
+                < 0 => "Not one of your regulars, so far as the books show.",
+                0 => "New to the shop this month.",
+                1 => "A regular for a month.",
+                _ => $"A regular for {p.Months} months.",
+            });
+            if (!string.IsNullOrEmpty(p.LastSeen)) c.Lines.Add($"Last seen at the counter: {p.LastSeen}.");
+        }
+        c.Lines.AddRange(extra);
+        return c;
+    }
+
+    private static Clipping BooksClip(PaperFacts f)
+    {
+        var c = new Clipping { Kicker = "THE LEDGER", Title = "The Month's Books", Cut = "wc_death" };
+        if (f.FirstEdition)
+        {
+            c.Lines.Add($"The shop opens with {Money(f.CashCents)} in hand.");
+            return c;
+        }
+        c.Lines.Add($"Opened the month with {Money(f.CashStartCents)}.");
+        foreach (var (label, cents) in f.CashLines.OrderByDescending(x => x.Cents))
+            c.Lines.Add($"{(cents >= 0 ? "+" : "−")}{Money(Math.Abs(cents))}  ·  {label}");
+        c.Lines.Add($"Closed the month with {Money(f.CashCents)}.");
+        foreach (var (label, amount) in f.HeatLines.Where(x => Math.Abs(x.Amount) >= 0.5))
+            c.Lines.Add($"Talk in the ward {(amount > 0 ? "rose" : "fell")} {Math.Abs(amount):0}  ·  {label}");
+        c.Lines.Add("The silent partner keeps a second set of books. They are not shown.");
+        return c;
     }
 
     private string Anonymous(string segment, bool female)

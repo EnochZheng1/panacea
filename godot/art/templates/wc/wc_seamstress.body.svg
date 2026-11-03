@@ -1,0 +1,46 @@
+  <g id="figure" filter="url(#carve)">
+    <ellipse cx="300" cy="866" rx="130" ry="10" class="g"/>
+    <!-- plain working skirt, no bustle; an apron gone grey with use -->
+    <path class="k" d="M236,520 C226,640 218,760 212,856 L388,856 C382,760 374,640 364,520 Z"/>
+    <path class="p" d="M262,530 C258,640 256,740 256,846 L344,846 C344,740 342,640 338,530 Z"/>
+    <path class="g" d="M322,536 C326,640 330,740 332,846 L344,846 C344,740 342,640 338,530 Z"/>
+    <path class="ln" d="M262,530 C258,640 256,740 256,846 L344,846 C344,740 342,640 338,530 Z M284,560 C282,660 280,760 280,840 M318,580 C320,680 320,760 322,840" stroke-width="2"/>
+    <path class="cut" d="M226,640 C222,720 218,790 216,850 M374,640 C378,720 382,790 384,850"/>
+    <!-- bodice, white collar, sleeves rolled -->
+    <path class="k" d="M250,388 C240,440 244,490 256,528 L344,528 C356,490 360,440 350,388 C330,378 270,378 250,388 Z"/>
+    <path class="p" d="M276,384 L300,404 L324,384 L326,394 L300,414 L274,394 Z"/>
+    <path class="ln" d="M276,384 L300,404 L324,384 L326,394 L300,414 L274,394 Z" stroke-width="1.8"/>
+    <!-- a pair of scissors on a ribbon -->
+    <path class="ln" d="M338,452 C346,480 350,500 348,520" stroke-width="1.6"/>
+    <circle cx="344" cy="526" r="6" fill="none" stroke="#141212" stroke-width="2.4"/><circle cx="356" cy="526" r="6" fill="none" stroke="#141212" stroke-width="2.4"/>
+    <path class="ln" d="M348,532 L354,556 M352,532 L348,556" stroke-width="2.4"/>
+    <!-- neck and a thin, tired face -->
+    <path class="p" d="M288,348 L312,348 L314,384 L286,384 Z"/>
+    <path class="ln" d="M288,348 L286,384 M312,348 L314,384" stroke-width="2"/>
+    <path class="p" d="M300,236 C330,236 346,262 346,292 C346,326 328,352 300,354 C272,352 254,326 254,292 C254,262 270,236 300,236 Z"/>
+    <path class="g" d="M330,246 C342,262 346,280 346,294 C346,322 334,342 318,350 C330,328 334,310 334,292 C334,272 334,258 330,246 Z"/>
+    <path class="ln" d="M300,236 C330,236 346,262 346,292 C346,326 328,352 300,354 C272,352 254,326 254,292 C254,262 270,236 300,236 Z" stroke-width="2.8"/>
+    <!-- hair scraped back into a bun -->
+    <path class="k" d="M254,286 C250,250 272,226 300,226 C328,226 350,250 346,286 C338,262 322,250 300,250 C278,250 262,262 254,286 Z"/>
+    <circle cx="300" cy="220" r="20" class="k"/>
+    <path class="cut" d="M270,246 C282,238 292,236 300,236 M300,236 C310,236 320,240 330,246" stroke-width="1.6"/>
+    <path class="ln" d="M272,290 C278,295 286,295 292,290 M308,290 C314,295 322,295 328,290" stroke-width="2.4"/>
+    <path class="ln" d="M272,298 C280,303 288,303 292,298 M308,298 C314,303 322,303 328,298" stroke-width="1.2"/>
+    <path class="ln" d="M300,298 L296,318 L304,320" stroke-width="1.8"/>
+    <path class="ln" d="M290,334 C296,332 304,332 310,334" stroke-width="2"/>
+    <!-- arms: one holds the bottle, the other a needle and thread -->
+    <path class="ln" d="M254,396 C226,430 226,480 262,488" stroke-width="28"/>
+    <path d="M254,396 C226,430 226,480 262,488" fill="none" stroke="#141212" stroke-width="22" stroke-linecap="round"/>
+    <path class="p" d="M240,436 L256,430 L262,452 L246,458 Z"/>
+    <path class="ln" d="M346,396 C374,430 376,470 352,478" stroke-width="28"/>
+    <path d="M346,396 C374,430 376,470 352,478" fill="none" stroke="#141212" stroke-width="22" stroke-linecap="round"/>
+    <path class="k" d="M264,454 L292,454 L292,512 L264,512 Z M270,436 L286,436 L286,454 L270,454 Z"/>
+    <path class="gr" d="M268,462 L288,462 L288,508 L268,508 Z"/>
+    <path class="p" d="M268,474 L288,474 L288,494 L268,494 Z"/>
+    <path class="p" d="M256,486 C262,476 280,476 284,488 C286,500 274,506 264,504 C256,500 252,494 256,486 Z"/>
+    <path class="ln" d="M256,486 C262,476 280,476 284,488 C286,500 274,506 264,504 C256,500 252,494 256,486 Z" stroke-width="1.8"/>
+    <path class="p" d="M340,470 C346,460 362,462 364,474 C364,486 352,490 344,488 C338,484 336,478 340,470 Z"/>
+    <path class="ln" d="M340,470 C346,460 362,462 364,474 C364,486 352,490 344,488 C338,484 336,478 340,470 Z" stroke-width="1.8"/>
+    <path class="ln" d="M362,464 L392,420 C400,410 410,430 396,440 C386,448 380,470 386,500" stroke-width="1.3"/>
+  </g>
+  <g class="grl" stroke-width="3.5"><path d="M278,428 L278,414 M262,434 L254,424 M294,434 L302,424"/></g>

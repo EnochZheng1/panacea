@@ -28,6 +28,14 @@ public partial class DeskView : ScrollContainer
 	private string? _proofFormula;
 
 	public event Action? PressRequested;
+	/// <summary>Raised after any action, so the screen around a drawer can refresh.</summary>
+	public event Action? Changed;
+
+	/// <summary>
+	/// Shows only one tool as a drawer over the proof: "letters", "still", "formula" or
+	/// "supplies". Null shows the whole desk.
+	/// </summary>
+	public string? Only;
 
 	public DeskView()
 	{
@@ -56,6 +64,7 @@ public partial class DeskView : ScrollContainer
 		var scroll = ScrollVertical;
 		Rebuild();
 		CallDeferred(nameof(RestoreScroll), scroll);
+		Changed?.Invoke();
 	}
 
 	private void RestoreScroll(int v) => ScrollVertical = v;
@@ -65,6 +74,26 @@ public partial class DeskView : ScrollContainer
 		if (_game == null) return;
 		foreach (var c in GetChildren()) { RemoveChild(c); c.QueueFree(); }
 		var m = _game.Desk();
+
+		if (Only != null)
+		{
+			var pad = new MarginContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+			pad.AddThemeConstantOverride("margin_left", 4);
+			pad.AddThemeConstantOverride("margin_right", 14);
+			AddChild(pad);
+			var col = Stack();
+			pad.AddChild(col);
+			switch (Only)
+			{
+				case "letters": col.AddChild(Letters(m)); break;
+				case "still": col.AddChild(Still(m)); col.AddChild(Supplies(m)); break;
+				case "formula": col.AddChild(FormulaBook(m)); break;
+				default: col.AddChild(Supplies(m)); break;
+			}
+			if (!string.IsNullOrEmpty(_note))
+				col.AddChild(Print.Slip(Print.Body((_noteIsError ? "[b]Refused.[/b] " : "") + $"[i]{Print.Escape(_note)}[/i]", 15, justify: false), 10));
+			return;
+		}
 
 		var margin = new MarginContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
 		foreach (var side in new[] { "left", "right" }) margin.AddThemeConstantOverride("margin_" + side, 40);
@@ -121,7 +150,7 @@ public partial class DeskView : ScrollContainer
 		return h;
 	}
 
-	private static string Talk(double heat) =>
+	public static string Talk(double heat) =>
 		heat < 10 ? "none to speak of" : heat < 30 ? "a little" : heat < 55 ? "a good deal" : heat < 80 ? "alarming" : "the Board of Health is asking";
 
 	private Control Letters(DeskModel m)

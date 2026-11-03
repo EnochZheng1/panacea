@@ -144,16 +144,17 @@ public sealed class EditionWriter
 
         // ---- right column: advertisements ----
         var ads = new Section();
-        if (product != null)
+        var tier = f.CanAdvertise ? AdSpace.TierFor(f.AdSpendCents) : 0;
+        if (product != null && tier > 0)
         {
             ads.Blocks.Add(new Block
             {
                 Kind = BlockKind.Ad,
-                Mid = "THE WONDER OF THE AGE!",
+                Mid = tier >= 3 ? "THE WONDER OF THE AGE!" : "",
                 Head = product.Name.ToUpperInvariant(),
                 Text = product.ClaimNames.Count > 0 ? string.Join(" · ", product.ClaimNames).ToUpperInvariant() : "FOR ALL COMPLAINTS",
-                Fine = $"{Money(product.PriceCents)} the bottle, at the shop on Mulberry street.",
-                Cut = "wc_bottle_panacea",
+                Fine = tier >= 2 ? $"{Money(product.PriceCents)} the bottle, at the shop on Mulberry street." : "",
+                Cut = tier >= 2 ? "wc_bottle_panacea" : "",
             });
         }
         var rivals = _copy.GetProperty("rivals").EnumerateArray().ToList();
@@ -211,7 +212,7 @@ public sealed class EditionWriter
             };
         }
         // An advertisement dressed as news, when the player is paying for space.
-        if (product != null && f.CanAdvertise && f.AdSpendCents > 0)
+        if (product != null && f.CanAdvertise && AdSpace.TierFor(f.AdSpendCents) == AdSpace.Front)
         {
             var rn = _copy.GetProperty("readingNotice");
             var subject = f.Enthusiasts.FirstOrDefault();
@@ -276,13 +277,7 @@ public sealed class EditionWriter
 
     // ---------- helpers ----------
 
-    private static string CutFor(PersonFact p) => p.Segment switch
-    {
-        "mother" => "wc_mother",
-        "labourer" or "dockworker" => "wc_longshoreman",
-        "well_to_do" => p.Female ? "wc_lady" : "wc_proprietor",
-        _ => "wc_clerk",
-    };
+    private static string CutFor(PersonFact p) => Panacea.UI.ProofView.CutFor(p.Segment, p.Female);
 
     private string Fill(string template, PaperFacts f, PersonFact? p, string product)
     {

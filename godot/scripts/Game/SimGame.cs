@@ -115,7 +115,20 @@ public sealed class SimGame : IGame
 			});
 		}
 		foreach (var p in o.Processes) d.Processes.Add((p, _content.Text($"process.{p}.name")));
-		foreach (var c in o.Claims) d.Claims.Add((c, _content.Text($"claim.{c}.name")));
+		foreach (var c in o.Claims)
+		{
+			d.Claims.Add((c, _content.Text($"claim.{c}.name")));
+			d.ClaimBoldness[c] = _content.ById.Claims.TryGetValue(c, out var claim) ? claim.Boldness : 0;
+		}
+		foreach (var c in o.Customers)
+		{
+			d.Regulars.Add(new Regular
+			{
+				Id = c.Id, Name = c.Name, Segment = c.Segment, Ailment = _content.Text($"ailment.{c.Ailment}.name"),
+				Infant = c.Consumer == "infant", Looks = c.Looks, Mood = c.Mood, Craving = c.Craving, Withdrawal = c.Withdrawal,
+				MonthsAsCustomer = c.MonthsAsCustomer, BottlesLastMonth = c.BottlesLastMonth,
+			});
+		}
 		foreach (var f in o.Formulas)
 		{
 			d.Formulas.Add(new FormulaRow

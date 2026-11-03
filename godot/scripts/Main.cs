@@ -19,7 +19,7 @@ public partial class Main : Control
 	private IGame _game = null!;
 	private EditionWriter _writer = null!;
 	private EditionView _edition = null!;
-	private DeskView _desk = null!;
+	private ProofView _desk = null!;
 	private Button _nav = null!;
 	private ColorRect _press = null!;
 	private ColorRect _wood = null!;
@@ -51,7 +51,7 @@ public partial class Main : Control
 
 		_edition = new EditionView { OffsetBottom = -FooterHeight };
 		AddChild(_edition);
-		_desk = new DeskView { Visible = false, OffsetBottom = -FooterHeight };
+		_desk = new ProofView { Visible = false, OffsetBottom = -FooterHeight };
 		_desk.PressRequested += GoToPress;
 		AddChild(_desk);
 
@@ -73,7 +73,7 @@ public partial class Main : Control
 		_status = Print.Label("", Print.FellIt, 17, color: Print.Paper);
 		_status.SizeFlagsVertical = SizeFlags.ShrinkCenter;
 		row.AddChild(_status);
-		_nav = InvertedButton("TO THE DESK ▸");
+		_nav = InvertedButton("TO THE PROOF ▸");
 		_nav.SizeFlagsVertical = SizeFlags.ShrinkCenter;
 		_nav.CustomMinimumSize = new Vector2(230, 0);
 		_nav.Pressed += Navigate;
@@ -83,10 +83,12 @@ public partial class Main : Control
 		_seed = Arg("--seed", "gazette-1885");
 
 		var play = int.Parse(Arg("--play", "0"));
+		Autoplay.AdCents = long.Parse(Arg("--ads", "300"));
 		Autoplay.Laudanum = double.Parse(Arg("--dose", "0.25"), System.Globalization.CultureInfo.InvariantCulture);
 		for (var i = 0; i < play && !_game.Ended; i++) Autoplay.OneMonth(_game);
 		ShowEdition();
-		if (Arg("--screen", "edition") == "desk") SetDesk(true);
+		if (Arg("--screen", "edition") is "desk" or "proof") SetDesk(true);
+		if (Arg("--drawer", "") is { Length: > 0 } drawer) _desk.OpenDrawer(drawer);
 	}
 
 	private const int FooterHeight = 64;
@@ -141,7 +143,7 @@ public partial class Main : Control
 		_desk.Visible = _onDesk;
 		_wood.Visible = _onDesk;
 		_edition.Visible = !_onDesk;
-		_nav.Text = _onDesk ? "◂ THE PAPER" : (_game.Ended ? "BEGIN AGAIN" : "TO THE DESK ▸");
+		_nav.Text = _onDesk ? "◂ LAST EDITION" : (_game.Ended ? "BEGIN AGAIN" : "TO THE PROOF ▸");
 		var d = _game.Desk();
 		var when = new System.DateTime(d.Year, d.Month, 1).ToString("MMMM yyyy", System.Globalization.CultureInfo.InvariantCulture);
 		_status.Text = _game.Ended
@@ -158,6 +160,7 @@ public static class Autoplay
 {
 	/// <summary>Ounces of laudanum per bottle in the scripted recipe (--dose).</summary>
 	public static double Laudanum = 0.25;
+	public static long AdCents = 300;
 
 	private static (string, double)[] Recipe(double capacity) =>
 		new (string, double)[] { ("grain_alcohol", 2), ("sugar_syrup", 1), ("peppermint_oil", 0.5), ("laudanum", Laudanum), ("water", capacity - 3.5 - Laudanum) };
@@ -185,7 +188,7 @@ public static class Autoplay
 			var claims = d.Claims.Select(c => c.Id).Where(c => c is "soothes_nerves" or "cures_consumption").ToList();
 			Try("claims", game.SetClaims(f.Id, claims));
 		}
-		if (d.CanAdvertise && d.AdSpendCents == 0) Try("ads", game.SetAdSpend(300));
+		if (d.CanAdvertise && d.AdSpendCents != AdCents) Try("ads", game.SetAdSpend(AdCents));
 		var recipeNow = Recipe(d.BottleCapacityOunces);
 		if (f.MaxBrewable < 30)
 			foreach (var (id, oz) in recipeNow)

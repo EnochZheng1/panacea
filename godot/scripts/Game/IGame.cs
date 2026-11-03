@@ -53,6 +53,26 @@ public sealed class DeskModel
 	public List<(string Formula, int Bottles)> Brewing = new();
 	public List<Letter> Letters = new();
 	public List<(string Name, double Progress)> NextUnlocks = new();
+	public List<Regular> Regulars = new();
+	public Dictionary<string, double> ClaimBoldness = new();
+}
+
+/// <summary>A regular as the proprietor sees them across the counter (never their true health).</summary>
+public sealed class Regular
+{
+	public string Id = "";
+	public string Name = "";
+	public string Segment = "";
+	public string Ailment = "";
+	public bool Infant;
+	/// <summary>hale, peaky, poorly or gravely_ill.</summary>
+	public string Looks = "hale";
+	/// <summary>delighted, content, grumbling or unhappy.</summary>
+	public string Mood = "content";
+	public bool Craving;
+	public bool Withdrawal;
+	public int MonthsAsCustomer;
+	public int BottlesLastMonth;
 }
 
 public sealed class IngredientRow

@@ -44,6 +44,14 @@ public sealed class FakeGame : IGame
 		d.Formulas.Add(new FormulaRow { Id = "f1", Name = "Dr. ——'s Celebrated Panacea", PriceCents = 60, UnitCostCents = 9, Stock = 14, MaxBrewable = 40, ClaimIds = { "soothes_nerves" }, Properties = new() { ["kick"] = 6.2, ["calm"] = 3.1, ["habit"] = 1.4, ["bitterness"] = 2.0, ["acuteToxicity"] = 0.9, ["accumulation"] = 0, ["detectability"] = 1.2 } });
 		d.Letters.Add(new Letter { InstanceId = "e1", Title = "A Grateful Letter", Body = "A customer writes that your tonic restored her to health after three doctors failed. She would be honoured to see her words in print.", Choices = { ("print_testimonial", "Print it as a testimonial."), ("file_away", "File it away.") } });
 		d.NextUnlocks.AddRange(new[] { ("A Second Still", 0.4), ("The Percolator", 0.2), ("\"Doctor\"", 0.1) });
+		d.ClaimBoldness = new() { ["soothes_nerves"] = 0.5, ["purifies_the_blood"] = 1, ["cures_consumption"] = 3 };
+		d.Regulars.AddRange(new[]
+		{
+			new Regular { Id = "r1", Name = "Mrs. Bridget Halloran", Segment = "mother", Ailment = "A teething infant", Infant = true, Looks = "peaky", Mood = "content", MonthsAsCustomer = 5 },
+			new Regular { Id = "r2", Name = "Mr. Albert Pike", Segment = "clerk", Ailment = "A persistent cough", Looks = "gravely_ill", Mood = "delighted", Craving = true, MonthsAsCustomer = 5 },
+			new Regular { Id = "r3", Name = "Mr. Jan Kowalski", Segment = "labourer", Ailment = "Rheumatism", Looks = "hale", Mood = "delighted", Withdrawal = true, MonthsAsCustomer = 4 },
+			new Regular { Id = "r4", Name = "Miss Cornelia Vanderhoef", Segment = "well_to_do", Ailment = "Nerves", Looks = "hale", Mood = "content", MonthsAsCustomer = 0 },
+		});
 		return d;
 	}
 

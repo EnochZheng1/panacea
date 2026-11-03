@@ -12,7 +12,11 @@
       "detectability": 0
     },
     "costPerUnitCents": 0,
-    "tags": ["filler"]
+    "tags": ["filler"],
+    "appearance": {
+      "color": "#9fc4d6",
+      "opacity": 0.12
+    }
   },
   {
     "id": "grain_alcohol",
@@ -29,6 +33,10 @@
     },
     "costPerUnitCents": 2,
     "tags": ["solvent"],
+    "appearance": {
+      "color": "#efe9d2",
+      "opacity": 0.18
+    },
     "note": "Many bestselling 'medicines' and bitters were 20-45% alcohol; alcohol was also the main extraction solvent."
   },
   {
@@ -44,7 +52,11 @@
       "detectability": 0
     },
     "costPerUnitCents": 1,
-    "tags": ["sweetener"]
+    "tags": ["sweetener"],
+    "appearance": {
+      "color": "#e8b85a",
+      "opacity": 0.55
+    }
   },
   {
     "id": "peppermint_oil",
@@ -59,7 +71,11 @@
       "detectability": 0
     },
     "costPerUnitCents": 10,
-    "tags": ["flavour"]
+    "tags": ["flavour"],
+    "appearance": {
+      "color": "#7fe0a8",
+      "opacity": 0.5
+    }
   },
   {
     "id": "gentian",
@@ -75,6 +91,10 @@
     },
     "costPerUnitCents": 3,
     "tags": ["bitters"],
+    "appearance": {
+      "color": "#c98a2c",
+      "opacity": 0.8
+    },
     "note": "Classic bittering root; bitterness read as strength."
   },
   {
@@ -91,6 +111,10 @@
     },
     "costPerUnitCents": 2,
     "tags": ["burn"],
+    "appearance": {
+      "color": "#e0381e",
+      "opacity": 0.85
+    },
     "note": "Red pepper: a cheap 'warming' sensation. Found in analyses of snake-oil liniments."
   },
   {
@@ -107,6 +131,10 @@
     },
     "costPerUnitCents": 4,
     "tags": ["sedative_herb"],
+    "appearance": {
+      "color": "#8a6b3a",
+      "opacity": 0.8
+    },
     "note": "Valerian root: a long-established, mild calmative for 'nerves' and sleeplessness. Smells dreadful."
   },
   {
@@ -123,6 +151,10 @@
     },
     "costPerUnitCents": 2,
     "tags": ["laxative"],
+    "appearance": {
+      "color": "#93b43a",
+      "opacity": 0.8
+    },
     "note": "Purgatives gave a very noticeable effect that customers read as 'cleansing'."
   },
   {
@@ -140,6 +172,10 @@
     },
     "costPerUnitCents": 15,
     "tags": ["opiate"],
+    "appearance": {
+      "color": "#c2461b",
+      "opacity": 0.92
+    },
     "note": "Tincture of opium in alcohol. Cheap, legal, and sold over the counter."
   },
   {
@@ -157,6 +193,10 @@
     },
     "costPerUnitCents": 60,
     "tags": ["opiate"],
+    "appearance": {
+      "color": "#cdb8ff",
+      "opacity": 0.45
+    },
     "note": "Purified opium alkaloid, far stronger per ounce than laudanum. Infant 'soothing syrups' contained it."
   },
   {
@@ -174,6 +214,10 @@
     },
     "costPerUnitCents": 40,
     "tags": ["cocaine"],
+    "appearance": {
+      "color": "#2fa65a",
+      "opacity": 0.88
+    },
     "note": "Fluid extract of coca / cocaine. Fashionable in tonics and wines from the mid-1880s."
   },
   {
@@ -190,6 +234,10 @@
     },
     "costPerUnitCents": 8,
     "tags": ["mercury", "laxative"],
+    "appearance": {
+      "color": "#c9ced8",
+      "opacity": 0.95
+    },
     "note": "Mercurous chloride; the period's mercury medicine (also 'blue mass'). Liquid mercury was not the usual form."
   },
   {
@@ -206,6 +254,10 @@
     },
     "costPerUnitCents": 5,
     "tags": ["arsenic"],
+    "appearance": {
+      "color": "#c2569a",
+      "opacity": 0.8
+    },
     "note": "1% potassium arsenite. A mainstream 'tonic' of the era."
   },
   {
@@ -222,6 +274,10 @@
     },
     "costPerUnitCents": 0.5,
     "tags": ["acid"],
+    "appearance": {
+      "color": "#e8f27a",
+      "opacity": 0.3
+    },
     "note": "Traces of acid in mostly water, as in the 'microbe killer' style of fraud."
   },
   {
@@ -242,6 +298,10 @@
       "month": 1
     },
     "tags": ["headache_powder"],
+    "appearance": {
+      "color": "#f0e2c8",
+      "opacity": 0.5
+    },
     "note": "Marketed as Antifebrin from 1886. Used in headache powders; harmful to the heart and blood."
   },
   {
@@ -263,6 +323,10 @@
       "month": 9
     },
     "tags": ["opiate"],
+    "appearance": {
+      "color": "#e7cfff",
+      "opacity": 0.45
+    },
     "note": "Marketed from 1898 as a cough suppressant."
   },
   {
@@ -283,6 +347,10 @@
       "month": 3
     },
     "tags": ["legitimate"],
+    "appearance": {
+      "color": "#ffffff",
+      "opacity": 0.3
+    },
     "note": "Marketed from 1899. An ingredient for the 'go legit' path."
   }
 ]

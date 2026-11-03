@@ -6,3 +6,4 @@ coverage/
 /playtest-reports/
 balance-report.md
 packages/client/dist
+packages/game/dist

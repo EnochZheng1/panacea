@@ -149,6 +149,14 @@ export const IngredientSchema = z.strictObject({
   costPerUnitCents: z.number().min(0),
   availableFrom: GameDateSchema.optional(),
   tags: z.array(IdSchema).default([]),
+  /** How the liquid looks in glass: the only saturated colour in the game's world. */
+  appearance: z
+    .strictObject({
+      color: z.string().regex(/^#[0-9a-f]{6}$/i, 'colour must be #rrggbb'),
+      /** 0 = clear as water, 1 = opaque. Also weights the colour when liquids are mixed. */
+      opacity: z.number().min(0).max(1),
+    })
+    .default({ color: '#d8d0c0', opacity: 0.2 }),
   /** Designer-facing historical note. Not shown to players. */
   note: z.string().optional(),
 });

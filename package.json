@@ -7,7 +7,7 @@
     "node": ">=22.12"
   },
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json && tsc -p packages/client/tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json && tsc -p packages/client/tsconfig.json && tsc -p packages/game/tsconfig.json",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -18,7 +18,9 @@
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm content:lint && pnpm test",
     "sim:optimize": "tsx packages/playtest/src/cli/optimize.ts",
     "client:dev": "pnpm --filter @panacea/client dev",
-    "client:build": "pnpm --filter @panacea/client build"
+    "client:build": "pnpm --filter @panacea/client build",
+    "game:dev": "pnpm --filter @panacea/game dev",
+    "game:build": "pnpm --filter @panacea/game build"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

@@ -17,5 +17,5 @@
     "types": ["node"]
   },
   "include": ["packages/*/src", "packages/*/test", "packages/*/scripts", "vitest.config.ts"],
-  "exclude": ["packages/client"]
+  "exclude": ["packages/client", "packages/game"]
 }

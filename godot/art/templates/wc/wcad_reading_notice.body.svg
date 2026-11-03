@@ -1,0 +1,33 @@
+  <g id="backdrop"><rect width="460" height="1000" fill="#f0c4bd" filter="url(#paper)"/></g>
+  <foreignObject x="0" y="0" width="460" height="1000" filter="url(#soft)">
+    <div xmlns="http://www.w3.org/1999/xhtml" class="col">
+      <style>
+        .col { box-sizing: border-box; width: 460px; height: 1000px; padding: 26px 28px; color: #161112; font-family: Fell, serif;
+               font-size: 16px; line-height: 1.24; border-left: 1.6px solid #161112; border-right: 1.6px solid #161112; }
+        .col * { margin: 0; box-sizing: border-box; }
+        h3 { font-family: Rye; font-weight: normal; text-align: center; font-size: 40px; line-height: 1.02; }
+        .sep { width: 40%; margin: 8px auto; border-top: 1.3px solid #161112; }
+        .deck { text-align: center; }
+        .a { font-family: FellIt; font-size: 22px; }
+        .b { font-size: 14px; letter-spacing: 1.4px; line-height: 1.32; }
+        .c { font-family: FellIt; font-size: 17px; }
+        p { text-align: justify; hyphens: auto; margin-bottom: 8px; text-indent: 1.2em; }
+        p.drop { text-indent: 0; }
+        .drop::first-letter { font-family: Rye; font-size: 46px; float: left; line-height: 0.9; padding: 3px 6px 0 0; }
+        .cut { display: block; width: 210px; height: 300px; object-fit: contain; margin: 6px auto 2px; }
+        .cutline { text-align: center; font-family: FellIt; font-size: 13px; margin-bottom: 10px; }
+      </style>
+      <h3>A MINISTER'S TESTIMONY.</h3>
+      <div class="sep"></div>
+      <div class="deck a">Restored to the Pulpit.</div>
+      <div class="sep"></div>
+      <div class="deck b">THE REV. JOSIAH PEABODY, OF THE FIFTH STREET CHAPEL, NOW PREACHES FOUR SERMONS EVERY SUNDAY, AND CANNOT BE STOPPED.</div>
+      <div class="sep"></div>
+      <div class="deck c">His Congregation Astonished.</div>
+      <img class="cut" src="../../assets/art/cuts/wc_proprietor.png"/>
+      <div class="cutline">THE REV. MR. PEABODY.—From a stock likeness.</div>
+      <p class="drop">For some years the Rev. Josiah Peabody had been troubled with a weakness of the throat, a languor of the spirit, and a congregation that slept through the second hour. His physician could do nothing for any of the three.</p>
+      <p>A member of his flock, since departed, pressed upon him a bottle of Dr. ——'s Celebrated Panacea. He now takes a tablespoonful before each sermon and two during it. He has not sat down since Michaelmas.</p>
+      <p>The chapel is full every Sunday. The congregation comes, it is said, to learn what he will say next. Sold by all druggists.—<i>Adv.</i></p>
+    </div>
+  </foreignObject>

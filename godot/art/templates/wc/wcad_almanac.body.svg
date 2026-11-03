@@ -1,0 +1,70 @@
+  <g id="backdrop"><rect width="700" height="1000" fill="#efe2c6" filter="url(#paper)"/></g>
+  <foreignObject x="0" y="0" width="700" height="1000" filter="url(#soft)">
+    <div xmlns="http://www.w3.org/1999/xhtml" class="al">
+      <style>
+        .al { box-sizing: border-box; width: 700px; height: 1000px; padding: 22px 34px; color: #161112; font-family: Fell, serif; }
+        .al * { margin: 0; box-sizing: border-box; }
+        .top { display: grid; grid-template-columns: 110px 1fr 110px; align-items: center; border-bottom: 4px solid #161112; padding-bottom: 8px; }
+        .top img { width: 90px; height: 120px; object-fit: contain; }
+        .title { text-align: center; }
+        .title .s { font-size: 14px; letter-spacing: 3px; }
+        .title .b { font-family: Rye; font-size: 32px; line-height: 1.05; }
+        .title .y { font-family: FellIt; font-size: 18px; }
+        .month { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1.4px solid #161112; padding: 6px 2px 4px; }
+        .month b { font-family: Rye; font-weight: normal; font-size: 30px; letter-spacing: 3px; }
+        .month span { font-family: FellIt; font-size: 15px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13.4px; margin-top: 3px; }
+        td { padding: 1.6px 4px; border-bottom: 0.8px solid rgba(22,17,18,0.35); vertical-align: top; }
+        td.d { width: 34px; text-align: right; font-family: Rye; font-size: 15px; }
+        td.w { width: 38px; font-family: FellIt; }
+        tr.sun td { font-weight: normal; background: rgba(22,17,18,0.08); }
+        .foot { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 10px; border-top: 4px solid #161112; padding-top: 8px; font-size: 13.5px; line-height: 1.25; }
+        .foot h4 { font-family: Rye; font-weight: normal; font-size: 16px; letter-spacing: 1.5px; text-align: center; margin-bottom: 4px; }
+        .foot p { text-align: justify; }
+      </style>
+      <div class="top">
+        <img src="../../assets/art/cuts/wc_bottle_panacea.png"/>
+        <div class="title">
+          <div class="s">DR. ——'S CELEBRATED</div>
+          <div class="b">FAMILY ALMANAC</div>
+          <div class="y">For the Year of Our Lord 1886. Given Away Free.</div>
+        </div>
+        <img src="../../assets/art/cuts/wc_death.png"/>
+      </div>
+      <div class="month"><b>FEBRUARY.</b><span>Twenty-Eight Days. Weather by Our Silent Partner.</span></div>
+      <table>
+        <tr><td class="d">1</td><td class="w">Mo.</td><td>Cold. Consumptives are advised to lay in a supply.</td></tr>
+        <tr><td class="d">2</td><td class="w">Tu.</td><td>Candlemas. The days lengthen; so does the waiting list at Fogg &amp; Sons.</td></tr>
+        <tr><td class="d">3</td><td class="w">We.</td><td>Fog. Good for business.</td></tr>
+        <tr><td class="d">4</td><td class="w">Th.</td><td>Take a spoonful.</td></tr>
+        <tr><td class="d">5</td><td class="w">Fr.</td><td>Take two.</td></tr>
+        <tr><td class="d">6</td><td class="w">Sa.</td><td>Snow. Pine coffins advance a cent.</td></tr>
+        <tr class="sun"><td class="d">7</td><td class="w">Su.</td><td>Keep the Sabbath. The Panacea keeps itself, indefinitely.</td></tr>
+        <tr><td class="d">8</td><td class="w">Mo.</td><td>Thaw. Rheumatics complain, but not for long.</td></tr>
+        <tr><td class="d">9</td><td class="w">Tu.</td><td>Damp. A good day to write a testimonial.</td></tr>
+        <tr><td class="d">10</td><td class="w">We.</td><td>Clear, then otherwise.</td></tr>
+        <tr><td class="d">11</td><td class="w">Th.</td><td>Coroner's court sits. Bring an envelope.</td></tr>
+        <tr><td class="d">12</td><td class="w">Fr.</td><td>Wind. Hold on to your hat and your bottle.</td></tr>
+        <tr><td class="d">13</td><td class="w">Sa.</td><td>Unlucky for some. Not for us.</td></tr>
+        <tr class="sun"><td class="d">14</td><td class="w">Su.</td><td>St. Valentine. Give her a bottle; she will think of you always.</td></tr>
+        <tr><td class="d">15</td><td class="w">Mo.</td><td>Sleet. Infants fretful. See Soothing Syrup, p. 12.</td></tr>
+        <tr><td class="d">16</td><td class="w">Tu.</td><td>Infants quiet.</td></tr>
+        <tr><td class="d">17</td><td class="w">We.</td><td>Very quiet.</td></tr>
+        <tr><td class="d">18</td><td class="w">Th.</td><td>Mild. The Temperance League meets; Bitters served.</td></tr>
+        <tr><td class="d">19</td><td class="w">Fr.</td><td>The League adjourns, singing.</td></tr>
+        <tr><td class="d">20</td><td class="w">Sa.</td><td>Fair. Ladies of fashion take the air, and three wafers.</td></tr>
+        <tr class="sun"><td class="d">21</td><td class="w">Su.</td><td>Septuagesima. Sermons lengthen. See Rev. Peabody.</td></tr>
+        <tr><td class="d">22</td><td class="w">Mo.</td><td>Washington's Birthday. He could not tell a lie. We can.</td></tr>
+        <tr><td class="d">23</td><td class="w">Tu.</td><td>Overcast. Lilies scarce.</td></tr>
+        <tr><td class="d">24</td><td class="w">We.</td><td>Take a spoonful.</td></tr>
+        <tr><td class="d">25</td><td class="w">Th.</td><td>Take the bottle.</td></tr>
+        <tr><td class="d">26</td><td class="w">Fr.</td><td>Changeable. Mourning dress advisable.</td></tr>
+        <tr><td class="d">27</td><td class="w">Sa.</td><td>Rain. Graves dig easier.</td></tr>
+        <tr class="sun"><td class="d">28</td><td class="w">Su.</td><td>Sexagesima. Rest, eternally if possible.</td></tr>
+      </table>
+      <div class="foot">
+        <div><h4>ALMANAC WIT.</h4><p>“Doctor, will your Panacea cure my husband?” “Madam, it has never once failed to end a complaint.”</p></div>
+        <div><h4>A HINT TO HOUSEKEEPERS.</h4><p>Keep the Panacea on a high shelf, away from children, who should be dosed only by a parent, and generously.</p></div>
+      </div>
+    </div>
+  </foreignObject>

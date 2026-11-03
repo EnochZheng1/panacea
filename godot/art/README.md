@@ -23,6 +23,22 @@ Period material to draw on, and the game use for each:
 
 Earlier explorations are kept for reference: grim ink (`silent_partner`, `satisfied_customer`, `proprietor`, `panacea_bottle`), shadow play and the trade card.
 
+## The woodcut set
+
+| Group | Assets |
+| --- | --- |
+| Characters | `wc_proprietor`, `wc_death`, `wc_clerk`, `wc_mother`, `wc_longshoreman`, `wc_lady` |
+| Products | `wc_bottle_panacea`, `wc_bottle_syrup`, `wc_bottle_bitters`, `wc_pills` |
+| Ad formats | `wcad_reading_notice`, `wcad_display`, `wcad_testimonial`, `wcad_almanac`, `wcad_tradecard` |
+
+To rebuild the set:
+
+1. `python3 tools/build_woodcut.py` composes each `art/templates/wc/<name>.body.svg` with the shared woodcut style and a card.
+2. `node tools/render_art.mjs <names> --scale 2` renders them.
+3. `python3 tools/make_cuts.py` crops the sprites into `assets/art/cuts/` for the layouts to use.
+
+Render the sprites before the ad formats, because the layouts embed the cuts.
+
 ## How assets are made
 
 1. Each asset is authored as layered SVG in `art/src/`. The layers are black masses, dry-brush lit areas, details and the accent. Group ids name the puppet parts (`hat`, `skull`, `arm-r`, `bottle`, …) for rigging later.

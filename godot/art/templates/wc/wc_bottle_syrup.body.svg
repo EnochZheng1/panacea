@@ -1,0 +1,22 @@
+  <g class="grl" stroke-width="4.5">
+    <path d="M200,212 L200,186 M168,222 L152,202 M232,222 L248,202 M150,258 L126,250 M250,258 L274,250"/>
+  </g>
+  <g id="figure" filter="url(#carve)">
+    <ellipse cx="200" cy="580" rx="96" ry="9" class="g"/>
+    <path class="k" d="M136,360 C136,320 160,304 182,300 L184,268 L178,262 L178,250 L222,250 L222,262 L216,268 L218,300 C240,304 264,320 264,360 L264,540 C264,566 244,578 200,578 C156,578 136,566 136,540 Z"/>
+    <path class="gr" d="M146,366 C148,334 166,318 186,314 L214,314 C234,318 252,334 254,366 L254,536 C254,558 238,568 200,568 C162,568 146,558 146,536 Z"/>
+    <path class="cut" d="M156,370 C160,350 168,338 180,332 M154,388 L154,530" stroke-width="5"/>
+    <path class="k" d="M184,222 L216,222 L218,252 L182,252 Z"/>
+    <path class="p" d="M150,378 L250,378 L250,530 L150,530 Z"/>
+    <path class="ln" d="M150,378 L250,378 L250,530 L150,530 Z M156,384 L244,384 L244,524 L156,524 Z" stroke-width="1.6"/>
+    <circle cx="200" cy="466" r="20" class="p" stroke="#161112" stroke-width="1.6"/>
+    <path class="k" d="M182,464 C180,448 196,440 210,446 C218,450 220,460 216,464 C210,454 198,450 188,458 Z"/>
+    <path class="ln" d="M190,468 C193,471 196,471 198,468 M204,468 C207,471 210,471 212,468 M196,476 C199,478 203,478 206,476" stroke-width="1.3"/>
+  </g>
+  <g filter="url(#soft)" font-family="Fell" fill="#161112" text-anchor="middle">
+    <text x="200" y="402" font-size="10" letter-spacing="2" textLength="80" lengthAdjust="spacingAndGlyphs">MOTHER'S FRIEND</text>
+    <text x="200" y="424" font-family="Rye" font-size="17" textLength="78" lengthAdjust="spacingAndGlyphs">SOOTHING</text>
+    <text x="200" y="442" font-family="Rye" font-size="17">SYRUP</text>
+    <text x="200" y="502" font-family="FellIt" font-size="9" textLength="72" lengthAdjust="spacingAndGlyphs">For Teething Infants.</text>
+    <text x="200" y="516" font-size="8" letter-spacing="1" textLength="76" lengthAdjust="spacingAndGlyphs">SLEEP GUARANTEED</text>
+  </g>

@@ -1,0 +1,25 @@
+  <g class="grl" stroke-width="5">
+    <path d="M200,128 L200,96 M160,142 L140,116 M240,142 L260,116 M128,182 L98,170 M272,182 L302,170 M120,232 L88,236 M280,232 L312,236"/>
+  </g>
+  <g id="figure" filter="url(#carve)">
+    <ellipse cx="200" cy="580" rx="110" ry="9" class="g"/>
+    <path class="k" d="M126,290 C126,262 150,248 176,242 L180,204 L174,196 L174,182 L226,182 L226,196 L220,204 L224,242 C250,248 274,262 274,290 L274,560 C274,572 266,578 254,578 L146,578 C134,578 126,572 126,560 Z"/>
+    <path class="gr" d="M136,296 C138,272 158,260 182,256 L218,256 C242,260 262,272 264,296 L264,556 C264,564 258,568 250,568 L150,568 C142,568 136,564 136,556 Z"/>
+    <path class="cut" d="M146,300 C150,282 162,272 176,268 M144,318 L144,548" stroke-width="5"/>
+    <path class="k" d="M180,150 L220,150 L222,184 L178,184 Z"/>
+    <path class="cut" d="M186,156 L186,180 M198,154 L198,182 M210,156 L210,180" stroke-width="1.6"/>
+    <path class="p" d="M142,330 L258,330 L258,506 L142,506 Z"/>
+    <path class="ln" d="M142,330 L258,330 L258,506 L142,506 Z M148,336 L252,336 L252,500 L148,500 Z" stroke-width="1.6"/>
+    <path class="ln" d="M164,404 L236,404 M164,462 L236,462" stroke-width="1.2"/>
+  </g>
+  <g filter="url(#soft)" font-family="Fell" fill="#161112" text-anchor="middle">
+    <text x="200" y="356" font-size="11" letter-spacing="2">DR. ——'S</text>
+    <text x="200" y="374" font-family="FellIt" font-size="14">Celebrated</text>
+    <text x="200" y="398" font-family="Rye" font-size="24" textLength="96" lengthAdjust="spacingAndGlyphs">PANACEA</text>
+    <text x="200" y="420" font-size="8.5" letter-spacing="1" textLength="92" lengthAdjust="spacingAndGlyphs">CONSUMPTION · CATARRH</text>
+    <text x="200" y="432" font-size="8.5" letter-spacing="1" textLength="92" lengthAdjust="spacingAndGlyphs">DYSPEPSIA · MELANCHOLY</text>
+    <text x="200" y="444" font-size="8.5" letter-spacing="1" textLength="80" lengthAdjust="spacingAndGlyphs">FEMALE COMPLAINTS</text>
+    <text x="200" y="456" font-size="8.5" letter-spacing="1">&amp; ALL ILLS</text>
+    <text x="200" y="478" font-family="FellIt" font-size="10">Purely Vegetable</text>
+    <text x="200" y="494" font-size="9" letter-spacing="1.5">ONE DOLLAR</text>
+  </g>

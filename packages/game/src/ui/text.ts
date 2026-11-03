@@ -31,11 +31,11 @@ export function deathName(
 export function newsText(content: ContentPack, state: GameState, n: NewsItem): string {
   switch (n.kind) {
     case 'timeline':
-      return `📰 ${t(content, `timeline.${n.id}.headline`)}: ${t(content, `timeline.${n.id}.body`)}`;
+      return `❧ ${t(content, `timeline.${n.id}.headline`)}: ${t(content, `timeline.${n.id}.body`)}`;
     case 'unlock':
-      return `🔓 Unlocked: ${t(content, `unlock.${n.id}.name`)}. ${t(content, `unlock.${n.id}.description`)}`;
+      return `☞ Unlocked: ${t(content, `unlock.${n.id}.name`)}. ${t(content, `unlock.${n.id}.description`)}`;
     case 'event_resolved':
-      return `✉️ ${t(content, `event.${n.eventId}.title`, { name: '…', cost: '…' })}: ${t(
+      return `✉ ${t(content, `event.${n.eventId}.title`, { name: '…', cost: '…' })}: ${t(
         content,
         `event.${n.eventId}.choice.${n.choiceId}`,
         { cost: '' },
@@ -57,17 +57,17 @@ export function newsText(content: ContentPack, state: GameState, n: NewsItem): s
     }
     case 'customer_joined': {
       const c = state.customers.find((x) => x.id === n.customerId);
-      return `🙋 New regular: ${c?.name ?? 'a new customer'}.`;
+      return `☞ New regular: ${c?.name ?? 'a new customer'}.`;
     }
     case 'customer_left':
-      return `👋 ${n.name} stopped coming (${n.reason}).`;
+      return `❧ ${n.name} stopped coming (${n.reason}).`;
     case 'bad_batch_caught':
-      return `🧪 Your assistant caught a mis-measured batch (${n.bottles} bottles poured away).`;
+      return `☞ Your assistant caught a mis-measured batch (${n.bottles} bottles poured away).`;
     case 'stock_seized':
-      return `🚔 The Board of Health seized ${n.bottles} bottles.`;
+      return `⚖ The Board of Health seized ${n.bottles} bottles.`;
     case 'ads_lapsed':
-      return '📉 You could not pay for this month’s advertising; it has stopped.';
+      return '❧ You could not pay for this month’s advertising; it has stopped.';
     case 'shutdown_warning':
-      return `🚨 The authorities are preparing to close you down. Bring the heat below 100 within ${n.monthsLeft} month(s)!`;
+      return `☠ The authorities are preparing to close you down. Bring the heat below 100 within ${n.monthsLeft} month(s)!`;
   }
 }

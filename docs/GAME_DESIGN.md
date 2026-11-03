@@ -277,21 +277,41 @@ Resolved in the epilogue (~1907–1910) from wealth, notoriety, the human ledger
 
 ---
 
-## 9. Screens
+## 9. Screens: one 3D shop, explored by station
 
-1. **The Lab:** stills, percolators, ingredient shelves, formula book, batch queue. PixiJS-rendered liquids and gauges.
-2. **The Ledger & Map:** regional map, channels, brand state, causal breakdowns, the human ledger.
-3. **The Post:** event cards, letters, newspapers.
-4. **The Press Room:** label designer, ad copy, campaigns.
-5. **The Parlour:** relationships, contracts, the Association.
-6. Plus: unlock tree, timeline, settings, saves.
+The game is played inside a 3D apothecary. The camera glides between fixed **stations**; paper interfaces (letters, ledgers, labels) sit over the scene. Later the world grows outward (a city map table, the bottling works, the street), but the shop stays the heart of the game.
+
+| Station                 | In the scene                                                                                                    | On paper                                                                       |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| **The Shop** (overview) | The whole room as a diorama                                                                                     | What each station does                                                         |
+| **The Bench**           | The wall of drugs; a graduated measuring glass that fills and changes colour as you pour                        | The mixture, its properties as engraved gauge bars, the formula book           |
+| **The Still**           | Copper pot, swan neck, worm condenser, receiver; the pressure gauge trembles and steam rises when fired         | Batch size, ingredients to order, cost                                         |
+| **The Counter**         | Your bottles in the display case; regulars waiting, their posture showing their health, trembling in withdrawal | Prices, label claims, the list of regulars                                     |
+| **The Desk**            | The open Ledger, the morning's letters, the calendar, the bell                                                  | The Post, the Ledger by cause, _In memoriam_, ring the bell to close the month |
+
+Planned additions: the label press, the city map table (regions, wholesalers, newspapers), the Parlour (relationships, the Association), the unlock tree, saves and settings.
 
 ---
 
 ## 10. Art, audio, presentation
 
-- **Art direction:** steel-engraving and woodcut linework, sepia paper, with bursts of chromolithograph colour (trade cards were vivid). Ornate period typography (OFL-licensed fonts). Ledgers look like ledgers; newspapers look like broadsheets.
-- **Lab:** warm brass, glass, coloured liquids, steam, gauges that shake when you push them.
+### Visual identity: _the medicine is the only colour_
+
+- **The world is an engraving.** Every frame is rendered as cross-hatched ink on aged paper: line width grows with shadow like a burin cutting deeper, ink outlines trace silhouettes and fine detail, paper grain and a plate vignette frame the image. A whisper of the scene's own hue survives, so brass reads warmer than wood.
+- **The liquids are the only saturated colour**, and they glow: laudanum amber-red, coca green, morphine violet, calomel silver, sugar syrup gold. Mixing in the measuring glass blends their colours. The player's product literally lights up a drab world, which is both the satire and the visual hook.
+- **3D, stylised, readable.** Simple, strong shapes (lathe-turned bottles and copper, plank floors, panelled walls) read clearly under hatching. Characters are stylised figures: posture, a cane or a tremble carry health, since colour cannot.
+- **Light:** warm gaslight with a slow flicker, a cool street glow through the shop window, firelight under the still.
+- **Type and print:** IM Fell (OFL), from the 17th-century Fell types, for everything printed. Interfaces are printed matter: double-ruled plates, letters, broadsheets, engraved gauge bars, black-lacquer-and-brass chrome.
+- **Accessibility:** the engraving pass can be switched off (plain lit colour remains, liquids still glow); reduced motion disables camera sway and transitions.
+
+### Asset strategy
+
+1. **Now:** geometry built in code and CC0 assets, unified by the engraving pass so simple shapes look intentional.
+2. **Before release:** commission a 3D artist for hero assets (the still, the counter, bottles, characters) and a 2D artist for labels, trade cards and broadsheet illustrations.
+3. **Always:** glTF assets, budgets per asset, and a licence entry for every third-party file in `packages/game/ASSETS.md`.
+
+### Audio and writing
+
 - **Audio:** parlour piano, banjo, music-hall brass; tactile foley (cork pops, still hiss, pen scratch, the cash register on the Ledger reveal).
 - **Writing:** period bombast in ads; plain, restrained prose for consequences.
 

@@ -16,22 +16,22 @@ Companion to [GAME_DESIGN.md](GAME_DESIGN.md). The playtest and release process 
 
 ## 2. Stack
 
-| Concern                         | Choice                                                        | Notes                                                                                                                                            |
-| ------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Language                        | TypeScript (strict)                                           | Shared across sim, client, tools                                                                                                                 |
-| Package manager / monorepo      | pnpm workspaces                                               |                                                                                                                                                  |
-| Build / dev server              | Vite                                                          | Fast HMR for UI work                                                                                                                             |
-| UI                              | React                                                         | Ledgers, cards, map overlays, label designer: HTML/CSS strengths                                                                                 |
-| UI state                        | Zustand                                                       | Thin; subscribes to sim state snapshots                                                                                                          |
-| 2D rendering (lab, map effects) | PixiJS v8                                                     | Liquids, gauges, steam, particles                                                                                                                |
-| Animation                       | Motion (Framer Motion) for UI; GSAP or Pixi tweens for scenes |                                                                                                                                                  |
-| Audio                           | Howler.js                                                     |                                                                                                                                                  |
-| Schemas / validation            | Zod                                                           | Content and save validation                                                                                                                      |
-| i18n                            | ICU MessageFormat (FormatJS)                                  | All strings externalised                                                                                                                         |
-| Tests                           | Vitest, fast-check (property tests)                           |                                                                                                                                                  |
-| UI automation                   | Playwright (pre-installed in cloud sessions)                  | E2E and AI UI playtests                                                                                                                          |
-| Desktop packaging               | Electron + steamworks.js                                      | Most proven route to Steam (achievements, cloud saves, overlay). Tauri is a smaller-binary alternative but its Steamworks support is less mature |
-| CI                              | GitHub Actions                                                | Lint, typecheck, test, balance regression, builds                                                                                                |
+| Concern                    | Choice                                                        | Notes                                                                                                                                            |
+| -------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Language                   | TypeScript (strict)                                           | Shared across sim, client, tools                                                                                                                 |
+| Package manager / monorepo | pnpm workspaces                                               |                                                                                                                                                  |
+| Build / dev server         | Vite                                                          | Fast HMR for UI work                                                                                                                             |
+| UI                         | React                                                         | Ledgers, cards, map overlays, label designer: HTML/CSS strengths                                                                                 |
+| UI state                   | React state (Zustand if it grows)                             | Thin; the sim state is the source of truth                                                                                                       |
+| 3D rendering               | Three.js + React Three Fiber                                  | The shop and its stations; a custom ink-engraving post-process (`packages/game/src/render`)                                                      |
+| Animation                  | Motion (Framer Motion) for UI; GSAP or Pixi tweens for scenes |                                                                                                                                                  |
+| Audio                      | Howler.js                                                     |                                                                                                                                                  |
+| Schemas / validation       | Zod                                                           | Content and save validation                                                                                                                      |
+| i18n                       | ICU MessageFormat (FormatJS)                                  | All strings externalised                                                                                                                         |
+| Tests                      | Vitest, fast-check (property tests)                           |                                                                                                                                                  |
+| UI automation              | Playwright (pre-installed in cloud sessions)                  | E2E and AI UI playtests                                                                                                                          |
+| Desktop packaging          | Electron + steamworks.js                                      | Most proven route to Steam (achievements, cloud saves, overlay). Tauri is a smaller-binary alternative but its Steamworks support is less mature |
+| CI                         | GitHub Actions                                                | Lint, typecheck, test, balance regression, builds                                                                                                |
 
 All dependencies pinned to exact versions; upgrades are deliberate.
 
@@ -52,7 +52,8 @@ panacea/
 │  │  ├─ ingredients/  processes/  regions/  segments/  unlocks/
 │  │  ├─ events/       npcs/       rivals/   endings/   backgrounds/
 │  │  └─ strings/en/         localisation source strings
-│  ├─ client/                React + PixiJS game client
+│  ├─ game/                  the game: React Three Fiber 3D shop + paper UI
+│  ├─ client/                debug client (plain React) for playing the sim by hand
 │  │  ├─ src/screens/        Lab, Ledger & Map, Post, Press Room, Parlour, Unlocks
 │  │  ├─ src/pixi/           lab scene, liquids, gauges, map effects
 │  │  └─ src/platform/       save storage, settings, Steam bridge (abstracted)
@@ -143,7 +144,9 @@ The `player` view hides internal truths (e.g. real death counts before newspaper
 ## 5. Client architecture
 
 - React renders screens from immutable state snapshots; Zustand holds UI-only state (selected region, open panels).
-- The PixiJS lab scene is embedded in the Lab screen; liquid colour, level, foam and gauge readings are derived from sim state; distillation interaction emits actions back to the sim.
+- The 3D shop (`packages/game`) is a React Three Fiber scene. Every object reflects sim state (bottle fill from inventory, display-case stock, customers' posture, letters on the desk); interactions emit sim actions.
+- **Render pipeline:** colour + depth, view-space normals and a liquid mask are rendered offscreen; a composite shader hatches tone, inks depth/normal/luminance edges, adds paper grain, and lays the glowing liquids over the top. Meshes opt in with `userData.liquid` / `userData.glass`. The pass can be disabled for accessibility and low-end machines.
+- Paper UI is HTML/CSS over the canvas: crisp text, localisation, and operable by Playwright-driven AI playtesters.
 - Every interactive element has an accessible role and label, which serves accessibility _and_ lets Playwright-driven AI playtesters operate the real UI.
 - Platform layer abstracts storage, Steam, window management, so the same client runs in a browser (for demos and testing) and in Electron.
 
@@ -194,11 +197,13 @@ Each milestone ends with a playtest cycle (see the pipeline doc). No date estima
 
 Balance results and open issues: [reports/m1-findings.md](reports/m1-findings.md).
 
+**3D style test (between M1 and M2): done.** `packages/game` (`pnpm game:dev`) is a playable 3D shop with the ink-engraving look, wired to the real simulation. See the art direction in the design document, section 10.
+
 **M2 next steps (vertical slice)**
 
 1. Regions and cohorts: Manhattan plus one rural region, as aggregate markets with the shop's regulars as the named sample.
 2. Wholesalers and newspapers as channels, with the red clause.
 3. Counterweights to wild claims and deadliness (see the findings), including the 1905 exposé.
 4. ~40 events; Ledger causal breakdowns in the client.
-5. The PixiJS lab and the brass-still interaction; an art-style test on two screens.
+5. Build on the 3D style test: hands-on still interaction (valve, pressure risk), label press, month-end Ledger reveal with sound.
 6. First AI playtester and critic cycle (see the playtest pipeline).

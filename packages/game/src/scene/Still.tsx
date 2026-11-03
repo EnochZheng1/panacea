@@ -76,9 +76,9 @@ export function Still({ pressure, color, received, onClick }: StillProps) {
       steam.current.children.forEach((puff, i) => {
         const phase = (t * 0.5 + i / steam.current!.children.length) % 1;
         puff.position.set(
-          Math.sin(i * 2.1 + t) * 0.06,
-          2.0 + phase * 0.8,
-          Math.cos(i * 1.7) * 0.06,
+          Math.sin(i * 2.1 + t) * 0.08,
+          1.52 + phase * 0.9,
+          Math.cos(i * 1.7) * 0.08,
         );
         const s = (0.05 + phase * 0.18) * Math.min(1, p * 2.5);
         puff.scale.setScalar(Math.max(0.0001, s));

@@ -10,7 +10,8 @@ export function mixColor(components: readonly FormulaComponent[], content: Conte
   for (const c of components) {
     const look = content.byId.ingredients.get(c.ingredientId)?.appearance;
     if (!look || c.amount <= 0) continue;
-    const w = c.amount * (0.05 + look.opacity);
+    // Strong tinctures dominate a mixture's colour; water and spirit barely tint it.
+    const w = c.amount * (0.01 + look.opacity * look.opacity);
     tmp.set(look.color);
     acc.r += tmp.r * w;
     acc.g += tmp.g * w;

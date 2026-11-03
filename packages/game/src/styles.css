@@ -432,13 +432,29 @@ td {
 }
 
 @media (max-width: 720px) {
+  .stations {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    transform: none;
+    max-width: none;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    gap: 4px;
+  }
+  .stations button {
+    flex: 0 0 auto;
+    font-size: 13px;
+    padding: 5px 8px;
+  }
   .panel-host {
     top: auto;
     left: 16px;
     right: 16px;
     width: auto;
     height: 46%;
-    bottom: 64px;
+    bottom: 54px;
   }
   .hud {
     gap: 10px;

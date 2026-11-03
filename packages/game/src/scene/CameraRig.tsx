@@ -10,10 +10,11 @@ export const STATIONS: Record<
   { position: [number, number, number]; target: [number, number, number]; fov: number }
 > = {
   overview: { position: [1.4, 2.95, 3.05], target: [-0.1, 0.85, -1.5], fov: 64 },
-  bench: { position: [-1.3, 1.62, -0.25], target: [-1.3, 1.25, -2.6], fov: 50 },
-  still: { position: [1.35, 1.7, 0.35], target: [3.05, 1.05, -1.6], fov: 52 },
-  counter: { position: [0.35, 1.65, -0.45], target: [0.35, 1.2, 2.4], fov: 55 },
-  desk: { position: [-1.85, 1.65, 0.7], target: [-3.4, 0.85, 0.65], fov: 48 },
+  // Station views put their subject left of centre: the paper panel covers the right third.
+  bench: { position: [-0.95, 1.62, -0.2], target: [-0.75, 1.25, -2.6], fov: 52 },
+  still: { position: [1.5, 1.75, 0.45], target: [3.75, 1.0, -1.25], fov: 56 },
+  counter: { position: [0.9, 1.7, -0.5], target: [0.95, 1.15, 2.4], fov: 58 },
+  desk: { position: [-1.85, 1.65, 1.15], target: [-3.4, 0.85, 0.15], fov: 50 },
 };
 
 /**

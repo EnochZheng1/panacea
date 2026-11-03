@@ -28,6 +28,8 @@ jobs:
         run: pnpm test
       - name: Build debug client
         run: pnpm client:build
+      - name: Build game client
+        run: pnpm game:build
       - name: Optimizer smoke test
         run: pnpm sim:optimize --candidates 8 --seeds 2
       - name: Bot batch (balance smoke test)

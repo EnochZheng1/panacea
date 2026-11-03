@@ -31,6 +31,7 @@ pnpm check
 | `pnpm sim:batch --runs 100`                                  | Run every bot over many seeded games and print a balance report |
 | `pnpm sim:batch --bots shopkeeper --runs 20 --out report.md` | Same, for chosen bots, saved to a file                          |
 | `pnpm sim:optimize --candidates 60 --seeds 4`                | Random search for the most profitable strategy (exploit hunter) |
+| `pnpm game:dev`                                              | The game: the 3D shop in the browser                            |
 | `pnpm client:dev`                                            | Debug client in the browser: play the sim by hand               |
 
 ### Layout
@@ -40,8 +41,9 @@ pnpm check
 | `packages/content`  | Game data (JSON), Zod schemas, string tables, content linter                               |
 | `packages/sim`      | Pure, deterministic simulation: state, turn pipeline, actions, machine API for bots/agents |
 | `packages/playtest` | Strategy bots, batch harness, optimizer, balance reports                                   |
+| `packages/game`     | The game client: 3D shop (React Three Fiber), ink-engraving renderer, paper UI             |
 | `packages/client`   | Debug client (Vite + React)                                                                |
 
 ## Stack
 
-TypeScript · React · PixiJS · Vite · Electron + Steamworks · Vitest · Playwright
+TypeScript · React · Three.js (React Three Fiber) · Vite · Electron + Steamworks · Vitest · Playwright

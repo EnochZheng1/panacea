@@ -1,0 +1,170 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 1000" width="600" height="1000">
+  <!--
+    Panacea character asset: "The Proprietor" (the player). Grim ink (see art/README.md).
+    Gag: pious hand on heart, eyes closed in sincerity, fingers crossed at his side, and an
+    envelope for the coroner in his pocket. A waistcoat button gives up under the strain.
+  -->
+  <defs>
+    <style>
+      @font-face { font-family: Fell; src: url(../../assets/fonts/IMFeENrm28P.ttf); }
+      @font-face { font-family: FellIt; src: url(../../assets/fonts/IMFeENit28P.ttf); }
+      .k { fill: #120e0c; }
+      .bone { fill: #ddd0ae; }
+      .mid { fill: #8f816a; }
+      .green { fill: #3fe08f; }
+      .line { fill: none; stroke: #120e0c; stroke-width: 2.2; stroke-linecap: round; }
+    </style>
+    <!-- ink masses: brush edges, never vector-clean -->
+    <filter id="ink" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="3" seed="4" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="5" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <!-- lit areas: ragged edge plus streaky dry-brush gaps where the black shows through -->
+    <filter id="dry" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="2" seed="8" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="6" xChannelSelector="R" yChannelSelector="G" result="d"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.22 0.018" numOctaves="2" seed="3" result="s"/>
+      <feColorMatrix in="s" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  6 0 0 0 -1.55" result="mask"/>
+      <feComposite in="d" in2="mask" operator="in"/>
+    </filter>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="26"/>
+    </filter>
+    <filter id="paper">
+      <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="3" seed="5" result="fine"/>
+      <feColorMatrix in="fine" type="matrix" values="0 0 0 0 0.9  0 0 0 0 0.8  0 0 0 0 0.6  0 0 0 0.07 0" result="f1"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.004" numOctaves="4" seed="2" result="blot"/>
+      <feColorMatrix in="blot" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -1.4 0 0 0 0.75" result="f2"/>
+      <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="f2"/><feMergeNode in="f1"/></feMerge>
+    </filter>
+    <radialGradient id="pool" cx="50%" cy="44%" r="62%">
+      <stop offset="0" stop-color="#b8ad96"/>
+      <stop offset="0.5" stop-color="#8a806c"/>
+      <stop offset="0.85" stop-color="#3e3830"/>
+      <stop offset="1" stop-color="#181512"/>
+    </radialGradient>
+    <linearGradient id="liquid" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#1fa864"/>
+      <stop offset="0.45" stop-color="#b9ffd9"/>
+      <stop offset="1" stop-color="#2cc47a"/>
+    </linearGradient>
+  </defs>
+  <g id="backdrop">
+    <rect width="600" height="1000" fill="url(#pool)"/>
+    <rect width="600" height="1000" fill="#000" filter="url(#paper)" opacity="0.5" style="mix-blend-mode:overlay"/>
+  </g>
+  <ellipse cx="360" cy="480" rx="60" ry="60" fill="#3fe08f" opacity="0.45" filter="url(#glow)"/>
+  <ellipse cx="300" cy="910" rx="190" ry="16" class="k" filter="url(#ink)" opacity="0.6"/>
+
+  <g id="proprietor">
+    <g filter="url(#ink)">
+      <path d="M250,800 L290,800 L288,900 L254,900 Z M310,800 L350,800 L346,900 L312,900 Z" class="k"/>
+      <path d="M254,894 L292,894 L292,914 L222,914 Z M310,894 L348,894 L378,914 L308,914 Z" class="k"/>
+      <!-- coat -->
+      <path d="M190,380 L240,368 C200,450 170,560 180,700 C186,780 200,830 214,860 L150,866 C128,760 130,600 148,480 C158,420 172,392 190,380 Z" class="k"/>
+      <path d="M410,380 L360,368 C400,450 430,560 420,700 C414,780 400,830 386,860 L450,866 C472,760 470,600 452,480 C442,420 428,392 410,380 Z" class="k"/>
+      <!-- the waistcoat, under strain -->
+      <path d="M300,374 C412,374 452,520 442,640 C432,762 382,822 300,822 C218,822 168,762 158,640 C148,520 188,374 300,374 Z" class="k"/>
+      <path d="M270,326 L330,326 L334,376 L266,376 Z" class="k"/>
+      <path d="M300,170 C352,170 382,210 382,262 C382,312 352,348 300,350 C248,348 218,312 218,262 C218,210 248,170 300,170 Z" class="k"/>
+    </g>
+    <g filter="url(#dry)">
+
+      <path d="M148,486 C160,430 172,400 190,384 L200,388 C178,430 164,500 162,580 C160,680 172,780 196,858 L154,862 C134,760 134,600 148,486 Z" class="bone" opacity="0.55"/>
+      <path d="M272,330 L328,330 L314,374 L286,374 Z" class="bone"/>
+      <path d="M344,190 C366,206 374,232 374,262 C374,300 356,330 328,340 C350,316 360,290 360,262 C360,232 354,208 344,190 Z" class="mid"/>
+    </g>
+    <path d="M300,176 C348,176 377,213 377,262 C377,310 349,344 300,346 C251,344 223,310 223,262 C223,213 252,176 300,176 Z" class="bone" filter="url(#ink)"/>
+    <path d="M348,190 C370,208 377,234 377,262 C377,304 356,334 326,344 C350,318 362,292 362,262 C362,232 356,208 348,190 Z" class="mid" filter="url(#ink)"/>
+    <defs>
+      <pattern id="check" width="22" height="22" patternUnits="userSpaceOnUse">
+        <rect width="22" height="22" fill="#8f816a"/>
+        <path d="M0,0 L22,0 M0,0 L0,22" stroke="#6e6352" stroke-width="1.4"/>
+      </pattern>
+      <radialGradient id="bellylight" cx="35%" cy="35%" r="70%">
+        <stop offset="0" stop-color="#ddd0ae" stop-opacity="0.55"/><stop offset="0.6" stop-color="#ddd0ae" stop-opacity="0"/>
+        <stop offset="1" stop-color="#120e0c" stop-opacity="0.55"/>
+      </radialGradient>
+    </defs>
+    <g filter="url(#ink)">
+      <path d="M300,384 C404,384 440,522 432,640 C424,752 378,812 300,812 C222,812 176,752 168,640 C160,522 196,384 300,384 Z" fill="url(#check)"/>
+      <path d="M300,384 C404,384 440,522 432,640 C424,752 378,812 300,812 C222,812 176,752 168,640 C160,522 196,384 300,384 Z" fill="url(#bellylight)"/>
+    </g>
+    <!-- straining stress lines between the buttons -->
+    <g class="line" stroke-width="1.6" filter="url(#ink)">
+      <path d="M300,470 L278,462 M300,470 L322,462 M300,530 L274,522 M300,530 L326,522 M300,590 L276,584 M300,590 L324,584"/>
+      <path d="M300,650 L282,646 M300,650 L318,646"/>
+    </g>
+    <g class="bone" filter="url(#ink)">
+      <circle cx="300" cy="470" r="5"/><circle cx="300" cy="530" r="5"/><circle cx="300" cy="590" r="5"/><circle cx="300" cy="710" r="5"/>
+    </g>
+    <!-- one button has given up -->
+    <circle cx="300" cy="650" r="3" class="k"/>
+    <path d="M306,648 C360,600 420,540 500,500" fill="none" stroke="#120e0c" stroke-width="1.4" stroke-dasharray="2 7"/>
+    <circle cx="508" cy="496" r="8" fill="#ddd0ae" stroke="#120e0c" stroke-width="2"/>
+    <path d="M520,480 L530,470 M524,494 L538,492 M512,478 L514,464" class="line" stroke-width="1.8"/>
+    <!-- watch chain -->
+    <path d="M236,560 C270,606 330,612 372,566" fill="none" stroke="#ddd0ae" stroke-width="2.4" stroke-dasharray="3 3"/>
+    <circle cx="236" cy="560" r="6" fill="#ddd0ae" stroke="#120e0c" stroke-width="1.4"/>
+
+    <!-- the product, in the waistcoat pocket -->
+    <g id="bottle" filter="url(#ink)">
+      <path d="M350,462 L374,462 L374,500 L350,500 Z" class="k"/>
+      <path d="M353,470 L371,470 L371,498 L353,498 Z" fill="url(#liquid)"/>
+      <path d="M356,450 L368,450 L368,462 L356,462 Z" class="k"/>
+      <path d="M340,490 L384,486 L386,510 L342,514 Z" class="k"/>
+    </g>
+
+    <!-- head: pomade, chops, a moustache waxed to points -->
+    <g id="head" filter="url(#ink)">
+      <path d="M236,224 C242,192 270,176 300,176 C330,176 358,192 364,224 C344,208 322,202 302,202 L300,192 L298,202 C278,202 256,208 236,224 Z" class="k"/>
+      <path d="M226,244 L220,262 L226,276 L218,294 L226,312 L222,330 C234,350 254,356 270,342 C262,330 256,316 256,300 C250,286 244,266 244,244 Z" class="k"/>
+      <path d="M374,244 L380,262 L374,276 L382,294 L374,312 L378,330 C366,350 346,356 330,342 C338,330 344,316 344,300 C350,286 356,266 356,244 Z" class="k"/>
+      <path d="M262,312 C280,300 296,302 300,310 C304,302 320,300 338,312 C352,320 368,306 378,292 C372,322 346,336 330,326 C316,320 306,318 300,320 C294,318 284,320 270,326 C254,336 228,322 222,292 C232,306 248,320 262,312 Z" class="k"/>
+      <path d="M262,258 C270,268 282,268 290,258 M310,258 C318,268 330,268 338,258" class="line" stroke-width="2.8"/>
+      <path d="M256,240 C266,230 282,230 292,238 M308,238 C318,230 334,230 344,240" class="line" stroke-width="2.6"/>
+      <ellipse cx="300" cy="288" rx="13" ry="11" fill="#ddd0ae" stroke="#120e0c" stroke-width="2"/>
+      <path d="M290,334 C296,339 304,339 310,334" class="line" stroke-width="1.8"/>
+      <path d="M262,352 C282,364 318,364 338,352" class="line" stroke-width="1.6"/>
+    </g>
+    <path d="M252,196 C268,186 284,182 296,184 M306,184 C318,182 334,188 348,196" stroke="#8f816a" stroke-width="3" fill="none" opacity="0.8"/>
+    <path d="M232,268 C228,294 232,320 246,340" stroke="#8f816a" stroke-width="2.4" fill="none" opacity="0.7"/>
+    <!-- monocle and chain -->
+    <circle cx="324" cy="262" r="16" fill="#efe6cc" fill-opacity="0.25" stroke="#120e0c" stroke-width="2.2"/>
+    <path d="M338,272 C352,302 360,340 352,382" fill="none" stroke="#ddd0ae" stroke-width="1.6"/>
+
+    <!-- hand on heart -->
+    <g id="arm-heart" filter="url(#ink)">
+      <path d="M196,392 C178,420 176,470 196,490 C220,500 250,470 272,448 L262,430 C246,446 228,460 214,466 C214,440 220,416 230,398 Z" class="k"/>
+      <path d="M262,432 C272,420 296,418 304,428 C306,440 300,456 288,460 C276,462 266,452 262,432 Z" class="bone"/>
+      <path d="M262,432 C272,420 296,418 304,428 C306,440 300,456 288,460 C276,462 266,452 262,432 Z M276,424 L280,456 M288,422 L292,458" class="line" stroke-width="1.4"/>
+    </g>
+    <path d="M186,404 C176,430 178,468 192,484" stroke="#ddd0ae" stroke-width="3" fill="none" opacity="0.7" filter="url(#dry)"/>
+
+    <!-- ...and the other hand, where the customer can't see it -->
+    <g id="arm-crossed" filter="url(#ink)">
+      <path d="M404,392 C440,410 470,470 482,540 L494,600 L466,608 L454,548 C446,496 426,452 398,420 Z" class="k"/>
+      <g transform="translate(480 604) scale(1.7) translate(-452 -630)">
+        <path d="M436,616 L466,612 L468,630 L438,634 Z" class="bone"/>
+        <path d="M438,632 L468,628 C474,642 472,656 464,660 L442,662 C436,654 436,642 438,632 Z" class="bone"/>
+        <path d="M444,656 L452,698 L460,696 L452,654 Z" class="bone"/>
+        <path d="M458,654 L446,696 L438,694 L450,652 Z" class="bone"/>
+        <path d="M438,632 L468,628 C474,642 472,656 464,660 L442,662 C436,654 436,642 438,632 Z M444,656 L452,698 L460,696 L452,654 Z M458,654 L446,696 L438,694 L450,652 Z" class="line" stroke-width="1.3"/>
+      </g>
+    </g>
+
+    <!-- an envelope in the coat pocket -->
+    <g filter="url(#ink)" transform="rotate(-14 420 470)">
+      <rect x="394" y="452" width="56" height="32" class="bone"/>
+      <path d="M394,452 L422,470 L450,452" class="line" stroke-width="1.3"/>
+      <rect x="394" y="452" width="56" height="32" class="line" stroke-width="1.6"/>
+      <path d="M384,482 L460,482" class="line" stroke-width="3"/>
+    </g>
+    <text x="421" y="469" font-family="Fell" font-size="10" text-anchor="middle" fill="#120e0c" transform="rotate(-14 420 470)">CORONER</text>
+  </g>
+
+  <g id="caption">
+    <text x="300" y="955" font-family="Fell" font-size="26" letter-spacing="4" text-anchor="middle" fill="#ddd0ae">THE PROPRIETOR</text>
+    <text x="300" y="982" font-family="FellIt" font-size="17" text-anchor="middle" fill="#bfb090">“Every bottle made with a mother's love.”</text>
+  </g>
+</svg>

@@ -17,10 +17,11 @@
   {
     "id": "grain_alcohol",
     "substanceClass": "base",
+    "drugClass": "alcohol",
     "properties": {
       "kick": 3,
       "calm": 1,
-      "habit": 1,
+      "habit": 0.4,
       "acuteToxicity": 0.3,
       "accumulation": 0,
       "bitterness": 1,
@@ -93,6 +94,22 @@
     "note": "Red pepper: a cheap 'warming' sensation. Found in analyses of snake-oil liniments."
   },
   {
+    "id": "valerian",
+    "substanceClass": "botanical",
+    "properties": {
+      "kick": 0,
+      "calm": 2.5,
+      "habit": 0,
+      "acuteToxicity": 0.1,
+      "accumulation": 0,
+      "bitterness": 3,
+      "detectability": 1
+    },
+    "costPerUnitCents": 4,
+    "tags": ["sedative_herb"],
+    "note": "Valerian root: a long-established, mild calmative for 'nerves' and sleeplessness. Smells dreadful."
+  },
+  {
     "id": "aloe",
     "substanceClass": "purgative",
     "properties": {
@@ -111,6 +128,7 @@
   {
     "id": "laudanum",
     "substanceClass": "narcotic",
+    "drugClass": "opiate",
     "properties": {
       "kick": 2,
       "calm": 8,
@@ -127,6 +145,7 @@
   {
     "id": "morphine",
     "substanceClass": "narcotic",
+    "drugClass": "opiate",
     "properties": {
       "kick": 3,
       "calm": 20,
@@ -143,6 +162,7 @@
   {
     "id": "coca_extract",
     "substanceClass": "stimulant",
+    "drugClass": "cocaine",
     "properties": {
       "kick": 7,
       "calm": 1,
@@ -217,13 +237,17 @@
       "detectability": 4
     },
     "costPerUnitCents": 10,
-    "availableFrom": { "year": 1886, "month": 1 },
+    "availableFrom": {
+      "year": 1886,
+      "month": 1
+    },
     "tags": ["headache_powder"],
     "note": "Marketed as Antifebrin from 1886. Used in headache powders; harmful to the heart and blood."
   },
   {
     "id": "heroin",
     "substanceClass": "narcotic",
+    "drugClass": "opiate",
     "properties": {
       "kick": 4,
       "calm": 18,
@@ -234,7 +258,10 @@
       "detectability": 6
     },
     "costPerUnitCents": 50,
-    "availableFrom": { "year": 1898, "month": 9 },
+    "availableFrom": {
+      "year": 1898,
+      "month": 9
+    },
     "tags": ["opiate"],
     "note": "Marketed from 1898 as a cough suppressant."
   },
@@ -251,7 +278,10 @@
       "detectability": 3
     },
     "costPerUnitCents": 12,
-    "availableFrom": { "year": 1899, "month": 3 },
+    "availableFrom": {
+      "year": 1899,
+      "month": 3
+    },
     "tags": ["legitimate"],
     "note": "Marketed from 1899. An ingredient for the 'go legit' path."
   }

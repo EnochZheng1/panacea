@@ -26,6 +26,10 @@ jobs:
         run: pnpm content:lint
       - name: Tests
         run: pnpm test
+      - name: Build debug client
+        run: pnpm client:build
+      - name: Optimizer smoke test
+        run: pnpm sim:optimize --candidates 8 --seeds 2
       - name: Bot batch (balance smoke test)
         run: pnpm sim:batch --runs 25 --backgrounds druggist,showman --fail-on-bankrupt-bot shopkeeper --out balance-report.md
       - name: Upload balance report

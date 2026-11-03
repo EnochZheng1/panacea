@@ -1,0 +1,51 @@
+[
+  {
+    "id": "soothes_nerves",
+    "ailments": ["nerves", "insomnia", "melancholy"],
+    "appeal": 1.5,
+    "boldness": 0.5
+  },
+  {
+    "id": "purifies_the_blood",
+    "ailments": [],
+    "appeal": 1,
+    "boldness": 1
+  },
+  {
+    "id": "womens_friend",
+    "ailments": ["female_complaints", "nerves"],
+    "appeal": 2,
+    "boldness": 1
+  },
+  {
+    "id": "teething_comfort",
+    "ailments": ["teething_infant"],
+    "appeal": 2,
+    "boldness": 1
+  },
+  {
+    "id": "banishes_rheumatism",
+    "ailments": ["rheumatism", "neuralgia"],
+    "appeal": 2,
+    "boldness": 1.5
+  },
+  {
+    "id": "cures_consumption",
+    "ailments": ["consumption", "cough", "catarrh"],
+    "appeal": 3,
+    "boldness": 3
+  },
+  {
+    "id": "cures_everything",
+    "ailments": [],
+    "appeal": 3,
+    "boldness": 4
+  },
+  {
+    "id": "endorsed_by_physicians",
+    "ailments": [],
+    "appeal": 1.5,
+    "boldness": 2,
+    "requiresUnlock": "doctor_title"
+  }
+]

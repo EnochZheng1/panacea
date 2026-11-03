@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import {
+  AilmentSchema,
   BackgroundSchema,
+  ClaimSchema,
+  NamesSchema,
+  SegmentSchema,
   ConfigSchema,
   GameEventSchema,
   IngredientSchema,
@@ -8,7 +12,11 @@ import {
   RegularSchema,
   TimelineEntrySchema,
   UnlockSchema,
+  type Ailment,
   type Background,
+  type Claim,
+  type Names,
+  type Segment,
   type Config,
   type GameEvent,
   type Ingredient,
@@ -28,6 +36,10 @@ export interface RawContent {
   timeline: unknown;
   regulars: unknown;
   backgrounds: unknown;
+  segments: unknown;
+  ailments: unknown;
+  claims: unknown;
+  names: unknown;
   strings: unknown;
 }
 
@@ -41,6 +53,10 @@ export interface ContentPack {
   timeline: readonly TimelineEntry[];
   regulars: readonly Regular[];
   backgrounds: readonly Background[];
+  segments: readonly Segment[];
+  ailments: readonly Ailment[];
+  claims: readonly Claim[];
+  names: Names;
   /** Source-language strings (English). */
   strings: Readonly<Record<string, string>>;
   byId: {
@@ -49,6 +65,9 @@ export interface ContentPack {
     unlocks: ReadonlyMap<string, Unlock>;
     events: ReadonlyMap<string, GameEvent>;
     backgrounds: ReadonlyMap<string, Background>;
+    segments: ReadonlyMap<string, Segment>;
+    ailments: ReadonlyMap<string, Ailment>;
+    claims: ReadonlyMap<string, Claim>;
   };
 }
 
@@ -68,6 +87,10 @@ const RawSchemas = {
   timeline: z.array(TimelineEntrySchema),
   regulars: z.array(RegularSchema),
   backgrounds: z.array(BackgroundSchema),
+  segments: z.array(SegmentSchema),
+  ailments: z.array(AilmentSchema),
+  claims: z.array(ClaimSchema),
+  names: NamesSchema,
   strings: z.record(z.string(), z.string()),
 } as const;
 
@@ -104,6 +127,10 @@ export function parseContent(raw: RawContent): ParseResult {
     timeline: TimelineEntry[];
     regulars: Regular[];
     backgrounds: Background[];
+    segments: Segment[];
+    ailments: Ailment[];
+    claims: Claim[];
+    names: Names;
     strings: Record<string, string>;
   };
 
@@ -120,6 +147,9 @@ export function parseContent(raw: RawContent): ParseResult {
         unlocks: byIdOf(v.unlocks),
         events: byIdOf(v.events),
         backgrounds: byIdOf(v.backgrounds),
+        segments: byIdOf(v.segments),
+        ailments: byIdOf(v.ailments),
+        claims: byIdOf(v.claims),
       },
     },
   };

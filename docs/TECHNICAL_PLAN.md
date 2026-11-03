@@ -177,13 +177,28 @@ Each milestone ends with a playtest cycle (see the pipeline doc). No date estima
 
 ## 8. Status
 
-**M0 is complete.** The monorepo, CI, deterministic simulation core, content schemas and linter, machine API, and bot harness are in place. Three bots run full games in CI: `idle` (economy floor), `random` (rules fuzzer) and `shopkeeper` (a competent small-shop strategy that survives the full 1885–1906 run).
+**M0 is complete:** monorepo, CI, deterministic simulation core, content schemas and linter, machine API, bot harness.
 
-The sales model is a deliberate placeholder (`packages/sim/src/systems/sales.ts`): it proves the pipeline, not the design. M1 replaces it with the body model (tolerance, dependency, toxic load) and named-customer consequences.
+**M1 is complete.** What it added:
 
-**M1 next steps**
+- **Body model** (`packages/sim/src/systems/body.ts`, `pharmacology.ts`): per-class tolerance (alcohol, opiate, cocaine) that blunts felt effect and partly protects against toxicity; dependency and withdrawal; acute overdose weighed against health; accumulating toxins (heavy metals); infants as vulnerable consumers; satisfaction against each ailment's severity.
+- **Customer base** (`customers.ts`, `market.ts`): named regulars from content plus procedurally generated ones; walk-ins drawn from segments; satisfied walk-ins become regulars up to shop capacity; dependent regulars buy more and pay more.
+- **Lab**: stock is tracked per batch (lot) with its own recipe snapshot and true potency; occasional mis-measured batches; quality control; `Reformulate`, label claims, newspaper ad spend, wholesale discount.
+- **Scrutiny** (`scrutiny.ts`): heat from deaths, complaints and bold claims, with decay; coroner's inquests raised as system events; verdict odds from detectability, heat, reputation, claims and bad batches; escalating bribes; shutdown after two months at heat 100.
+- **Human ledger**: every death is recorded with its public verdict and hidden truth.
+- **Content**: 17 ingredients, 9 unlocks, 8 events (incl. inquests, the temperance ladies, the Board of Health), 7 customer segments, 11 ailments, 8 label claims.
+- **Bots** (`packages/playtest/src/bots/policy.ts`): one parameterised policy with presets `shopkeeper`, `cautious`, `greedy`, `briber`, `adaptive`, `mercurial`, plus `idle` and `random`; batch reports now include deaths, causes, inquests, bribes and heat.
+- **Optimizer** (`pnpm sim:optimize`): random search for the most profitable strategy, reporting whether wealth correlates with deaths.
+- **Debug client** (`packages/client`, `pnpm client:dev`): plays the real sim by hand, with a "show hidden truth" toggle.
+- **Performance**: in-place actions for the harness keep a full run at ~80–100 ms.
 
-1. Body model for named regulars: tolerance, dependency, toxic load, health, death hazard.
-2. Deaths, inquests, and the first scrutiny loop.
-3. Expand the bot roster (`greedy-narcotic`, `cautious`, `briber`, `optimizer`) and add balance bands to CI.
-4. A minimal debug client (Vite + React) to play the sim by hand.
+Balance results and open issues: [reports/m1-findings.md](reports/m1-findings.md).
+
+**M2 next steps (vertical slice)**
+
+1. Regions and cohorts: Manhattan plus one rural region, as aggregate markets with the shop's regulars as the named sample.
+2. Wholesalers and newspapers as channels, with the red clause.
+3. Counterweights to wild claims and deadliness (see the findings), including the 1905 exposé.
+4. ~40 events; Ledger causal breakdowns in the client.
+5. The PixiJS lab and the brass-still interaction; an art-style test on two screens.
+6. First AI playtester and critic cycle (see the playtest pipeline).

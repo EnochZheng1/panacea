@@ -4,14 +4,20 @@ import { addMonths, compareDates } from './core/date.ts';
 import { closeMonth, openMonth } from './core/ledger.ts';
 import { Rng, seedRng } from './core/rng.ts';
 import { STATE_VERSION, type GameState, type LedgerEntry, type LogEntry } from './core/state.ts';
-import type { Phase } from './core/turn.ts';
+import { newScratch, type Phase, type TurnContext } from './core/turn.ts';
+import { bodyPhase } from './systems/body.ts';
+import { initialCustomers } from './systems/customers.ts';
 import {
   brewBatch,
   buyIngredient,
   createFormula,
   productionPhase,
+  reformulate,
+  setAdSpend,
+  setClaims,
   setPrice,
 } from './systems/lab.ts';
+import { advertisingPhase, expensesPhase, salesPhase } from './systems/market.ts';
 import {
   autoResolveEvents,
   drawEvents,
@@ -19,7 +25,7 @@ import {
   timelinePhase,
   unlocksPhase,
 } from './systems/progression.ts';
-import { expensesPhase, salesPhase } from './systems/sales.ts';
+import { heatDecayPhase } from './systems/scrutiny.ts';
 
 /**
  * Copy-on-write clone. Ledger and log entries are immutable once appended, so those arrays are
@@ -39,8 +45,11 @@ export interface NewGameOptions {
 
 /** Month-end phases, in order. Each is a pure transformation of the draft state. */
 export const PHASES: readonly Phase[] = [
+  heatDecayPhase,
   productionPhase,
+  advertisingPhase,
   salesPhase,
+  bodyPhase,
   expensesPhase,
   timelinePhase,
   unlocksPhase,
@@ -73,9 +82,26 @@ export function newGame(content: ContentPack, options: NewGameOptions): GameStat
       flags: Object.fromEntries(background.flags.map((f) => [f, true])),
       monthsInsolvent: 0,
     },
-    lab: { inventory: {}, formulas: [], batches: [], stock: {} },
-    regulars: content.regulars.map((r) => ({ id: r.id, purchases: 0, lastPurchaseTurn: null })),
-    stats: { bottlesSold: 0, batchesBrewed: 0, revenueCents: 0 },
+    lab: { inventory: {}, formulas: [], batches: [], stock: [] },
+    marketing: { adSpendCents: 0 },
+    customers: initialCustomers(content),
+    deaths: [],
+    scrutiny: {
+      heat: 0,
+      peakHeat: 0,
+      bribesPaid: 0,
+      inquestsHeld: 0,
+      timesImplicated: 0,
+      monthsAtShutdownHeat: 0,
+    },
+    stats: {
+      bottlesSold: 0,
+      batchesBrewed: 0,
+      revenueCents: 0,
+      customersJoined: 0,
+      customersLost: 0,
+      complaints: 0,
+    },
     unlocks: { unlocked: {} },
     events: { pending: [], lastDrawn: {}, timesDrawn: {} },
     timeline: { fired: {} },
@@ -83,9 +109,11 @@ export function newGame(content: ContentPack, options: NewGameOptions): GameStat
       startCashCents: background.startingCashCents,
       startReputation: content.config.startingReputation,
       startNotoriety: 0,
+      startHeat: 0,
       deltas: [],
       news: [],
       sales: [],
+      complaints: 0,
     },
     ledger: [],
     log: [],
@@ -110,6 +138,22 @@ export function applyAction(
     return { state, result: { ok: false, error: 'the game has ended' } };
   }
   const draft = cloneForWrite(state);
+  const result = applyActionInPlace(draft, action, content);
+  return result.ok ? { state: draft, result } : { state, result };
+}
+
+/**
+ * Like `applyAction`, but mutates `state` directly. For callers that own their state outright
+ * (the batch harness, replays), where copying on every action would dominate run time.
+ * Every handler validates before it mutates, so a failed action leaves `state` unchanged.
+ */
+export function applyActionInPlace(
+  draft: GameState,
+  action: Action,
+  content: ContentPack,
+): ActionResult {
+  if (draft.meta.status !== 'running') return { ok: false, error: 'the game has ended' };
+  const rng = new Rng(draft.meta.rng);
   let result: ActionResult;
   switch (action.type) {
     case 'BuyIngredient':
@@ -121,11 +165,20 @@ export function applyAction(
     case 'SetPrice':
       result = setPrice(draft, action);
       break;
+    case 'Reformulate':
+      result = reformulate(draft, action, content);
+      break;
+    case 'SetClaims':
+      result = setClaims(draft, action, content);
+      break;
+    case 'SetAdSpend':
+      result = setAdSpend(draft, action);
+      break;
     case 'BrewBatch':
       result = brewBatch(draft, action, content);
       break;
     case 'ResolveEvent': {
-      const error = resolveEvent(draft, content, action.instanceId, action.choiceId, false);
+      const error = resolveEvent(draft, content, rng, action.instanceId, action.choiceId, false);
       result = error ? { ok: false, error } : { ok: true };
       break;
     }
@@ -134,9 +187,10 @@ export function applyAction(
       result = { ok: false, error: `unknown action type "${String(unknown.type)}"` };
     }
   }
-  if (!result.ok) return { state, result };
+  if (!result.ok) return result;
+  draft.meta.rng = rng.state();
   draft.log.push({ turn: draft.meta.turn, action: structuredClone(action) });
-  return { state: draft, result };
+  return result;
 }
 
 /**
@@ -149,20 +203,39 @@ export function endTurn(
 ): { state: GameState; report: LedgerEntry } {
   if (state.meta.status !== 'running') throw new Error('endTurn: the game has ended');
   const draft = cloneForWrite(state);
+  return { state: draft, report: endTurnInPlace(draft, content) };
+}
+
+/** Like `endTurn`, but mutates `state` directly (see `applyActionInPlace`). */
+export function endTurnInPlace(draft: GameState, content: ContentPack): LedgerEntry {
+  if (draft.meta.status !== 'running') throw new Error('endTurn: the game has ended');
   const rng = new Rng(draft.meta.rng);
-  const ctx = { state: draft, content, rng };
+  const ctx: TurnContext = { state: draft, content, rng, scratch: newScratch() };
 
   draft.log.push({ turn: draft.meta.turn, endTurn: true });
-  autoResolveEvents(draft, content);
+  autoResolveEvents(draft, content, rng);
   for (const phase of PHASES) phase.run(ctx);
 
   draft.player.monthsInsolvent = draft.player.cashCents < 0 ? draft.player.monthsInsolvent + 1 : 0;
+  const { shutdownHeat, shutdownGraceMonths } = content.config.scrutiny;
+  const scrutiny = draft.scrutiny;
+  scrutiny.monthsAtShutdownHeat =
+    scrutiny.heat >= shutdownHeat ? scrutiny.monthsAtShutdownHeat + 1 : 0;
+  if (scrutiny.monthsAtShutdownHeat > 0 && scrutiny.monthsAtShutdownHeat < shutdownGraceMonths) {
+    draft.month.news.push({
+      kind: 'shutdown_warning',
+      monthsLeft: shutdownGraceMonths - scrutiny.monthsAtShutdownHeat,
+    });
+  }
   const report = closeMonth(draft);
   draft.ledger.push(report);
 
   if (draft.player.monthsInsolvent >= content.config.bankruptcyGraceMonths) {
     draft.meta.status = 'ended';
     draft.meta.endReason = 'bankrupt';
+  } else if (scrutiny.monthsAtShutdownHeat >= shutdownGraceMonths) {
+    draft.meta.status = 'ended';
+    draft.meta.endReason = 'shut_down';
   } else if (compareDates(draft.meta.date, content.config.endDate) >= 0) {
     draft.meta.status = 'ended';
     draft.meta.endReason = 'timeline_end';
@@ -174,7 +247,7 @@ export function endTurn(
   }
 
   draft.meta.rng = rng.state();
-  return { state: draft, report };
+  return report;
 }
 
 /** Rebuilds a game from its options and action log. Used for bug reports and determinism tests. */
@@ -183,16 +256,15 @@ export function replay(
   options: NewGameOptions,
   log: readonly LogEntry[],
 ): GameState {
-  let state = newGame(content, options);
+  const state = newGame(content, options);
   for (const entry of log) {
     if ('endTurn' in entry) {
-      state = endTurn(state, content).state;
+      endTurnInPlace(state, content);
     } else {
-      const { state: next, result } = applyAction(state, entry.action, content);
+      const result = applyActionInPlace(state, entry.action, content);
       if (!result.ok) {
         throw new Error(`replay: action at turn ${entry.turn} failed: ${result.error}`);
       }
-      state = next;
     }
   }
   return state;

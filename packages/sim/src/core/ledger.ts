@@ -3,6 +3,7 @@ import type { GameState, LedgerEntry, Metric, MonthInProgress } from './state.ts
 
 export const REPUTATION_MIN = 0;
 export const REPUTATION_MAX = 100;
+export const HEAT_MAX = 100;
 
 /**
  * The single way to change a player-visible number. Applies the change (with clamping), records
@@ -36,6 +37,14 @@ export function adjust(
       applied = after - before;
       break;
     }
+    case 'heat': {
+      const before = state.scrutiny.heat;
+      const after = Math.min(HEAT_MAX, Math.max(0, before + amount));
+      state.scrutiny.heat = after;
+      state.scrutiny.peakHeat = Math.max(state.scrutiny.peakHeat, after);
+      applied = after - before;
+      break;
+    }
   }
   if (applied !== 0) {
     state.month.deltas.push(
@@ -52,9 +61,11 @@ export function openMonth(state: GameState): MonthInProgress {
     startCashCents: state.player.cashCents,
     startReputation: state.player.reputation,
     startNotoriety: state.player.notoriety,
+    startHeat: state.scrutiny.heat,
     deltas: [],
     news: [],
     sales: [],
+    complaints: 0,
   };
 }
 
@@ -69,9 +80,13 @@ export function closeMonth(state: GameState): LedgerEntry {
     reputationEnd: state.player.reputation,
     notorietyStart: m.startNotoriety,
     notorietyEnd: state.player.notoriety,
+    heatStart: m.startHeat,
+    heatEnd: state.scrutiny.heat,
     deltas: m.deltas,
     news: m.news,
     sales: m.sales,
+    customers: state.customers.length,
+    complaints: m.complaints,
   };
 }
 

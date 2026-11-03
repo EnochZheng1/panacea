@@ -1,7 +1,9 @@
 import type { FormulaComponent } from '@panacea/sim';
+import { policyBot, PRESETS } from './policy.ts';
 import type { Bot, BotTurn } from './types.ts';
 
 export type { Bot, BotTurn } from './types.ts';
+export { policyBot, PRESETS, recipeFor, type Policy } from './policy.ts';
 
 /** Does nothing; events resolve to their defaults. Establishes the economy's floor. */
 export const idleBot: Bot = {
@@ -10,12 +12,31 @@ export const idleBot: Bot = {
   playTurn() {},
 };
 
+function randomComponents(
+  t: BotTurn,
+  ingredientIds: string[],
+  maxVolume: number,
+): FormulaComponent[] {
+  const count = t.rng.int(1, Math.min(4, ingredientIds.length));
+  const picked = new Set<string>();
+  while (picked.size < count) picked.add(t.rng.pick(ingredientIds));
+  const share = maxVolume / count;
+  return [...picked].map((ingredientId) => ({
+    ingredientId,
+    amount: Math.round(share * (0.2 + 0.8 * t.rng.float()) * 100) / 100 || 0.01,
+  }));
+}
+
+function randomSubset<T>(t: BotTurn, items: readonly T[], max: number): T[] {
+  return items.filter(() => t.rng.chance(0.3)).slice(0, max);
+}
+
 /** Legal random moves with random parameters. A fuzzer for the rules and invariants. */
 export const randomBot: Bot = {
   id: 'random',
   description: 'Random legal actions with random parameters.',
   playTurn(t) {
-    const moves = t.rng.int(0, 4);
+    const moves = t.rng.int(0, 5);
     for (let i = 0; i < moves; i++) {
       const specs = t.legal();
       if (specs.length === 0) return;
@@ -24,26 +45,36 @@ export const randomBot: Bot = {
         case 'BuyIngredient':
           t.act({ ...spec, units: t.rng.int(1, Math.min(spec.maxUnits, 40)) });
           break;
-        case 'CreateFormula': {
-          const count = t.rng.int(1, Math.min(4, spec.ingredientIds.length));
-          const picked = new Set<string>();
-          while (picked.size < count) picked.add(t.rng.pick(spec.ingredientIds));
-          const share = spec.maxVolume / count;
-          const components: FormulaComponent[] = [...picked].map((ingredientId) => ({
-            ingredientId,
-            amount: Math.round(share * (0.2 + 0.8 * t.rng.float()) * 100) / 100 || 0.01,
-          }));
+        case 'CreateFormula':
           t.act({
             type: 'CreateFormula',
             name: `Random Tonic ${t.state.meta.turn}`,
-            components,
+            components: randomComponents(t, spec.ingredientIds, spec.maxVolume),
             processId: t.rng.pick(spec.processIds),
             priceCents: t.rng.int(10, 300),
+            claims: randomSubset(t, spec.claimIds, 2),
           });
           break;
-        }
+        case 'Reformulate':
+          t.act({
+            type: 'Reformulate',
+            formulaId: spec.formulaId,
+            components: randomComponents(t, spec.ingredientIds, spec.maxVolume),
+            processId: t.rng.pick(spec.processIds),
+          });
+          break;
         case 'SetPrice':
           t.act({ type: 'SetPrice', formulaId: spec.formulaId, priceCents: t.rng.int(10, 300) });
+          break;
+        case 'SetClaims':
+          t.act({
+            type: 'SetClaims',
+            formulaId: spec.formulaId,
+            claims: randomSubset(t, spec.claimIds, spec.maxClaims),
+          });
+          break;
+        case 'SetAdSpend':
+          t.act({ type: 'SetAdSpend', cents: t.rng.int(0, 3000) });
           break;
         case 'BrewBatch':
           t.act({
@@ -64,62 +95,11 @@ export const randomBot: Bot = {
   },
 };
 
-/**
- * A sensible small-shop strategy: one laudanum tonic, restocked every month to a target level,
- * keeping a cash reserve for rent. A stand-in for "a competent player" until M1's bot roster.
- */
-export function shopkeeperBot(options: { targetStock?: number; priceCents?: number } = {}): Bot {
-  const targetStock = options.targetStock ?? 30;
-  const priceCents = options.priceCents ?? 60;
-  const recipe: FormulaComponent[] = [
-    { ingredientId: 'grain_alcohol', amount: 2 },
-    { ingredientId: 'laudanum', amount: 0.25 },
-    { ingredientId: 'peppermint_oil', amount: 0.1 },
-    { ingredientId: 'sugar_syrup', amount: 1 },
-    { ingredientId: 'water', amount: 4.65 },
-  ];
-
-  return {
-    id: 'shopkeeper',
-    description: `Restocks one laudanum tonic to ${targetStock} bottles at ${priceCents}¢.`,
-    playTurn(t: BotTurn) {
-      // Leaves events to their default (cautious) choices.
-      const obs = t.observe();
-      let formula = obs.formulas[0];
-      if (!formula) {
-        const r = t.act({
-          type: 'CreateFormula',
-          name: "Dr. Placeholder's Soothing Elixir",
-          components: recipe,
-          processId: 'simple_mix',
-          priceCents,
-        });
-        if (!r.ok) return;
-        formula = t.observe().formulas[0];
-        if (!formula) return;
-      }
-
-      const reserveCents = t.content.config.rentCents * 2;
-      const wanted = targetStock - formula.stock;
-      if (wanted <= 0) return;
-      const affordable = Math.floor(
-        Math.max(0, t.observe().cashCents - reserveCents) / Math.max(1, formula.unitCostCents),
-      );
-      const bottles = Math.min(wanted, affordable);
-      if (bottles < 1) return;
-
-      for (const c of recipe) {
-        const have = t.observe().inventory[c.ingredientId] ?? 0;
-        const need = Math.ceil(c.amount * bottles - have);
-        if (need > 0) t.act({ type: 'BuyIngredient', ingredientId: c.ingredientId, units: need });
-      }
-      t.act({ type: 'BrewBatch', formulaId: formula.id, bottles });
-    },
-  };
-}
+/** A sensible small-shop strategy; the baseline "competent player". */
+export const shopkeeperBot = (): Bot => policyBot(PRESETS['shopkeeper']!);
 
 export const BOTS: Record<string, () => Bot> = {
   idle: () => idleBot,
   random: () => randomBot,
-  shopkeeper: () => shopkeeperBot(),
+  ...Object.fromEntries(Object.entries(PRESETS).map(([id, p]) => [id, () => policyBot(p)])),
 };

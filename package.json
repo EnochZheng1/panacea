@@ -7,7 +7,7 @@
     "node": ">=22.12"
   },
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json && tsc -p packages/client/tsconfig.json",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -15,7 +15,10 @@
     "test:watch": "vitest",
     "content:lint": "tsx packages/content/scripts/lint.ts",
     "sim:batch": "tsx packages/playtest/src/cli/batch.ts",
-    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm content:lint && pnpm test"
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm content:lint && pnpm test",
+    "sim:optimize": "tsx packages/playtest/src/cli/optimize.ts",
+    "client:dev": "pnpm --filter @panacea/client dev",
+    "client:build": "pnpm --filter @panacea/client build"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

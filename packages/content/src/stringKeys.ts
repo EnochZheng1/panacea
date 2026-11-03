@@ -12,5 +12,7 @@ export const stringKeys = {
   background: (id: string) => [`background.${id}.name`, `background.${id}.description`],
   segment: (id: string) => [`segment.${id}.name`],
   ailment: (id: string) => [`ailment.${id}.name`],
+  claim: (id: string) => [`claim.${id}.name`],
+  verdict: (id: string) => [`verdict.${id}`],
   cause: (id: string) => [`cause.${id}`],
 } as const;

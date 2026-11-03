@@ -1,7 +1,13 @@
 {
-  "contentVersion": "0.1.0",
-  "startDate": { "year": 1885, "month": 1 },
-  "endDate": { "year": 1906, "month": 12 },
+  "contentVersion": "0.2.0",
+  "startDate": {
+    "year": 1885,
+    "month": 1
+  },
+  "endDate": {
+    "year": 1906,
+    "month": 12
+  },
   "defaultBackground": "druggist",
   "startingReputation": 10,
   "rentCents": 500,
@@ -13,12 +19,56 @@
   "walkIns": {
     "base": 20,
     "perReputation": 0.2,
-    "profile": {
-      "baseWillingnessCents": 80,
-      "buyChance": 0.5,
-      "preference": { "kick": 0.6, "calm": 0.4 },
-      "bitternessTolerance": 2,
-      "bitternessAversion": 1
-    }
-  }
+    "conversionChance": 0.08
+  },
+  "maxRegulars": 30,
+  "maxClaimsPerFormula": 4,
+  "advertising": {
+    "visitorsPerSqrtCent": 0.8,
+    "heatPerBoldness": 0.2,
+    "labelHeatPerBoldness": 0.3
+  },
+  "batches": {
+    "potencySpread": 0.08,
+    "badBatchChance": 0.03,
+    "badBatchPotency": [2, 3]
+  },
+  "body": {
+    "toleranceGain": 0.08,
+    "toleranceDecay": 0.25,
+    "toleranceProtection": 1,
+    "dependencyGain": 0.02,
+    "dependencyDecay": 0.06,
+    "withdrawalThreshold": 0.3,
+    "withdrawalHarm": 3,
+    "loadDecay": 0.1,
+    "loadSafe": 10,
+    "loadHarm": 0.2,
+    "acuteHarm": 2,
+    "recovery": 0.05,
+    "lapseChance": 0.25,
+    "infantVulnerability": 6,
+    "infantDoseScale": 0.25
+  },
+  "scrutiny": {
+    "heatDecayFlat": 1,
+    "heatDecayRate": 0.06,
+    "heatPerDeath": 6,
+    "heatPerInfantDeath": 12,
+    "heatPerAnonymousDeath": 4,
+    "heatPerComplaint": 0.2,
+    "shutdownHeat": 100,
+    "inquestBaseChance": 0.25,
+    "bribeBaseCents": 2000,
+    "benignVerdicts": [
+      "visitation_of_god",
+      "excess_of_spite",
+      "vapours",
+      "natural_causes",
+      "misadventure"
+    ],
+    "shutdownGraceMonths": 2
+  },
+  "reputationBaseline": 15,
+  "reputationDrift": 0.02
 }

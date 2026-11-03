@@ -21,6 +21,18 @@ export function applyEffects(
       case 'notoriety':
         adjust(state, 'notoriety', e.delta, cause, detail);
         break;
+      case 'heat':
+        adjust(state, 'heat', e.delta, cause, detail);
+        break;
+      case 'seizeStock': {
+        const bottles = state.lab.stock.reduce((n, lot) => n + lot.bottles, 0);
+        state.lab.stock = [];
+        state.month.news.push({ kind: 'stock_seized', bottles });
+        break;
+      }
+      case 'inquest':
+        // Needs the event's context; handled by resolveEvent (see progression.ts).
+        break;
       case 'setFlag':
         state.player.flags[e.id] = true;
         break;

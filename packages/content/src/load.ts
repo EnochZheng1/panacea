@@ -1,9 +1,13 @@
+import ailments from '../data/ailments.json' with { type: 'json' };
 import backgrounds from '../data/backgrounds.json' with { type: 'json' };
+import claims from '../data/claims.json' with { type: 'json' };
 import config from '../data/config.json' with { type: 'json' };
 import events from '../data/events.json' with { type: 'json' };
 import ingredients from '../data/ingredients.json' with { type: 'json' };
+import names from '../data/names.json' with { type: 'json' };
 import processes from '../data/processes.json' with { type: 'json' };
 import regulars from '../data/regulars.json' with { type: 'json' };
+import segments from '../data/segments.json' with { type: 'json' };
 import timeline from '../data/timeline.json' with { type: 'json' };
 import unlocks from '../data/unlocks.json' with { type: 'json' };
 import strings from '../strings/en.json' with { type: 'json' };
@@ -19,6 +23,10 @@ export const rawContent: RawContent = {
   timeline,
   regulars,
   backgrounds,
+  segments,
+  ailments,
+  claims,
+  names,
   strings,
 };
 

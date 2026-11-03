@@ -1,4 +1,10 @@
-import { PROPERTY_KEYS, type ContentPack, type Properties } from '@panacea/content';
+import {
+  DRUG_CLASSES,
+  PROPERTY_KEYS,
+  type ContentPack,
+  type DrugClass,
+  type Properties,
+} from '@panacea/content';
 import { compareDates } from '../core/date.ts';
 import type { FormulaComponent, GameState } from '../core/state.ts';
 
@@ -7,6 +13,11 @@ export interface FormulaAnalysis {
   volume: number;
   /** Per-bottle properties after processing. */
   properties: Properties;
+  /**
+   * The same properties split by drug class ('none' = everything without a drug class), so the
+   * body model can apply each class's tolerance separately. Sums to `properties`.
+   */
+  byClass: Record<DrugClass | 'none', Properties>;
   /** Ingredients + bottle + processing, per bottle, in (fractional) cents. */
   unitCostCents: number;
 }
@@ -21,21 +32,25 @@ export function analyzeFormula(
   content: ContentPack,
 ): FormulaAnalysis {
   const props = emptyProperties();
+  const byClass = Object.fromEntries(
+    [...DRUG_CLASSES, 'none'].map((c) => [c, emptyProperties()]),
+  ) as Record<DrugClass | 'none', Properties>;
+  const process = content.byId.processes.get(processId);
   let volume = 0;
-  let cost = content.config.bottleCostCents;
+  let cost = content.config.bottleCostCents + (process?.extraCostPerBottleCents ?? 0);
   for (const c of components) {
     const ing = content.byId.ingredients.get(c.ingredientId);
     if (!ing) continue;
     volume += c.amount;
     cost += c.amount * ing.costPerUnitCents;
-    for (const k of PROPERTY_KEYS) props[k] += c.amount * ing.properties[k];
+    const bucket = byClass[ing.drugClass ?? 'none'];
+    for (const k of PROPERTY_KEYS) {
+      const v = c.amount * ing.properties[k] * (process?.multipliers[k] ?? 1);
+      props[k] += v;
+      bucket[k] += v;
+    }
   }
-  const process = content.byId.processes.get(processId);
-  if (process) {
-    cost += process.extraCostPerBottleCents;
-    for (const k of PROPERTY_KEYS) props[k] *= process.multipliers[k] ?? 1;
-  }
-  return { volume, properties: props, unitCostCents: cost };
+  return { volume, properties: props, byClass, unitCostCents: cost };
 }
 
 export function isIngredientAvailable(
@@ -84,6 +99,47 @@ export function validateFormula(
   if (!content.byId.processes.has(processId)) return `unknown process "${processId}"`;
   if (!isProcessAvailable(processId, state, content)) {
     return `process "${processId}" is not unlocked`;
+  }
+  return null;
+}
+
+/** Total boldness of a formula's claims (drives scrutiny). */
+export function claimBoldness(claims: readonly string[], content: ContentPack): number {
+  return claims.reduce((sum, id) => sum + (content.byId.claims.get(id)?.boldness ?? 0), 0);
+}
+
+/** How strongly a formula's claims appeal to someone with this ailment. */
+export function claimAppeal(
+  claims: readonly string[],
+  ailmentId: string,
+  content: ContentPack,
+): number {
+  let total = 0;
+  for (const id of claims) {
+    const claim = content.byId.claims.get(id);
+    if (!claim) continue;
+    if (claim.ailments.length === 0 || claim.ailments.includes(ailmentId)) total += claim.appeal;
+  }
+  return total;
+}
+
+/** Returns an error message, or null if this set of claims may be printed right now. */
+export function validateClaims(
+  claims: readonly string[],
+  state: GameState,
+  content: ContentPack,
+): string | null {
+  if (!Array.isArray(claims)) return 'claims must be a list';
+  if (claims.length > content.config.maxClaimsPerFormula) {
+    return `at most ${content.config.maxClaimsPerFormula} claims per label`;
+  }
+  if (new Set(claims).size !== claims.length) return 'claims must not repeat';
+  for (const id of claims) {
+    const claim = content.byId.claims.get(id);
+    if (!claim) return `unknown claim "${id}"`;
+    if (claim.requiresUnlock && !(claim.requiresUnlock in state.unlocks.unlocked)) {
+      return `claim "${id}" is not unlocked`;
+    }
   }
   return null;
 }

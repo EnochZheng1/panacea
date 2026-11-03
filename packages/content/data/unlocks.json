@@ -2,13 +2,25 @@
   {
     "id": "second_still",
     "category": "facility",
-    "requirement": { "type": "bottlesSold", "atLeast": 200 },
-    "effects": [{ "type": "capability", "id": "stills", "delta": 1 }]
+    "requirement": {
+      "type": "bottlesSold",
+      "atLeast": 200
+    },
+    "effects": [
+      {
+        "type": "capability",
+        "id": "stills",
+        "delta": 1
+      }
+    ]
   },
   {
     "id": "percolator",
     "category": "facility",
-    "requirement": { "type": "batchesBrewed", "atLeast": 10 }
+    "requirement": {
+      "type": "batchesBrewed",
+      "atLeast": 10
+    }
   },
   {
     "id": "newspaper_ads",
@@ -16,8 +28,14 @@
     "requirement": {
       "type": "all",
       "of": [
-        { "type": "cash", "atLeastCents": 15000 },
-        { "type": "flag", "id": "testimonial_received" }
+        {
+          "type": "cash",
+          "atLeastCents": 15000
+        },
+        {
+          "type": "flag",
+          "id": "testimonial_received"
+        }
       ]
     }
   },
@@ -27,11 +45,22 @@
     "requirement": {
       "type": "any",
       "of": [
-        { "type": "reputation", "atLeast": 50 },
-        { "type": "flag", "id": "bought_diploma" }
+        {
+          "type": "reputation",
+          "atLeast": 50
+        },
+        {
+          "type": "flag",
+          "id": "bought_diploma"
+        }
       ]
     },
-    "effects": [{ "type": "reputation", "delta": 5 }]
+    "effects": [
+      {
+        "type": "reputation",
+        "delta": 5
+      }
+    ]
   },
   {
     "id": "third_still",
@@ -39,10 +68,107 @@
     "requirement": {
       "type": "all",
       "of": [
-        { "type": "unlocked", "id": "second_still" },
-        { "type": "bottlesSold", "atLeast": 1000 }
+        {
+          "type": "unlocked",
+          "id": "second_still"
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 1000
+        }
       ]
     },
-    "effects": [{ "type": "capability", "id": "stills", "delta": 1 }]
+    "effects": [
+      {
+        "type": "capability",
+        "id": "stills",
+        "delta": 1
+      }
+    ]
+  },
+  {
+    "id": "coroner_fees",
+    "category": "dark_art",
+    "requirement": {
+      "type": "flag",
+      "id": "survived_inquest"
+    }
+  },
+  {
+    "id": "quality_control",
+    "category": "facility",
+    "requirement": {
+      "type": "any",
+      "of": [
+        {
+          "type": "flag",
+          "id": "suffered_bad_batch"
+        },
+        {
+          "type": "all",
+          "of": [
+            {
+              "type": "batchesBrewed",
+              "atLeast": 40
+            },
+            {
+              "type": "cash",
+              "atLeastCents": 10000
+            }
+          ]
+        }
+      ]
+    },
+    "effects": [
+      {
+        "type": "capability",
+        "id": "quality_control",
+        "delta": 1
+      }
+    ]
+  },
+  {
+    "id": "larger_shop",
+    "category": "facility",
+    "requirement": {
+      "type": "all",
+      "of": [
+        {
+          "type": "regulars",
+          "atLeast": 25
+        },
+        {
+          "type": "cash",
+          "atLeastCents": 20000
+        }
+      ]
+    },
+    "effects": [
+      {
+        "type": "capability",
+        "id": "shop_capacity",
+        "delta": 20
+      },
+      {
+        "type": "capability",
+        "id": "rent_extra_cents",
+        "delta": 500
+      }
+    ]
+  },
+  {
+    "id": "bulk_supplier",
+    "category": "connection",
+    "requirement": {
+      "type": "batchesBrewed",
+      "atLeast": 25
+    },
+    "effects": [
+      {
+        "type": "capability",
+        "id": "ingredient_discount_pct",
+        "delta": 15
+      }
+    ]
   }
 ]

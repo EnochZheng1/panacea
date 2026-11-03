@@ -30,7 +30,28 @@ function concretise(spec: ActionSpec, r: number[]): Action {
         ].filter((x, i, all) => all.findIndex((y) => y.ingredientId === x.ingredientId) === i),
         processId: pick(spec.processIds, b),
         priceCents: Math.floor(c * 200),
+        claims: a > 0.5 ? spec.claimIds.slice(0, 2) : [],
       };
+    case 'Reformulate':
+      return {
+        type: 'Reformulate',
+        formulaId: spec.formulaId,
+        components: [
+          { ingredientId: pick(spec.ingredientIds, b), amount: 0.1 + a * 2 },
+          { ingredientId: 'water', amount: 2 },
+        ].filter((x, i, all) => all.findIndex((y) => y.ingredientId === x.ingredientId) === i),
+        processId: pick(spec.processIds, c),
+      };
+    case 'SetClaims':
+      return {
+        type: 'SetClaims',
+        formulaId: spec.formulaId,
+        claims: spec.claimIds
+          .filter((_, i) => (i + Math.floor(a * 10)) % 3 === 0)
+          .slice(0, spec.maxClaims),
+      };
+    case 'SetAdSpend':
+      return { type: 'SetAdSpend', cents: Math.floor(a * 3000) };
     case 'SetPrice':
       return { type: 'SetPrice', formulaId: spec.formulaId, priceCents: Math.floor(a * 300) };
     case 'BrewBatch':

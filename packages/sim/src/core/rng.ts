@@ -113,3 +113,10 @@ export class Rng {
     return items.at(-1)?.item;
   }
 }
+
+/** Standard normal sample (Box–Muller). */
+export function gaussian(rng: Rng): number {
+  const u = Math.max(rng.float(), 1e-12);
+  const v = rng.float();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}

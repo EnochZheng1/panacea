@@ -1,9 +1,10 @@
-import type { ContentPack } from '@panacea/content';
+import type { ContentPack, EventChoice } from '@panacea/content';
 import { CAUSES } from '../core/causes.ts';
 import { compareDates } from '../core/date.ts';
-import type { GameState, Phase, Rng } from '../core/index.ts';
+import type { GameState, PendingEvent, Phase, Rng } from '../core/index.ts';
 import { applyEffects } from './effects.ts';
 import { evaluateRequirement } from './requirements.ts';
+import { bribeCostCents, resolveInquest } from './scrutiny.ts';
 
 /** Turn phase: historical events fire on their dates, regardless of the player. */
 export const timelinePhase: Phase = {
@@ -56,11 +57,15 @@ export function nextUnlocks(state: GameState, content: ContentPack, limit = 3): 
     .slice(0, limit);
 }
 
-/** Draws this month's events into The Post. */
+const isRandomPending = (p: PendingEvent, content: ContentPack) =>
+  content.byId.events.get(p.eventId)?.trigger !== 'system';
+
+/** Draws this month's random events into The Post. System events (inquests) don't count. */
 export function drawEvents(state: GameState, content: ContentPack, rng: Rng): void {
   const max = content.config.maxEventsPerMonth;
   for (const ev of content.events) {
-    if (state.events.pending.length >= max) break;
+    if (ev.trigger !== 'random' || !ev.condition) continue;
+    if (state.events.pending.filter((p) => isRandomPending(p, content)).length >= max) break;
     if (state.events.pending.some((p) => p.eventId === ev.id)) continue;
     const times = state.events.timesDrawn[ev.id] ?? 0;
     if (ev.once && times > 0) continue;
@@ -78,10 +83,37 @@ export function drawEvents(state: GameState, content: ContentPack, rng: Rng): vo
   }
 }
 
+/** Whether a choice can be taken right now (its requirement, and anything it would cost). */
+export function isChoiceAvailable(
+  state: GameState,
+  content: ContentPack,
+  choice: EventChoice,
+): boolean {
+  if (choice.requires && !evaluateRequirement(choice.requires, state, content).met) return false;
+  for (const e of choice.effects) {
+    if (e.type === 'cash' && e.deltaCents < 0 && state.player.cashCents < -e.deltaCents)
+      return false;
+    if (
+      e.type === 'inquest' &&
+      e.approach === 'bribe' &&
+      state.player.cashCents < bribeCostCents(state, content)
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export function availableChoices(state: GameState, content: ContentPack, pending: PendingEvent) {
+  const ev = content.byId.events.get(pending.eventId);
+  return ev ? ev.choices.filter((c) => isChoiceAvailable(state, content, c)) : [];
+}
+
 /** Resolves a pending event with the given choice. Returns an error message on failure. */
 export function resolveEvent(
   state: GameState,
   content: ContentPack,
+  rng: Rng,
   instanceId: string,
   choiceId: string,
   auto: boolean,
@@ -93,18 +125,29 @@ export function resolveEvent(
   if (!ev) return `unknown event "${pending.eventId}"`;
   const choice = ev.choices.find((c) => c.id === choiceId);
   if (!choice) return `event "${ev.id}" has no choice "${choiceId}"`;
+  if (!isChoiceAvailable(state, content, choice)) return `choice "${choiceId}" is not available`;
   state.events.pending.splice(index, 1);
+  for (const e of choice.effects) {
+    if (e.type !== 'inquest') continue;
+    const error = resolveInquest(state, content, rng, pending.deathId, e.approach);
+    if (error) {
+      state.events.pending.splice(index, 0, pending);
+      return error;
+    }
+  }
   applyEffects(state, choice.effects, CAUSES.event, ev.id);
   state.month.news.push({ kind: 'event_resolved', eventId: ev.id, choiceId: choice.id, auto });
   return null;
 }
 
-/** Resolves every pending event with its default (or first) choice. */
-export function autoResolveEvents(state: GameState, content: ContentPack): void {
+/** Resolves every pending event with its default (or first available) choice. */
+export function autoResolveEvents(state: GameState, content: ContentPack, rng: Rng): void {
   for (const pending of [...state.events.pending]) {
-    const ev = content.byId.events.get(pending.eventId);
-    const choice = ev?.choices.find((c) => c.default) ?? ev?.choices[0];
-    if (choice) resolveEvent(state, content, pending.instanceId, choice.id, true);
-    else state.events.pending = state.events.pending.filter((p) => p !== pending);
+    const choices = availableChoices(state, content, pending);
+    const choice = choices.find((c) => c.default) ?? choices[0];
+    const error = choice
+      ? resolveEvent(state, content, rng, pending.instanceId, choice.id, true)
+      : 'no available choice';
+    if (error) state.events.pending = state.events.pending.filter((p) => p !== pending);
   }
 }

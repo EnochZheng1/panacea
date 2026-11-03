@@ -1,0 +1,82 @@
+[
+  {
+    "id": "teething_infant",
+    "severity": 2.5,
+    "healthDriftPerMonth": 0,
+    "resolvesAfterMonths": [6, 12],
+    "consumer": "infant",
+    "mortalityMultiplier": 2
+  },
+  {
+    "id": "rheumatism",
+    "severity": 3,
+    "healthDriftPerMonth": 0,
+    "consumer": "self",
+    "mortalityMultiplier": 1
+  },
+  {
+    "id": "nerves",
+    "severity": 2.5,
+    "healthDriftPerMonth": 0,
+    "consumer": "self",
+    "mortalityMultiplier": 1
+  },
+  {
+    "id": "dyspepsia",
+    "severity": 2,
+    "healthDriftPerMonth": 0,
+    "consumer": "self",
+    "mortalityMultiplier": 1
+  },
+  {
+    "id": "neuralgia",
+    "severity": 3,
+    "healthDriftPerMonth": 0,
+    "consumer": "self",
+    "mortalityMultiplier": 1
+  },
+  {
+    "id": "cough",
+    "severity": 2.5,
+    "healthDriftPerMonth": -0.2,
+    "resolvesAfterMonths": [2, 6],
+    "consumer": "self",
+    "mortalityMultiplier": 1
+  },
+  {
+    "id": "melancholy",
+    "severity": 2.5,
+    "healthDriftPerMonth": 0,
+    "consumer": "self",
+    "mortalityMultiplier": 1
+  },
+  {
+    "id": "insomnia",
+    "severity": 2.5,
+    "healthDriftPerMonth": 0,
+    "consumer": "self",
+    "mortalityMultiplier": 1
+  },
+  {
+    "id": "female_complaints",
+    "severity": 2.5,
+    "healthDriftPerMonth": 0,
+    "consumer": "self",
+    "mortalityMultiplier": 1
+  },
+  {
+    "id": "catarrh",
+    "severity": 2,
+    "healthDriftPerMonth": 0,
+    "resolvesAfterMonths": [3, 8],
+    "consumer": "self",
+    "mortalityMultiplier": 1
+  },
+  {
+    "id": "consumption",
+    "severity": 4,
+    "healthDriftPerMonth": -1.2,
+    "consumer": "self",
+    "mortalityMultiplier": 3
+  }
+]

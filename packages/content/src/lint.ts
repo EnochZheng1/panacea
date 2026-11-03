@@ -1,5 +1,5 @@
 import type { ContentIssue, ContentPack } from './pack.ts';
-import type { Effect, GameDate, Requirement } from './schemas.ts';
+import { SYSTEM_FLAGS, type Effect, type GameDate, type Requirement } from './schemas.ts';
 import { stringKeys } from './stringKeys.ts';
 
 const dateIndex = (d: GameDate) => d.year * 12 + (d.month - 1);
@@ -63,10 +63,38 @@ export function lintContent(pack: ContentPack): ContentIssue[] {
       requireStrings('events', `${i}.choices.${j}`, stringKeys.eventChoice(ev.id, c.id)),
     );
   });
+  pack.segments.forEach((x, i) => requireStrings('segments', `${i}`, stringKeys.segment(x.id)));
+  pack.ailments.forEach((x, i) => requireStrings('ailments', `${i}`, stringKeys.ailment(x.id)));
+  pack.claims.forEach((x, i) => requireStrings('claims', `${i}`, stringKeys.claim(x.id)));
+  pack.config.scrutiny.benignVerdicts.forEach((v, i) =>
+    requireStrings('config', `scrutiny.benignVerdicts.${i}`, stringKeys.verdict(v)),
+  );
+  requireStrings('config', 'scrutiny', stringKeys.verdict('proprietary_poisoning'));
+
+  // --- Segments, ailments, regulars, claims ------------------------------------------
   pack.regulars.forEach((r, i) => {
-    requireStrings('regulars', `${i}`, stringKeys.segment(r.segment));
-    requireStrings('regulars', `${i}`, stringKeys.ailment(r.ailment));
+    if (!pack.byId.segments.has(r.segment))
+      error('regulars', `${i}.segment`, `unknown segment "${r.segment}"`);
+    if (!pack.byId.ailments.has(r.ailment))
+      error('regulars', `${i}.ailment`, `unknown ailment "${r.ailment}"`);
   });
+  pack.segments.forEach((sg, i) =>
+    sg.ailments.forEach((a, j) => {
+      if (!pack.byId.ailments.has(a.id))
+        error('segments', `${i}.ailments.${j}`, `unknown ailment "${a.id}"`);
+    }),
+  );
+  pack.claims.forEach((c, i) => {
+    c.ailments.forEach((a, j) => {
+      if (!pack.byId.ailments.has(a))
+        error('claims', `${i}.ailments.${j}`, `unknown ailment "${a}"`);
+    });
+    if (c.requiresUnlock && !pack.byId.unlocks.has(c.requiresUnlock)) {
+      error('claims', `${i}.requiresUnlock`, `unknown unlock "${c.requiresUnlock}"`);
+    }
+  });
+  if (!pack.segments.some((sg) => sg.weight > 0))
+    error('segments', '', 'no segment has a positive weight');
 
   // --- Config --------------------------------------------------------------------------
   const { config } = pack;
@@ -87,7 +115,24 @@ export function lintContent(pack: ContentPack): ContentIssue[] {
     if (ev.choices.filter((c) => c.default).length > 1) {
       error('events', `${i}.choices`, 'at most one choice may be the default');
     }
-    if (ev.chance === 0) warn('events', `${i}.chance`, 'event can never be drawn (chance 0)');
+    if (ev.trigger === 'random') {
+      if (!ev.condition) error('events', `${i}.condition`, 'random events need a condition');
+      if (ev.chance === 0) warn('events', `${i}.chance`, 'event can never be drawn (chance 0)');
+    } else if (ev.condition || ev.chance > 0) {
+      error(
+        'events',
+        `${i}`,
+        'system events are raised by the simulation; remove condition/chance',
+      );
+    }
+    ev.choices.forEach((c, j) => {
+      if (c.default && c.requires) {
+        error('events', `${i}.choices.${j}`, 'the default choice must always be available');
+      }
+      if (ev.trigger === 'random' && c.effects.some((e) => e.type === 'inquest')) {
+        error('events', `${i}.choices.${j}`, 'inquest effects are only valid in system events');
+      }
+    });
   });
 
   // --- Timeline ------------------------------------------------------------------------
@@ -99,7 +144,7 @@ export function lintContent(pack: ContentPack): ContentIssue[] {
   });
 
   // --- References in requirements and effects ------------------------------------------
-  const producedFlags = new Set<string>();
+  const producedFlags = new Set<string>(SYSTEM_FLAGS);
   const collectFlags = (effects: readonly Effect[]) =>
     effects.forEach((e) => e.type === 'setFlag' && producedFlags.add(e.id));
   pack.unlocks.forEach((u) => collectFlags(u.effects));
@@ -117,7 +162,12 @@ export function lintContent(pack: ContentPack): ContentIssue[] {
       }
     });
   pack.unlocks.forEach((u, i) => checkRequirement('unlocks', `${i}.requirement`, u.requirement));
-  pack.events.forEach((ev, i) => checkRequirement('events', `${i}.condition`, ev.condition));
+  pack.events.forEach((ev, i) => {
+    if (ev.condition) checkRequirement('events', `${i}.condition`, ev.condition);
+    ev.choices.forEach((c, j) => {
+      if (c.requires) checkRequirement('events', `${i}.choices.${j}.requires`, c.requires);
+    });
+  });
 
   pack.processes.forEach((p, i) => {
     if (p.requiresUnlock && !pack.byId.unlocks.has(p.requiresUnlock)) {

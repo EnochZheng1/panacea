@@ -1,8 +1,8 @@
 import type { ContentPack } from '@panacea/content';
 import {
-  applyAction,
+  applyActionInPlace,
   checkInvariants,
-  endTurn,
+  endTurnInPlace,
   hashValue,
   legalActions,
   newGame,
@@ -38,6 +38,17 @@ export interface RunResult {
   actionsTaken: number;
   actionsRejected: number;
   eventsDrawn: number;
+  /** All deaths among customers and walk-ins. */
+  deaths: number;
+  /** Truth: deaths your product caused or hastened. */
+  productDeaths: number;
+  infantDeaths: number;
+  inquests: number;
+  implicated: number;
+  bribes: number;
+  peakHeat: number;
+  peakCustomers: number;
+  complaints: number;
   violations: string[];
   stateHash: string;
   /** Wall-clock run time (harness only; never read by the sim). */
@@ -54,7 +65,8 @@ export function runGame(options: RunOptions): RunResult {
 
   const gameOptions: NewGameOptions = { seed };
   if (options.backgroundId) gameOptions.backgroundId = options.backgroundId;
-  let state = newGame(content, gameOptions);
+  // The harness owns this state outright, so it is mutated in place (no copy per action).
+  const state = newGame(content, gameOptions);
   const botRng = Rng.fromSeed(`${seed}:bot:${bot.id}`);
   const violations = new Set<string>();
   let actionsTaken = 0;
@@ -76,16 +88,15 @@ export function runGame(options: RunOptions): RunResult {
       observe: () => observe(state, content),
       legal: () => legalActions(state, content),
       act: (action) => {
-        const out = applyAction(state, action, content);
-        state = out.state;
-        if (out.result.ok) actionsTaken++;
+        const result = applyActionInPlace(state, action, content);
+        if (result.ok) actionsTaken++;
         else actionsRejected++;
         verify(`turn ${state.meta.turn} after ${action.type}`);
-        return out.result;
+        return result;
       },
     };
     bot.playTurn(turn);
-    state = endTurn(state, content).state;
+    endTurnInPlace(state, content);
     verify(`turn ${state.meta.turn} after endTurn`);
     turns++;
   }
@@ -104,6 +115,15 @@ export function runGame(options: RunOptions): RunResult {
     actionsTaken,
     actionsRejected,
     eventsDrawn: Object.values(state.events.timesDrawn).reduce((a, b) => a + b, 0),
+    deaths: state.deaths.length,
+    productDeaths: state.deaths.filter((d) => d.productImplicated).length,
+    infantDeaths: state.deaths.filter((d) => d.consumer === 'infant').length,
+    inquests: state.scrutiny.inquestsHeld,
+    implicated: state.scrutiny.timesImplicated,
+    bribes: state.scrutiny.bribesPaid,
+    peakHeat: state.scrutiny.peakHeat,
+    peakCustomers: Math.max(0, ...state.ledger.map((e) => e.customers)),
+    complaints: state.stats.complaints,
     violations: [...violations],
     stateHash: hashValue(state),
     ms: performance.now() - started,

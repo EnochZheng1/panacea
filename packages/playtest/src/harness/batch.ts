@@ -16,10 +16,20 @@ export interface BotSummary {
   runs: number;
   endReasons: Record<string, number>;
   bankruptcyRate: number;
-  medianBankruptcyMonth: number | null;
+  shutDownRate: number;
+  medianEndMonth: number | null;
   medianMonths: number;
   medianFinalCashCents: number;
+  meanFinalCashCents: number;
   medianBottlesSold: number;
+  medianPeakCustomers: number;
+  medianDeaths: number;
+  medianProductDeaths: number;
+  meanInfantDeaths: number;
+  medianInquests: number;
+  meanImplicated: number;
+  medianBribes: number;
+  medianPeakHeat: number;
   /** Unlock id → share of runs that reached it. */
   unlockReach: Record<string, number>;
   /** Unlock id → median month it was reached (among runs that reached it). */
@@ -36,12 +46,13 @@ export interface BatchReport {
   violations: { botId: string; seed: string; violations: string[] }[];
 }
 
-const median = (xs: number[]): number => {
+export const median = (xs: number[]): number => {
   if (xs.length === 0) return 0;
   const s = [...xs].sort((a, b) => a - b);
   const mid = Math.floor(s.length / 2);
   return s.length % 2 ? (s[mid] as number) : ((s[mid - 1] as number) + (s[mid] as number)) / 2;
 };
+const mean = (xs: number[]) => (xs.length === 0 ? 0 : xs.reduce((a, b) => a + b, 0) / xs.length);
 
 export function runBatch(options: BatchOptions): BatchReport {
   const backgrounds = options.backgroundIds ?? [options.content.config.defaultBackground];
@@ -52,14 +63,13 @@ export function runBatch(options: BatchOptions): BatchReport {
     const results: RunResult[] = [];
     for (let i = 0; i < options.runs; i++) {
       const backgroundId = backgrounds[i % backgrounds.length] as string;
-      const runOptions = {
+      const r = runGame({
         content: options.content,
         bot,
         seed: `${options.seedPrefix}-${i}`,
         backgroundId,
         ...(options.checkEveryStep === undefined ? {} : { checkEveryStep: options.checkEveryStep }),
-      };
-      const r = runGame(runOptions);
+      });
       results.push(r);
       if (r.violations.length > 0) {
         violations.push({ botId: bot.id, seed: r.seed, violations: r.violations });
@@ -77,69 +87,131 @@ export function runBatch(options: BatchOptions): BatchReport {
   };
 }
 
-function summarise(botId: string, results: RunResult[], content: ContentPack): BotSummary {
+export function summarise(botId: string, results: RunResult[], content: ContentPack): BotSummary {
   const endReasons: Record<string, number> = {};
   for (const r of results) endReasons[r.endReason] = (endReasons[r.endReason] ?? 0) + 1;
-  const bankrupt = results.filter((r) => r.endReason === 'bankrupt');
+  const endedEarly = results.filter(
+    (r) => r.endReason === 'bankrupt' || r.endReason === 'shut_down',
+  );
   const unlockReach: Record<string, number> = {};
   const unlockMedianMonth: Record<string, number> = {};
   for (const u of content.unlocks) {
     const reached = results.filter((r) => u.id in r.unlocks);
     unlockReach[u.id] = reached.length / results.length;
-    if (reached.length > 0)
+    if (reached.length > 0) {
       unlockMedianMonth[u.id] = median(reached.map((r) => r.unlocks[u.id] as number));
+    }
   }
+  const pick = (f: (r: RunResult) => number) => results.map(f);
   return {
     botId,
     runs: results.length,
     endReasons,
-    bankruptcyRate: bankrupt.length / results.length,
-    medianBankruptcyMonth: bankrupt.length > 0 ? median(bankrupt.map((r) => r.months)) : null,
-    medianMonths: median(results.map((r) => r.months)),
-    medianFinalCashCents: median(results.map((r) => r.finalCashCents)),
-    medianBottlesSold: median(results.map((r) => r.bottlesSold)),
+    bankruptcyRate: (endReasons['bankrupt'] ?? 0) / results.length,
+    shutDownRate: (endReasons['shut_down'] ?? 0) / results.length,
+    medianEndMonth: endedEarly.length > 0 ? median(endedEarly.map((r) => r.months)) : null,
+    medianMonths: median(pick((r) => r.months)),
+    medianFinalCashCents: median(pick((r) => r.finalCashCents)),
+    meanFinalCashCents: mean(pick((r) => r.finalCashCents)),
+    medianBottlesSold: median(pick((r) => r.bottlesSold)),
+    medianPeakCustomers: median(pick((r) => r.peakCustomers)),
+    medianDeaths: median(pick((r) => r.deaths)),
+    medianProductDeaths: median(pick((r) => r.productDeaths)),
+    meanInfantDeaths: mean(pick((r) => r.infantDeaths)),
+    medianInquests: median(pick((r) => r.inquests)),
+    meanImplicated: mean(pick((r) => r.implicated)),
+    medianBribes: median(pick((r) => r.bribes)),
+    medianPeakHeat: median(pick((r) => r.peakHeat)),
     unlockReach,
     unlockMedianMonth,
     runsWithViolations: results.filter((r) => r.violations.length > 0).length,
-    avgMsPerRun: results.reduce((s, r) => s + r.ms, 0) / results.length,
+    avgMsPerRun: mean(pick((r) => r.ms)),
   };
 }
 
-const dollars = (cents: number) => `$${(cents / 100).toFixed(2)}`;
+export const dollars = (cents: number) =>
+  `${cents < 0 ? '-' : ''}$${Math.abs(cents / 100).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
 const pct = (x: number) => `${Math.round(x * 100)}%`;
+const n1 = (x: number) => (Number.isInteger(x) ? String(x) : x.toFixed(1));
 
 /** Renders a batch report as Markdown, for terminals, CI logs and committed balance reports. */
 export function formatReport(report: BatchReport): string {
   const lines: string[] = [];
+  const row = (cells: (string | number)[]) => lines.push(`| ${cells.join(' | ')} |`);
+  const header = (cells: string[]) => {
+    row(cells);
+    lines.push(`|${cells.map(() => '---').join('|')}|`);
+  };
+
   lines.push(`# Balance report — content ${report.contentVersion}`);
   lines.push('');
   lines.push(
     `Seeds \`${report.seedPrefix}-0..${report.runsPerBot - 1}\`, ${report.runsPerBot} runs per bot.`,
   );
   lines.push('');
-  lines.push(
-    '| Bot | Bankrupt | Median bankruptcy month | Median months | Median final cash | Median bottles sold | Runs with violations | ms/run |',
-  );
-  lines.push('|---|---|---|---|---|---|---|---|');
+  lines.push('## Business');
+  lines.push('');
+  header([
+    'Bot',
+    'Bankrupt',
+    'Shut down',
+    'Median end month (early endings)',
+    'Median final cash',
+    'Mean final cash',
+    'Median bottles sold',
+    'Median peak customers',
+    'ms/run',
+  ]);
   for (const s of report.summaries) {
-    lines.push(
-      `| ${s.botId} | ${pct(s.bankruptcyRate)} | ${s.medianBankruptcyMonth ?? '—'} | ${s.medianMonths} | ` +
-        `${dollars(s.medianFinalCashCents)} | ${s.medianBottlesSold} | ${s.runsWithViolations} | ${s.avgMsPerRun.toFixed(1)} |`,
-    );
+    row([
+      s.botId,
+      pct(s.bankruptcyRate),
+      pct(s.shutDownRate),
+      s.medianEndMonth ?? '—',
+      dollars(s.medianFinalCashCents),
+      dollars(s.meanFinalCashCents),
+      s.medianBottlesSold,
+      s.medianPeakCustomers,
+      s.avgMsPerRun.toFixed(0),
+    ]);
+  }
+  lines.push('');
+  lines.push('## Human cost and scrutiny');
+  lines.push('');
+  header([
+    'Bot',
+    'Median deaths',
+    'Caused by product',
+    'Infant deaths (mean)',
+    'Inquests',
+    'Implicated (mean)',
+    'Bribes',
+    'Peak heat',
+  ]);
+  for (const s of report.summaries) {
+    row([
+      s.botId,
+      n1(s.medianDeaths),
+      n1(s.medianProductDeaths),
+      s.meanInfantDeaths.toFixed(1),
+      n1(s.medianInquests),
+      s.meanImplicated.toFixed(1),
+      n1(s.medianBribes),
+      s.medianPeakHeat.toFixed(0),
+    ]);
   }
   lines.push('');
   lines.push('## Unlock reach (share of runs · median month)');
   lines.push('');
-  const unlockIds = Object.keys(report.summaries[0]?.unlockReach ?? {});
-  lines.push(`| Unlock | ${report.summaries.map((s) => s.botId).join(' | ')} |`);
-  lines.push(`|---|${report.summaries.map(() => '---').join('|')}|`);
-  for (const id of unlockIds) {
-    const cells = report.summaries.map((s) => {
-      const reach = s.unlockReach[id] ?? 0;
-      const month = s.unlockMedianMonth[id];
-      return reach === 0 ? '—' : `${pct(reach)} · m${month}`;
-    });
-    lines.push(`| ${id} | ${cells.join(' | ')} |`);
+  header(['Unlock', ...report.summaries.map((s) => s.botId)]);
+  for (const id of Object.keys(report.summaries[0]?.unlockReach ?? {})) {
+    row([
+      id,
+      ...report.summaries.map((s) => {
+        const reach = s.unlockReach[id] ?? 0;
+        return reach === 0 ? '—' : `${pct(reach)} · m${s.unlockMedianMonth[id]}`;
+      }),
+    ]);
   }
   if (report.violations.length > 0) {
     lines.push('');

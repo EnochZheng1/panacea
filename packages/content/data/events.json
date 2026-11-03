@@ -1,19 +1,69 @@
 [
   {
+    "id": "inquest",
+    "trigger": "system",
+    "choices": [
+      {
+        "id": "testify",
+        "effects": [
+          {
+            "type": "inquest",
+            "approach": "testify"
+          }
+        ]
+      },
+      {
+        "id": "stay_silent",
+        "effects": [
+          {
+            "type": "inquest",
+            "approach": "silent"
+          }
+        ],
+        "default": true
+      },
+      {
+        "id": "bribe_coroner",
+        "effects": [
+          {
+            "type": "inquest",
+            "approach": "bribe"
+          }
+        ],
+        "requires": {
+          "type": "unlocked",
+          "id": "coroner_fees"
+        }
+      }
+    ]
+  },
+  {
     "id": "grateful_letter",
-    "condition": { "type": "bottlesSold", "atLeast": 10 },
+    "condition": {
+      "type": "bottlesSold",
+      "atLeast": 10
+    },
     "chance": 0.5,
     "once": true,
     "choices": [
       {
         "id": "print_testimonial",
         "effects": [
-          { "type": "setFlag", "id": "testimonial_received" },
-          { "type": "reputation", "delta": 3 }
+          {
+            "type": "setFlag",
+            "id": "testimonial_received"
+          },
+          {
+            "type": "reputation",
+            "delta": 3
+          }
         ],
         "default": true
       },
-      { "id": "file_away", "effects": [] }
+      {
+        "id": "file_away",
+        "effects": []
+      }
     ]
   },
   {
@@ -21,8 +71,17 @@
     "condition": {
       "type": "all",
       "of": [
-        { "type": "date", "from": { "year": 1885, "month": 6 } },
-        { "type": "cash", "atLeastCents": 5000 }
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 6
+          }
+        },
+        {
+          "type": "cash",
+          "atLeastCents": 5000
+        }
       ]
     },
     "chance": 0.2,
@@ -31,44 +90,192 @@
       {
         "id": "buy_diploma",
         "effects": [
-          { "type": "cash", "deltaCents": -5000 },
-          { "type": "setFlag", "id": "bought_diploma" },
-          { "type": "notoriety", "delta": 5 }
+          {
+            "type": "cash",
+            "deltaCents": -5000
+          },
+          {
+            "type": "setFlag",
+            "id": "bought_diploma"
+          },
+          {
+            "type": "notoriety",
+            "delta": 5
+          }
         ]
       },
-      { "id": "decline", "effects": [], "default": true }
+      {
+        "id": "decline",
+        "effects": [],
+        "default": true
+      }
     ]
   },
   {
     "id": "sanitary_inspector",
-    "condition": { "type": "bottlesSold", "atLeast": 50 },
+    "condition": {
+      "type": "bottlesSold",
+      "atLeast": 50
+    },
     "chance": 0.15,
     "cooldownMonths": 12,
     "choices": [
       {
         "id": "pay_fee",
         "effects": [
-          { "type": "cash", "deltaCents": -300 },
-          { "type": "notoriety", "delta": 1 }
+          {
+            "type": "cash",
+            "deltaCents": -300
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          }
         ]
       },
-      { "id": "let_him_look", "effects": [{ "type": "reputation", "delta": -2 }], "default": true }
+      {
+        "id": "let_him_look",
+        "effects": [
+          {
+            "type": "reputation",
+            "delta": -2
+          }
+        ],
+        "default": true
+      }
     ]
   },
   {
     "id": "rival_shop_opens",
-    "condition": { "type": "date", "from": { "year": 1886, "month": 1 } },
+    "condition": {
+      "type": "date",
+      "from": {
+        "year": 1886,
+        "month": 1
+      }
+    },
     "chance": 0.1,
     "once": true,
     "choices": [
       {
         "id": "spread_rumour",
         "effects": [
-          { "type": "notoriety", "delta": 2 },
-          { "type": "reputation", "delta": 1 }
+          {
+            "type": "notoriety",
+            "delta": 2
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          }
         ]
       },
-      { "id": "ignore", "effects": [{ "type": "reputation", "delta": -3 }], "default": true }
+      {
+        "id": "ignore",
+        "effects": [
+          {
+            "type": "reputation",
+            "delta": -3
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "temperance_picket",
+    "condition": {
+      "type": "heat",
+      "atLeast": 30
+    },
+    "chance": 0.2,
+    "cooldownMonths": 6,
+    "choices": [
+      {
+        "id": "donate",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -500
+          },
+          {
+            "type": "heat",
+            "delta": -5
+          }
+        ]
+      },
+      {
+        "id": "ignore_them",
+        "effects": [
+          {
+            "type": "reputation",
+            "delta": -2
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "board_of_health",
+    "condition": {
+      "type": "heat",
+      "atLeast": 60
+    },
+    "chance": 0.25,
+    "cooldownMonths": 12,
+    "choices": [
+      {
+        "id": "pay_fine",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -3000
+          },
+          {
+            "type": "heat",
+            "delta": -10
+          }
+        ]
+      },
+      {
+        "id": "surrender_stock",
+        "effects": [
+          {
+            "type": "seizeStock"
+          },
+          {
+            "type": "heat",
+            "delta": -20
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "customer_wants_stronger",
+    "condition": {
+      "type": "regulars",
+      "atLeast": 10
+    },
+    "chance": 0.1,
+    "cooldownMonths": 8,
+    "choices": [
+      {
+        "id": "promise_stronger",
+        "effects": [
+          {
+            "type": "reputation",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "recommend_rest",
+        "effects": [],
+        "default": true
+      }
     ]
   }
 ]

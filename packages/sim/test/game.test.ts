@@ -10,6 +10,7 @@ import {
   observe,
   serializeGame,
   STATE_VERSION,
+  stockOf,
   sumDeltas,
 } from '../src/index.ts';
 import { act, content, deepFreeze, months, setUpTonic, start, TONIC } from './helpers.ts';
@@ -119,7 +120,7 @@ describe('month end', () => {
     const s = months(act(state, { type: 'BrewBatch', formulaId, bottles: 30 }), 1);
     const sold = s.ledger[0]!.sales.find((x) => x.formulaId === formulaId);
     expect(sold?.bottles).toBeGreaterThan(0);
-    expect(s.lab.stock[formulaId]).toBe(30 - sold!.bottles);
+    expect(stockOf(s, formulaId)).toBe(30 - sold!.bottles);
     expect(s.stats.bottlesSold).toBe(sold!.bottles);
   });
 

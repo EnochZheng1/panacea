@@ -1,0 +1,241 @@
+[
+  {
+    "id": "mother",
+    "weight": 2,
+    "vulnerability": 1,
+    "baseHealth": 75,
+    "naturalHazard": 0.0015,
+    "gender": "female",
+    "titles": ["Mrs."],
+    "ailments": [
+      {
+        "id": "teething_infant",
+        "weight": 3
+      },
+      {
+        "id": "female_complaints",
+        "weight": 2
+      },
+      {
+        "id": "nerves",
+        "weight": 1
+      }
+    ],
+    "profile": {
+      "baseWillingnessCents": 70,
+      "buyChance": 0.65,
+      "preference": {
+        "kick": 0.2,
+        "calm": 0.8
+      },
+      "bitternessTolerance": 1,
+      "bitternessAversion": 1.5
+    }
+  },
+  {
+    "id": "labourer",
+    "weight": 3,
+    "vulnerability": 1,
+    "baseHealth": 80,
+    "naturalHazard": 0.002,
+    "gender": "male",
+    "titles": ["Mr."],
+    "ailments": [
+      {
+        "id": "rheumatism",
+        "weight": 3
+      },
+      {
+        "id": "catarrh",
+        "weight": 2
+      },
+      {
+        "id": "cough",
+        "weight": 2
+      },
+      {
+        "id": "dyspepsia",
+        "weight": 1
+      }
+    ],
+    "profile": {
+      "baseWillingnessCents": 60,
+      "buyChance": 0.55,
+      "preference": {
+        "kick": 0.6,
+        "calm": 0.4
+      },
+      "bitternessTolerance": 3,
+      "bitternessAversion": 0.8
+    }
+  },
+  {
+    "id": "seamstress",
+    "weight": 2,
+    "vulnerability": 1,
+    "baseHealth": 70,
+    "naturalHazard": 0.0015,
+    "gender": "female",
+    "titles": ["Miss", "Mrs."],
+    "ailments": [
+      {
+        "id": "nerves",
+        "weight": 2
+      },
+      {
+        "id": "consumption",
+        "weight": 1
+      },
+      {
+        "id": "neuralgia",
+        "weight": 1
+      },
+      {
+        "id": "insomnia",
+        "weight": 1
+      }
+    ],
+    "profile": {
+      "baseWillingnessCents": 70,
+      "buyChance": 0.6,
+      "preference": {
+        "kick": 0.3,
+        "calm": 0.7
+      },
+      "bitternessTolerance": 1,
+      "bitternessAversion": 1.2
+    }
+  },
+  {
+    "id": "clerk",
+    "weight": 2,
+    "vulnerability": 1,
+    "baseHealth": 75,
+    "naturalHazard": 0.001,
+    "gender": "male",
+    "titles": ["Mr."],
+    "ailments": [
+      {
+        "id": "dyspepsia",
+        "weight": 3
+      },
+      {
+        "id": "insomnia",
+        "weight": 2
+      },
+      {
+        "id": "melancholy",
+        "weight": 1
+      }
+    ],
+    "profile": {
+      "baseWillingnessCents": 90,
+      "buyChance": 0.55,
+      "preference": {
+        "kick": 0.5,
+        "calm": 0.5
+      },
+      "bitternessTolerance": 2,
+      "bitternessAversion": 1
+    }
+  },
+  {
+    "id": "elderly",
+    "weight": 1.5,
+    "vulnerability": 1.6,
+    "baseHealth": 60,
+    "naturalHazard": 0.006,
+    "gender": "any",
+    "titles": ["Mr.", "Mrs.", "Widow"],
+    "ailments": [
+      {
+        "id": "rheumatism",
+        "weight": 3
+      },
+      {
+        "id": "neuralgia",
+        "weight": 2
+      },
+      {
+        "id": "cough",
+        "weight": 1
+      }
+    ],
+    "profile": {
+      "baseWillingnessCents": 65,
+      "buyChance": 0.7,
+      "preference": {
+        "kick": 0.2,
+        "calm": 0.8
+      },
+      "bitternessTolerance": 2,
+      "bitternessAversion": 1
+    }
+  },
+  {
+    "id": "dockworker",
+    "weight": 1.5,
+    "vulnerability": 0.9,
+    "baseHealth": 82,
+    "naturalHazard": 0.003,
+    "gender": "male",
+    "titles": ["Mr."],
+    "ailments": [
+      {
+        "id": "cough",
+        "weight": 2
+      },
+      {
+        "id": "rheumatism",
+        "weight": 2
+      },
+      {
+        "id": "catarrh",
+        "weight": 1
+      }
+    ],
+    "profile": {
+      "baseWillingnessCents": 65,
+      "buyChance": 0.55,
+      "preference": {
+        "kick": 0.7,
+        "calm": 0.3
+      },
+      "bitternessTolerance": 4,
+      "bitternessAversion": 0.5
+    }
+  },
+  {
+    "id": "well_to_do",
+    "weight": 0.5,
+    "vulnerability": 1,
+    "baseHealth": 85,
+    "naturalHazard": 0.001,
+    "gender": "any",
+    "titles": ["Mr.", "Mrs.", "Miss"],
+    "ailments": [
+      {
+        "id": "melancholy",
+        "weight": 2
+      },
+      {
+        "id": "nerves",
+        "weight": 2
+      },
+      {
+        "id": "dyspepsia",
+        "weight": 1
+      }
+    ],
+    "profile": {
+      "baseWillingnessCents": 180,
+      "buyChance": 0.5,
+      "preference": {
+        "kick": 0.4,
+        "calm": 0.6
+      },
+      "bitternessTolerance": 1,
+      "bitternessAversion": 1.5
+    }
+  }
+]

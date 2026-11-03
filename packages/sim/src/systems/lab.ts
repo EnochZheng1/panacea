@@ -1,5 +1,6 @@
 import type { ContentPack } from '@panacea/content';
 import {
+  MAX_AD_SPEND_CENTS,
   MAX_FORMULA_NAME_LENGTH,
   MAX_PRICE_CENTS,
   type Action,
@@ -7,8 +8,9 @@ import {
 } from '../core/actions.ts';
 import { CAUSES } from '../core/causes.ts';
 import { adjust } from '../core/ledger.ts';
-import type { GameState, Phase } from '../core/index.ts';
-import { isIngredientAvailable, validateFormula } from './formula.ts';
+import { gaussian } from '../core/rng.ts';
+import type { GameState, Lot, Phase } from '../core/index.ts';
+import { isIngredientAvailable, validateClaims, validateFormula } from './formula.ts';
 
 /** Inventory quantities are rounded to avoid floating-point dust accumulating over a run. */
 export const roundQty = (x: number): number => Math.round(x * 1e6) / 1e6;
@@ -17,6 +19,31 @@ const fail = (error: string): ActionResult => ({ ok: false, error });
 
 const isValidPrice = (p: number) => Number.isInteger(p) && p >= 0 && p <= MAX_PRICE_CENTS;
 
+/** Bottles of a formula on the shelf. */
+export const stockOf = (state: GameState, formulaId: string): number =>
+  state.lab.stock.reduce((n, lot) => (lot.formulaId === formulaId ? n + lot.bottles : n), 0);
+
+export const totalStock = (state: GameState): number =>
+  state.lab.stock.reduce((n, lot) => n + lot.bottles, 0);
+
+/** Takes one bottle of a formula from its oldest lot. */
+export function takeBottle(state: GameState, formulaId: string): Lot | undefined {
+  const index = state.lab.stock.findIndex((l) => l.formulaId === formulaId && l.bottles > 0);
+  const lot = state.lab.stock[index];
+  if (!lot) return undefined;
+  lot.bottles -= 1;
+  const taken = { ...lot };
+  if (lot.bottles === 0) state.lab.stock.splice(index, 1);
+  return taken;
+}
+
+export function ingredientUnitCost(state: GameState, ingredientId: string, content: ContentPack) {
+  const ing = content.byId.ingredients.get(ingredientId);
+  if (!ing) return Number.POSITIVE_INFINITY;
+  const discount = Math.min(90, state.player.capabilities['ingredient_discount_pct'] ?? 0);
+  return ing.costPerUnitCents * (1 - discount / 100);
+}
+
 export function buyIngredient(
   state: GameState,
   action: Extract<Action, { type: 'BuyIngredient' }>,
@@ -24,11 +51,13 @@ export function buyIngredient(
 ): ActionResult {
   const ing = content.byId.ingredients.get(action.ingredientId);
   if (!ing) return fail(`unknown ingredient "${action.ingredientId}"`);
-  if (!isIngredientAvailable(ing.id, state, content))
+  if (!isIngredientAvailable(ing.id, state, content)) {
     return fail(`"${ing.id}" is not yet available`);
-  if (!Number.isInteger(action.units) || action.units < 1)
+  }
+  if (!Number.isInteger(action.units) || action.units < 1) {
     return fail('units must be a positive integer');
-  const cost = Math.round(action.units * ing.costPerUnitCents);
+  }
+  const cost = Math.round(action.units * ingredientUnitCost(state, ing.id, content));
   if (cost > state.player.cashCents) return fail('not enough cash');
   adjust(state, 'cash', -cost, CAUSES.ingredients, ing.id);
   state.lab.inventory[ing.id] = roundQty((state.lab.inventory[ing.id] ?? 0) + action.units);
@@ -48,6 +77,9 @@ export function createFormula(
   if (!isValidPrice(action.priceCents)) return fail('invalid price');
   const error = validateFormula(action.components, action.processId, state, content);
   if (error) return fail(error);
+  const claims = action.claims ?? [];
+  const claimError = validateClaims(claims, state, content);
+  if (claimError) return fail(claimError);
   const id = `formula_${state.meta.nextId++}`;
   state.lab.formulas.push({
     id,
@@ -55,9 +87,9 @@ export function createFormula(
     components: action.components.map((c) => ({ ingredientId: c.ingredientId, amount: c.amount })),
     processId: action.processId,
     priceCents: action.priceCents,
+    claims: [...claims],
     createdTurn: state.meta.turn,
   });
-  state.lab.stock[id] = 0;
   return { ok: true, createdId: id };
 }
 
@@ -69,6 +101,49 @@ export function setPrice(
   if (!formula) return fail(`unknown formula "${action.formulaId}"`);
   if (!isValidPrice(action.priceCents)) return fail('invalid price');
   formula.priceCents = action.priceCents;
+  return { ok: true };
+}
+
+export function reformulate(
+  state: GameState,
+  action: Extract<Action, { type: 'Reformulate' }>,
+  content: ContentPack,
+): ActionResult {
+  const formula = state.lab.formulas.find((f) => f.id === action.formulaId);
+  if (!formula) return fail(`unknown formula "${action.formulaId}"`);
+  const error = validateFormula(action.components, action.processId, state, content);
+  if (error) return fail(error);
+  formula.components = action.components.map((c) => ({
+    ingredientId: c.ingredientId,
+    amount: c.amount,
+  }));
+  formula.processId = action.processId;
+  return { ok: true };
+}
+
+export function setClaims(
+  state: GameState,
+  action: Extract<Action, { type: 'SetClaims' }>,
+  content: ContentPack,
+): ActionResult {
+  const formula = state.lab.formulas.find((f) => f.id === action.formulaId);
+  if (!formula) return fail(`unknown formula "${action.formulaId}"`);
+  const error = validateClaims(action.claims, state, content);
+  if (error) return fail(error);
+  formula.claims = [...action.claims];
+  return { ok: true };
+}
+
+export function setAdSpend(
+  state: GameState,
+  action: Extract<Action, { type: 'SetAdSpend' }>,
+): ActionResult {
+  if (!('newspaper_ads' in state.unlocks.unlocked))
+    return fail('newspaper advertising is not unlocked');
+  if (!Number.isInteger(action.cents) || action.cents < 0 || action.cents > MAX_AD_SPEND_CENTS) {
+    return fail('invalid advertising budget');
+  }
+  state.marketing.adSpendCents = action.cents;
   return { ok: true };
 }
 
@@ -131,6 +206,8 @@ export function brewBatch(
   state.lab.batches.push({
     id,
     formulaId: formula.id,
+    components: structuredClone(formula.components),
+    processId: formula.processId,
     bottles: action.bottles,
     startedTurn: state.meta.turn,
     readyTurn: state.meta.turn,
@@ -139,17 +216,46 @@ export function brewBatch(
   return { ok: true, createdId: id };
 }
 
-/** Turn phase: finished batches go onto the shelf. */
+/**
+ * Turn phase: finished batches go onto the shelf as lots. Every batch's true strength varies a
+ * little; occasionally one is badly mis-measured. With quality control, bad batches are caught
+ * and poured away.
+ */
 export const productionPhase: Phase = {
   id: 'production',
-  run({ state }) {
+  run({ state, content, rng }) {
+    const { potencySpread, badBatchChance, badBatchPotency } = content.config.batches;
+    const qc = (state.player.capabilities['quality_control'] ?? 0) > 0;
     const remaining = [];
     for (const b of state.lab.batches) {
-      if (b.readyTurn <= state.meta.turn) {
-        state.lab.stock[b.formulaId] = (state.lab.stock[b.formulaId] ?? 0) + b.bottles;
-      } else {
+      if (b.readyTurn > state.meta.turn) {
         remaining.push(b);
+        continue;
       }
+      const spread = qc ? potencySpread / 2 : potencySpread;
+      let potency = Math.min(1.5, Math.max(0.5, 1 + spread * gaussian(rng)));
+      let badBatch = false;
+      if (rng.chance(badBatchChance)) {
+        badBatch = true;
+        potency = badBatchPotency[0] + rng.float() * (badBatchPotency[1] - badBatchPotency[0]);
+      }
+      if (badBatch && qc) {
+        state.month.news.push({
+          kind: 'bad_batch_caught',
+          formulaId: b.formulaId,
+          bottles: b.bottles,
+        });
+        continue;
+      }
+      state.lab.stock.push({
+        id: b.id,
+        formulaId: b.formulaId,
+        components: b.components,
+        processId: b.processId,
+        bottles: b.bottles,
+        potency,
+        badBatch,
+      });
     }
     state.lab.batches = remaining;
   },

@@ -4,6 +4,10 @@ import { STATE_VERSION, type GameState } from './core/state.ts';
  * Save files: `{ saveVersion, state }` as JSON. Every change to the state shape bumps
  * STATE_VERSION and adds a migration from the previous version, so saves from any earlier
  * build keep loading. Tests round-trip a save fixture from every past version.
+ *
+ * Pre-release policy: until the first external build ships, the state shape may change freely
+ * without a version bump (no saves exist in the wild). From the first external build on, every
+ * change bumps STATE_VERSION and adds a migration plus a fixture.
  */
 
 type Migration = (state: Record<string, unknown>) => Record<string, unknown>;

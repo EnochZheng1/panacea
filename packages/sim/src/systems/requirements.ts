@@ -29,6 +29,14 @@ export function evaluateRequirement(
       return ratio(state.stats.bottlesSold, req.atLeast);
     case 'batchesBrewed':
       return ratio(state.stats.batchesBrewed, req.atLeast);
+    case 'heat':
+      return ratio(state.scrutiny.heat, req.atLeast);
+    case 'deaths':
+      return ratio(state.deaths.length, req.atLeast);
+    case 'inquests':
+      return ratio(state.scrutiny.inquestsHeld, req.atLeast);
+    case 'regulars':
+      return ratio(state.customers.length, req.atLeast);
     case 'date': {
       const start = dateIndex(content.config.startDate);
       const now = dateIndex(state.meta.date);

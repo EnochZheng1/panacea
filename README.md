@@ -2,7 +2,7 @@
 
 _A Victorian patent-medicine tycoon._ New York, 1885: no FDA, no labeling law, and no limit on what you may bottle and call a cure. Build a medicine empire from one apothecary still before the Pure Food and Drug Act arrives in 1906.
 
-Working title. Pre-production.
+Working title. Pre-production: milestone M1 (body model, scrutiny, bots, debug client) is complete. Latest balance findings: [docs/reports/m1-findings.md](docs/reports/m1-findings.md).
 
 ## Documents
 
@@ -30,6 +30,8 @@ pnpm check
 | `pnpm content:lint`                                          | Validate game data and cross-references                         |
 | `pnpm sim:batch --runs 100`                                  | Run every bot over many seeded games and print a balance report |
 | `pnpm sim:batch --bots shopkeeper --runs 20 --out report.md` | Same, for chosen bots, saved to a file                          |
+| `pnpm sim:optimize --candidates 60 --seeds 4`                | Random search for the most profitable strategy (exploit hunter) |
+| `pnpm client:dev`                                            | Debug client in the browser: play the sim by hand               |
 
 ### Layout
 
@@ -37,7 +39,8 @@ pnpm check
 | ------------------- | ------------------------------------------------------------------------------------------ |
 | `packages/content`  | Game data (JSON), Zod schemas, string tables, content linter                               |
 | `packages/sim`      | Pure, deterministic simulation: state, turn pipeline, actions, machine API for bots/agents |
-| `packages/playtest` | Strategy bots, batch harness, balance reports                                              |
+| `packages/playtest` | Strategy bots, batch harness, optimizer, balance reports                                   |
+| `packages/client`   | Debug client (Vite + React)                                                                |
 
 ## Stack
 

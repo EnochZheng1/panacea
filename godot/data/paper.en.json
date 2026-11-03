@@ -1,0 +1,313 @@
+{
+  "_note": "Copy for The Bowery Gazette. Each list is a set of variants; the writer picks one deterministically per edition and item. Placeholders: {name} full name with title, {surname}, {given}, {occupation}, {street}, {age}, {weekday}, {product}, {bottles}, {price}, {verdict}, {coroner}, {months}, {pronoun} he/she, {object} him/her, {possessive} his/her, {ailment}, {cash}. Punch up: the joke is on the seller and the trade, never on the dead.",
+  "masthead": {
+    "title": "THE BOWERY GAZETTE",
+    "over": "ILLUSTRATED · ESTABLISHED 1871",
+    "motto": "The Leading Sensational, Sporting & Medical Journal of America",
+    "price": "FIVE CENTS.",
+    "priceNote": "Sold by All Newsdealers, Barbers & Druggists.",
+    "yearly": "$4.00 A YEAR."
+  },
+  "weather": {
+    "1": [
+      "Snow, with general coughing.",
+      "Bitter cold. Consumptives advised to lay in a supply."
+    ],
+    "2": [
+      "Sleet. Rheumatics complain.",
+      "Fog. Good for business."
+    ],
+    "3": [
+      "Raw winds. Coughs plentiful.",
+      "Thaw, then otherwise."
+    ],
+    "4": [
+      "Showers. Spirits low.",
+      "Mild. The well recover, regrettably."
+    ],
+    "5": [
+      "Fair. Melancholy general among the unemployed.",
+      "Warm. Flies."
+    ],
+    "6": [
+      "Close and damp. Dyspepsia prevalent.",
+      "Hot. Nerves frayed in the tenements."
+    ],
+    "7": [
+      "Heat. Cholera feared.",
+      "Stifling. Infants fretful."
+    ],
+    "8": [
+      "Heat continues. Infants very fretful.",
+      "Thunder. Sleeplessness general."
+    ],
+    "9": [
+      "Cooler. Catarrh returns with the children to school.",
+      "Fair to middling."
+    ],
+    "10": [
+      "Fog, with coughing.",
+      "Damp. Neuralgia reported in Hester Street."
+    ],
+    "11": [
+      "Raw. Coughs ripening nicely.",
+      "Cold rain. Pine coffins advance."
+    ],
+    "12": [
+      "Snow. Goodwill toward men, and toward the trade.",
+      "Bitter. A good month for tonics."
+    ]
+  },
+  "streets": [
+    "Mulberry street",
+    "Hester street",
+    "Mott street",
+    "Elizabeth street",
+    "Orchard street",
+    "Cherry street",
+    "the Bowery",
+    "Mulberry Bend",
+    "Baxter street",
+    "Ludlow street"
+  ],
+  "coroners": [
+    "Fogarty",
+    "Messemer",
+    "Nugent",
+    "Levy"
+  ],
+  "weekdays": [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday"
+  ],
+  "occupations": {
+    "mother": {
+      "female": "wife of a working man"
+    },
+    "labourer": {
+      "male": "labourer",
+      "female": "washerwoman"
+    },
+    "seamstress": {
+      "female": "seamstress",
+      "male": "tailor"
+    },
+    "clerk": {
+      "male": "clerk",
+      "female": "typewriter girl"
+    },
+    "elderly": {
+      "male": "retired",
+      "female": "widow"
+    },
+    "dockworker": {
+      "male": "longshoreman",
+      "female": "longshoreman's widow"
+    },
+    "well_to_do": {
+      "male": "gentleman",
+      "female": "lady of independent means"
+    }
+  },
+  "sections": {
+    "deaths": "DEATHS.",
+    "coroner": "CORONER'S COURT.",
+    "personal": "PERSONAL.",
+    "notices": "NOTICES.",
+    "trade": "THE TRADE.",
+    "markets": "THE MARKETS.",
+    "era": "FROM ABROAD & AT HOME.",
+    "classified": "WANTS & NOTICES."
+  },
+  "deathSelf": [
+    "{surname}.—On {weekday} last, {name}, {occupation}, of {street}, aged {age} years. Funeral private.",
+    "{surname}.—Suddenly, at {possessive} residence in {street}, {name}, {occupation}, aged {age} years. {pronounCap} had been in excellent spirits.",
+    "{surname}.—Peacefully, {name}, {occupation}, aged {age} years. {pronounCap} slept soundly to the last.",
+    "{surname}.—{name}, {occupation}, of {street}, aged {age} years, after a short and remarkably cheerful illness.",
+    "{surname}.—On {weekday}, {name}, {occupation}, aged {age} years. Friends are respectfully invited. Boston papers please copy."
+  ],
+  "deathInfant": [
+    "{surname}.—On {weekday} last, the infant child of {name}, of {street}, aged {months} months. Funeral private.",
+    "{surname}.—Infant child of {name}, aged {months} months. The family ask for privacy."
+  ],
+  "deathAnonymous": [
+    "UNKNOWN.—A {occupation}, name unknown, was found in {street} on {weekday}. A brown bottle was found near the body. The Coroner has been informed.",
+    "UNKNOWN.—The body of a {occupation} was taken from a lodging house in {street} on {weekday}. Nothing was found on it but a spoon."
+  ],
+  "inquestCleared": [
+    "An inquest upon the body of {name} was held before Coroner {coroner}. The jury returned a verdict of \"{verdict},\" and went home to supper.",
+    "Coroner {coroner} sat upon the death of {name}. A bottle found at the bedside was examined and pronounced \"perfectly harmless, in moderation.\" Verdict: \"{verdict}.\""
+  ],
+  "inquestBribed": [
+    "An inquest upon the body of {name} was opened before Coroner {coroner}. A brown bottle entered in evidence could not afterward be found. The Coroner returned a verdict of \"{verdict},\" observing that he had his reasons, and that they were none of the jury's business.",
+    "Coroner {coroner}, lately seen in a new overcoat, found that {name} \"{verdict}.\" The jury was not consulted."
+  ],
+  "inquestImplicated": [
+    "The jury sitting upon the death of {name} returned a verdict that the deceased \"{verdict},\" and named the proprietor of {product} in its findings. The Board of Health has been informed.",
+    "Coroner {coroner} found that {name} \"{verdict}.\" The bottle at the bedside bore the label of {product}. The papers have been sent to the District Attorney."
+  ],
+  "joined": [
+    "A NEW PATRON.—{name}, {occupation}, troubled by {ailment}, has taken up {product}, and reports great hopes of it.",
+    "{name}, of {street}, has begun upon {product} for {ailment}, on the recommendation of a neighbour, since departed.",
+    "Among the new customers at the shop this month: {name}, {occupation}, who complains of {ailment}."
+  ],
+  "leftRecovered": [
+    "RECOVERED.—{name} reports that {pronoun} is quite well again and will not be needing {product}. The proprietor congratulates {object}, without enthusiasm.",
+    "{name}, {occupation}, has got better on {possessive} own. The trade regards this as a breach of faith."
+  ],
+  "leftDissatisfied": [
+    "WILL the proprietor of {product} kindly refund the dollar of {name}, who says it did nothing whatever.",
+    "{name}, {occupation}, has taken {possessive} custom to a rival establishment, complaining loudly in {street}."
+  ],
+  "leftDrifted": [
+    "{name} has not called at the shop this month.",
+    "Nothing has been heard of {name}, {occupation}, of {street}."
+  ],
+  "leftBereaved": [
+    "{name} will not be calling again. {pronounCap} is in mourning.",
+    "{name}, of {street}, is in mourning, and has no further need of the remedy."
+  ],
+  "badBatch": [
+    "AT THE LABORATORY.—{bottles} bottles of {product} came out wrong this month and were poured away. The gutter in {street} is said to be unusually cheerful."
+  ],
+  "stockSeized": [
+    "SEIZED.—Officers of the Board of Health carried away {bottles} bottles of a proprietary medicine from premises in {street}."
+  ],
+  "adsLapsed": [
+    "TO ADVERTISERS.—The account of the proprietor of {product} being in arrears, his notice does not appear in this edition."
+  ],
+  "shutdown": [
+    "NOTICE.—The Board of Health gives warning that the premises of the proprietor of {product} will be closed in {months} month(s), unless the public complaint subsides."
+  ],
+  "unlock": [
+    "IN THE TRADE.—{title}. {description}"
+  ],
+  "firstEdition": {
+    "headline": "A NEW CONCERN",
+    "decks": [
+      "On Mulberry Street.",
+      "A PROPRIETOR OF REMEDIES OPENS HIS DOORS TO THE AFFLICTED OF THE WARD.",
+      "He Promises Much."
+    ],
+    "body": "A new apothecary has opened on Mulberry street, with one copper still, a shelf of drugs and a dozen regular callers. Its proprietor, who styles himself Dr. ——, informs our reporter that he intends to cure the neighbourhood of everything, and that the details are a trade secret. The ward wishes him every success, and has its coughs ready."
+  },
+  "readingNotice": {
+    "decks": [
+      "A Remarkable Restoration.",
+      "{name}, OF {street_upper}, RESTORED BY {product_upper}.",
+      "The Neighbours Astonished."
+    ],
+    "bodies": [
+      "{name}, {occupation}, had for years endured {ailment}. \"I tried everything,\" {pronoun} informs our reporter, \"until a friend pressed upon me a bottle of {product}. After the first spoonful I felt nothing whatever. After the second I felt magnificent.\" {pronounCap} now takes it daily. Sold at the shop on Mulberry street, {price} the bottle.—Adv.",
+      "\"I cannot do without it,\" says {name} of {product}, and {possessive} neighbours confirm that {pronoun} has not tried. For {ailment} and all kindred complaints. {price} the bottle.—Adv."
+    ],
+    "fallbackBody": "{product} is purely vegetable, contains nothing injurious, and is recommended for infants, invalids and the aged. Sold at the shop on Mulberry street, {price} the bottle.—Adv."
+  },
+  "tradeSales": [
+    "{product} moved {bottles} bottles at the shop this month, at {price} the bottle.",
+    "Sales of {product}: {bottles} bottles, at {price}."
+  ],
+  "tradeNoSales": [
+    "The shop on Mulberry street sold nothing of its own manufacture this month. Its proprietor was seen staring at the still."
+  ],
+  "tradeBooks": [
+    "The proprietor's books close the month at {cash}."
+  ],
+  "markets": {
+    "lead": "Patent medicines, active.",
+    "coffinsBase": 400,
+    "coffinsPerDeath": 15,
+    "lilies": [
+      "Lilies, plentiful.",
+      "Lilies, firm.",
+      "Lilies, scarce."
+    ]
+  },
+  "rivals": [
+    {
+      "head": "DR. GRIMSBY'S GALVANIC BELT",
+      "mid": "RESTORES LOST VIGOR",
+      "body": "Worn next the skin. A Current of Health through every Nerve! Sent on thirty days' trial.",
+      "fine": "Wearers are requested not to stand in puddles."
+    },
+    {
+      "head": "MRS. PRUDENCE WHITTLE'S VEGETABLE COMPOUND",
+      "mid": "LADIES!",
+      "body": "Write to Mrs. Whittle in strictest confidence. She answers every letter personally.",
+      "fine": "Mrs. Whittle's correspondence continues brisk, notwithstanding her funeral in March.",
+      "cut": "stock_lady"
+    },
+    {
+      "head": "MADAME DE LA ROSE'S ARSENICAL COMPLEXION WAFERS",
+      "mid": "BEAUTY!",
+      "body": "A Skin of Alabaster! Perfectly Safe! Ladies of Fashion take three daily.",
+      "fine": "Her complexion was the envy of all who attended the viewing.",
+      "cut": "wc_lady"
+    },
+    {
+      "head": "PROF. AUGUSTUS BLOOM'S HAIR RESTORER",
+      "mid": "BALDNESS CONQUERED",
+      "body": "Rubbed on nightly, it raises hair on billiard balls. Testimonials from the Bald of Three Continents.",
+      "fine": "Do not apply to the face."
+    }
+  ],
+  "undertaker": {
+    "head": "FOGG & SONS,",
+    "mid": "UNDERTAKERS.",
+    "body": "Coffins in All Sizes, Ready Made. We Thank Our Friends in the Medicine Trade for Their Continued Patronage."
+  },
+  "quotes": [
+    "I have never felt better.",
+    "I sleep like the dead.",
+    "I cannot do without it.",
+    "It took away all feeling.",
+    "My cough has quite gone quiet."
+  ],
+  "classifieds": [
+    "WANTED.—TESTIMONIALS from persons restored to health. Liberal terms. Must be able to sign name, or make mark. Box 13, this office.",
+    "WANTED.—A smart BOY to paste labels. Must not read. Apply at rear entrance after dark.",
+    "LOST.—A tall gentleman's tape measure, near Mulberry street. Finder need not return it; he has another.",
+    "TO LET.—Furnished room, lately vacated, Mott street. The previous tenant will not be returning.",
+    "WANTED.—A respectable widow to answer letters in another lady's name. Discretion essential.",
+    "FOR SALE.—A quantity of empty bottles, slightly used. Apply to Fogg & Sons.",
+    "WANTED.—A PHYSICIAN willing to endorse anything. Diploma not required, but helpful."
+  ],
+  "regularsIntro": "AMONG THE CALLERS.—{name}, {occupation}, troubled by {ailment}, has been seen at the new shop.",
+  "endings": {
+    "bankrupt": {
+      "headline": "A PROPRIETOR FAILS",
+      "decks": [
+        "Creditors at the Door.",
+        "THE SHOP ON MULBERRY STREET IS SOLD UP; THE STILL GOES FOR SCRAP.",
+        "He Is Said to Be Considering the Law."
+      ],
+      "body": "The proprietor of {product} has failed, owing money to the wholesale druggist, the landlord and the Gazette. His stock was sold at auction for less than the price of the bottles. Asked for a statement, he said that the public had not been ready for him. The public declined to comment.",
+      "cut": "wc_proprietor"
+    },
+    "shut_down": {
+      "headline": "CLOSED BY ORDER",
+      "decks": [
+        "The Board of Health Acts.",
+        "INSPECTORS SEAL THE PREMISES OF THE PROPRIETOR OF {product_upper}.",
+        "A Crowd Gathers; Some Are Disappointed."
+      ],
+      "body": "Acting upon complaints from the ward, the coroner's findings and the evidence of its own chemist, the Board of Health has closed the shop on Mulberry street and carried away its stock. The proprietor was not present. A tall gentleman in a hat was seen leaving by the rear entrance with a ledger under his arm.",
+      "cut": "wc_death"
+    },
+    "timeline_end": {
+      "headline": "THE LAW ARRIVES",
+      "decks": [
+        "The Pure Food and Drug Act.",
+        "FROM THE FIRST OF JANUARY, EVERY BOTTLE MUST SAY WHAT IS IN IT.",
+        "The Trade Is Thoughtful."
+      ],
+      "body": "The new federal law takes effect this week. Proprietors of remedies must now declare upon the label any alcohol, opium, morphine, cocaine, chloroform or cannabis their preparations contain. The proprietor of {product} told our reporter that he welcomed the measure, and has ordered a great many new labels.",
+      "cut": "wc_bottle_panacea"
+    }
+  }
+}

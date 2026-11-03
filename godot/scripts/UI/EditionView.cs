@@ -204,7 +204,11 @@ public partial class EditionView : ScrollContainer
 		var mid = text.Length / 2;
 		var best = -1;
 		for (var i = text.IndexOf(". ", StringComparison.Ordinal); i >= 0; i = text.IndexOf(". ", i + 1, StringComparison.Ordinal))
+		{
+			var word = text[..i].Split(' ').Last();
+			if (word is "Dr" or "Mr" or "Mrs" or "St" or "Prof" or "Rev") continue; // not a sentence end
 			if (best < 0 || Math.Abs(i - mid) < Math.Abs(best - mid)) best = i;
+		}
 		if (best < 0) return (text, "");
 		return (text[..(best + 1)], text[(best + 2)..]);
 	}

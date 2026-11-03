@@ -1,0 +1,115 @@
+{
+  "Lantern_01": {
+    "kind": "model",
+    "name": "Lantern 01",
+    "authors": [
+      "Rajil Jose Macatangay"
+    ],
+    "source": "https://polyhaven.com/a/Lantern_01",
+    "license": "CC0 1.0",
+    "resolution": "1k"
+  },
+  "antique_ceramic_vase_01": {
+    "kind": "model",
+    "name": "Antique Ceramic Vase 01",
+    "authors": [
+      "James Ray Cock"
+    ],
+    "source": "https://polyhaven.com/a/antique_ceramic_vase_01",
+    "license": "CC0 1.0",
+    "resolution": "1k"
+  },
+  "brass_pot_01": {
+    "kind": "model",
+    "name": "Brass Pot 01",
+    "authors": [
+      "Rico Cilliers"
+    ],
+    "source": "https://polyhaven.com/a/brass_pot_01",
+    "license": "CC0 1.0",
+    "resolution": "1k"
+  },
+  "dark_paneled_wood": {
+    "kind": "texture",
+    "name": "Dark Paneled Wood",
+    "authors": [
+      "Dimitrios Savva"
+    ],
+    "source": "https://polyhaven.com/a/dark_paneled_wood",
+    "license": "CC0 1.0",
+    "resolution": "1k"
+  },
+  "dark_wood": {
+    "kind": "texture",
+    "name": "Dark Wood",
+    "authors": [
+      "Dario Barresi",
+      "Dimitrios Savva",
+      "Rico Cilliers"
+    ],
+    "source": "https://polyhaven.com/a/dark_wood",
+    "license": "CC0 1.0",
+    "resolution": "1k"
+  },
+  "dark_wooden_planks": {
+    "kind": "texture",
+    "name": "Dark Wooden Planks",
+    "authors": [
+      "Amal Kumar"
+    ],
+    "source": "https://polyhaven.com/a/dark_wooden_planks",
+    "license": "CC0 1.0",
+    "resolution": "1k"
+  },
+  "decrepit_wallpaper": {
+    "kind": "texture",
+    "name": "Decrepit Wallpaper",
+    "authors": [
+      "Rob Tuytel"
+    ],
+    "source": "https://polyhaven.com/a/decrepit_wallpaper",
+    "license": "CC0 1.0",
+    "resolution": "1k"
+  },
+  "magnifying_glass_01": {
+    "kind": "model",
+    "name": "Magnifying Glass 01",
+    "authors": [
+      "Nazar Borodavka"
+    ],
+    "source": "https://polyhaven.com/a/magnifying_glass_01",
+    "license": "CC0 1.0",
+    "resolution": "1k"
+  },
+  "mantel_clock_01": {
+    "kind": "model",
+    "name": "Mantel Clock 01",
+    "authors": [
+      "Rico Cilliers",
+      "Yann Kervran"
+    ],
+    "source": "https://polyhaven.com/a/mantel_clock_01",
+    "license": "CC0 1.0",
+    "resolution": "1k"
+  },
+  "vintage_cabinet_01": {
+    "kind": "model",
+    "name": "Vintage Cabinet 01",
+    "authors": [
+      "Rico Cilliers"
+    ],
+    "source": "https://polyhaven.com/a/vintage_cabinet_01",
+    "license": "CC0 1.0",
+    "resolution": "1k"
+  },
+  "vintage_oil_lamp": {
+    "kind": "model",
+    "name": "Vintage Oil Lamp",
+    "authors": [
+      "Monsta3D"
+    ],
+    "source": "https://polyhaven.com/a/vintage_oil_lamp",
+    "license": "CC0 1.0",
+    "resolution": "1k"
+  }
+}

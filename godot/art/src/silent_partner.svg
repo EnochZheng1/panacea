@@ -1,0 +1,158 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 1000" width="600" height="1000">
+  <!--
+    Panacea character asset: "The Silent Partner" (Death, the proprietor's business partner).
+    Art direction "Grim ink": heavy black ink masses, dry-brush lit edges in bone and aged paper,
+    one accent colour (Scheele's green, the arsenic pigment) reserved for the product and its light.
+    Groups: #backdrop and #caption are presentation only; the export hides them for a transparent
+    sprite. Other group ids name puppet parts for rigging (hat, skull, jaw, coat, arm-r, hand-r,
+    bottle, cane, legs).
+  -->
+  <defs>
+    <style>
+      @font-face { font-family: Fell; src: url(../../assets/fonts/IMFeENrm28P.ttf); }
+      @font-face { font-family: FellIt; src: url(../../assets/fonts/IMFeENit28P.ttf); }
+      .k { fill: #120e0c; }
+      .bone { fill: #ddd0ae; }
+      .mid { fill: #8f816a; }
+      .green { fill: #3fe08f; }
+      .line { fill: none; stroke: #120e0c; stroke-width: 2.2; stroke-linecap: round; }
+    </style>
+    <!-- ink masses: brush edges, never vector-clean -->
+    <filter id="ink" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="3" seed="4" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="5" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <!-- lit areas: ragged edge plus streaky dry-brush gaps where the black shows through -->
+    <filter id="dry" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="2" seed="8" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="6" xChannelSelector="R" yChannelSelector="G" result="d"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.22 0.018" numOctaves="2" seed="3" result="s"/>
+      <feColorMatrix in="s" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  6 0 0 0 -1.55" result="mask"/>
+      <feComposite in="d" in2="mask" operator="in"/>
+    </filter>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="26"/>
+    </filter>
+    <filter id="paper">
+      <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="3" seed="5" result="fine"/>
+      <feColorMatrix in="fine" type="matrix" values="0 0 0 0 0.9  0 0 0 0 0.8  0 0 0 0 0.6  0 0 0 0.07 0" result="f1"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.004" numOctaves="4" seed="2" result="blot"/>
+      <feColorMatrix in="blot" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -1.4 0 0 0 0.75" result="f2"/>
+      <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="f2"/><feMergeNode in="f1"/></feMerge>
+    </filter>
+    <radialGradient id="pool" cx="50%" cy="44%" r="62%">
+      <stop offset="0" stop-color="#b8ad96"/>
+      <stop offset="0.5" stop-color="#8a806c"/>
+      <stop offset="0.85" stop-color="#3e3830"/>
+      <stop offset="1" stop-color="#181512"/>
+    </radialGradient>
+    <linearGradient id="liquid" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#1fa864"/>
+      <stop offset="0.45" stop-color="#b9ffd9"/>
+      <stop offset="1" stop-color="#2cc47a"/>
+    </linearGradient>
+  </defs>
+
+  <g id="backdrop">
+    <rect width="600" height="1000" fill="url(#pool)"/>
+    <rect width="600" height="1000" fill="#000" filter="url(#paper)" opacity="0.5" style="mix-blend-mode:overlay"/>
+  </g>
+
+  <!-- the product's light: the only colour in the picture -->
+  <ellipse cx="140" cy="470" rx="80" ry="90" fill="#3fe08f" opacity="0.55" filter="url(#glow)"/>
+
+  <g id="figure">
+    <ellipse cx="330" cy="910" rx="140" ry="14" class="k" filter="url(#ink)" opacity="0.7"/>
+
+    <!-- ===== black masses ===== -->
+    <g filter="url(#ink)">
+      <g id="legs">
+        <path d="M300,822 L290,902 L304,902 L316,822 Z M338,826 L354,902 L368,900 L354,826 Z" class="k"/>
+        <path d="M304,898 L246,904 Q238,912 250,914 L306,914 Z M352,898 L398,902 Q408,912 396,914 L352,914 Z" class="k"/>
+      </g>
+      <g id="coat">
+        <path d="M262,352 C240,368 232,410 240,460 C246,500 270,540 286,566 L300,700 C300,760 296,800 290,830 L350,836 C380,834 410,826 436,808 C414,740 398,660 388,580 C402,520 408,440 390,384 C374,356 340,342 310,340 Z" class="k"/>
+      </g>
+      <g id="hand-l"><path d="M384,548 C394,544 404,548 404,560 L392,568 Z" class="k"/></g>
+      <g id="arm-r">
+        <path d="M262,366 C240,380 226,420 226,466 C222,480 200,490 170,490 L166,520 C200,524 240,510 254,486 C264,456 272,420 278,392 Z" class="k"/>
+      </g>
+      <g id="neck"><path d="M262,322 L290,322 L294,350 L262,352 Z" class="k"/></g>
+      <g id="skull-mass">
+        <path d="M212,232 L220,196 L262,180 L306,184 L332,208 L336,246 L320,282 L316,308 L298,332 L268,340 L242,330 L228,308 L220,284 Z" class="k"/>
+      </g>
+      <g id="hat" transform="rotate(-9 270 196)">
+        <path d="M234,198 L226,70 C228,60 240,56 272,55 C304,56 316,60 318,70 L308,198 Z" class="k"/>
+        <path d="M196,200 L344,194 L352,188 L354,196 L346,204 L200,212 L190,206 L192,198 Z" class="k"/>
+      </g>
+    </g>
+
+    <!-- ===== lit areas (dry brush): key light from the front-left, where the customer stands ===== -->
+    <g filter="url(#dry)">
+      <path d="M220,232 L227,202 L262,190 L292,194 L296,222 L289,256 L296,294 L284,326 L266,333 L246,324 L235,305 L227,283 Z" class="bone"/>
+      <path d="M296,222 L306,218 L310,250 L300,286 L296,294 L289,256 Z" class="mid"/>
+      <path d="M246,338 L272,346 L290,340 L290,352 L270,364 L248,354 Z" class="bone"/>
+      <path d="M264,354 C246,372 240,410 246,456 C252,494 270,528 284,556 L294,552 C282,522 268,482 264,442 C260,410 266,380 280,360 Z" class="bone"/>
+      <path d="M280,360 C266,380 260,410 264,442 C268,482 282,522 294,552 L298,620 C300,690 300,760 294,826 L304,826 C308,760 308,690 304,620 L300,540 C290,500 280,460 280,420 C282,396 290,374 300,358 Z" class="mid"/>
+      <path d="M262,370 C244,384 232,420 232,462 C236,450 246,420 264,392 Z" class="mid"/>
+      <path d="M228,474 C216,484 196,488 172,490 L172,496 C200,496 222,490 234,480 Z" class="mid"/>
+      <path d="M302,830 L300,898 L294,898 Z" class="mid"/>
+    </g>
+    <g filter="url(#dry)" transform="rotate(-9 270 196)">
+      <path d="M232,72 C236,64 244,61 252,60 L256,196 L240,197 Z" class="mid"/>
+      <path d="M200,204 L300,200 L300,205 L200,210 Z" class="mid"/>
+    </g>
+
+    <!-- ===== skull details ===== -->
+    <g id="skull" filter="url(#ink)">
+      <!-- slanted brows and sockets: the look of a man who has read the fine print -->
+      <path d="M218,224 L262,218 L262,230 L222,238 Z M268,220 L300,214 L298,226 L270,230 Z" class="k"/>
+      <path d="M224,238 L258,232 L258,256 L242,264 L227,256 Z" class="k"/>
+      <path d="M270,232 L296,226 L296,250 L282,258 L271,252 Z" class="k"/>
+      <path d="M250,266 L262,290 L244,289 Z" class="k"/>
+      <path d="M230,292 L298,290 L292,314 L238,316 Z" class="k"/>
+      <path d="M226,282 L238,272 L240,286 Z M300,268 L292,284 L306,282 Z" class="k"/>
+      <path d="M262,196 L270,214 L264,226" class="line" stroke-width="1.4"/>
+    </g>
+    <g id="teeth" class="bone" filter="url(#ink)">
+      <rect x="238" y="294" width="6" height="9"/><rect x="246" y="295" width="6" height="10"/>
+      <rect x="254" y="296" width="6" height="10"/><rect x="262" y="296" width="6" height="10"/>
+      <rect x="270" y="295" width="6" height="9"/><rect x="278" y="294" width="6" height="9"/>
+      <rect x="244" y="307" width="5" height="6"/><rect x="252" y="308" width="5" height="6"/><rect x="268" y="308" width="5" height="6"/>
+    </g>
+    <circle cx="244" cy="250" r="3" fill="#ddd0ae"/>
+    <circle cx="285" cy="244" r="2.3" fill="#ddd0ae"/>
+    <!-- the bottle lights his jaw from below -->
+    <path d="M234,318 L246,328 L268,334 L286,326" stroke="#3fe08f" stroke-width="2.6" fill="none" opacity="0.6" filter="url(#ink)"/>
+
+    <g filter="url(#dry)" opacity="0.14" class="mid">
+      <path d="M320,380 L360,372 L378,420 L372,520 L360,600 L330,600 L318,500 Z"/>
+      <path d="M330,640 L372,630 L392,720 L408,800 L360,812 L340,740 Z"/>
+    </g>
+    <!-- brush hatching at the shadow turn -->
+    <g class="k" filter="url(#ink)">
+      <path d="M296,372 L312,370 L300,376 Z M298,400 L316,397 L302,404 Z M300,430 L318,428 L303,434 Z M304,470 L322,468 L306,474 Z M308,520 L326,518 L310,524 Z"/>
+    </g>
+
+    <!-- ===== the product, offered on the open palm ===== -->
+    <g id="bottle">
+      <path d="M118,452 L118,504 Q118,510 124,510 L150,510 Q156,510 156,504 L156,452 Q156,440 146,436 L143,420 L131,420 L128,436 Q118,440 118,452 Z" class="k" filter="url(#ink)"/>
+      <path d="M123,456 L123,502 L151,502 L151,456 Q151,446 142,443 L132,443 Q123,446 123,456 Z" fill="url(#liquid)"/>
+      <path d="M126,466 L148,466 L148,492 L126,492 Z" fill="#ddd0ae" filter="url(#dry)"/>
+      <text x="137" y="478" font-family="Fell" font-size="6.5" text-anchor="middle" fill="#120e0c">PANACEA</text>
+      <path d="M130,484 L144,484 M131,488 L143,488" class="line" stroke-width="0.8"/>
+      <path d="M131,406 L143,406 L144,420 L130,420 Z" class="k"/>
+    </g>
+    <g id="hand-r">
+      <path d="M168,492 C150,494 130,500 112,508 C108,514 116,518 124,516 L170,516 Z" class="bone" filter="url(#dry)"/>
+      <path d="M112,508 C108,500 112,494 118,496 M124,512 C120,502 124,496 130,498 M168,492 L170,516" class="line" stroke-width="1.6" filter="url(#ink)"/>
+      <path d="M114,516 L170,516" stroke="#3fe08f" stroke-width="2" opacity="0.8"/>
+      <path d="M152,498 C160,490 166,480 164,470 C160,466 156,470 156,478" class="line" stroke-width="1.8" filter="url(#ink)"/>
+    </g>
+  </g>
+
+  <g id="caption">
+    <text x="300" y="955" font-family="Fell" font-size="26" letter-spacing="4" text-anchor="middle" fill="#ddd0ae">THE SILENT PARTNER</text>
+    <text x="300" y="982" font-family="FellIt" font-size="17" text-anchor="middle" fill="#bfb090">He draws no salary and asks no credit. The customer pays him in full.</text>
+  </g>
+</svg>

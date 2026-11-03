@@ -7,3 +7,8 @@ coverage/
 balance-report.md
 packages/client/dist
 packages/game/dist
+# Godot
+godot/.godot/
+godot/.mono/
+godot/bin/
+godot/obj/

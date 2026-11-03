@@ -75,7 +75,13 @@ public sealed class EditionWriter
             var template = f.FirstEdition ? S(_copy, "regularsIntro") : Pick(f, "joined" + p.Id, _copy.GetProperty("joined"));
             personal.Blocks.Add(new Block { Text = Fill(template, f, p, productName) });
         }
-        foreach (var l in f.Left)
+        var drifted = f.Left.Where(l => l.Reason == "drifted").ToList();
+        if (drifted.Count > 2)
+        {
+            var names = drifted.Select(l => l.Person.Name).ToList();
+            personal.Blocks.Add(new Block { Text = string.Join(", ", names.Take(names.Count - 1)) + " and " + names[^1] + " have not called at the shop this month. The proprietor has noticed." });
+        }
+        foreach (var l in f.Left.Where(l => drifted.Count <= 2 || l.Reason != "drifted"))
         {
             var key = l.Reason switch { "recovered" => "leftRecovered", "dissatisfied" => "leftDissatisfied", "bereaved" => "leftBereaved", _ => "leftDrifted" };
             personal.Blocks.Add(new Block { Text = Fill(Pick(f, key + l.Person.Id, _copy.GetProperty(key)), f, l.Person, productName) });
@@ -281,7 +287,21 @@ public sealed class EditionWriter
     private string Fill(string template, PaperFacts f, PersonFact? p, string product)
     {
         var s = template.Replace("{product}", product);
-        if (p != null)
+        if (p is { Anonymous: true })
+        {
+            // nobody knew the name: the paper describes the body instead
+            var female = p.Female || (Hash(f.Seed, 2, p.Id) & 1) == 0;
+            var someone = Anonymous(p.Segment, female);
+            s = s.Replace("{someone}", someone)
+                .Replace("{name}", "an unknown " + someone.Split(' ', 2)[1])
+                .Replace("{surname}", "UNKNOWN")
+                .Replace("{pronounCap}", female ? "She" : "He")
+                .Replace("{pronoun}", female ? "she" : "he")
+                .Replace("{object}", female ? "her" : "him")
+                .Replace("{possessive}", female ? "her" : "his")
+                .Replace("{occupation}", someone.Split(' ', 2)[1]);
+        }
+        else if (p != null)
         {
             var (given, surname) = SplitName(p.Name);
             var pronoun = p.Female ? "she" : "he";
@@ -303,6 +323,15 @@ public sealed class EditionWriter
             .Replace("{coroner}", Pick(f, "coroner", _copy.GetProperty("coroners")))
             .Replace("{cash}", Money(f.CashCents));
         return s;
+    }
+
+    private string Anonymous(string segment, bool female)
+    {
+        var all = _copy.GetProperty("anonymous");
+        if (!all.TryGetProperty(segment, out var forms)) forms = all.GetProperty("_");
+        if (forms.TryGetProperty(female ? "female" : "male", out var x)) return x.GetString() ?? "a stranger";
+        foreach (var any in forms.EnumerateObject()) return any.Value.GetString() ?? "a stranger";
+        return "a stranger";
     }
 
     private string Occupation(PersonFact p)

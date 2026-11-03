@@ -35,7 +35,7 @@ public partial class Main : Control
 			return fallback;
 		}
 
-		_game = SimGame.Start(Arg("--seed", "gazette-1885"));
+		_game = args.Contains("--fake") ? new FakeGame() : SimGame.Start(Arg("--seed", "gazette-1885"));
 		using (var f = FileAccess.Open("res://data/paper.en.json", FileAccess.ModeFlags.Read))
 			_writer = new EditionWriter(f.GetAsText());
 
@@ -72,6 +72,7 @@ public partial class Main : Control
 		ui.AddChild(_nav);
 
 		var play = int.Parse(Arg("--play", "0"));
+		Autoplay.Laudanum = double.Parse(Arg("--dose", "0.25"), System.Globalization.CultureInfo.InvariantCulture);
 		for (var i = 0; i < play && !_game.Ended; i++) Autoplay.OneMonth(_game);
 		ShowEdition();
 		if (Arg("--screen", "edition") == "desk") SetDesk(true);
@@ -108,30 +109,44 @@ public partial class Main : Control
 /// <summary>A plain scripted proprietor, for screenshots and end-to-end smoke tests.</summary>
 public static class Autoplay
 {
+	/// <summary>Ounces of laudanum per bottle in the scripted recipe (--dose).</summary>
+	public static double Laudanum = 0.25;
+
+	private static (string, double)[] Recipe(double capacity) =>
+		new (string, double)[] { ("grain_alcohol", 2), ("sugar_syrup", 1), ("peppermint_oil", 0.5), ("laudanum", Laudanum), ("water", capacity - 3.5 - Laudanum) };
+
+	private static void Try(string what, string? error)
+	{
+		if (error != null) GD.Print($"autoplay: {what} refused: {error}");
+	}
+
 	public static void OneMonth(IGame game)
 	{
 		var d = game.Desk();
-		foreach (var l in d.Letters) game.Resolve(l.InstanceId, l.Choices[0].Id);
+		foreach (var l in d.Letters) Try("resolve", game.Resolve(l.InstanceId, l.Choices[0].Id));
 		if (d.Formulas.Count == 0)
 		{
-			var recipe = new (string, double)[] { ("grain_alcohol", 2), ("sugar_syrup", 1), ("peppermint_oil", 0.5), ("laudanum", 0.25), ("water", 4) };
-			foreach (var (id, oz) in recipe) game.Buy(id, oz * 40);
-			game.CreateFormula("Dr. ——'s Celebrated Panacea", recipe, "simple_mix", 60);
+			var recipe = Recipe(d.BottleCapacityOunces);
+			foreach (var (id, oz) in recipe) Try("buy " + id, game.Buy(id, oz * 40));
+			Try("create formula", game.CreateFormula("Dr. ——'s Celebrated Panacea", recipe, "simple_mix", 60));
 			d = game.Desk();
+			if (d.Formulas.Count == 0) { game.GoToPress(); return; }
 		}
 		var f = d.Formulas[0];
 		if (f.ClaimIds.Count == 0)
 		{
 			var claims = d.Claims.Select(c => c.Id).Where(c => c is "soothes_nerves" or "cures_consumption").ToList();
-			game.SetClaims(f.Id, claims);
+			Try("claims", game.SetClaims(f.Id, claims));
 		}
-		if (d.CanAdvertise && d.AdSpendCents == 0) game.SetAdSpend(300);
+		if (d.CanAdvertise && d.AdSpendCents == 0) Try("ads", game.SetAdSpend(300));
+		var recipeNow = Recipe(d.BottleCapacityOunces);
 		if (f.MaxBrewable < 30)
-			foreach (var (id, oz) in new (string, double)[] { ("grain_alcohol", 2), ("sugar_syrup", 1), ("peppermint_oil", 0.5), ("laudanum", 0.25) })
-				game.Buy(id, oz * 30);
+			foreach (var (id, oz) in recipeNow)
+				Try("restock " + id, game.Buy(id, oz * 30));
 		d = game.Desk();
 		var max = d.Formulas[0].MaxBrewable;
-		if (d.StillsFree > 0 && max > 0) game.Brew(f.Id, max);
+		if (d.StillsFree > 0 && max > 0) Try("brew", game.Brew(f.Id, max));
+		GD.Print($"autoplay: {d.Year}-{d.Month:00} cash {EditionWriter.Money(d.CashCents)}, regulars {d.Customers}, stock {d.Formulas[0].Stock}, brewed {max}");
 		game.GoToPress();
 	}
 }

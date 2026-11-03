@@ -5,4 +5,7 @@
     <Nullable>enable</Nullable>
     <RootNamespace>Panacea</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../sim-cs/Panacea.Sim/Panacea.Sim.csproj" />
+  </ItemGroup>
 </Project>

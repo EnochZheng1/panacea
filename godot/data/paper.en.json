@@ -87,8 +87,8 @@
     "{surname}.—Infant child of {name}, aged {months} months. The family ask for privacy."
   ],
   "deathAnonymous": [
-    "UNKNOWN.—A {occupation}, name unknown, was found in {street} on {weekday}. A brown bottle was found near the body. The Coroner has been informed.",
-    "UNKNOWN.—The body of a {occupation} was taken from a lodging house in {street} on {weekday}. Nothing was found on it but a spoon."
+    "UNKNOWN.—The body of {someone}, name unknown, was found in {street} on {weekday}. A brown bottle was found near it. The Coroner has been informed.",
+    "UNKNOWN.—The body of {someone} was taken from a lodging house in {street} on {weekday}. Nothing was found on it but a spoon."
   ],
   "inquestCleared": [
     "An inquest upon the body of {name} was held before Coroner {coroner}. The jury returned a verdict of \"{verdict},\" and went home to supper.",
@@ -251,6 +251,39 @@
       ],
       "body": "The new federal law takes effect this week. Proprietors of remedies must now declare upon the label any alcohol, opium, morphine, cocaine, chloroform or cannabis their preparations contain. The proprietor of {product} told our reporter that he welcomed the measure, and has ordered a great many new labels.",
       "cut": "wc_bottle_panacea"
+    }
+  },
+  "anonymous": {
+    "mother": {
+      "female": "a young mother"
+    },
+    "labourer": {
+      "male": "a labouring man",
+      "female": "a washerwoman"
+    },
+    "seamstress": {
+      "female": "a seamstress",
+      "male": "a tailor"
+    },
+    "clerk": {
+      "male": "a young clerk",
+      "female": "a young woman"
+    },
+    "elderly": {
+      "male": "an elderly man",
+      "female": "an elderly woman"
+    },
+    "dockworker": {
+      "male": "a longshoreman",
+      "female": "a woman of the docks"
+    },
+    "well_to_do": {
+      "male": "a gentleman",
+      "female": "a lady"
+    },
+    "_": {
+      "male": "a man",
+      "female": "a woman"
     }
   }
 }

@@ -28,7 +28,7 @@ for (const name of names) {
   const svg = page.locator('svg').first();
   await svg.screenshot({ path: join(out, `${name}.card.png`) });
   await page.evaluate(() => {
-    for (const id of ['backdrop', 'caption']) document.getElementById(id)?.setAttribute('display', 'none');
+    for (const id of ['backdrop', 'caption', 'frame', 'frame-beads', 'grain-overlay']) document.getElementById(id)?.setAttribute('display', 'none');
   });
   await svg.screenshot({ path: join(out, `${name}.png`), omitBackground: true });
   console.log('rendered', name);

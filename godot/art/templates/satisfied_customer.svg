@@ -1,0 +1,156 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 1000" width="600" height="1000">
+  <!--
+    Panacea character asset: "A Satisfied Customer". Grim ink (see art/README.md).
+    Gag: the clerk beams for his testimonial; behind him the Silent Partner is already measuring
+    him for the box. Pinpoint pupils are the opiate tell; the collar is a size too big because
+    he has lost weight. Puppet groups: death-*, customer-* parts, tape.
+  -->
+%%DEFS%%
+  <g id="backdrop">
+    <rect width="600" height="1000" fill="url(#pool)"/>
+    <rect width="600" height="1000" fill="#000" filter="url(#paper)" opacity="0.5" style="mix-blend-mode:overlay"/>
+  </g>
+  <ellipse cx="420" cy="270" rx="80" ry="90" fill="#3fe08f" opacity="0.5" filter="url(#glow)"/>
+
+  <ellipse cx="290" cy="912" rx="250" ry="16" class="k" filter="url(#ink)" opacity="0.6"/>
+
+  <!-- ===== the Silent Partner, behind, with a tailor's tape ===== -->
+  <g id="death" transform="rotate(4 120 900)">
+    <g filter="url(#ink)">
+      <path d="M90,860 L108,860 L104,904 L86,904 Z M150,862 L168,862 L176,904 L158,904 Z" class="k"/>
+      <path d="M86,898 L112,898 L112,912 L66,912 Z M156,898 L182,898 L196,912 L156,912 Z" class="k"/>
+      <path d="M70,320 L150,306 L196,330 L200,470 L190,700 L206,860 L60,872 L70,700 L56,470 L50,360 Z" class="k"/>
+      <path d="M116,298 L134,298 L136,322 L114,322 Z" class="k"/>
+      <path d="M160,318 L192,326 L198,240 L192,198 L174,198 L168,240 Z" class="k"/>
+      <path d="M84,214 L92,184 L128,172 L160,180 L172,206 L170,240 L156,270 L150,290 L130,306 L104,304 L90,286 L84,260 Z" class="k"/>
+      <g transform="rotate(12 120 170)">
+        <path d="M86,170 L80,62 L156,56 L160,166 Z" class="k"/>
+        <path d="M58,174 L178,160 L184,170 L62,184 Z" class="k"/>
+      </g>
+    </g>
+    <g filter="url(#dry)">
+      <path d="M90,214 L96,190 L128,180 L150,186 L154,212 L150,240 L142,270 L128,298 L106,296 L94,282 L90,258 Z" class="bone"/>
+      <path d="M154,212 L164,214 L160,244 L148,276 L142,270 L150,240 Z" class="mid"/>
+      <path d="M56,364 L70,326 L84,322 L72,380 L66,470 L74,700 L64,866 L58,866 L66,700 L60,470 Z" class="bone"/>
+      <path d="M170,236 L176,206 L182,206 L178,240 Z" class="mid"/>
+    </g>
+    <g filter="url(#ink)">
+      <path d="M100,222 L126,217 L126,240 L112,247 L100,240 Z M134,215 L156,211 L156,233 L142,240 L134,234 Z" class="k"/>
+      <path d="M124,250 L133,268 L118,268 Z" class="k"/>
+      <path d="M100,276 L152,272 L146,292 L106,294 Z" class="k"/>
+    </g>
+    <g class="bone" filter="url(#ink)">
+      <rect x="106" y="277" width="5" height="8"/><rect x="113" y="277" width="5" height="9"/><rect x="120" y="277" width="5" height="9"/>
+      <rect x="127" y="276" width="5" height="9"/><rect x="134" y="276" width="5" height="8"/><rect x="141" y="275" width="5" height="8"/>
+    </g>
+    <circle cx="122" cy="225" r="2.6" fill="#ddd0ae"/><circle cx="153" cy="220" r="2.2" fill="#ddd0ae"/>
+    <!-- pinching the tape's end above the customer's head -->
+    <path d="M172,196 L196,196 L196,206 L172,206 Z" class="bone" filter="url(#dry)"/>
+    <path d="M176,170 L198,168 L200,194 L178,196 Z" class="bone" filter="url(#ink)"/>
+    <path d="M178,180 L198,178 M178,188 L199,186" class="line" stroke-width="1.3"/>
+    <!-- notebook and pencil: he is writing the number down -->
+    <g filter="url(#ink)">
+      <path d="M78,410 L126,402 L132,446 L84,454 Z" class="bone"/>
+      <path d="M86,420 L122,414 M87,428 L118,423 M88,436 L124,430" class="line" stroke-width="1"/>
+      <path d="M128,392 L146,440" stroke="#120e0c" stroke-width="3.4" stroke-linecap="round"/>
+      <path d="M132,436 L156,430 L160,448 L138,454 Z" class="bone"/>
+    </g>
+  </g>
+
+  <!-- ===== the tape ===== -->
+  <g id="tape" filter="url(#ink)">
+    <rect x="186" y="176" width="11" height="724" class="bone"/>
+    <path d="M186,176 L186,900 M197,176 L197,900" class="line" stroke-width="1.2"/>
+    <path id="ticks" d="M186,176 L195,176 M186,188 L191,188 M186,200 L191,200 M186,212 L191,212 M186,224 L191,224 M186,236 L195,236 M186,248 L191,248 M186,260 L191,260 M186,272 L191,272 M186,284 L191,284 M186,296 L195,296 M186,308 L191,308 M186,320 L191,320 M186,332 L191,332 M186,344 L191,344 M186,356 L195,356 M186,368 L191,368 M186,380 L191,380 M186,392 L191,392 M186,404 L191,404 M186,416 L195,416 M186,428 L191,428 M186,440 L191,440 M186,452 L191,452 M186,464 L191,464 M186,476 L195,476 M186,488 L191,488 M186,500 L191,500 M186,512 L191,512 M186,524 L191,524 M186,536 L195,536 M186,548 L191,548 M186,560 L191,560 M186,572 L191,572 M186,584 L191,584 M186,596 L195,596 M186,608 L191,608 M186,620 L191,620 M186,632 L191,632 M186,644 L191,644 M186,656 L195,656 M186,668 L191,668 M186,680 L191,680 M186,692 L191,692 M186,704 L191,704 M186,716 L195,716 M186,728 L191,728 M186,740 L191,740 M186,752 L191,752 M186,764 L191,764 M186,776 L195,776 M186,788 L191,788 M186,800 L191,800 M186,812 L191,812 M186,824 L191,824 M186,836 L195,836 M186,848 L191,848 M186,860 L191,860 M186,872 L191,872" class="line" stroke-width="1"/>
+    <circle cx="196" cy="894" r="16" class="k"/>
+    <circle cx="196" cy="894" r="6" class="bone"/>
+  </g>
+
+  <!-- ===== the satisfied customer ===== -->
+  <g id="customer">
+    <g filter="url(#ink)">
+      <path d="M262,652 L318,660 L306,898 L274,898 Z M322,660 L380,652 L368,898 L336,898 Z" class="k"/>
+      <path d="M262,896 L310,896 L312,914 L244,914 Z M332,896 L380,896 L396,914 L330,914 Z" class="k"/>
+      <path d="M306,338 L334,338 L336,394 L304,394 Z" class="k"/>
+      <path d="M240,250 C240,186 278,162 320,162 C364,162 400,188 400,250 C400,304 372,344 320,346 C270,344 240,304 240,250 Z" class="k"/>
+      <path d="M244,234 C224,224 218,262 228,282 C234,294 248,290 250,280 Z M396,234 C416,224 422,262 412,282 C406,294 392,290 390,280 Z" class="k"/>
+    </g>
+    <g filter="url(#dry)">
+      <!-- shirt -->
+      <path d="M262,404 L320,392 L378,404 L392,520 L384,660 L256,660 L248,520 Z" class="bone"/>
+      <path d="M352,410 L378,404 L392,520 L384,660 L360,660 Z" class="mid"/>
+      <!-- face: key light from the left, the product's green on the right -->
+      <path d="M248,250 C248,194 282,170 320,170 C360,170 392,194 392,250 C392,300 368,338 320,338 C274,336 248,300 248,250 Z" class="bone"/>
+      <path d="M358,176 C384,190 392,220 392,250 C392,296 372,330 344,336 C364,310 372,280 370,250 C368,214 364,192 358,176 Z" class="mid"/>
+      <path d="M232,244 C226,256 228,272 234,280 L244,276 Z" class="bone"/>
+      <path d="M296,880 L306,880 L306,896 L274,896 L276,884 Z M336,884 L366,880 L368,896 L338,896 Z" class="bone"/>
+      <path d="M266,660 L276,660 L278,890 L272,890 Z" class="mid"/>
+    </g>
+    <path d="M384,212 C392,234 394,262 388,290 C384,306 376,320 366,328 L360,322 C374,302 382,278 382,250 C382,236 380,222 377,212 Z" class="green" opacity="0.85" filter="url(#dry)"/>
+    <path d="M398,244 C410,240 412,262 406,276 L400,272 Z" class="green" opacity="0.7"/>
+
+    <g filter="url(#ink)">
+      <!-- three loyal hairs -->
+      <path d="M282,180 C300,160 340,160 358,178 M288,186 C306,170 336,170 352,186 M294,190 C310,180 332,180 346,190" class="line" stroke-width="1.6"/>
+      <!-- a bead of sweat -->
+      <path d="M268,204 C263,213 263,220 268,223 C273,220 273,213 268,204 Z" fill="#efe6cc" stroke="#120e0c" stroke-width="1.4"/>
+      <path d="M270,220 C280,204 298,204 308,214 M332,214 C342,204 360,204 370,220" class="line" stroke-width="3"/>
+      <ellipse cx="290" cy="246" rx="20" ry="23" fill="#efe6cc" stroke="#120e0c" stroke-width="2.6"/>
+      <ellipse cx="350" cy="246" rx="20" ry="23" fill="#efe6cc" stroke="#120e0c" stroke-width="2.6"/>
+      <path d="M270,268 C284,280 300,280 310,268 C302,284 282,286 270,268 Z M330,268 C342,280 358,280 370,268 C360,284 340,286 330,268 Z" class="k"/>
+      <path d="M258,276 C264,300 276,312 288,318 C276,300 270,288 268,272 Z M382,276 C376,300 364,312 352,318 C364,300 370,288 372,272 Z" class="k" opacity="0.75"/>
+      <path d="M321,238 L313,280 C318,287 327,287 331,282" class="line" stroke-width="2"/>
+      <path d="M266,292 C290,320 350,320 374,292 C368,324 348,336 320,338 C292,336 272,324 266,292 Z" class="k"/>
+      <path d="M274,298 C296,314 344,314 366,298 L362,307 C342,319 298,319 278,307 Z" fill="#efe6cc"/>
+      <path d="M286,304 L287,312 M298,307 L298,316 M310,309 L310,317 M322,309 L322,317 M334,308 L334,316 M346,306 L345,314 M356,302 L355,310" class="line" stroke-width="1.3"/>
+    </g>
+    <circle cx="291" cy="247" r="2" class="k"/><circle cx="349" cy="247" r="2" class="k"/>
+
+    <g filter="url(#ink)">
+      <!-- the collar is a size too big now -->
+      <path d="M280,370 L360,370 L364,398 L276,398 Z" class="bone"/>
+      <path d="M296,371 L344,371 L340,382 L300,382 Z" class="k"/>
+      <path d="M280,370 L360,370 L364,398 L276,398 Z" class="line" stroke-width="1.8"/>
+      <ellipse cx="320" cy="360" rx="4" ry="5" class="bone"/>
+      <path d="M320,400 L296,388 L296,412 Z M320,400 L344,388 L344,412 Z" class="k"/>
+      <!-- waistcoat, also too big -->
+      <path d="M268,420 L320,442 L372,420 L386,652 L320,678 L254,652 Z" class="k"/>
+      <path d="M290,560 C300,600 302,630 300,670" class="line" stroke="#3a332c" stroke-width="2"/>
+    </g>
+    <g class="bone" filter="url(#ink)">
+      <circle cx="320" cy="474" r="3"/><circle cx="320" cy="512" r="3"/><circle cx="320" cy="550" r="3"/><circle cx="320" cy="588" r="3"/>
+    </g>
+
+    <!-- hand on heart for the testimonial -->
+    <g id="arm-heart">
+      <path d="M262,404 C244,420 234,470 236,520 C244,532 262,520 280,490 L292,470 L280,452 C268,470 258,480 252,486 C256,460 262,440 270,420 Z" class="bone" filter="url(#dry)"/>
+      <path d="M262,404 C244,420 234,470 236,520 C244,532 262,520 280,490" class="line" filter="url(#ink)"/>
+      <path d="M242,450 L264,444 L264,456 L242,462 Z" class="k" filter="url(#ink)"/>
+      <path d="M280,452 L312,444 L318,470 L288,480 Z" class="bone" filter="url(#ink)"/>
+      <path d="M280,452 L312,444 L318,470 L288,480 Z M292,450 L298,476 M302,447 L308,474" class="line" stroke-width="1.4" filter="url(#ink)"/>
+    </g>
+
+    <!-- the product held up beside his face, as in the advertisements -->
+    <g id="arm-bottle">
+      <path d="M372,404 C398,412 424,450 434,498 C438,512 430,518 420,512 C414,480 400,450 384,440 Z" class="bone" filter="url(#dry)"/>
+      <path d="M420,512 C434,516 440,500 436,470 L428,332 L406,332 L412,470 C414,490 416,504 420,512 Z" class="bone" filter="url(#dry)"/>
+      <path d="M372,404 C398,412 424,450 434,498 C438,512 430,518 420,512 M436,470 L428,332 M406,332 L412,470" class="line" filter="url(#ink)"/>
+      <path d="M428,340 L436,470 L432,500" stroke="#3fe08f" stroke-width="3" fill="none" opacity="0.7"/>
+      <path d="M400,430 L416,422 L424,436 L408,444 Z" class="k" filter="url(#ink)"/>
+    </g>
+    <g id="bottle">
+      <path d="M402,262 L402,318 Q402,324 408,324 L432,324 Q438,324 438,318 L438,262 Q438,250 428,246 L425,230 L415,230 L412,246 Q402,250 402,262 Z" class="k" filter="url(#ink)"/>
+      <path d="M407,266 L407,316 L433,316 L433,266 Q433,256 425,253 L415,253 Q407,256 407,266 Z" fill="url(#liquid)"/>
+      <path d="M410,276 L430,276 L430,300 L410,300 Z" fill="#ddd0ae"/>
+      <text x="420" y="290" font-family="Fell" font-size="6" text-anchor="middle" fill="#120e0c">PANACEA</text>
+      <path d="M415,216 L425,216 L426,230 L414,230 Z" class="k"/>
+    </g>
+    <path d="M400,300 L438,296 L440,312 L402,318 Z M402,320 L436,318 L436,332 L404,334 Z" class="bone" filter="url(#ink)"/>
+    <path d="M400,300 L438,296 L440,312 L402,318 Z M402,320 L436,318 L436,332 L404,334 Z" class="line" stroke-width="1.4" filter="url(#ink)"/>
+  </g>
+
+  <g id="caption">
+    <text x="300" y="955" font-family="Fell" font-size="26" letter-spacing="4" text-anchor="middle" fill="#ddd0ae">A SATISFIED CUSTOMER</text>
+    <text x="300" y="982" font-family="FellIt" font-size="17" text-anchor="middle" fill="#bfb090">“Never felt better!” — Mr. A. Pike, clerk</text>
+  </g>
+</svg>

@@ -1,0 +1,193 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 1000" width="600" height="1000">
+  <!--
+    Style test: trade-card caricature. The cheerful chromolithograph advertising card of the
+    1880s, with bouncy cartoon proportions. The cheer is the irony: the card sells the cure while
+    Death measures the customer. Same gag as satisfied_customer, drawn fresh for this style.
+  -->
+  <defs>
+    <style>
+      @font-face { font-family: Fell; src: url(../../assets/fonts/IMFeENrm28P.ttf); }
+      @font-face { font-family: FellIt; src: url(../../assets/fonts/IMFeENit28P.ttf); }
+      @font-face { font-family: Rye; src: url(../../assets/fonts/Rye-Regular.ttf); }
+      .o { stroke: #2a1a12; stroke-width: 4.5; stroke-linejoin: round; stroke-linecap: round; }
+      .ol { fill: none; stroke: #2a1a12; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+    <filter id="litho" x="-2%" y="-2%" width="104%" height="104%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="5" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="2.2" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="2"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.35  0 0 0 0 0.25  0 0 0 0 0.15  0 0 0 0.16 0"/>
+    </filter>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="22"/></filter>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bcd8e6"/><stop offset="0.6" stop-color="#f3e2cc"/><stop offset="1" stop-color="#f6d9c4"/>
+    </linearGradient>
+    <linearGradient id="gilt" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e9c770"/><stop offset="0.5" stop-color="#b8862e"/><stop offset="1" stop-color="#e3bd62"/>
+    </linearGradient>
+    <linearGradient id="bottleg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#1fa864"/><stop offset="0.45" stop-color="#c4ffe0"/><stop offset="1" stop-color="#2cc47a"/>
+    </linearGradient>
+    <pattern id="checks" width="14" height="14" patternUnits="userSpaceOnUse">
+      <rect width="14" height="14" fill="#e0aa3c"/>
+      <path d="M0,0 H14 M0,0 V14" stroke="#9a6a1c" stroke-width="1.6"/>
+    </pattern>
+    <pattern id="stripes" width="9" height="9" patternUnits="userSpaceOnUse">
+      <rect width="9" height="9" fill="#7389ad"/><path d="M3,0 V9" stroke="#4a5d80" stroke-width="2"/>
+    </pattern>
+  </defs>
+
+  <g id="backdrop">
+    <rect width="600" height="1000" fill="#f2e6cf"/>
+    <rect x="22" y="22" width="556" height="956" rx="26" fill="url(#gilt)" class="o"/>
+    <rect x="36" y="36" width="528" height="928" rx="18" fill="url(#sky)" class="o" stroke-width="2.5"/>
+    <g fill="#fbf6ec" class="o" stroke-width="2.5" opacity="0.95">
+      <path d="M70,250 C60,226 92,212 106,226 C114,204 150,206 154,230 C178,226 186,256 166,262 L76,264 C62,264 60,252 70,250 Z"/>
+      <path d="M440,190 C432,170 458,158 470,170 C478,150 508,152 512,172 C532,170 538,194 522,198 L448,200 C436,200 432,192 440,190 Z"/>
+    </g>
+    <g class="o" stroke-width="2.5">
+      <circle cx="60" cy="60" r="16" fill="url(#gilt)"/><circle cx="540" cy="60" r="16" fill="url(#gilt)"/>
+      <circle cx="60" cy="940" r="16" fill="url(#gilt)"/><circle cx="540" cy="940" r="16" fill="url(#gilt)"/>
+    </g>
+    <ellipse cx="300" cy="830" rx="250" ry="30" fill="#a8c787" class="o" stroke-width="3"/>
+    <g class="o" stroke-width="1.5">
+      <circle cx="110" cy="830" r="6" fill="#e8574a"/><circle cx="126" cy="842" r="5" fill="#f2c94c"/>
+      <circle cx="500" cy="826" r="6" fill="#e8574a"/><circle cx="482" cy="840" r="5" fill="#f6f0e0"/>
+      <circle cx="300" cy="848" r="5" fill="#f2c94c"/>
+    </g>
+  </g>
+
+  <g id="figures" filter="url(#litho)">
+    <ellipse cx="420" cy="836" rx="70" ry="10" fill="#7e9a64" opacity="0.8"/>
+    <ellipse cx="135" cy="826" rx="80" ry="10" fill="#7e9a64" opacity="0.8"/>
+
+    <!-- ===== Death, delighted, with a tape and a pencil in his teeth ===== -->
+    <g id="death">
+      <path d="M110,640 C104,700 96,760 92,812 M150,640 C160,700 168,760 172,812" class="ol" stroke-width="22"/>
+      <path d="M110,640 C104,700 96,760 92,812 M150,640 C160,700 168,760 172,812" fill="none" stroke="#2e2638" stroke-width="13" stroke-linecap="round"/>
+      <ellipse cx="80" cy="818" rx="28" ry="10" fill="#1d1820" class="o"/>
+      <ellipse cx="186" cy="818" rx="28" ry="10" fill="#1d1820" class="o"/>
+      <path d="M86,362 C78,450 82,560 92,668 L114,646 L130,676 L150,648 L176,672 C188,566 196,452 188,362 C168,340 104,340 86,362 Z" fill="#43345a" class="o"/>
+      <path d="M150,356 C176,360 186,420 184,520 C182,580 178,630 176,668 L150,648 C162,560 166,450 150,356 Z" fill="#2f2440"/>
+      <path d="M116,350 L136,402 L156,350 Z" fill="#fbf6ec" class="o" stroke-width="3"/>
+      <path d="M128,360 L144,360 L140,384 L132,384 Z" fill="#1d1820"/>
+      <g fill="#f2c94c" class="o" stroke-width="2"><circle cx="136" cy="430" r="4"/><circle cx="136" cy="460" r="4"/></g>
+      <!-- notebook arm -->
+      <path d="M98,384 C74,430 90,474 124,472" class="ol" stroke-width="22"/>
+      <path d="M98,384 C74,430 90,474 124,472" fill="none" stroke="#43345a" stroke-width="13" stroke-linecap="round"/>
+      <g transform="rotate(-12 130 456)">
+        <rect x="112" y="434" width="44" height="54" fill="#fbf6ec" class="o" stroke-width="3"/>
+        <path d="M120,448 H148 M120,458 H146 M120,468 H140" class="ol" stroke-width="1.6"/>
+        <text x="133" y="482" font-family="FellIt" font-size="11" text-anchor="middle" fill="#c8342b">5 ft 4</text>
+      </g>
+      <!-- the measuring arm -->
+      <path d="M178,372 C210,330 238,262 254,198" class="ol" stroke-width="22"/>
+      <path d="M178,372 C210,330 238,262 254,198" fill="none" stroke="#43345a" stroke-width="13" stroke-linecap="round"/>
+      <path d="M244,200 C244,186 256,180 266,184 C274,188 274,200 266,206 C258,210 246,208 244,200 Z" fill="#f4ecd6" class="o" stroke-width="3"/>
+      <!-- neck, skull -->
+      <path d="M132,338 L148,330" class="ol" stroke-width="10"/>
+      <path d="M128,280 C126,236 156,214 186,218 C214,222 228,248 222,280 C218,300 208,310 204,322 C200,336 186,344 170,344 C152,344 140,334 138,320 C132,308 128,296 128,280 Z" fill="#f4ecd6" class="o"/>
+      <path d="M210,240 C222,256 224,282 216,300 C210,312 206,318 204,324 C198,300 210,272 210,240 Z" fill="#ddd0b0"/>
+      <ellipse cx="158" cy="272" rx="12" ry="14" fill="#2a1a12"/>
+      <ellipse cx="196" cy="268" rx="11" ry="13" fill="#2a1a12"/>
+      <circle cx="162" cy="266" r="3.5" fill="#fbf6ec"/><circle cx="200" cy="262" r="3.2" fill="#fbf6ec"/>
+      <path d="M172,292 L180,292 L176,302 Z" fill="#2a1a12"/>
+      <path d="M144,308 C160,324 192,324 210,304" class="ol" stroke-width="3.5"/>
+      <path d="M154,313 L153,322 M164,317 L164,326 M176,318 L176,327 M188,317 L189,326 M199,312 L200,321" class="ol" stroke-width="2"/>
+      <!-- pencil held in the teeth -->
+      <path d="M184,316 L232,300" class="ol" stroke-width="10"/>
+      <path d="M186,316 L230,301" fill="none" stroke="#f2c94c" stroke-width="5.5" stroke-linecap="butt"/>
+      <path d="M230,301 L240,297" fill="none" stroke="#e98aa0" stroke-width="6"/>
+      <!-- stovepipe with a mourning crape band -->
+      <path d="M134,210 C110,214 92,236 80,270 C98,256 112,250 126,252 C118,236 124,224 136,220 Z" fill="#1d1820" class="o" stroke-width="3"/>
+      <path d="M134,222 L124,120 C126,108 196,104 204,116 L210,218 Z" fill="#2e2638" class="o"/>
+      <path d="M140,124 L146,214" fill="none" stroke="#6a5a80" stroke-width="5" stroke-linecap="round"/>
+      <path d="M132,204 L208,200 L209,216 L133,220 Z" fill="#1d1820"/>
+      <ellipse cx="170" cy="222" rx="56" ry="11" fill="#2e2638" class="o"/>
+    </g>
+
+    <!-- ===== the tape, swaying from Death's fingers to the floor ===== -->
+    <path d="M260,196 C268,400 252,600 262,806" class="ol" stroke-width="17"/>
+    <path d="M260,196 C268,400 252,600 262,806" fill="none" stroke="#f2c94c" stroke-width="11"/>
+    <path d="M260,196 C268,400 252,600 262,806" fill="none" stroke="#2a1a12" stroke-width="7" stroke-dasharray="1.6 11"/>
+    <circle cx="262" cy="810" r="18" fill="#c99a3a" class="o"/>
+    <circle cx="262" cy="810" r="6" fill="#2a1a12"/>
+
+    <!-- ===== the customer, a new man ===== -->
+    <g id="customer">
+      <!-- legs: a spry little kick -->
+      <path d="M380,600 C370,660 340,690 324,718" class="ol" stroke-width="30"/>
+      <path d="M380,600 C370,660 340,690 324,718" fill="none" stroke="url(#stripes)" stroke-width="21" stroke-linecap="round"/>
+      <path d="M420,600 C424,660 430,716 432,772" class="ol" stroke-width="30"/>
+      <path d="M420,600 C424,660 430,716 432,772" fill="none" stroke="url(#stripes)" stroke-width="21" stroke-linecap="round"/>
+      <path d="M300,718 C306,706 326,704 336,716 C340,726 330,734 316,734 C304,734 296,728 300,718 Z" fill="#1d1820" class="o"/>
+      <path d="M424,772 C440,766 466,770 470,782 C470,792 454,794 436,792 C424,790 420,780 424,772 Z" fill="#1d1820" class="o"/>
+      <path d="M318,712 L330,722 M428,768 L432,782" fill="none" stroke="#fbf6ec" stroke-width="4" stroke-linecap="round"/>
+      <!-- body -->
+      <path d="M356,430 C350,500 352,560 362,606 L438,606 C448,560 450,500 444,430 Z" fill="#fbf6ec" class="o"/>
+      <path d="M364,442 L400,472 L436,442 L442,606 L358,606 Z" fill="url(#checks)" class="o" stroke-width="3.5"/>
+      <g fill="#fbf6ec" class="o" stroke-width="2"><circle cx="400" cy="500" r="4"/><circle cx="400" cy="530" r="4"/><circle cx="400" cy="560" r="4"/><circle cx="400" cy="588" r="4"/></g>
+      <!-- hand on heart -->
+      <path d="M358,448 C328,482 336,522 370,514" class="ol" stroke-width="26"/>
+      <path d="M358,448 C328,482 336,522 370,514" fill="none" stroke="#fbf6ec" stroke-width="17" stroke-linecap="round"/>
+      <path d="M362,500 C372,492 388,494 392,506 C394,518 382,526 370,524 C362,522 358,510 362,500 Z" fill="#f3dcc0" class="o" stroke-width="3"/>
+      <!-- the arm that holds the product aloft -->
+      <path d="M444,450 C492,420 504,340 492,274" class="ol" stroke-width="26"/>
+      <path d="M444,450 C492,420 504,340 492,274" fill="none" stroke="#fbf6ec" stroke-width="17" stroke-linecap="round"/>
+      <!-- neck, the too-big collar, bow tie -->
+      <path d="M392,396 L408,396 L410,432 L390,432 Z" fill="#f3dcc0" class="o" stroke-width="3"/>
+      <path d="M366,414 L434,414 L438,438 L362,438 Z" fill="#fbf6ec" class="o" stroke-width="3.5"/>
+      <path d="M386,416 L414,416 L412,424 L388,424 Z" fill="#2a1a12"/>
+      <path d="M400,442 L376,428 L376,456 Z M400,442 L424,428 L424,456 Z" fill="#c8342b" class="o" stroke-width="3"/>
+      <circle cx="400" cy="442" r="5" fill="#9a2420" class="o" stroke-width="2"/>
+      <!-- the head -->
+      <circle cx="308" cy="306" r="22" fill="#f3dcc0" class="o"/>
+      <circle cx="492" cy="306" r="22" fill="#cfe8cf" class="o"/>
+      <ellipse cx="400" cy="300" rx="92" ry="100" fill="#f3dcc0" class="o"/>
+      <path d="M452,218 C484,240 494,284 488,326 C482,360 462,384 438,396 C466,360 478,320 474,282 C470,256 462,234 452,218 Z" fill="#b8e6c4"/>
+      <ellipse cx="368" cy="230" rx="20" ry="10" fill="#fffaf0" opacity="0.8"/>
+      <path d="M380,206 C368,180 384,164 396,176 M402,202 C400,172 420,166 424,182 M420,206 C432,184 452,188 446,206" class="ol" stroke-width="3"/>
+      <circle cx="350" cy="336" r="16" fill="#ef8f8f" opacity="0.75"/><circle cx="452" cy="336" r="16" fill="#ef8f8f" opacity="0.55"/>
+      <path d="M344,312 C356,322 380,324 392,314 M408,314 C420,324 444,322 456,312" fill="none" stroke="#a08aa8" stroke-width="5" stroke-linecap="round"/>
+      <ellipse cx="370" cy="284" rx="28" ry="32" fill="#fffdf6" class="o"/>
+      <ellipse cx="432" cy="284" rx="28" ry="32" fill="#fffdf6" class="o"/>
+      <circle cx="371" cy="285" r="2.6" fill="#2a1a12"/><circle cx="431" cy="285" r="2.6" fill="#2a1a12"/>
+      <path d="M338,242 C350,226 374,224 390,238 M410,238 C426,224 450,226 462,242" class="ol" stroke-width="4"/>
+      <path d="M396,306 C392,318 396,326 404,326" class="ol" stroke-width="3"/>
+      <path d="M338,338 C368,384 432,384 462,338 C452,394 422,406 400,406 C378,406 348,394 338,338 Z" fill="#6b1f24" class="o"/>
+      <path d="M346,346 C372,372 428,372 454,346 L450,358 C424,380 376,380 350,358 Z" fill="#fffdf6"/>
+      <path d="M372,394 C384,384 416,384 428,394 C418,404 382,404 372,394 Z" fill="#e8727a"/>
+      <path d="M316,232 C309,246 309,256 316,260 C323,256 323,246 316,232 Z" fill="#cfeaf5" class="o" stroke-width="2.5"/>
+      <path d="M300,276 L286,272 M300,290 L284,292 M500,250 L516,242 M298,212 L286,200" class="ol" stroke-width="3"/>
+    </g>
+
+    <!-- the product, held aloft, sparkling -->
+    <ellipse cx="490" cy="212" rx="70" ry="80" fill="#3fe08f" opacity="0.5" filter="url(#glow)"/>
+    <g id="bottle">
+      <path d="M472,206 L472,262 Q472,270 480,270 L502,270 Q510,270 510,262 L510,206 Q510,194 498,190 L496,172 L486,172 L484,190 Q472,194 472,206 Z" fill="url(#bottleg)" class="o" stroke-width="3.5"/>
+      <rect x="477" y="216" width="28" height="28" fill="#fbf6ec" class="o" stroke-width="2"/>
+      <path d="M483,226 H499 M483,234 H497" stroke="#c8342b" stroke-width="2.5"/>
+      <rect x="484" y="160" width="14" height="13" fill="#b8864a" class="o" stroke-width="2.5"/>
+    </g>
+    <path d="M470,262 C474,252 504,250 512,262 C514,276 500,284 488,282 C476,280 468,272 470,262 Z" fill="#f3dcc0" class="o" stroke-width="3"/>
+    <g fill="#fff8d6" class="o" stroke-width="2">
+      <path d="M440,160 L446,174 L460,180 L446,186 L440,200 L434,186 L420,180 L434,174 Z"/>
+      <path d="M538,210 L542,220 L552,224 L542,228 L538,238 L534,228 L524,224 L534,220 Z"/>
+      <path d="M520,130 L523,138 L531,141 L523,144 L520,152 L517,144 L509,141 L517,138 Z"/>
+    </g>
+  </g>
+
+  <rect id="grain-overlay" width="600" height="1000" filter="url(#grain)" style="mix-blend-mode:multiply" pointer-events="none"/>
+
+  <g id="caption">
+    <g filter="url(#litho)">
+      <path d="M76,66 L524,66 L548,100 L524,134 L76,134 L52,100 Z" fill="#c8342b" class="o"/>
+      <path d="M90,886 L510,886 L534,914 L510,942 L90,942 L66,914 Z" fill="#e0aa3c" class="o"/>
+    </g>
+    <text x="300" y="104" font-family="Rye" font-size="34" text-anchor="middle" fill="#fbf6ec">DR. ——'S PANACEA</text>
+    <text x="300" y="126" font-family="FellIt" font-size="14" text-anchor="middle" fill="#fbe7c4">The Wonder of the Age</text>
+    <text x="300" y="923" font-family="Rye" font-size="25" text-anchor="middle" fill="#2a1a12">MAKES A NEW MAN OF YOU!</text>
+  </g>
+</svg>

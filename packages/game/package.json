@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource/im-fell-double-pica": "5.3.0",
     "@fontsource/im-fell-english": "5.3.0",
     "@fontsource/im-fell-english-sc": "5.3.0",
     "@panacea/content": "workspace:*",

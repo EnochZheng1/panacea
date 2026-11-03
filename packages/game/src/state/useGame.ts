@@ -92,8 +92,8 @@ export function useGame(seed = 'panacea') {
     [state, obs],
   );
 
-  const newRun = useCallback((s: string) => {
-    setState(newGame(content, { seed: s }));
+  const newRun = useCallback((s: string, backgroundId?: string) => {
+    setState(newGame(content, backgroundId ? { seed: s, backgroundId } : { seed: s }));
     setMonthReport(null);
   }, []);
 

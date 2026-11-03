@@ -23,6 +23,7 @@ export interface SceneProps {
   onPour: (ingredientId: string) => void;
   onHoverIngredient: (id: string | null) => void;
   onHoverCustomer: (c: ObservedCustomer | null) => void;
+  onBell: () => void;
   still: { pressure: number; color: string; received: number };
 }
 
@@ -101,7 +102,7 @@ export function Scene(props: SceneProps) {
           year={obs.date.year}
           letters={obs.pendingEvents.length}
           ledgerLines={ledgerLines}
-          {...(station === 'desk' ? { onBell: (e) => (e.stopPropagation(), game.endMonth()) } : {})}
+          {...(station === 'desk' ? { onBell: (e) => (e.stopPropagation(), props.onBell()) } : {})}
         />
       </group>
       <CameraRig station={station} reducedMotion={props.reducedMotion} />

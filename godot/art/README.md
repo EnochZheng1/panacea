@@ -8,27 +8,27 @@ The newspaper is the game's main surface, not just a style. Patent medicine was 
 
 Period material to draw on, and the game use for each:
 
-| Period element | Use in the game |
-| --- | --- |
-| Reading notices (adverts typeset as news, ending in "Adv.") | An ad format the player can buy |
-| Testimonials (named, sometimes bought, sometimes outliving the writer) | Bought, and they can backfire |
-| Deaths and coroner's court columns | Where consequences appear |
-| Personals and classifieds | Hiring, widows, hints |
-| Rival advertisers | AI competitors |
-| Stock cuts (one engraving sold to many advertisers) | A recurring visual gag, and a cheap way to make art |
-| The "red clause" (ad contracts void if the state regulated patent medicine) | Press influence: papers lobby for you |
-| The markets column | Ingredient prices |
-| Almanacs, trade cards, handbills, sandwich men, medicine shows | Further ad channels |
-| *Collier's* "The Great American Fraud" (1905) and the Pure Food and Drug Act (1906) | The endgame |
+| Period element                                                                      | Use in the game                                     |
+| ----------------------------------------------------------------------------------- | --------------------------------------------------- |
+| Reading notices (adverts typeset as news, ending in "Adv.")                         | An ad format the player can buy                     |
+| Testimonials (named, sometimes bought, sometimes outliving the writer)              | Bought, and they can backfire                       |
+| Deaths and coroner's court columns                                                  | Where consequences appear                           |
+| Personals and classifieds                                                           | Hiring, widows, hints                               |
+| Rival advertisers                                                                   | AI competitors                                      |
+| Stock cuts (one engraving sold to many advertisers)                                 | A recurring visual gag, and a cheap way to make art |
+| The "red clause" (ad contracts void if the state regulated patent medicine)         | Press influence: papers lobby for you               |
+| The markets column                                                                  | Ingredient prices                                   |
+| Almanacs, trade cards, handbills, sandwich men, medicine shows                      | Further ad channels                                 |
+| _Collier's_ "The Great American Fraud" (1905) and the Pure Food and Drug Act (1906) | The endgame                                         |
 
 Earlier explorations are kept for reference: grim ink (`silent_partner`, `satisfied_customer`, `proprietor`, `panacea_bottle`), shadow play and the trade card.
 
 ## The woodcut set
 
-| Group | Assets |
-| --- | --- |
-| Characters | `wc_proprietor`, `wc_death`, `wc_clerk`, `wc_mother`, `wc_longshoreman`, `wc_lady` |
-| Products | `wc_bottle_panacea`, `wc_bottle_syrup`, `wc_bottle_bitters`, `wc_pills` |
+| Group      | Assets                                                                                      |
+| ---------- | ------------------------------------------------------------------------------------------- |
+| Characters | `wc_proprietor`, `wc_death`, `wc_clerk`, `wc_mother`, `wc_longshoreman`, `wc_lady`          |
+| Products   | `wc_bottle_panacea`, `wc_bottle_syrup`, `wc_bottle_bitters`, `wc_pills`                     |
 | Ad formats | `wcad_reading_notice`, `wcad_display`, `wcad_testimonial`, `wcad_almanac`, `wcad_tradecard` |
 
 To rebuild the set:
@@ -49,9 +49,9 @@ Render the sprites before the ad formats, because the layouts embed the cuts.
 
 ## Asset log
 
-| Asset | Source | Licence |
-| --- | --- | --- |
-| All art in `art/src/` | Original, authored in this repo | Project-owned |
-| IM Fell English font | Google Fonts (`assets/fonts/OFL.txt`) | SIL OFL 1.1 |
-| Rye font | Google Fonts (`assets/fonts/OFL-Rye.txt`) | SIL OFL 1.1 |
-| Poly Haven models and textures | `assets/polyhaven/LICENSES.json` | CC0 1.0 |
+| Asset                          | Source                                    | Licence       |
+| ------------------------------ | ----------------------------------------- | ------------- |
+| All art in `art/src/`          | Original, authored in this repo           | Project-owned |
+| IM Fell English font           | Google Fonts (`assets/fonts/OFL.txt`)     | SIL OFL 1.1   |
+| Rye font                       | Google Fonts (`assets/fonts/OFL-Rye.txt`) | SIL OFL 1.1   |
+| Poly Haven models and textures | `assets/polyhaven/LICENSES.json`          | CC0 1.0       |

@@ -2,7 +2,7 @@
 
 > Working title. A Victorian patent-medicine tycoon: historical chemistry, mass-market quackery, and the slow arrival of the law.
 
-**Status:** Pre-production · **Target:** Full commercial release (Steam, PC/Mac/Linux) · **Engine:** TypeScript (web stack, packaged for desktop)
+**Status:** Pre-production · **Target:** Full commercial release (Steam, PC/Mac/Linux) · **Engine:** Godot 4 (.NET). The simulation is currently a TypeScript library; see [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 
 ---
 
@@ -12,17 +12,32 @@ New York, 1885. There is no FDA, no labeling law, and no limit on what a man may
 
 Between those dates you can build a national medicine empire: develop secret formulas, flood the newspapers with advertising, push product through wholesalers, medicine shows and mail order, and keep the coroners, editors and legislators sweet. The more you grow, the more people drink what you make, and the more of them it hurts.
 
-**Pillars**
+**One line:** _Sell miracle cures in 1880s New York. Write the lies, buy the press, and read your victims' obituaries in the paper that runs your ads._
 
-1. **Tactile chemistry.** The lab is hands-on and satisfying: you work brass stills and percolators and watch the gauges. Formulas are real decisions with real trade-offs.
-2. **Ruthless, believable business.** The systems follow how the trade actually worked: advertising-driven, distributed through wholesalers, protected by contracts and lobbying.
-3. **Consequences you can feel.** The market is aggregate, but the cost is always shown through named people: letters, testimonials, obituaries.
-4. **Earned growth.** No chapters. Every new part of the business is unlocked by something the player achieved, survived or discovered.
-5. **History as the clock.** Real events arrive on their real dates whatever the player does. Runs differ in how big a target you are when reform comes.
+### The originality rule
 
-**Comparable games (for feel, not mechanics):** Game Dev Tycoon (approachable management sim), Papers, Please (moral weight through bureaucracy), Frostpunk (systems that make you complicit), Universal Paperclips (escalating unlock pull), Crusader Kings (event cards and characters).
+**Every mechanic must come from the history of 1885–1906, not from another game.** If we cannot point to the real practice a feature dramatises, it does not go in.
 
-**Tone:** Dark satire. The game never pretends what you're doing is good; it makes it _tempting_. Humour comes from period bombast ("Cures Consumption, Cholera, Melancholy and Bad Temper!") set against plain consequences.
+Two consequences follow:
+
+- **In public:** no "X meets Y" descriptions on the store page, in trailers or in press materials. Panacea is pitched on its own terms.
+- **In design:** general techniques (procedural text, seeded runs, multiple endings) are fine to use, but they are never the pitch.
+
+Before the Steam page and the trailer go public, we compare our screenshots side by side with the closest-looking games on Steam and change anything that reads as a lookalike.
+
+### Pillars
+
+Each pillar is grounded in what the trade actually did:
+
+1. **You play inside a newspaper.** The page is the game board. Your adverts compete for column inches with the consequences of your choices, because patent medicine was what kept the period's papers in business. Each turn is an edition.
+2. **Writing the lies is the core verb.** There was no truth-in-advertising law, so every claim you print is a bet: "Cures consumption" brings in buyers and draws inquests. The player composes claims, labels and testimonials by hand.
+3. **Testimonials are a currency.** You solicit them, buy them and fake them, and they can outlive their authors. They work as both marketing and evidence against you.
+4. **You can buy the press.** The red clause turned newspapers into the industry's lobbyists. You can capture your own critics, and the papers that depend on your money can turn on you.
+5. **Addiction is the retention model.** The body simulation makes dependency the trade's real business model. Players discover it through their own choices, and that discovery is the game's thesis.
+6. **The law is the clock.** Real events arrive on their real dates, and the 1906 Act ends the trade as it was. Runs differ in what you have become when it comes.
+7. **Earned growth.** There are no chapters. Every new part of the business is unlocked by something the player achieved, survived or discovered.
+
+**Tone:** dark satire that punches up. The game never pretends what you're doing is good; it makes it _tempting_. The joke is always on the seller and the system, never on the victims. Humour comes from juxtaposition on the page, period bombast ("Cures Consumption, Cholera, Melancholy and Bad Temper!") printed beside plain consequences, and the funniest material is usually true.
 
 ---
 
@@ -67,8 +82,9 @@ The systems should follow history; the flavour can be as loud as the era itself.
 ## 3. Structure & time
 
 - **One continuous run** from January 1885 through the 1906 Act and into an epilogue period (to ~1910), when endings resolve.
-- **Turn = one month.** Inside a turn the player works freely (lab, ads, contracts, The Post); ending the turn runs the simulation.
-- **Quiet months auto-advance** (configurable) when no decision is pending, so ~260 months never turns into end-turn spam.
+- **Turn = one edition of the paper.** Inside a turn the player works freely (lab, ad copy and layout, contracts, The Post). Going to press runs the simulation, and the next edition shows what happened.
+- **Cadence widens with the business.** Weekly editions while the shop is small and every customer matters, then monthly once wholesale arrives. This also answers the early-pacing question in section 15.
+- **Quiet editions auto-advance** (configurable) when no decision is pending, so the long run never turns into end-turn spam.
 - **Target campaign length:** 8–12 hours for a full run; built for replays through backgrounds, map variation and endings.
 - **Difficulty:** affects starting capital, scrutiny sensitivity and rival aggression. Plus an "Ironman" mode (single save).
 
@@ -76,11 +92,25 @@ The systems should follow history; the flavour can be as loud as the era itself.
 
 ## 4. Core loops
 
-**Short loop (each month):**
+**Short loop (each edition):**
 
-1. Read **The Post**: event cards, letters, news, offers, threats.
-2. Make 2–4 meaningful decisions (brew / reformulate, ads, contracts, crisis responses).
-3. End the month → the **Ledger reveal**: sales, cash, heat, deaths, causes explained. This is the payoff moment and gets full audiovisual polish.
+1. **Read the paper.** It is the payoff and the briefing at once:
+   - your own adverts, as printed;
+   - testimonials and letters;
+   - the deaths column and the coroner's court;
+   - rival advertisements and attacks;
+   - the markets column (ingredient prices);
+   - the news of the era.
+
+   Causes stay explainable: every figure on the page can be traced in the Ledger.
+
+2. **Make 2–4 meaningful decisions:**
+   - brew or reformulate;
+   - write ad copy and choose its size and position on the page;
+   - buy, solicit or fake testimonials;
+   - answer letters;
+   - handle the coroner, the editor or a rival.
+3. **Go to press.** The simulation runs and the next edition is printed. This moment gets full audiovisual polish: press clatter, the paper landing, the first look at the front page.
 
 **Medium loop (every few months):** reach a new unlock (facility, channel, relationship, product line, automation).
 
@@ -277,38 +307,60 @@ Resolved in the epilogue (~1907–1910) from wealth, notoriety, the human ledger
 
 ---
 
-## 9. Screens: one 3D shop, explored by station
+## 9. Screens: the paper and the proprietor's desk
 
-The game is played inside a 3D apothecary. The camera glides between fixed **stations**; paper interfaces (letters, ledgers, labels) sit over the scene. Later the world grows outward (a city map table, the bottling works, the street), but the shop stays the heart of the game.
+_Revised: this replaces the earlier 3D-shop station design._
 
-| Station                 | In the scene                                                                                                    | On paper                                                                       |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| **The Shop** (overview) | The whole room as a diorama                                                                                     | What each station does                                                         |
-| **The Bench**           | The wall of drugs; a graduated measuring glass that fills and changes colour as you pour                        | The mixture, its properties as engraved gauge bars, the formula book           |
-| **The Still**           | Copper pot, swan neck, worm condenser, receiver; the pressure gauge trembles and steam rises when fired         | Batch size, ingredients to order, cost                                         |
-| **The Counter**         | Your bottles in the display case; regulars waiting, their posture showing their health, trembling in withdrawal | Prices, label claims, the list of regulars                                     |
-| **The Desk**            | The open Ledger, the morning's letters, the calendar, the bell                                                  | The Post, the Ledger by cause, _In memoriam_, ring the bell to close the month |
+Everything the player touches is printed or written matter, drawn in the Gazette woodcut style. There are two surfaces:
 
-Planned additions: the label press, the city map table (regions, wholesalers, newspapers), the Parlour (relationships, the Association), the unlock tree, saves and settings.
+**The paper (the board).** Each turn opens on the new edition. The front page carries:
+
+- the player's own adverts and reading notices;
+- testimonials;
+- deaths and the coroner's court;
+- personals and classifieds (hiring, leads, widows);
+- rival advertisements;
+- the markets column;
+- era news.
+
+Reading it is the payoff. Clicking an item opens its cause in the Ledger, or the decision it calls for.
+
+**The desk (the workbench).** Each workspace is an object on the proprietor's desk:
+
+| On the desk          | What the player does                                                                                                                                         |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **The formula book** | Compose a recipe from the drug shelf; the mixture's properties show as engraved gauge bars                                                                   |
+| **The proof sheet**  | Write ad copy and claims, choose a format (reading notice, display ad, testimonial, almanac, trade card), and buy a size and position on next edition's page |
+| **The label press**  | Name the product, set the label's claims and the stock cut                                                                                                   |
+| **The letters**      | Customer letters (testimonials to buy or forge, complaints, requests for a stronger bottle) and offers                                                       |
+| **The envelopes**    | Coroners, editors, wholesalers: the price of each relationship                                                                                               |
+| **The Ledger**       | The true books: sales, cash, heat and the human ledger, with causes                                                                                          |
+| **The press lever**  | Go to press: end the turn                                                                                                                                    |
+
+As the business grows, more objects land on the desk: the wholesale contract, the city map (regions and papers), the Association letterhead and the unlock tree.
+
+Production art comes from the Gazette woodcut set (see `godot/art/README.md`). Layouts (the front page, ad formats and the almanac) are built from reusable cuts, so new content needs writing, not new drawings.
 
 ---
 
 ## 10. Art, audio, presentation
 
-### Visual identity: _the medicine is the only colour_
+### Visual identity: the Gazette
 
-- **The world is an engraving.** Every frame is rendered as cross-hatched ink on aged paper: line width grows with shadow like a burin cutting deeper, ink outlines trace silhouettes and fine detail, paper grain and a plate vignette frame the image. A whisper of the scene's own hue survives, so brass reads warmer than wood.
-- **The liquids are the only saturated colour**, and they glow: laudanum amber-red, coca green, morphine violet, calomel silver, sugar syrup gold. Mixing in the measuring glass blends their colours. The player's product literally lights up a drab world, which is both the satire and the visual hook.
-- **3D, stylised, readable.** Simple, strong shapes (lathe-turned bottles and copper, plank floors, panelled walls) read clearly under hatching. Characters are stylised figures: posture, a cane or a tremble carry health, since colour cannot.
-- **Light:** warm gaslight with a slow flicker, a cool street glow through the shop window, firelight under the still.
-- **Type and print:** IM Fell (OFL), from the 17th-century Fell types, for everything printed. Interfaces are printed matter: double-ruled plates, letters, broadsheets, engraved gauge bars, black-lacquer-and-brass chrome.
-- **Accessibility:** the engraving pass can be switched off (plain lit colour remains, liquids still glow); reduced motion disables camera sway and transitions.
+_Revised: this replaces the earlier 3D engraving direction._
 
-### Asset strategy
+- **A pink-paper sensational weekly, printed from wood.** Black ink and one spot colour on pink newsprint. Midtones are carved gouges, edges are unevenly inked, and the paper is folded and worn. The model is the sensational press of 1880s–1900s New York, but the papers, products and people are all fictional.
+- **One spot colour: Scheele's green,** the arsenic pigment that poisoned Victorians through wallpaper, dresses and sweets. It is reserved for the product and its pull: the liquid, the rays around a bottle, the tinge in an arsenic-eater's cheeks.
+- **Woodtype and book type:** Rye for headlines and IM Fell for text (both SIL OFL).
+- **Stock cuts:** one engraving is reused across different products, people and captions. This is period-accurate and a running gag, and it keeps the art budget small.
+- **The era changes the print.** Halftone photographs arrive in the late 1890s, and the paper's look modernises as the reckoning approaches.
+- **Accessibility:** high-contrast and plain-paper modes, a reduced paper-grain option, and every printed string is real text, never baked into the art.
 
-1. **Now:** geometry built in code and CC0 assets, unified by the engraving pass so simple shapes look intentional.
-2. **Before release:** commission a 3D artist for hero assets (the still, the counter, bottles, characters) and a 2D artist for labels, trade cards and broadsheet illustrations.
-3. **Always:** glTF assets, budgets per asset, and a licence entry for every third-party file in `packages/game/ASSETS.md`.
+### Asset strategy (no artist yet)
+
+1. **Now:** original SVG sources, rendered to sprites by `godot/tools/render_art.mjs`, with a shared woodcut style (`tools/build_woodcut.py`). Pipeline and licence log: `godot/art/README.md`.
+2. **If the demo earns traction:** hire an artist to repaint the characters and hero cuts in the same rules. The layouts and the pipeline stay.
+3. **Always:** a licence entry for every third-party file (fonts and CC0 assets are logged).
 
 ### Audio and writing
 
@@ -319,6 +371,7 @@ Planned additions: the label press, the city map table (regions, wholesalers, ne
 
 ## 11. Content & sensitivity guidelines
 
+- **Punch up.** The joke is on the seller, the trade and the institutions that let it run, never on the victims or their suffering.
 - Satire with visible consequences; never reward cruelty without cost.
 - Infant soothing syrups exist because they're historically central. They are a heavy choice with severe consequences, presented without spectacle.
 - Medicine shows historically exploited Native American and other stereotypes. **We do not reproduce stereotyped depictions.** If referenced, it's framed critically.
@@ -342,26 +395,32 @@ Premium one-time purchase (expected $15–$20 range). No microtransactions. Poss
 
 ## 14. Risk audit (and mitigations)
 
-| Risk                                       | Mitigation                                                                                              |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
-| Spreadsheet fatigue / opaque causality     | Causal breakdown of every change; diegetic newspapers and letters; hover explanations                   |
-| Lab becomes a one-time task                | Supply shocks, scrutiny-driven reformulation, new segments, era ingredients, bad batches, the 1906 rule |
-| Monthly turns feel slow or spammy          | 2–4 decisions per month via The Post; auto-advance of quiet months                                      |
-| Statistical deaths lose moral weight       | Named sample customers, event chains, the human ledger, lagging newspaper truth                         |
-| Dominant strategy (max narcotics + bribes) | Compounding bribe costs, non-linear heat, adaptive reformers, the 1906 deadline                         |
-| Snowballing / late-game boredom            | Opposition scales with size; late game shifts to politics                                               |
-| Early death spiral                         | Loans, forgiving early months, cheap recovery routes                                                    |
-| Long feedback lag makes learning hard      | Leading indicators, rumours, informants; "you saw it coming" design                                     |
-| Micromanagement overload                   | Policies, managers as unlocks; caps on regions and products                                             |
-| Dry history                                | Accurate systems, flamboyant presentation; hands-on ad copy, medicine shows                             |
-| Tone / sensitivity backlash                | Section 11 guidelines; consequences always visible                                                      |
-| Low replayability                          | Backgrounds, exclusive unlocks, map variation, multiple endings                                         |
+| Risk                                       | Mitigation                                                                                                                                    |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Spreadsheet fatigue / opaque causality     | Causal breakdown of every change; diegetic newspapers and letters; hover explanations                                                         |
+| Lab becomes a one-time task                | Supply shocks, scrutiny-driven reformulation, new segments, era ingredients, bad batches, the 1906 rule                                       |
+| Monthly turns feel slow or spammy          | 2–4 decisions per month via The Post; auto-advance of quiet months                                                                            |
+| Statistical deaths lose moral weight       | Named sample customers, event chains, the human ledger, lagging newspaper truth                                                               |
+| Dominant strategy (max narcotics + bribes) | Compounding bribe costs, non-linear heat, adaptive reformers, the 1906 deadline                                                               |
+| Snowballing / late-game boredom            | Opposition scales with size; late game shifts to politics                                                                                     |
+| Early death spiral                         | Loans, forgiving early months, cheap recovery routes                                                                                          |
+| Long feedback lag makes learning hard      | Leading indicators, rumours, informants; "you saw it coming" design                                                                           |
+| Micromanagement overload                   | Policies, managers as unlocks; caps on regions and products                                                                                   |
+| Dry history                                | Accurate systems, flamboyant presentation; hands-on ad copy, medicine shows                                                                   |
+| Tone / sensitivity backlash                | Section 11 guidelines; consequences always visible                                                                                            |
+| Low replayability                          | Backgrounds, exclusive unlocks, map variation, multiple endings                                                                               |
+| Seen as derivative of other games          | The originality rule (section 1); no "X meets Y" messaging; a side-by-side lookalike check before the store page goes public                  |
+| The joke wears thin                        | Procedurally assembled obituaries, testimonials, headlines and verdicts; recurring named people; the era changing the paper itself            |
+| Writing volume                             | Content as data with schemas; the stock-cut system means new events need text, not art                                                        |
+| No artist                                  | A rule-based woodcut style that code-authored art can hit consistently; hire to repaint only if the demo earns it                             |
+| The dark path is simply optimal            | Make it high-variance, not dominant: dead customers stop buying, deaths raise heat, withdrawal kills; an honest-ish path is slower but viable |
 
 ---
 
 ## 15. Open design questions
 
-- Exact turn granularity in the very first months (monthly may feel slow with 12 customers; consider a faster early cadence).
+- Weekly-to-monthly edition cadence (section 3): what exactly triggers the switch, and does the player choose it?
+- How is page position priced, and how much layout freedom does the proof sheet give before it becomes busywork?
 - How interactive is distillation at factory scale (direct control vs a foreman policy)?
 - How much of the regional map is fixed history vs procedural per run?
 - How explicit should the human ledger be at the ending?

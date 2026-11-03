@@ -2,6 +2,10 @@
 
 Companion to [GAME_DESIGN.md](GAME_DESIGN.md). The playtest and release process is in [PLAYTEST_PIPELINE.md](PLAYTEST_PIPELINE.md).
 
+> **Engine change (pending a full rewrite of this plan).** The game client moves to **Godot 4 (.NET / C#)** (`godot/`), and the art is the Gazette woodcut set (`godot/art/README.md`). The web client rows of the stack table below (React, Three.js, Electron) are superseded; `packages/game` is a retired style experiment.
+>
+> The deterministic simulation stays the source of truth. How Godot runs it is the open decision: port it to C# with parity tests on identical seeds against the TypeScript version, or call the TypeScript library from the client. It will be settled when the first playable edition is built.
+
 ---
 
 ## 1. Principles

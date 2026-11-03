@@ -58,6 +58,7 @@ public partial class EditionView : ScrollContainer
 		head.PivotOffset = head.Size / 2;
 		head.Scale = new Vector2(1.45f, 1.45f);
 		head.Modulate = Colors.White;
+		Sfx.Play("slam", 0f, 0.02f);
 		var t = head.CreateTween();
 		t.TweenProperty(head, "scale", Vector2.One, 0.22f).SetTrans(Tween.TransitionType.Quad).SetEase(Tween.EaseType.In);
 		t.TweenCallback(Callable.From(() => { if (_sheet != null) Anim.Jolt(_sheet, 7f); }));

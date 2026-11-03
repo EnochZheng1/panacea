@@ -36,6 +36,9 @@ public partial class Main : Control
 			return fallback;
 		}
 
+		var sfx = new Sfx();
+		AddChild(sfx);
+		Sfx.Loop("room", -16f, 1.5f);
 		_game = args.Contains("--fake") ? new FakeGame() : SimGame.Start(Arg("--seed", "gazette-1885"));
 		using (var f = FileAccess.Open("res://data/paper.en.json", FileAccess.ModeFlags.Read))
 			_writer = new EditionWriter(f.GetAsText());
@@ -78,6 +81,11 @@ public partial class Main : Control
 		_nav.SizeFlagsVertical = SizeFlags.ShrinkCenter;
 		_nav.CustomMinimumSize = new Vector2(230, 0);
 		_nav.Pressed += Navigate;
+		var sound = InvertedButton("SOUND: ON");
+		sound.SizeFlagsVertical = SizeFlags.ShrinkCenter;
+		sound.AddThemeFontSizeOverride("font_size", 13);
+		sound.Pressed += () => { Sfx.SetEnabled(!Sfx.Enabled); sound.Text = Sfx.Enabled ? "SOUND: ON" : "SOUND: OFF"; };
+		row.AddChild(sound);
 		row.AddChild(_nav);
 		footer.AddChild(row);
 		ui.AddChild(footer);
@@ -102,7 +110,7 @@ public partial class Main : Control
 	/// <summary>On the black footer the ticket is printed white-on-black, inking white on hover.</summary>
 	private static Button InvertedButton(string text)
 	{
-		var b = Print.Button(text, 18);
+		var b = Print.Button(text, 18, sound: null);
 		b.AddThemeColorOverride("font_color", Print.Paper);
 		b.AddThemeColorOverride("font_hover_color", Print.Ink);
 		b.AddThemeColorOverride("font_pressed_color", Print.Ink);
@@ -142,6 +150,8 @@ public partial class Main : Control
 		if (_game.Ended || _pressing) return;
 		_pressing = true;
 		var cashBefore = _game.Desk().CashCents;
+		Sfx.Play("lever", 0f, 0.02f);
+		Sfx.StopLoop("death", 0.3f);
 		_game.GoToPress();
 		var edition = _writer.Write(_game.Facts);
 
@@ -153,6 +163,7 @@ public partial class Main : Control
 		t.TweenProperty(_desk, "position:y", -90f, 0.3f).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.In);
 		t.Parallel().TweenProperty(_desk, "modulate:a", 0f, 0.3f);
 		// 2. the presses run
+		t.TweenCallback(Callable.From(() => Sfx.Loop("press_loop", -6f, 0.4f)));
 		t.TweenProperty(run, "modulate:a", 1f, 0.15f);
 		var count = 0;
 		var target = 1100 + (int)(_game.Facts.Turn * 37 % 400);
@@ -164,6 +175,7 @@ public partial class Main : Control
 			t.TweenCallback(Callable.From(() =>
 			{
 				Anim.Jolt(run, 8f);
+				Sfx.Play("sheet", -2f, 0.08f);
 				count += target / sheets.Count;
 				copies.Text = $"{count:N0} COPIES";
 			}));
@@ -178,8 +190,13 @@ public partial class Main : Control
 			_desk.Modulate = Colors.White;
 			_edition.Show(edition);
 			SetDesk(false, slide: false);
+			Sfx.StopLoop("press_loop", 0.8f);
+			Sfx.Play("roller", -3f, 0.02f);
 			_edition.PlayReveal(1.6f);
 			CountCash(cashBefore, _game.Desk().CashCents, 1.4f);
+			// the parish bell, once for each death in the paper (three at most: the ward has only one bell)
+			var deaths = System.Math.Min(3, _game.Facts.Deaths.Count);
+			for (var k = 0; k < deaths; k++) Sfx.After(2.0f + k * 2.4f, "knell", -4f - k * 2f);
 		}));
 		t.TweenProperty(run, "modulate:a", 0f, 0.25f);
 		t.TweenCallback(Callable.From(EndPress));
@@ -248,6 +265,19 @@ public partial class Main : Control
 
 	private void CountCash(long from, long to, float seconds)
 	{
+		// coins counted onto the pile, then the till: a bell if the month paid, a dull drawer if not
+		if (to != from)
+		{
+			var coins = to > from ? 9 : 4;
+			var ct = CreateTween();
+			for (var k = 0; k < coins; k++)
+			{
+				var db = -8f - k * 0.8f;
+				ct.TweenCallback(Callable.From(() => Sfx.Play("coin", db, 0.12f)));
+				ct.TweenInterval(seconds / coins * (0.6f + 0.08f * k));
+			}
+			ct.TweenCallback(Callable.From(() => { if (to > from) Sfx.Play("till", -3f); else Sfx.Play("ticket", 0f, 0.02f, 0.55f); }));
+		}
 		var t = CreateTween();
 		t.TweenMethod(Callable.From<float>(v => UpdateStatus((long)Mathf.Round(v))), (float)from, (float)to, seconds)
 			.SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.Out);
@@ -267,9 +297,12 @@ public partial class Main : Control
 		_desk.Visible = _onDesk;
 		_wood.Visible = _onDesk;
 		_edition.Visible = !_onDesk;
+		if (_onDesk && _desk.DeathPresent) Sfx.Loop("death", -14f, 2.0f);
+		else Sfx.StopLoop("death", 0.8f);
 		// moving across the table: the next thing slides in from the side it lies on
 		if (slide && was != _onDesk)
 		{
+			Sfx.Play("page", -2f);
 			var view = _onDesk ? (Control)_desk : _edition;
 			view.Position = new Vector2(_onDesk ? 70 : -70, 0);
 			view.Modulate = new Color(1, 1, 1, 0);

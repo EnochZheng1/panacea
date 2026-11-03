@@ -35,8 +35,14 @@ public partial class ProofView : Control
 	private void Refresh() => Rebuild();
 
 	/// <summary>Opens a tool over the proof: letters, still, formula or supplies.</summary>
+	private bool _drawerOpened;
+
+	/// <summary>True while Death stands at someone's shoulder on the counter.</summary>
+	public bool DeathPresent { get; private set; }
+
 	public void OpenDrawer(string which)
 	{
+		_drawerOpened = true;
 		_drawer = which;
 		Rebuild();
 	}
@@ -216,6 +222,7 @@ public partial class ProofView : Control
 		// the most notable regulars: the sick first, then the hooked, then the new
 		var shown = m.Regulars.OrderByDescending(Risk).ThenBy(r => r.MonthsAsCustomer).Take(5).ToList();
 		var atRisk = shown.FirstOrDefault(r => r.Looks is "gravely_ill" or "poorly");
+		DeathPresent = atRisk != null;
 		var others = m.Regulars.Count - shown.Count;
 		var more = Print.Label(others > 0 ? $"and {others} more regulars" : m.Regulars.Count == 0 ? "No one has come in yet." : "", Print.FellIt, 13, wrap: false);
 		more.HorizontalAlignment = HorizontalAlignment.Right;
@@ -348,7 +355,7 @@ public partial class ProofView : Control
 			var weight = bold >= 3 ? " !!!" : bold >= 1.5 ? " !!" : bold >= 1 ? " !" : "";
 			// long claims are set short on the slug; the full wording is in the tooltip
 			var slug = name.Length > 26 ? name[..24].TrimEnd(' ', ',') + "…" : name;
-			var b = Print.Button(slug.ToUpperInvariant() + weight, 11, solid: on);
+			var b = Print.Button(slug.ToUpperInvariant() + weight, 11, solid: on, sound: "slug");
 			b.TooltipText = name + (on ? "\nClick to strike it out." : "\nClick to set it in type.");
 			var claim = id;
 			b.Pressed += () =>
@@ -388,7 +395,7 @@ public partial class ProofView : Control
 		if (m.Letters.Count > 0)
 		{
 			var open = Print.Button("OPEN THE LETTERS", 13, solid: true);
-			open.Pressed += () => { _drawer = "letters"; Rebuild(); };
+			open.Pressed += () => OpenDrawer("letters");
 			v.AddChild(open);
 		}
 		return Print.Slip(v, 10);
@@ -419,7 +426,7 @@ public partial class ProofView : Control
 			var b = Print.Button(label, 12);
 			b.SizeFlagsHorizontal = SizeFlags.ExpandFill;
 			var k = key;
-			b.Pressed += () => { _drawer = k; Rebuild(); };
+			b.Pressed += () => OpenDrawer(k);
 			row.AddChild(b);
 		}
 		v.AddChild(row);
@@ -428,7 +435,7 @@ public partial class ProofView : Control
 
 	private Control Lever()
 	{
-		var b = Print.Button("SEND TO PRESS ▸", 28, solid: true);
+		var b = Print.Button("SEND TO PRESS ▸", 28, solid: true, sound: null);
 		b.CustomMinimumSize = new Vector2(0, 84);
 		b.TooltipText = "End the month. The lead story is written by what happens.";
 		b.AddThemeStyleboxOverride("normal", Print.Box(Print.Ink, Print.Paper, 3, 10));
@@ -450,7 +457,7 @@ public partial class ProofView : Control
 		var close = Print.Button("CLOSE ✕", 14, solid: true);
 		close.SizeFlagsHorizontal = SizeFlags.ShrinkEnd;
 		close.AddThemeStyleboxOverride("normal", Print.Box(Print.Ink, Print.Paper, 2, 6));
-		close.Pressed += () => { _drawer = null; Rebuild(); };
+		close.Pressed += () => { Sfx.Play("slip", -4f, 0.04f, 0.85f); _drawer = null; Rebuild(); };
 		holder.AddChild(close);
 		var desk = new DeskView { Only = which, SizeFlagsVertical = SizeFlags.ExpandFill };
 		desk.SetAnchorsPreset(LayoutPreset.TopLeft);
@@ -459,6 +466,7 @@ public partial class ProofView : Control
 		desk.Bind(_game);
 		shade.AddChild(holder);
 		Anim.SlideIn(holder, new Vector2(0, 60), 0.24f);
+		if (_drawerOpened) { _drawerOpened = false; Sfx.Play("slip"); }
 		shade.GuiInput += e => { if (e is InputEventMouseButton { Pressed: true } mb && mb.ButtonIndex == MouseButton.Left && !holder.GetGlobalRect().HasPoint(mb.GlobalPosition)) { _drawer = null; CallDeferred(nameof(Refresh)); } };
 		return shade;
 	}

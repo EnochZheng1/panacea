@@ -107,7 +107,7 @@ public static class Print
 	/// A printed ticket: woodtype caption inside a ruled border. Hovering inks it in (the colours
 	/// invert); "solid" tickets are the main action of a slip and start inked.
 	/// </summary>
-	public static Button Button(string text, int size = 18, bool solid = false)
+	public static Button Button(string text, int size = 18, bool solid = false, string? sound = "ticket")
 	{
 		var b = new Button { Text = text, FocusMode = Control.FocusModeEnum.All, MouseDefaultCursorShape = Control.CursorShape.PointingHand };
 		b.AddThemeFontOverride("font", Rye);
@@ -133,6 +133,8 @@ public static class Print
 		b.AddThemeStyleboxOverride("hover_pressed", Make(fg, Ink, 3));
 		b.AddThemeStyleboxOverride("disabled", Make(bg, new Color(Ink, 0.3f), 1));
 		Anim.LiftOnHover(b);
+		b.MouseEntered += () => { if (!b.Disabled) Sfx.Play("tick", -14f, 0.15f); };
+		if (sound != null) b.Pressed += () => Sfx.Play(sound);
 		var focus = Make(new Color(0, 0, 0, 0), Ink, 1);
 		focus.ExpandMarginLeft = focus.ExpandMarginRight = focus.ExpandMarginTop = focus.ExpandMarginBottom = 3;
 		b.AddThemeStyleboxOverride("focus", focus);

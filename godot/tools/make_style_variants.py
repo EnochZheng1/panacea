@@ -82,7 +82,7 @@ sil = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 1000" width="
     <path d="M24,24 C90,40 120,90 110,150 C80,120 50,110 24,118 Z M576,24 C510,40 480,90 490,150 C520,120 550,110 576,118 Z"/>
     <path d="M24,896 H576 V912 C540,904 520,918 490,908 C460,918 440,904 410,912 C380,904 360,918 330,908 C300,918 280,904 250,912 C220,904 200,918 170,908 C140,918 120,904 90,912 C60,904 44,916 24,910 Z"/>
   </g>
-  <g fill="none" stroke="url(#lamp)" stroke-width="3" stroke-dasharray="1 9" stroke-linecap="round" opacity="0.8">
+  <g id="frame-beads" fill="none" stroke="url(#lamp)" stroke-width="3" stroke-dasharray="1 9" stroke-linecap="round" opacity="0.8">
     <path d="M36,880 V64 Q36,36 64,36 H536 Q564,36 564,64 V880"/>
   </g>
   <g id="caption">

@@ -1,11 +1,27 @@
 # Art pipeline (no artist yet)
 
-Direction: **Grim ink**, the 1880s–1900s satirical-cartoon sensibility translated for a game.
+## Chosen direction: the Gazette
 
-- **Shadow:** heavy black ink masses, with dry-brush lit edges in bone and aged paper.
-- **Accent:** one colour only, Scheele's green, the arsenic pigment that killed Victorians in their wallpaper and sweets. It is reserved for the product and the light it throws.
-- **Figures:** stiff, posed and angular, readable as a silhouette at small size.
-- **Humour:** has to work with the caption covered. Each asset carries a sight gag: Death measuring a beaming customer for a coffin, the proprietor's crossed fingers, a poison bottle under a new label. Captions and the period narrator only add to it.
+The player chose the pink-paper sensational weekly of 1880s–1900s New York, printed as a woodcut: black, plus Scheele's green on pink newsprint, with woodtype headlines (`style_woodcut`, `gazette_page`).
+
+The newspaper is the game's main surface, not just a style. Patent medicine was the period's largest newspaper advertiser, so each turn is an edition. The humour comes from juxtaposition on the page, for example the player's advert dressed as news next to the obituary of the man it describes.
+
+Period material to draw on, and the game use for each:
+
+| Period element | Use in the game |
+| --- | --- |
+| Reading notices (adverts typeset as news, ending in "Adv.") | An ad format the player can buy |
+| Testimonials (named, sometimes bought, sometimes outliving the writer) | Bought, and they can backfire |
+| Deaths and coroner's court columns | Where consequences appear |
+| Personals and classifieds | Hiring, widows, hints |
+| Rival advertisers | AI competitors |
+| Stock cuts (one engraving sold to many advertisers) | A recurring visual gag, and a cheap way to make art |
+| The "red clause" (ad contracts void if the state regulated patent medicine) | Press influence: papers lobby for you |
+| The markets column | Ingredient prices |
+| Almanacs, trade cards, handbills, sandwich men, medicine shows | Further ad channels |
+| *Collier's* "The Great American Fraud" (1905) and the Pure Food and Drug Act (1906) | The endgame |
+
+Earlier explorations are kept for reference: grim ink (`silent_partner`, `satisfied_customer`, `proprietor`, `panacea_bottle`), shadow play and the trade card.
 
 ## How assets are made
 
@@ -19,6 +35,7 @@ Direction: **Grim ink**, the 1880s–1900s satirical-cartoon sensibility transla
 
 | Asset | Source | Licence |
 | --- | --- | --- |
-| `silent_partner`, `satisfied_customer`, `proprietor`, `panacea_bottle` | Original, authored in this repo | Project-owned |
+| All art in `art/src/` | Original, authored in this repo | Project-owned |
 | IM Fell English font | Google Fonts (`assets/fonts/OFL.txt`) | SIL OFL 1.1 |
+| Rye font | Google Fonts (`assets/fonts/OFL-Rye.txt`) | SIL OFL 1.1 |
 | Poly Haven models and textures | `assets/polyhaven/LICENSES.json` | CC0 1.0 |

@@ -1,0 +1,221 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1700" width="1200" height="1700">
+  <!--
+    Panacea UI/art asset: a front page of a fictional pink-paper sensational weekly, 1885.
+    The newspaper is the game's main surface: each turn is an edition. This page demonstrates
+    the period furniture (masthead, ears, dateline, stacked headline decks, column rules,
+    deaths, coroner's court, personals, classifieds, rival advertisements sharing one stock cut,
+    the markets) and the core joke: the player's advertisement, dressed as news, beside the
+    obituary of the man it describes. All names, papers and products are fictional.
+  -->
+  <defs>
+    <style>
+      @font-face { font-family: Fell; src: url(../../assets/fonts/IMFeENrm28P.ttf); }
+      @font-face { font-family: FellIt; src: url(../../assets/fonts/IMFeENit28P.ttf); }
+      @font-face { font-family: Rye; src: url(../../assets/fonts/Rye-Regular.ttf); }
+    </style>
+    <filter id="paper">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" seed="3" result="f"/>
+      <feColorMatrix in="f" type="matrix" values="0 0 0 0 0.55  0 0 0 0 0.3  0 0 0 0 0.3  0 0 0 0.16 0" result="f1"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.003" numOctaves="3" seed="8" result="b"/>
+      <feColorMatrix in="b" type="matrix" values="0 0 0 0 0.6  0 0 0 0 0.35  0 0 0 0 0.3  -1.2 0 0 0 0.62" result="f2"/>
+      <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="f2"/><feMergeNode in="f1"/></feMerge>
+    </filter>
+    <!-- letterpress: type bites unevenly into cheap paper -->
+    <filter id="press" x="-2%" y="-2%" width="104%" height="104%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="2" seed="4" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="1.6" xChannelSelector="R" yChannelSelector="G" result="d"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="2" seed="11" result="s"/>
+      <feColorMatrix in="s" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -10 0 0 0 7.4" result="m"/>
+      <feComposite in="d" in2="m" operator="in"/>
+    </filter>
+  </defs>
+
+  <g id="backdrop">
+    <rect width="1200" height="1700" fill="#f0c4bd" filter="url(#paper)"/>
+  </g>
+
+  <foreignObject x="0" y="0" width="1200" height="1700" filter="url(#press)">
+    <div xmlns="http://www.w3.org/1999/xhtml" class="page">
+      <style>
+        .page { box-sizing: border-box; width: 1200px; height: 1700px; padding: 34px 40px; color: #161112;
+                font-family: Fell, serif; font-size: 15.5px; line-height: 1.22; }
+        .page * { box-sizing: border-box; margin: 0; }
+        .rule2 { border-top: 5px solid #161112; border-bottom: 1.5px solid #161112; height: 10px; }
+        .rule1 { border-top: 1.5px solid #161112; }
+        .mast { display: grid; grid-template-columns: 190px 1fr 190px; align-items: center; gap: 18px; padding: 10px 0 6px; }
+        .ear { border: 2px solid #161112; padding: 7px 9px; font-size: 13px; text-align: center; line-height: 1.25; }
+        .ear b { font-family: Rye; font-weight: normal; font-size: 15px; display: block; letter-spacing: 1px; }
+        .title { text-align: center; }
+        .title .over { font-family: FellIt; font-size: 18px; letter-spacing: 3px; }
+        .title h1 { font-family: Rye; font-weight: normal; font-size: 82px; line-height: 0.95; letter-spacing: 1px; }
+        .title .motto { font-family: FellIt; font-size: 15px; margin-top: 4px; }
+        .dateline { display: flex; justify-content: space-between; font-size: 13.5px; letter-spacing: 1px; padding: 4px 2px; }
+        .cols { display: grid; grid-template-columns: 250px 1fr 270px; gap: 0; margin-top: 8px; height: 1330px; }
+        .col { padding: 0 16px; overflow: hidden; }
+        .col + .col { border-left: 1.5px solid #161112; }
+        .col:first-child { padding-left: 0; } .col:last-child { padding-right: 0; }
+        h2 { font-family: Rye; font-weight: normal; font-size: 21px; text-align: center; letter-spacing: 2px; margin: 4px 0 6px; }
+        h2 + .rule1, .sep { width: 40%; margin: 6px auto 8px; border-top: 1.2px solid #161112; }
+        p { text-align: justify; hyphens: auto; margin-bottom: 7px; }
+        .notice { text-indent: 0; }
+        .notice b { font-weight: normal; letter-spacing: 1px; }
+        .lead h3 { font-family: Rye; font-weight: normal; text-align: center; font-size: 58px; line-height: 1; }
+        .deck { text-align: center; margin: 4px 0; }
+        .deck.a { font-family: FellIt; font-size: 25px; }
+        .deck.b { font-size: 16px; letter-spacing: 1.5px; line-height: 1.3; padding: 0 30px; }
+        .deck.c { font-family: FellIt; font-size: 19px; }
+        .cut { width: 440px; height: 560px; margin: 8px auto 0; border: 3px double #161112;
+                background: url(../../assets/art/style_woodcut.png) -10px -121px / 462px 771px no-repeat,
+                            repeating-linear-gradient(0deg, transparent 0 5px, rgba(22,17,18,0.22) 5px 6.4px); }
+        .cutline { text-align: center; font-family: FellIt; font-size: 14px; margin: 4px 0 8px; }
+        .body2 { column-count: 2; column-gap: 22px; column-rule: 1.2px solid #161112; }
+        .drop::first-letter { font-family: Rye; font-size: 44px; float: left; line-height: 0.9; padding: 2px 5px 0 0; }
+        .ad { border: 3px double #161112; padding: 8px 10px; margin-bottom: 12px; text-align: center; }
+        .ad .big { font-family: Rye; font-size: 25px; line-height: 1.02; }
+        .ad .mid { font-size: 15px; letter-spacing: 2px; margin: 3px 0; }
+        .ad .sm { font-family: FellIt; font-size: 13.5px; line-height: 1.22; }
+        .ad .fine { font-family: FellIt; font-size: 11px; margin-top: 5px; }
+        .stock { width: 86px; height: 104px; margin: 6px auto; display: block; }
+        .ad.black { background: #161112; color: #f0c4bd; }
+        .ad.own { display: grid; grid-template-columns: 70px 1fr; gap: 12px; align-items: center; margin-top: 10px; border-width: 5px; text-align: left; }
+        .ad.own .big { font-size: 27px; } .ad.own .mid { font-size: 12.5px; letter-spacing: 1px; }
+        .bottlecut { width: 60px; height: 150px; }
+        .hand { font-family: serif; }
+        .markets { border-top: 5px solid #161112; border-bottom: 1.5px solid #161112; margin-top: 8px; padding: 6px 0 5px;
+                   font-size: 15px; text-align: center; }
+        .markets b { font-family: Rye; font-weight: normal; letter-spacing: 2px; margin-right: 8px; }
+      </style>
+
+      <div class="rule2"></div>
+      <div class="mast">
+        <div class="ear"><b>WEATHER.</b>Fog, with general coughing. Fair to middling by Sunday.</div>
+        <div class="title">
+          <div class="over">ILLUSTRATED · ESTABLISHED 1871</div>
+          <h1>THE BOWERY GAZETTE</h1>
+          <div class="motto">The Leading Sensational, Sporting &amp; Medical Journal of America</div>
+        </div>
+        <div class="ear"><b>FIVE CENTS.</b>Sold by All Newsdealers, Barbers &amp; Druggists.</div>
+      </div>
+      <div class="rule2"></div>
+      <div class="dateline"><span>VOL. XIV.—NO. 412.</span><span>NEW-YORK, SATURDAY, OCTOBER 17, 1885.</span><span>$4.00 A YEAR.</span></div>
+      <div class="rule1"></div>
+
+      <div class="cols">
+        <div class="col">
+          <h2>DEATHS.</h2><div class="sep"></div>
+          <p class="notice"><b>PIKE.</b>—On Thursday, October 15th, ALBERT PIKE, clerk, of Mulberry street, in the 35th year of his age. Funeral private. <i>Boston papers please copy.</i></p>
+          <p class="notice"><b>O'ROURKE.</b>—Suddenly, at his residence, PATRICK O'ROURKE, longshoreman, aged 41 years. He had been in excellent spirits.</p>
+          <p class="notice"><b>VAN DUSEN.</b>—Peacefully, CORNELIA, widow of the late Jacob Van Dusen, aged 63 years. She slept soundly to the last.</p>
+          <p class="notice"><b>SCHMIDT.</b>—HEINRICH, baker, aged 52 years, after a short and remarkably cheerful illness.</p>
+          <p class="notice"><b>DOYLE.</b>—MARGARET, beloved wife of Thomas Doyle, aged 38 years. Her complexion was much admired at the viewing.</p>
+
+          <h2>CORONER'S COURT.</h2><div class="sep"></div>
+          <p>An inquest upon the body of Albert Pike, clerk, was opened yesterday before Coroner Fogarty. A brown bottle found at the bedside was entered in evidence, and could not afterward be found. The Coroner returned a verdict of "Visitation of God," observing that he had his reasons, and that they were none of the jury's business.</p>
+
+          <h2>PERSONAL.</h2><div class="sep"></div>
+          <p>WILL the gentleman who sold my husband a bottle on Tuesday kindly call again. He left something behind.—A WIDOW.</p>
+          <p><span class="hand">☞</span> WANTED.—TESTIMONIALS from persons restored to health. Liberal terms. Must be able to sign name, or make mark. Box 13, this office.</p>
+          <p>WANTED.—A smart BOY to paste labels. Must not read. Apply at rear entrance after dark.</p>
+          <h2>POLICE COURT.</h2><div class="sep"></div>
+          <p>GUSTAV KLEIN, druggist, of Hester street, was fined two dollars for selling laudanum without a label. He has since purchased a label.</p>
+          <p>LOST.—A tall gentleman's tape measure, near Mulberry street. Finder need not return it; he has another.</p>
+        </div>
+
+        <div class="col lead">
+          <h3>NEVER FELT<br/>BETTER!</h3>
+          <div class="sep"></div>
+          <div class="deck a">A Clerk's Remarkable Restoration.</div>
+          <div class="sep"></div>
+          <div class="deck b">MR. ALBERT PIKE, OF MULBERRY STREET, MADE A NEW MAN BY THREE BOTTLES OF DR. ——'S CELEBRATED PANACEA.</div>
+          <div class="sep"></div>
+          <div class="deck c">Dances a Hornpipe Before His Astonished Neighbors.</div>
+          <div class="cut"></div>
+          <div class="cutline">MR. PIKE, AS HE APPEARED ON TUESDAY LAST.—Drawn from life by our own artist.</div>
+          <div class="body2">
+            <p class="drop">Mr. Albert Pike, a clerk of good character, had for eleven years endured the miseries of catarrh, dyspepsia, nervous prostration and the melancholy peculiar to his profession. Three physicians had given him up, and a fourth had declined to begin.</p>
+            <p>"I tried everything," he informed our reporter, "until a friend pressed upon me a bottle of Dr. ——'s Celebrated Panacea. After the first spoonful I felt nothing whatever. After the second I felt magnificent."</p>
+            <p>Mr. Pike now takes the remedy hourly. His cough has entirely ceased. He sleeps a great deal, and reports that a tall gentleman in the neighborhood has lately taken a kindly interest in his measurements.</p>
+            <p>The Panacea is purely vegetable, contains nothing injurious, and is recommended for infants, invalids and the aged. Sold by all druggists. One dollar the bottle; six for five dollars.—<i>Adv.</i></p>
+          </div>
+          <div class="ad own">
+            <svg xmlns="http://www.w3.org/2000/svg" class="bottlecut" viewBox="0 0 60 150">
+              <path d="M14,52 C14,42 22,38 26,36 L26,20 L34,20 L34,36 C38,38 46,42 46,52 L46,140 C46,145 42,148 38,148 L22,148 C18,148 14,145 14,140 Z" fill="#161112"/>
+              <path d="M19,60 L19,138 L41,138 L41,60 Z" fill="#23a862"/>
+              <path d="M17,78 L43,78 L43,116 L17,116 Z" fill="#f0c4bd" stroke="#161112" stroke-width="1.5"/>
+              <path d="M21,86 H39 M21,94 H39 M23,102 H37 M24,108 H36" stroke="#161112" stroke-width="2"/>
+              <path d="M24,8 L36,8 L35,20 L25,20 Z" fill="#161112"/>
+              <path d="M22,64 L22,134" stroke="#f0c4bd" stroke-width="2" opacity="0.7"/>
+            </svg>
+            <div class="owntext">
+              <div class="big">DR. ——'S CELEBRATED PANACEA</div>
+              <div class="mid">CURES CONSUMPTION · CATARRH · DYSPEPSIA · MELANCHOLY · FEMALE COMPLAINTS · &amp; ALL ILLS</div>
+              <div class="sm"><span class="hand">☞</span> Endorsed by Clergymen. Prescribed by Physicians. Results Permanent.</div>
+              <div class="fine">BEWARE OF IMITATIONS! None genuine without the Doctor's signature, which he will supply on request.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="ad">
+            <div class="big">DR. GRIMSBY'S<br/>GALVANIC BELT</div>
+            <div class="mid">RESTORES LOST VIGOR</div>
+            <div class="sm">Worn next the skin. A Current of Health through every Nerve! Sent on thirty days' trial.</div>
+            <div class="fine">Wearers are requested not to stand in puddles.</div>
+          </div>
+          <div class="ad">
+            <div class="mid">LADIES!</div>
+            <div class="big" style="font-size:20px">MRS. PRUDENCE WHITTLE'S<br/>VEGETABLE COMPOUND</div>
+            <svg xmlns="http://www.w3.org/2000/svg" class="stock" viewBox="0 0 86 104">
+              <ellipse cx="43" cy="52" rx="40" ry="50" fill="none" stroke="#161112" stroke-width="2.4"/>
+              <path d="M22,98 C22,78 32,70 43,70 C54,70 64,78 64,98 Z" fill="#161112"/>
+              <circle cx="43" cy="48" r="16" fill="#f0c4bd" stroke="#161112" stroke-width="2.2"/>
+              <path d="M27,46 C26,30 36,24 44,25 C54,26 61,33 59,46 C55,38 48,34 43,35 C37,35 31,40 27,46 Z" fill="#161112"/>
+              <circle cx="56" cy="27" r="7" fill="#161112"/>
+              <path d="M37,48 C38,49 40,49 41,48 M46,48 C47,49 49,49 50,48 M39,55 C42,58 46,58 48,55" fill="none" stroke="#161112" stroke-width="1.4" stroke-linecap="round"/>
+              <path d="M30,74 L56,74 M28,82 L58,82 M27,90 L59,90" stroke="#f0c4bd" stroke-width="1.6"/>
+            </svg>
+            <div class="sm">Write to Mrs. Whittle in strictest confidence. She answers every letter personally.</div>
+            <div class="fine">Mrs. Whittle's correspondence continues brisk, notwithstanding her funeral in March.</div>
+          </div>
+          <div class="ad">
+            <div class="mid">BEAUTY!</div>
+            <div class="big" style="font-size:19px">MADAME DE LA ROSE'S<br/>ARSENICAL COMPLEXION WAFERS</div>
+            <svg xmlns="http://www.w3.org/2000/svg" class="stock" viewBox="0 0 86 104">
+              <ellipse cx="43" cy="52" rx="40" ry="50" fill="none" stroke="#161112" stroke-width="2.4"/>
+              <path d="M22,98 C22,78 32,70 43,70 C54,70 64,78 64,98 Z" fill="#161112"/>
+              <circle cx="43" cy="48" r="16" fill="#f0c4bd" stroke="#161112" stroke-width="2.2"/>
+              <path d="M27,46 C26,30 36,24 44,25 C54,26 61,33 59,46 C55,38 48,34 43,35 C37,35 31,40 27,46 Z" fill="#161112"/>
+              <circle cx="56" cy="27" r="7" fill="#161112"/>
+              <path d="M37,48 C38,49 40,49 41,48 M46,48 C47,49 49,49 50,48 M39,55 C42,58 46,58 48,55" fill="none" stroke="#161112" stroke-width="1.4" stroke-linecap="round"/>
+              <path d="M30,74 L56,74 M28,82 L58,82 M27,90 L59,90" stroke="#f0c4bd" stroke-width="1.6"/>
+            </svg>
+            <div class="sm">A Skin of Alabaster! Perfectly Safe! Ladies of Fashion take three daily.</div>
+            <div class="fine">The portrait above is used by kind permission of Mrs. Whittle, who did not object.</div>
+          </div>
+          <div class="ad black">
+            <div class="big" style="font-size:22px">FOGG &amp; SONS,</div>
+            <div class="mid">UNDERTAKERS.</div>
+            <div class="sm">Coffins in All Sizes, Ready Made. We Thank Our Friends in the Medicine Trade for Their Continued Patronage. Terms by the Dozen.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="markets"><b>THE MARKETS.</b>Laudanum, firm. Opium, steady at $4.10. Calomel, active. Whisky (medicinal), brisk. Coffins, pine, up two cents; oak, unchanged. Lilies, scarce.</div>
+    </div>
+  </foreignObject>
+
+  <g id="wear" pointer-events="none">
+    <rect width="1200" height="1700" fill="url(#edgeburn)"/>
+    <path d="M600,0 L600,1700" stroke="#7a4a44" stroke-width="2.5" opacity="0.22"/>
+    <path d="M602,0 L602,1700" stroke="#fff3ee" stroke-width="2" opacity="0.35"/>
+    <path d="M0,850 L1200,850" stroke="#7a4a44" stroke-width="2" opacity="0.18"/>
+    <path d="M0,852 L1200,852" stroke="#fff3ee" stroke-width="1.6" opacity="0.3"/>
+    <ellipse cx="1080" cy="1560" rx="60" ry="34" fill="#5a2a24" opacity="0.045" transform="rotate(-25 1080 1560)"/>
+  </g>
+  <defs>
+    <radialGradient id="edgeburn" cx="50%" cy="50%" r="75%">
+      <stop offset="0.6" stop-color="#7a3a30" stop-opacity="0"/>
+      <stop offset="1" stop-color="#7a3a30" stop-opacity="0.28"/>
+    </radialGradient>
+  </defs>
+</svg>

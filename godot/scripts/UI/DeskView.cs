@@ -64,7 +64,8 @@ public partial class DeskView : ScrollContainer
 		var scroll = ScrollVertical;
 		Rebuild();
 		CallDeferred(nameof(RestoreScroll), scroll);
-		Changed?.Invoke();
+		// only a change to the game itself refreshes the proof around the drawer
+		if (error != null || success.Length > 0) Changed?.Invoke();
 	}
 
 	private void RestoreScroll(int v) => ScrollVertical = v;
@@ -151,7 +152,7 @@ public partial class DeskView : ScrollContainer
 	}
 
 	public static string Talk(double heat) =>
-		heat < 10 ? "none to speak of" : heat < 30 ? "a little" : heat < 55 ? "a good deal" : heat < 80 ? "alarming" : "the Board of Health is asking";
+		heat < 3 ? "none to speak of" : heat < 15 ? "a little" : heat < 40 ? "a good deal" : heat < 70 ? "alarming" : "the Board of Health is asking";
 
 	private Control Letters(DeskModel m)
 	{

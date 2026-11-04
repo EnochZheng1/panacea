@@ -99,7 +99,7 @@ public partial class FormulaBench : HBoxContainer
 		"opiate" => "wc_bottle_syrup",
 		"alcohol" => "wc_bottle_bitters",
 		"cocaine" => "wc_bottle_panacea",
-		_ => i.Id is "calomel" or "fowlers_solution" or "acetanilide" or "aspirin" ? "wc_pills" : "wc_bottle_panacea",
+		_ => i.Id is "calomel" or "acetanilide" or "aspirin" ? "wc_pills" : "wc_bottle_panacea",
 	};
 
 	private Control Jar(IngredientRow i)
@@ -115,8 +115,8 @@ public partial class FormulaBench : HBoxContainer
 		if (tex != null)
 		{
 			var img = new TextureRect { Texture = tex, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered, CustomMinimumSize = new Vector2(0, 54), MouseFilter = MouseFilterEnum.Ignore };
-			// the shelf is not the product: jars are printed in plain ink until poured from
-			if (!on) img.Modulate = new Color(0.55f, 0.55f, 0.55f);
+			// the shelf is not the product: jars are printed in plain ink; green only once poured
+			if (!on) img.Material = new ShaderMaterial { Shader = GD.Load<Shader>("res://shaders/ink_only.gdshader") };
 			v.AddChild(img);
 		}
 		var name = Print.Label(i.Name, Print.Fell, 13, HorizontalAlignment.Center);
@@ -201,7 +201,7 @@ public partial class FormulaBench : HBoxContainer
 		_verdict = Print.Body("", 14, justify: false);
 		v.AddChild(_verdict);
 		v.AddChild(Print.Rule(1.4f, 0));
-		_procs = new HBoxContainer();
+		_procs = new HFlowContainer();
 		_procs.AddThemeConstantOverride("separation", 4);
 		v.AddChild(_procs);
 		_actions = new VBoxContainer();
@@ -210,7 +210,7 @@ public partial class FormulaBench : HBoxContainer
 		return v;
 	}
 
-	private HBoxContainer _procs = null!;
+	private HFlowContainer _procs = null!;
 
 	private void BuildProcs(DeskModel d)
 	{
@@ -218,7 +218,6 @@ public partial class FormulaBench : HBoxContainer
 		foreach (var (id, name) in d.Processes)
 		{
 			var b = Print.Button(name.ToUpperInvariant(), 11, solid: id == _process);
-			b.SizeFlagsHorizontal = SizeFlags.ExpandFill;
 			var pid = id;
 			b.Pressed += () => { _process = pid; Refresh(); };
 			_procs.AddChild(b);
@@ -315,7 +314,7 @@ public partial class FormulaBench : HBoxContainer
 	{
 		"kick" => v < 2 ? "does nothing" : v < 5 ? "you feel it" : v < 9 ? "a warm wallop" : "knocks them flat",
 		"calm" => v < 2 ? "no comfort" : v < 6 ? "soothing" : v < 11 ? "they sleep" : "they sleep very soundly",
-		"habit" => v < 1 ? "none" : v < 3 ? "they'll come back" : v < 6 ? "they'll come back shaking" : "they cannot stop",
+		"habit" => v < 1 ? "none" : v < 3 ? "they may come back" : v < 6 ? "most will come back" : "hard to give up",
 		"acuteToxicity" => v < 0.8 ? "harmless" : v < 2 ? "a risk to infants" : v < 4 ? "a risk to the frail" : "fatal in a large dose",
 		"bitterness" => v < 1 ? "sweet" : v < 3 ? "medicinal" : v < 6 ? "bitter" : "undrinkable",
 		"accumulation" => v < 0.3 ? "passes through" : v < 1.5 ? "builds up slowly" : "builds up in the body",
@@ -328,8 +327,8 @@ public partial class FormulaBench : HBoxContainer
 		var habit = p.GetValueOrDefault("habit");
 		var danger = p.GetValueOrDefault("acuteToxicity");
 		var kick = p.GetValueOrDefault("kick");
-		if (danger >= 4) return "[i]It will sell. Some of the customers will not be back to buy it again.[/i]";
-		if (habit >= 6) return "[i]Customers will return to this bottle whether they like it or not.[/i]";
+		if (danger >= 4) return "[i]It will sell. Some of the customers may not be back to buy it again.[/i]";
+		if (habit >= 6) return "[i]Most who start on this bottle will find it hard to stop, whether they like it or not.[/i]";
 		if (kick < 2) return "[i]Perfectly safe and perfectly useless. The ward will say so.[/i]";
 		if (habit >= 3) return "[i]A good, steady seller. The regulars will grow fond of it.[/i]";
 		return "[i]An honest mixture, by the standards of the trade.[/i]";

@@ -159,7 +159,8 @@ public sealed class SimGame : IGame
 		{
 			// an inquest into an infant names the infant, not the parent who bought the bottle
 			var dead = e.DeathId == null ? null : o.Deaths.FirstOrDefault(x => x.Id == e.DeathId);
-			var subject = dead is { Consumer: "infant" } ? $"the Infant of {e.SubjectName}" : e.SubjectName;
+			var subject = string.IsNullOrWhiteSpace(e.SubjectName) || dead is { Anonymous: true } ? "a Person Unknown"
+				: dead is { Consumer: "infant" } ? $"the Infant of {e.SubjectName}" : e.SubjectName;
 			string Sub(string s) => s.Replace("{name}", subject ?? "a customer")
 				.Replace("{cost}", e.BribeCostCents is long c ? EditionWriter.Money(c) : "");
 			var letter = new Letter

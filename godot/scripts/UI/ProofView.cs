@@ -55,9 +55,11 @@ public partial class ProofView : Control
 	/// <summary>Opens a tool over the proof: letters, still, formula or supplies.</summary>
 	private bool _drawerOpened;
 	private FormulaBench? _bench;
+	private DeskView? _tool;
 
 	private void DropBench()
 	{
+		if (_tool != null) { _tool.GetParent()?.RemoveChild(_tool); _tool.QueueFree(); _tool = null; }
 		if (_bench == null) return;
 		_bench.GetParent()?.RemoveChild(_bench);
 		_bench.QueueFree();
@@ -89,6 +91,7 @@ public partial class ProofView : Control
 	public void Rebuild()
 	{
 		_bench?.GetParent()?.RemoveChild(_bench);
+		_tool?.GetParent()?.RemoveChild(_tool);
 		foreach (var c in GetChildren()) { RemoveChild(c); c.QueueFree(); }
 		var m = _game.Desk();
 
@@ -149,8 +152,9 @@ public partial class ProofView : Control
 		lc.AddChild(Head("CORONER'S COURT."));
 		var inquests = m.Letters.Where(l => l.Title.StartsWith("Inquest", StringComparison.Ordinal)).ToList();
 		if (inquests.Count == 0) foreach (var w in new[] { 1f, 0.7f }) lc.AddChild(Ghost(w));
-		foreach (var q in inquests)
+		foreach (var q in inquests.Take(2))
 			lc.AddChild(Print.Body($"{Print.Escape(q.Title)} sits this month. [i]See your letters.[/i]", 12));
+		if (inquests.Count > 2) lc.AddChild(Print.Body($"[i]And {inquests.Count - 2} more: see your letters.[/i]", 12));
 		lc.AddChild(Head("PERSONAL."));
 		foreach (var w in new[] { 1f, 0.75f, 1f }) lc.AddChild(Ghost(w));
 		cols.AddChild(lc);
@@ -238,6 +242,9 @@ public partial class ProofView : Control
 
 	// ---------- the counter ----------
 
+	/// <summary>A compositor spells out small numbers (IM Fell's old-style figures misread small).</summary>
+	private static string Spell(int n) => n is >= 0 and <= 12 ? new[] { "no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve" }[n] : n.ToString(CultureInfo.InvariantCulture);
+
 	private static int Risk(Regular r) =>
 		(r.Looks switch { "gravely_ill" => 30, "poorly" => 20, "peaky" => 8, _ => 0 }) + (r.Withdrawal ? 6 : 0) + (r.Craving ? 3 : 0) + (r.Infant ? 4 : 0);
 
@@ -264,7 +271,7 @@ public partial class ProofView : Control
 		var atRisk = shown.FirstOrDefault(r => r.Looks is "gravely_ill" or "poorly");
 		DeathPresent = atRisk != null;
 		var others = m.Regulars.Count - shown.Count;
-		var more = Print.Label(others > 0 ? $"and {others} more regulars" : m.Regulars.Count == 0 ? "No one has come in yet." : "", Print.FellIt, 13, wrap: false);
+		var more = Print.Label(others > 0 ? $"and {Spell(others)} more regular{(others == 1 ? "" : "s")}" : m.Regulars.Count == 0 ? "No one has come in yet." : "", Print.FellIt, 13, wrap: false);
 		more.HorizontalAlignment = HorizontalAlignment.Right;
 		more.AnchorLeft = more.AnchorRight = 1;
 		more.OffsetLeft = -300; more.OffsetRight = -14; more.OffsetTop = 28;
@@ -449,7 +456,7 @@ public partial class ProofView : Control
 		left.AddThemeConstantOverride("separation", 0);
 		var stock = m.Formulas.Sum(f => f.Stock);
 		var brewing = m.Brewing.Sum(b => b.Bottles);
-		left.AddChild(Print.Label($"{stock} bottles on the shelf", Print.Fell, 14));
+		left.AddChild(Print.Label($"{stock} bottle{(stock == 1 ? "" : "s")} on the shelf", Print.Fell, 14));
 		left.AddChild(Print.Label(brewing > 0 ? $"{brewing} brewing" : m.StillsFree > 0 ? "the still is cold" : "the still is busy", Print.FellIt, 13));
 		grid.AddChild(left);
 		var books = new VBoxContainer();
@@ -536,11 +543,16 @@ public partial class ProofView : Control
 		}
 		else
 		{
-			var desk = new DeskView { Only = which, SizeFlagsVertical = SizeFlags.ExpandFill };
-			desk.SetAnchorsPreset(LayoutPreset.TopLeft);
-			desk.Changed += Rebuild;
-			holder.AddChild(desk);
-			desk.Bind(_game);
+			if (_tool == null || _tool.Only != which)
+			{
+				_tool?.QueueFree();
+				_tool = new DeskView { Only = which, SizeFlagsVertical = SizeFlags.ExpandFill };
+				_tool.SetAnchorsPreset(LayoutPreset.TopLeft);
+				_tool.Changed += Rebuild;
+			}
+			_tool.GetParent()?.RemoveChild(_tool);
+			holder.AddChild(_tool);
+			_tool.Bind(_game);
 		}
 		shade.AddChild(holder);
 		Anim.SlideIn(holder, new Vector2(0, 60), 0.24f);

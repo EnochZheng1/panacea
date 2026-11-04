@@ -9,54 +9,18 @@
     "yearly": "$4.00 A YEAR."
   },
   "weather": {
-    "1": [
-      "Snow, with general coughing.",
-      "Bitter cold. Consumptives advised to lay in a supply."
-    ],
-    "2": [
-      "Sleet. Rheumatics complain.",
-      "Fog. Good for business."
-    ],
-    "3": [
-      "Raw winds. Coughs plentiful.",
-      "Thaw, then otherwise."
-    ],
-    "4": [
-      "Showers. Spirits low.",
-      "Mild. The well recover, regrettably."
-    ],
-    "5": [
-      "Fair. Melancholy general among the unemployed.",
-      "Warm. Flies."
-    ],
-    "6": [
-      "Close and damp. Dyspepsia prevalent.",
-      "Hot. Nerves frayed in the tenements."
-    ],
-    "7": [
-      "Heat. Cholera feared.",
-      "Stifling. Infants fretful."
-    ],
-    "8": [
-      "Heat continues. Infants very fretful.",
-      "Thunder. Sleeplessness general."
-    ],
-    "9": [
-      "Cooler. Catarrh returns with the children to school.",
-      "Fair to middling."
-    ],
-    "10": [
-      "Fog, with coughing.",
-      "Damp. Neuralgia reported in Hester Street."
-    ],
-    "11": [
-      "Raw. Coughs ripening nicely.",
-      "Cold rain. Pine coffins advance."
-    ],
-    "12": [
-      "Snow. Goodwill toward men, and toward the trade.",
-      "Bitter. A good month for tonics."
-    ]
+    "1": ["Snow, with general coughing.", "Bitter cold. Consumptives advised to lay in a supply."],
+    "2": ["Sleet. Rheumatics complain.", "Fog. Good for business."],
+    "3": ["Raw winds. Coughs plentiful.", "Thaw, then otherwise."],
+    "4": ["Showers. Spirits low.", "Mild. The well recover, regrettably."],
+    "5": ["Fair. Melancholy general among the unemployed.", "Warm. Flies."],
+    "6": ["Close and damp. Dyspepsia prevalent.", "Hot. Nerves frayed in the tenements."],
+    "7": ["Heat. Cholera feared.", "Stifling. Infants fretful."],
+    "8": ["Heat continues. Infants very fretful.", "Thunder. Sleeplessness general."],
+    "9": ["Cooler. Catarrh returns with the children to school.", "Fair to middling."],
+    "10": ["Fog, with coughing.", "Damp. Neuralgia reported in Hester Street."],
+    "11": ["Raw. Coughs ripening nicely.", "Cold rain. Pine coffins advance."],
+    "12": ["Snow. Goodwill toward men, and toward the trade.", "Bitter. A good month for tonics."]
   },
   "streets": [
     "Mulberry street",
@@ -70,21 +34,8 @@
     "Baxter street",
     "Ludlow street"
   ],
-  "coroners": [
-    "Fogarty",
-    "Messemer",
-    "Nugent",
-    "Levy"
-  ],
-  "weekdays": [
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-    "Sunday"
-  ],
+  "coroners": ["Fogarty", "Messemer", "Nugent", "Levy"],
+  "weekdays": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
   "occupations": {
     "mother": {
       "female": "wife of a working man"
@@ -184,9 +135,7 @@
   "shutdown": [
     "NOTICE.—The Board of Health gives warning that the premises of the proprietor of {product} will be closed in {months} month(s), unless the public complaint subsides."
   ],
-  "unlock": [
-    "IN THE TRADE.—{title}. {description}"
-  ],
+  "unlock": ["IN THE TRADE.—{title}. {description}"],
   "firstEdition": {
     "headline": "A NEW CONCERN",
     "decks": [
@@ -215,18 +164,12 @@
   "tradeNoSales": [
     "The shop on Mulberry street sold nothing of its own manufacture this month. Its proprietor was seen staring at the still."
   ],
-  "tradeBooks": [
-    "The proprietor's books close the month at {cash}."
-  ],
+  "tradeBooks": ["The proprietor's books close the month at {cash}."],
   "markets": {
     "lead": "Patent medicines, active.",
     "coffinsBase": 400,
     "coffinsPerDeath": 15,
-    "lilies": [
-      "Lilies, plentiful.",
-      "Lilies, firm.",
-      "Lilies, scarce."
-    ]
+    "lilies": ["Lilies, plentiful.", "Lilies, firm.", "Lilies, scarce."]
   },
   "rivals": [
     {

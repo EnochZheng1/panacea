@@ -225,6 +225,7 @@ public sealed class EditionWriter
 
         // ---- the markets ----
         e.Markets = WriteMarkets(f, product);
+        Typeset(e);
         return e;
     }
 
@@ -363,6 +364,45 @@ public sealed class EditionWriter
         var streets = _copy.GetProperty("streets");
         var key = p == null ? "street-" + f.Turn : "home" + (string.IsNullOrEmpty(p.Name) ? p.Id : p.Name);
         return streets[(int)(Hash(f.Seed, 0, key) % (uint)streets.GetArrayLength())].GetString() ?? "";
+    }
+
+    /// <summary>
+    /// The compositor's last pass over everything printed: curly quotes the right way round, no
+    /// doubled full stops after a price ("60c.."), a single space after a stop.
+    /// </summary>
+    public static string Set(string t)
+    {
+        if (string.IsNullOrEmpty(t)) return t;
+        t = Regex.Replace(t, @"(?<!\.)\.\.(?!\.)", ".");
+        t = Regex.Replace(t, "(^|[\\s(\\[—\u2014-])\"", "$1\u201c");
+        t = t.Replace("\"", "\u201d");
+        t = Regex.Replace(t, "(^|[\\s(\\[—\u2014-])'", "$1\u2018");
+        t = Regex.Replace(t, " {2,}", " ");
+        return t;
+    }
+
+    private static void Typeset(Edition e)
+    {
+        void Clip(Clipping? c)
+        {
+            if (c == null) return;
+            c.Title = Set(c.Title);
+            for (var i = 0; i < c.Lines.Count; i++) c.Lines[i] = Set(c.Lines[i]);
+        }
+        foreach (var sec in e.Left.Concat(e.Right).Concat(e.LeadFoot))
+            foreach (var b in sec.Blocks)
+            {
+                b.Text = Set(b.Text); b.Lead = Set(b.Lead); b.Head = Set(b.Head); b.Mid = Set(b.Mid); b.Fine = Set(b.Fine);
+                Clip(b.Clip);
+            }
+        e.Lead.Headline = Set(e.Lead.Headline);
+        e.Lead.Body = Set(e.Lead.Body);
+        e.Lead.Cutline = Set(e.Lead.Cutline);
+        for (var i = 0; i < e.Lead.Decks.Count; i++) e.Lead.Decks[i] = Set(e.Lead.Decks[i]);
+        Clip(e.Lead.Clip);
+        Clip(e.BriefClip);
+        e.Markets = Set(e.Markets);
+        e.Brief = Set(e.Brief);
     }
 
     private static string Words(int n) => n switch { 3 => "three", 4 => "four", 5 => "five", 6 => "six", 7 => "seven", 8 => "eight", _ => n.ToString(CultureInfo.InvariantCulture) };

@@ -332,7 +332,8 @@ public partial class ProofView : Control
 			if (shown.Take(i).Any(o => CutFor(o) == cut))
 			{
 				var no = Print.Label($"Cut No. {3 + StableHash(cut) % 37u}, again.", Print.FellIt, 12, HorizontalAlignment.Center, wrap: false);
-				no.Position = new Vector2(x, CounterTop - 22);
+				// over the figure's head, where the printer's own number would be
+				no.Position = new Vector2(x, Math.Max(4, CounterTop - h - 20));
 				no.CustomMinimumSize = new Vector2(slot - 10, 0);
 				no.MouseFilter = MouseFilterEnum.Ignore;
 				strip.AddChild(no);

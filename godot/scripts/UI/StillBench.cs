@@ -257,7 +257,7 @@ public partial class StillDrawing : Control
 
 	public StillDrawing()
 	{
-		CustomMinimumSize = new Vector2(310, 372);
+		CustomMinimumSize = new Vector2(310, 384);
 		MouseFilter = MouseFilterEnum.Ignore;
 		// the card, not the bare sprite: the cut keeps its ruled ground and frame in the drawer
 		_cut ??= ResourceLoader.Exists("res://assets/art/wc_still.card.png") ? GD.Load<Texture2D>("res://assets/art/wc_still.card.png") : null;
@@ -280,7 +280,10 @@ public partial class StillDrawing : Control
 		{
 			// the card is 620 x 880 at 2x; the framed engraving is its top 620 x 720
 			var k = _cut.GetWidth() / 620f;
-			DrawTextureRectRegion(_cut, new Rect2(0, 0, 310, 360), new Rect2(0, 0, 620 * k, 720 * k));
+			DrawTextureRectRegion(_cut, new Rect2(0, 0, 310, 363), new Rect2(0, 0, 620 * k, 726 * k));
+			// the frame's foot, which the card's filter leaves ragged at this size
+			DrawLine(new Vector2(20, 360), new Vector2(290, 360), ink, 2f);
+			DrawLine(new Vector2(23.5f, 356.5f), new Vector2(286.5f, 356.5f), ink, 0.8f);
 		}
 
 		// the receiver fills with the product, green, from the bottom up
@@ -354,6 +357,6 @@ public partial class StillDrawing : Control
 		}
 		if (_flare > 0) DrawCircle(FireDoor.GetCenter(), 30 * _flare, new Color(paper, 0.35f * _flare));
 		var caption = Lit ? "On the fire." : "Cold.";
-		DrawString(Print.FellIt, new Vector2(24, 362), Stills > 1 ? $"{caption} Still No. 1 of {Stills}." : caption, HorizontalAlignment.Left, -1, 15, ink);
+		DrawString(Print.FellIt, new Vector2(24, 378), Stills > 1 ? $"{caption} Still No. 1 of {Stills}." : caption, HorizontalAlignment.Left, -1, 15, ink);
 	}
 }

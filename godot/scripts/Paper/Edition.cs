@@ -25,6 +25,8 @@ public sealed class Edition
     public List<Section> Right = new();
     public List<Section> LeadFoot = new();
     public string Markets = "";
+    /// <summary>Standing matter, in order, for the compositor to fill short columns with.</summary>
+    public List<string> Standing = new();
 }
 
 public sealed class Section

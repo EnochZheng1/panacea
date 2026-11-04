@@ -55,6 +55,25 @@ public partial class ProofView : Control
 	/// <summary>Opens a tool over the proof: letters, still, formula or supplies.</summary>
 	private bool _drawerOpened;
 	private bool _skipRestore;
+	private Control? _holder;
+
+	/// <summary>
+	/// While a drawer is open, Tab and Shift+Tab go round the drawer's own controls only: the bench
+	/// behind the shade is out of reach until the drawer is put down.
+	/// </summary>
+	public override void _Input(InputEvent e)
+	{
+		if (_drawer == null || _holder == null || !IsInstanceValid(_holder) || !IsVisibleInTree()) return;
+		var next = e.IsActionPressed("ui_focus_next");
+		var prev = e.IsActionPressed("ui_focus_prev");
+		if (!next && !prev) return;
+		var items = Print.Focusables(_holder).Where(c => !(c is BaseButton { Disabled: true })).ToList();
+		if (items.Count == 0) return;
+		var at = items.IndexOf(GetViewport().GuiGetFocusOwner());
+		var to = at < 0 ? (next ? 0 : items.Count - 1) : (at + (next ? 1 : -1) + items.Count) % items.Count;
+		items[to].GrabFocus();
+		GetViewport().SetInputAsHandled();
+	}
 	private FormulaBench? _bench;
 	private Control? _tool;
 	private string? _toolKind;
@@ -170,8 +189,10 @@ public partial class ProofView : Control
 		// left column: what will be set after press
 		var lc = Col(186);
 		lc.AddChild(Head("DEATHS."));
-		lc.AddChild(Print.Label("set after press", Print.FellIt, 11, HorizontalAlignment.Center));
-		foreach (var w in new[] { 1f, 0.8f, 1f, 0.6f }) lc.AddChild(Ghost(w));
+		lc.AddChild(Print.Label("set after press", Print.FellIt, 12, HorizontalAlignment.Center));
+		// last month's matter, struck out in proof marks, waits for this month's type
+		var last = _game.Facts;
+		Struck(lc, last.Deaths.Select(d => d.Anonymous ? "UNKNOWN.—A body, unclaimed." : $"{SurnameOf(d.Name)}.—{d.Name}."), "No deaths last month.");
 		lc.AddChild(Head("CORONER'S COURT."));
 		var inquests = m.Letters.Where(l => l.Title.StartsWith("Inquest", StringComparison.Ordinal)).ToList();
 		if (inquests.Count == 0) foreach (var w in new[] { 1f, 0.7f }) lc.AddChild(Ghost(w));
@@ -179,7 +200,7 @@ public partial class ProofView : Control
 			lc.AddChild(Print.Body($"{Print.Escape(q.Title)} sits this month. [i]See your letters.[/i]", 12));
 		if (inquests.Count > 2) lc.AddChild(Print.Body($"[i]And {inquests.Count - 2} more: see your letters.[/i]", 12));
 		lc.AddChild(Head("PERSONAL."));
-		foreach (var w in new[] { 1f, 0.75f, 1f }) lc.AddChild(Ghost(w));
+		Struck(lc, last.Joined.Select(p => $"A NEW PATRON.—{p.Name}.").Concat(last.Left.Select(l => $"{l.Person.Name} has not called.")), "Nothing personal last month.");
 		cols.AddChild(lc);
 		cols.AddChild(VRule());
 
@@ -536,7 +557,7 @@ public partial class ProofView : Control
 
 	private Control Lever(bool nothingToSell)
 	{
-		var b = Print.Button("SEND TO PRESS ▸", 28, solid: true, sound: null);
+		var b = Print.Button("SEND TO PRESS ☞", 28, solid: true, sound: null);
 		b.CustomMinimumSize = new Vector2(0, 70);
 		b.TooltipText = "End the month. The lead story is written by what happens.";
 		b.AddThemeStyleboxOverride("normal", Print.Box(Print.Ink, Print.Paper, 3, 10));
@@ -549,7 +570,7 @@ public partial class ProofView : Control
 		b.Pressed += () =>
 		{
 			// an empty month, or an unanswered coroner, asks once: press again to send anyway
-			if (nothingToSell && !_armed) { _armed = true; b.Text = "SEND IT ANYWAY ▸"; Sfx.Play("ticket", 0f, 0.02f, 0.7f); return; }
+			if (nothingToSell && !_armed) { _armed = true; b.Text = "SEND IT ANYWAY ☞"; Sfx.Play("ticket", 0f, 0.02f, 0.7f); return; }
 			_armed = false;
 			PressRequested?.Invoke();
 		};
@@ -565,6 +586,7 @@ public partial class ProofView : Control
 		shade.SetAnchorsPreset(LayoutPreset.FullRect);
 		var holder = new VBoxContainer();
 		holder.SetAnchorsPreset(LayoutPreset.FullRect);
+		_holder = holder;
 		void Fit()
 		{
 			if (!IsInstanceValid(holder)) return;
@@ -576,7 +598,7 @@ public partial class ProofView : Control
 		// width asks for a great deal); put it back to the drawer's size whenever that settles
 		holder.MinimumSizeChanged += () => Callable.From(Fit).CallDeferred();
 		holder.Ready += () => Callable.From(Fit).CallDeferred();
-		var close = Print.Button("CLOSE ✕", 14, solid: true);
+		var close = Print.Button("PUT IT DOWN", 14, solid: true);
 		close.SizeFlagsHorizontal = SizeFlags.ShrinkEnd;
 		close.AddThemeStyleboxOverride("normal", Print.Box(Print.Ink, Print.Paper, 2, 6));
 		close.Pressed += () => CloseDrawer();
@@ -674,6 +696,21 @@ public partial class ProofView : Control
 		v.AddChild(Print.Label(s, Print.Rye, 15, HorizontalAlignment.Center));
 		v.AddChild(Print.Dash(60));
 		return v;
+	}
+
+	/// <summary>Last month's lines, struck through, with the proofreader's "dele" in the margin.</summary>
+	private static void Struck(VBoxContainer col, IEnumerable<string> lines, string none)
+	{
+		var list = lines.Take(3).ToList();
+		if (list.Count == 0) { col.AddChild(Print.Label(none, Print.FellIt, 12, HorizontalAlignment.Center, new Color(Print.Ink, 0.75f))); return; }
+		foreach (var l in list)
+			col.AddChild(Print.Body($"[s]{Print.Escape(EditionWriter.Set(l))}[/s] [i]dele[/i]", 12, new Color(Print.Ink, 0.7f), justify: false));
+	}
+
+	private static string SurnameOf(string name)
+	{
+		var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+		return parts.Length == 0 ? "" : (parts.Length >= 3 && parts[^2] is "Van" or "De" ? parts[^2] + " " + parts[^1] : parts[^1]).ToUpperInvariant();
 	}
 
 	private static Control Ghost(float width)

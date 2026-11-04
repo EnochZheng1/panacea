@@ -40,6 +40,45 @@ public static class Print
 	}
 
 	/// <summary>Justified body text. BBCode allowed: [font=…], [i] maps to IM Fell italic.</summary>
+	/// <summary>
+	/// Soft hyphens in long words, so a justified narrow column can break a word as a compositor
+	/// would instead of opening rivers between three words. A plain syllable rule: break after a
+	/// vowel that is followed by a consonant, never within three letters of either end.
+	/// </summary>
+	public static string Hyphenate(string text)
+	{
+		var sb = new System.Text.StringBuilder(text.Length + 16);
+		var word = new System.Text.StringBuilder();
+		var inTag = false;
+		void Flush()
+		{
+			var w = word.ToString();
+			word.Clear();
+			if (w.Length < 8) { sb.Append(w); return; }
+			static bool V(char c) => "aeiouyAEIOUY".IndexOf(c) >= 0;
+			var last = 0;
+			for (var i = 0; i < w.Length; i++)
+			{
+				sb.Append(w[i]);
+				if (i >= 2 && i <= w.Length - 4 && i - last >= 2 && V(w[i]) && char.IsLetter(w[i + 1]) && !V(w[i + 1]) && char.IsLetter(w[i + 2]))
+				{
+					sb.Append('\u00ad');
+					last = i;
+				}
+			}
+		}
+		foreach (var ch in text)
+		{
+			if (inTag) { sb.Append(ch); if (ch == ']') inTag = false; continue; }
+			if (ch == '[') { Flush(); inTag = true; sb.Append(ch); continue; }
+			if (char.IsLetter(ch)) { word.Append(ch); continue; }
+			Flush();
+			sb.Append(ch);
+		}
+		Flush();
+		return sb.ToString();
+	}
+
 	public static RichTextLabel Body(string bbcode, int size = 16, Color? color = null, bool justify = true, bool centre = false)
 	{
 		var r = new RichTextLabel
@@ -61,7 +100,7 @@ public static class Print
 		r.AddThemeConstantOverride("line_separation", -1);
 		// justify full lines only: never stretch a paragraph's last (or only) line
 		r.JustificationFlags = TextServer.JustificationFlag.WordBound | TextServer.JustificationFlag.Kashida | TextServer.JustificationFlag.SkipLastLine;
-		var wrapped = centre ? $"[center]{bbcode}[/center]" : justify ? $"[fill]{bbcode}[/fill]" : bbcode;
+		var wrapped = centre ? $"[center]{bbcode}[/center]" : justify ? $"[fill]{Hyphenate(bbcode)}[/fill]" : bbcode;
 		r.Text = wrapped;
 		return r;
 	}

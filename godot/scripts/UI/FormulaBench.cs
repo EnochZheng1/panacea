@@ -317,7 +317,9 @@ public partial class FormulaBench : HBoxContainer
 		"kick" => v < 2 ? "does nothing" : v < 5 ? "you feel it" : v < 9 ? "a warm wallop" : "knocks them flat",
 		"calm" => v < 2 ? "no comfort" : v < 6 ? "soothing" : v < 11 ? "they sleep" : "they sleep very soundly",
 		"habit" => v < 1 ? "none" : v < 3 ? "they may come back" : v < 6 ? "most will come back" : "hard to give up",
-		"acuteToxicity" => v < 0.8 ? "harmless" : v < 2 ? "a risk to infants" : v < 4 ? "a risk to the frail" : "fatal in a large dose",
+		// danger climbs in steps a reader can feel, so a doubled dose never reads the same
+		"acuteToxicity" => v < 0.8 ? "harmless" : v < 1.6 ? "a risk to infants" : v < 2.8 ? "a risk to the frail"
+			: v < 4.5 ? "dangerous to anyone weak" : v < 7 ? "fatal in a large dose" : v < 11 ? "fatal in an ordinary dose" : "a spoonful may kill",
 		"bitterness" => v < 1 ? "sweet" : v < 3 ? "medicinal" : v < 6 ? "bitter" : "undrinkable",
 		"accumulation" => v < 0.3 ? "passes through" : v < 1.5 ? "builds up slowly" : "builds up in the body",
 		"detectability" => v < 2 ? "hard to find" : v < 5 ? "a chemist might find it" : "any chemist would find it",

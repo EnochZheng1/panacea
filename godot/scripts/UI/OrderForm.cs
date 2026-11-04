@@ -134,7 +134,7 @@ public partial class OrderForm : VBoxContainer
 		clear.Pressed += () => { _order.Clear(); Refresh(); };
 		row.AddChild(clear);
 		row.AddChild(new Control { SizeFlagsHorizontal = SizeFlags.ExpandFill });
-		var send = Print.Button("SEND THE ORDER ▸", 17, solid: true, sound: null);
+		var send = Print.Button("SEND THE ORDER ☞", 17, solid: true, sound: null);
 		send.Disabled = total == 0 && _order.Values.All(x => x == 0);
 		send.TooltipText = total > d.CashCents ? "The house wants cash on delivery, and you haven't enough." : "Posts the order; the goods arrive at once.";
 		send.Pressed += () => Send(d, total);

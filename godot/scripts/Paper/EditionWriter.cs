@@ -45,6 +45,9 @@ public sealed class EditionWriter
 
         // ---- the lead: your advertisement dressed as news, or the news itself ----
         e.Lead = WriteLead(f, product);
+        // standing matter, shuffled by the edition, for the make-up to balance the columns with
+        var standing = _copy.GetProperty("standing").EnumerateArray().Select(x => x.GetString() ?? "").ToList();
+        e.Standing = standing.OrderBy(x => Hash(f.Seed, f.Turn, x)).ToList();
 
         // ---- left column: the consequences ----
         if (f.Deaths.Count > 0)
@@ -96,9 +99,10 @@ public sealed class EditionWriter
             e.Left.Add(court);
         }
         var personal = new Section { Title = S(sec, "personal") };
+        var usedJoined = new HashSet<string>();
         foreach (var p in f.Joined)
         {
-            var template = f.FirstEdition ? S(_copy, "regularsIntro") : Pick(f, "joined" + p.Id, _copy.GetProperty("joined"));
+            var template = f.FirstEdition ? S(_copy, "regularsIntro") : PickUnused(f, "joined" + p.Id, _copy.GetProperty("joined"), usedJoined);
             personal.Blocks.Add(new Block { Text = Fill(template, f, p, productName), Clip = PersonClip(f, p, "A NEW CUSTOMER", $"Looking for something for {p.Ailment.ToLowerInvariant()}.") });
         }
         var drifted = f.Left.Where(l => l.Reason == "drifted").ToList();
@@ -514,6 +518,7 @@ public sealed class EditionWriter
         Clip(e.BriefClip);
         e.Markets = Set(e.Markets);
         e.Brief = Set(e.Brief);
+        for (var i = 0; i < e.Standing.Count; i++) e.Standing[i] = Set(e.Standing[i]);
     }
 
     private static readonly string[] Units = { "no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen" };
@@ -717,6 +722,19 @@ public sealed class EditionWriter
     {
         var c = _copy.GetProperty("coroners");
         return c[(int)(Hash(f.Seed, 0, "coroner") % (uint)c.GetArrayLength())].GetString() ?? "";
+    }
+
+    /// <summary>Like Pick, but never the same variant twice in one edition while others remain.</summary>
+    private string PickUnused(PaperFacts f, string key, JsonElement options, HashSet<string> used)
+    {
+        var n = options.GetArrayLength();
+        var start = (int)(Hash(f.Seed, f.Turn, key) % (uint)n);
+        for (var k = 0; k < n; k++)
+        {
+            var t = options[(start + k) % n].GetString() ?? "";
+            if (used.Add(t)) return t;
+        }
+        return options[start].GetString() ?? "";
     }
 
     private string Pick(PaperFacts f, string key, JsonElement options)

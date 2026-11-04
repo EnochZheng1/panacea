@@ -132,7 +132,7 @@ public partial class DeskView : ScrollContainer
 		var when = new DateTime(m.Year, m.Month, 1).ToString("MMMM yyyy", CultureInfo.InvariantCulture);
 		title.AddChild(Print.Label($"{when}. The next edition goes to press when you pull the lever.", Print.FellIt, 17, color: Print.Paper));
 		h.AddChild(title);
-		var lever = Print.Button("GO TO PRESS ▸", 26, solid: true);
+		var lever = Print.Button("GO TO PRESS ☞", 26, solid: true);
 		lever.CustomMinimumSize = new Vector2(300, 70);
 		lever.SizeFlagsVertical = SizeFlags.ShrinkCenter;
 		lever.TooltipText = "End the month and print the next edition.";

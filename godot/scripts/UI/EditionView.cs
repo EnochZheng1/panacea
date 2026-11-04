@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.Linq;
 using Godot;
@@ -48,6 +49,13 @@ public partial class EditionView : ScrollContainer
 	}
 
 	/// <summary>Reading by keyboard: the arrow and page keys turn the paper up and down.</summary>
+	/// <summary>
+	/// Money set heavier: the face's old-style figures leave the decimal point nearly invisible
+	/// at text size ("$19 40"), and the books are the one figure the reader must not misread.
+	/// </summary>
+	private static string BoldMoney(string t) =>
+		System.Text.RegularExpressions.Regex.Replace(t, @"\$\d[\d,]*\.\d\d|\b\d+c\.", m => $"[b]{m.Value}[/b]");
+
 	public override void _UnhandledInput(InputEvent e)
 	{
 		if (!IsVisibleInTree() || e is not InputEventKey { Pressed: true } k) return;
@@ -198,7 +206,7 @@ public partial class EditionView : ScrollContainer
 		if (!string.IsNullOrEmpty(e.Brief))
 		{
 			// the month at a glance, above the fold
-			var brief = Print.Body($"[center][b]THE MONTH IN BRIEF.[/b]  {Print.Escape(e.Brief)}  [i]☞ the books[/i][/center]", 16, justify: false);
+			var brief = Print.Body($"[center][b]THE MONTH IN BRIEF.[/b]  {BoldMoney(Print.Escape(e.Brief))}  [i]☞ the books[/i][/center]", 16, justify: false);
 			page.AddChild(Clickable(brief, e.BriefClip));
 			page.AddChild(Print.Rule(1.6f, 0));
 		}
@@ -220,12 +228,43 @@ public partial class EditionView : ScrollContainer
 		AddLead(lead, e.Lead);
 		foreach (var s in e.LeadFoot) AddSection(lead, s);
 		foreach (var s in e.Right) AddSection(right, s);
+		Balance(new[] { left, lead, right }, e.Standing);
 
 		// ---- the markets ----
 		page.AddChild(Print.Rule());
 		page.AddChild(Print.Body($"[center][b]THE MARKETS.[/b]  {Print.Escape(e.Markets)}[/center]", 15, justify: false));
 		page.AddChild(Print.Rule(1.6f, 0));
 		Callable.From(WireFocus).CallDeferred();
+	}
+
+	/// <summary>
+	/// The make-up: once the columns are laid out, the short ones are filled with standing matter
+	/// until every column's foot is within a few lines of the longest, as a compositor would.
+	/// </summary>
+	private async void Balance(VBoxContainer[] cols, List<string> standing)
+	{
+		var next = 0;
+		var headed = new HashSet<VBoxContainer>();
+		for (var round = 0; round < 12 && next < standing.Count; round++)
+		{
+			await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+			await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+			if (!IsInstanceValid(cols[0]) || !cols[0].IsInsideTree()) return;
+			// the columns are stretched to one height: measure where each one's matter ends
+			static float Foot(VBoxContainer c) => c.GetChildren().OfType<Control>().Where(k => k.Visible).Select(k => k.Position.Y + k.Size.Y).DefaultIfEmpty(0).Max();
+			var tallest = cols.Max(Foot);
+			var shortest = cols.OrderBy(Foot).First();
+			if (tallest - Foot(shortest) < 110) return;
+			if (headed.Add(shortest))
+			{
+				shortest.AddChild(Print.Rule(1.2f, 0.5f, 2));
+				shortest.AddChild(Print.Label("BRIEFLY.", Print.Rye, 15, HorizontalAlignment.Center));
+			}
+			var t = standing[next++];
+			var dash = t.IndexOf(".—", StringComparison.Ordinal);
+			var text = dash > 0 ? $"[b]{Print.Escape(t[..(dash + 2)])}[/b]{Print.Escape(t[(dash + 2)..])}" : Print.Escape(t);
+			shortest.AddChild(Print.Body(text, 15));
+		}
 	}
 
 	private static Control Ear(string head, string text)

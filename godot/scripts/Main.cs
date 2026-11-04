@@ -87,7 +87,7 @@ public partial class Main : Control
 		_status = Print.Label("", Print.FellIt, 17, color: Print.Paper);
 		_status.SizeFlagsVertical = SizeFlags.ShrinkCenter;
 		row.AddChild(_status);
-		_nav = InvertedButton("TO THE PROOF ▸");
+		_nav = InvertedButton("TO THE PROOF ☞");
 		_nav.SizeFlagsVertical = SizeFlags.ShrinkCenter;
 		_nav.CustomMinimumSize = new Vector2(230, 0);
 		_nav.Pressed += Navigate;
@@ -315,6 +315,12 @@ public partial class Main : Control
 
 	public override void _Input(InputEvent e)
 	{
+		// a cutting in the hand holds the keyboard: Tab goes nowhere behind it
+		if (_clipping != null && (e.IsActionPressed("ui_focus_next") || e.IsActionPressed("ui_focus_prev")))
+		{
+			GetViewport().SetInputAsHandled();
+			return;
+		}
 		if (Time.GetTicksMsec() < _guardUntil && (e is InputEventKey { Pressed: true } || e is InputEventMouseButton { Pressed: true }))
 			GetViewport().SetInputAsHandled();
 	}
@@ -405,12 +411,16 @@ public partial class Main : Control
 		_clipping.QueueFree();
 		_clipping = null;
 		((ShaderMaterial)_press.Material).SetShaderParameter("speck", _onDesk ? 0.0f : 0.16f);
-		FocusMain();
+		if (_clipOpener != null && IsInstanceValid(_clipOpener) && _clipOpener.IsVisibleInTree()) _clipOpener.GrabFocus(); else FocusMain();
 	}
+
+	private Control? _clipOpener;
 
 	/// <summary>The cutting behind a paper item: laid over the edition; any click puts it down.</summary>
 	private void ShowClipping(Clipping c)
 	{
+		// remember what the reader took it up from, to hand the keyboard back there
+		_clipOpener = GetViewport().GuiGetFocusOwner();
 		_clipping?.QueueFree();
 		Sfx.Play("slip");
 		var shade = new ColorRect { Color = new Color(0, 0, 0, 0.6f), MouseFilter = MouseFilterEnum.Stop };
@@ -505,7 +515,7 @@ public partial class Main : Control
 			t.TweenProperty(view, "position:x", 0f, 0.24f).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.Out);
 			t.TweenProperty(view, "modulate:a", 1f, 0.18f);
 		}
-		_nav.Text = _onDesk ? "◂ LAST EDITION" : (_game.Ended ? "BEGIN AGAIN" : "TO THE PROOF ▸");
+		_nav.Text = _onDesk ? "☜ LAST EDITION" : (_game.Ended ? "BEGIN AGAIN" : "TO THE PROOF ☞");
 		UpdateStatus(null);
 		if (!_pressing) Callable.From(FocusMain).CallDeferred();
 		var mat = (ShaderMaterial)_press.Material;

@@ -224,7 +224,7 @@ public class GameTests
         var s = Start();
         s.Player.CashCents = 10_000_000;
         s.Month.StartCashCents = s.Player.CashCents;
-        s = Months(s, 13);
+        s = Months(s, 22); // through October 1886
         Assert.True(s.Timeline.Fired.ContainsKey("antifebrin"));
         Assert.True(s.Player.Flags["era_acetanilide"]);
         Assert.False(s.Timeline.Fired.ContainsKey("poison_squad"));

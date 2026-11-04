@@ -75,8 +75,10 @@ public sealed class SimGame : IGame
 	{
 		if (Ended) return;
 		foreach (var r in Desk().Regulars) _known[r.Name] = r;
+		var before = Facts.Sales.Sum(x => x.Bottles);
 		var report = Sim.Game.EndTurnInPlace(_state, _content);
 		Facts = BuildFacts(report);
+		Facts.SoldLastMonth = before;
 	}
 
 	private static List<FormulaComponent> Components(IReadOnlyList<(string IngredientId, double Ounces)> components) =>

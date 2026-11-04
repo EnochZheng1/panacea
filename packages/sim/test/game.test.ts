@@ -152,7 +152,7 @@ describe('month end', () => {
     let s = start();
     s.player.cashCents = 10_000_000;
     s.month.startCashCents = s.player.cashCents;
-    s = months(s, 13); // through January 1886
+    s = months(s, 22); // through October 1886
     expect('antifebrin' in s.timeline.fired).toBe(true);
     expect(s.player.flags['era_acetanilide']).toBe(true);
     expect('poison_squad' in s.timeline.fired).toBe(false);

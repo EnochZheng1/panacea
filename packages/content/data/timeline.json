@@ -1,10 +1,10 @@
 [
   {
     "id": "antifebrin",
-    "date": { "year": 1886, "month": 1 },
+    "date": { "year": 1886, "month": 10 },
     "approximateDate": true,
     "effects": [{ "type": "setFlag", "id": "era_acetanilide" }],
-    "note": "Acetanilide introduced as Antifebrin in 1886."
+    "note": "Acetanilide introduced as Antifebrin in late 1886 (Cahn and Hepp; marketed by Kalle)."
   },
   {
     "id": "ladies_journal_ad_ban",

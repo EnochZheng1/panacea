@@ -90,10 +90,14 @@ export function recordDeath(
   return record;
 }
 
-/** What the coroner currently charges. Rises with every bribe and with the heat. */
+/**
+ * What the coroner currently charges. Rises with every bribe and with the heat, and is asked
+ * in round sums: a coroner names his price to the nearest five dollars.
+ */
 export function bribeCostCents(state: GameState, content: ContentPack): number {
   const base = content.config.scrutiny.bribeBaseCents;
-  return Math.round(base * (1 + 0.5 * state.scrutiny.bribesPaid) * (1 + state.scrutiny.heat / 50));
+  const raw = base * (1 + 0.5 * state.scrutiny.bribesPaid) * (1 + state.scrutiny.heat / 50);
+  return Math.max(500, Math.round(raw / 500) * 500);
 }
 
 /** Probability the jury blames your medicine. */
@@ -104,7 +108,16 @@ export function implicationChance(
 ): number {
   const heat = state.scrutiny.heat;
   if (!record.productImplicated) {
-    return Math.min(0.3, Math.max(0, 0.05 + heat / 300 - (approach === 'testify' ? 0.03 : 0)));
+    return Math.min(
+      0.3,
+      Math.max(
+        0,
+        0.05 +
+          heat / 300 +
+          state.scrutiny.timesImplicated * 0.01 -
+          (approach === 'testify' ? 0.04 : 0),
+      ),
+    );
   }
   const p =
     0.25 +
@@ -112,8 +125,10 @@ export function implicationChance(
     heat / 200 -
     state.player.reputation / 400 +
     record.boldness * 0.02 +
-    (record.badBatch ? 0.2 : 0) -
-    (approach === 'testify' ? 0.1 : 0);
+    (record.badBatch ? 0.2 : 0) +
+    // the coroner remembers the label: every verdict against it makes the next one likelier
+    state.scrutiny.timesImplicated * 0.03 -
+    (approach === 'testify' ? 0.15 : 0);
   return Math.min(0.95, Math.max(0.05, p));
 }
 
@@ -139,8 +154,9 @@ export function resolveInquest(
     state.scrutiny.bribesPaid += 1;
     outcome = 'bribed';
   } else if (rng.chance(implicationChance(state, record, approach))) {
-    adjust(state, 'reputation', approach === 'testify' ? -15 : -12, CAUSES.inquest, record.id);
-    adjust(state, 'heat', 20, CAUSES.inquest, record.id);
+    // a proprietor who would not come and speak for his bottle looks the guiltier for it
+    adjust(state, 'reputation', -12, CAUSES.inquest, record.id);
+    adjust(state, 'heat', approach === 'silent' ? 28 : 20, CAUSES.inquest, record.id);
     adjust(state, 'notoriety', 8, CAUSES.inquest, record.id);
     state.scrutiny.timesImplicated += 1;
     state.player.flags['implicated_at_inquest'] = true;

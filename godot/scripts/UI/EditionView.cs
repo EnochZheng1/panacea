@@ -38,6 +38,7 @@ public partial class EditionView : ScrollContainer
 		var p = new PanelContainer { MouseFilter = MouseFilterEnum.Stop, MouseDefaultCursorShape = CursorShape.PointingHand, FocusMode = FocusModeEnum.All };
 		// the item's own boxes (an advertisement's rules) must not swallow the click
 		void Through(Node n) { foreach (var k in n.GetChildren()) { if (k is Control kc && kc.MouseFilter == MouseFilterEnum.Stop) kc.MouseFilter = MouseFilterEnum.Pass; Through(k); } }
+		if (inner.MouseFilter == MouseFilterEnum.Stop) inner.MouseFilter = MouseFilterEnum.Pass;
 		Through(inner);
 		p.AddThemeStyleboxOverride("panel", Wash(false));
 		p.AddChild(inner);
@@ -157,7 +158,7 @@ public partial class EditionView : ScrollContainer
 		if (!string.IsNullOrEmpty(e.Brief))
 		{
 			// the month at a glance, above the fold
-			var brief = Print.Body($"[center][b]THE MONTH IN BRIEF.[/b]  {Print.Escape(e.Brief)}.[/center]", 16, justify: false);
+			var brief = Print.Body($"[center][b]THE MONTH IN BRIEF.[/b]  {Print.Escape(e.Brief)}[/center]", 16, justify: false);
 			page.AddChild(Clickable(brief, e.BriefClip));
 			page.AddChild(Print.Rule(1.6f, 0));
 		}

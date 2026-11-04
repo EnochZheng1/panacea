@@ -42,6 +42,8 @@ public sealed class PaperFacts
 
     /// <summary>The month's books by cause, as the Ledger keeps them.</summary>
     public long CashStartCents;
+    /// <summary>Bottles sold the month before, so the paper can tell a slump from a steady trade.</summary>
+    public int SoldLastMonth;
     public List<(string Label, long Cents)> CashLines = new();
     public List<(string Label, double Amount)> HeatLines = new();
 }

@@ -19,19 +19,47 @@ public partial class LettersDesk : VBoxContainer
 	private string? _note;
 	public event Action? Changed;
 
-	private sealed record Head(string Sender, string Address, string Sign, string Seal);
+	/// <summary>
+	/// Who writes each kind of letter, and what they write, in their own voice. The docket is the
+	/// clerk's note of how it came (set in italic above the sheet); {name} is the person the letter
+	/// concerns, read off its title.
+	/// </summary>
+	private sealed record Head(string Sender, string Address, string Sign, string Seal, string Docket, string Salute, string Voice);
 
-	/// <summary>Who writes each kind of letter.</summary>
 	private static readonly Dictionary<string, Head> Heads = new()
 	{
-		["inquest"] = new("OFFICE OF THE CORONER", "City and County of New-York · Centre Street", "By order of the Coroner, H. FOGARTY, Clerk", "CORONER"),
-		["grateful_letter"] = new("", "Mulberry Street, top floor, rear", "Your grateful servant, a customer", ""),
-		["diploma_mill"] = new("THE ECLECTIC MEDICAL COLLEGE OF OHIO", "Diplomas Conferred by Post · Cincinnati", "J. T. MARSH, M.D. (Hon.), Registrar", "FIFTY DOLLARS"),
-		["sanitary_inspector"] = new("DEPARTMENT OF HEALTH · SANITARY BUREAU", "301 Mott Street", "P. QUINLAN, Inspector of Nuisances", "HEALTH"),
-		["rival_shop_opens"] = new("", "A note pushed under the door", "A friend of the shop", ""),
-		["temperance_picket"] = new("THE LADIES' TEMPERANCE LEAGUE", "Sixth Ward Branch · Meetings Thursdays", "Mrs. ABIGAIL STOWE, Secretary", "LEAGUE"),
-		["board_of_health"] = new("THE BOARD OF HEALTH OF THE CITY OF NEW-YORK", "Order of the Board", "By order, T. R. KEMBLE, Assistant Sanitary Superintendent", "BOARD OF HEALTH"),
-		["customer_wants_stronger"] = new("", "In pencil, on the back of a handbill", "One of your regulars", ""),
+		["inquest"] = new("OFFICE OF THE CORONER", "City and County of New-York · Centre Street", "By order of the Coroner, J. DUFFY, Clerk", "CORONER",
+			"Served at the shop by a boy from Centre street.", "Sir,—",
+			"You are hereby notified that a jury will sit this month upon the death of {name}, who is said to have been a customer of yours. The Coroner will hear any evidence you may wish to give as to the composition of your preparations. The Coroner's time is valuable, as is his good opinion."),
+		["grateful_letter"] = new("", "Mulberry Street, top floor, rear", "Your grateful servant, a customer", "",
+			"In a careful hand, on good paper bought for the purpose.", "Dear Doctor,—",
+			"Three physicians gave me up, and your tonic gave me back. I am a new woman and my husband says he hardly knows me. If my words would be of use to other sufferers, you have my leave to put them in the papers, with my name, which I should like spelled correctly."),
+		["diploma_mill"] = new("THE ECLECTIC MEDICAL COLLEGE OF OHIO", "Diplomas Conferred by Post · Cincinnati", "J. T. MARSH, M.D. (Hon.), Registrar", "COLLEGE",
+			"A printed circular, with the blanks filled in by hand.", "Dear Doctor,—",
+			"The Faculty have heard of your work with great interest, and are pleased to offer you the degree of Doctor of Medicine on receipt of fifty dollars. Attendance is not required; examination is waived in cases of evident merit, and all cases are evident. The diploma is suitable for framing."),
+		["sanitary_inspector"] = new("DEPARTMENT OF HEALTH · SANITARY BUREAU", "301 Mott Street", "P. QUINLAN, Inspector of Nuisances", "HEALTH",
+			"Left on the counter by a man in a hard hat, who is still in the back room.", "Sir,—",
+			"I am directed to make an inspection of your back premises. Inspections of this kind are thorough, and can run on for weeks, during which the shop cannot well be used. A small consideration for my trouble has been known to shorten them."),
+		["rival_shop_opens"] = new("", "A note pushed under the door", "A friend of the shop", "",
+			"Unsigned, in pencil, with a thumbprint.", "",
+			"Thought you ought to know. Feeney has opened two doors down and his window is full of bottles the very spit of yours, at a penny less. People will say anything about a man's stock, if they are given a start."),
+		["temperance_picket"] = new("THE LADIES' TEMPERANCE LEAGUE", "Sixth Ward Branch · Meetings Thursdays", "Mrs. ABIGAIL STOWE, Secretary", "LEAGUE",
+			"Handed in by a lady, while a dozen more sing hymns on the step.", "Sir,—",
+			"The League has caused your remedy to be tasted by a member, who has not been well since. We shall sing outside your door each day until you see the error of your trade, or contribute to the cause of temperance, which we should accept as a first step."),
+		["board_of_health"] = new("THE BOARD OF HEALTH OF THE CITY OF NEW-YORK", "Order of the Board", "By order, T. R. KEMBLE, Assistant Sanitary Superintendent", "BOARD OF HEALTH",
+			"Served with a warrant, by two inspectors and a wagon.", "Sir,—",
+			"Complaint having been made of your preparations, the Board directs that the whole of your stock be removed for analysis. The Board will, in the alternative, accept a fine of thirty dollars, and consider the complaint answered."),
+		["customer_wants_stronger"] = new("", "In pencil, on the back of a handbill", "One of your regulars", "",
+			"Left on the counter, folded small.", "",
+			"Doc, the tonic dont do what it did. I take two spoons and then four and its like water. You must have something stronger in the back. I can pay. I have to have it."),
+	};
+
+	/// <summary>What each answer to the coroner risks, said plainly under the slip.</summary>
+	private static readonly Dictionary<string, string> Risks = new()
+	{
+		["testify"] = "The best odds with the jury, and if they name your bottle anyway, no worse than silence.",
+		["stay_silent"] = "Costs nothing now. If the jury names your bottle, the ward will talk all the more for your absence.",
+		["bribe_coroner"] = "The verdict you pay for. His fee rises every time, and with the talk in the ward.",
 	};
 
 	public LettersDesk(IGame game)
@@ -56,9 +84,14 @@ public partial class LettersDesk : VBoxContainer
 			AddChild(Envelope());
 			return;
 		}
-		var date = EditionWriter.PublicationDate(d.Year, d.Month).AddDays(-6 + d.Letters.Count);
+		// each letter keeps the date it arrived: fixed by the letter itself, never after the proof
+		var press = EditionWriter.PublicationDate(d.Year, d.Month);
 		for (var i = 0; i < d.Letters.Count; i++)
-			AddChild(Sheet(d.Letters[i], date, i));
+		{
+			var h = 0u;
+			foreach (var ch in d.Letters[i].InstanceId) h = (h ^ ch) * 16777619u;
+			AddChild(Sheet(d.Letters[i], press.AddDays(-2 - (int)(h % 12)), i));
+		}
 	}
 
 	private Control Envelope()
@@ -75,9 +108,15 @@ public partial class LettersDesk : VBoxContainer
 
 	private Control Sheet(Letter l, DateTime date, int index)
 	{
-		var head = Heads.GetValueOrDefault(l.EventId) ?? new Head("", "", "Yours, &c.", "");
+		var head = Heads.GetValueOrDefault(l.EventId) ?? new Head("", "", "Yours, &c.", "", "", "Sir,—", "");
+		var at = l.Title.IndexOf("Death of ", StringComparison.Ordinal);
+		var concerns = at >= 0 ? l.Title[(at + 9)..].Replace("the Infant of", "the infant child of") : "";
+		var body = head.Voice.Length > 0 ? head.Voice.Replace("{name}", concerns.Length > 0 ? concerns : "a person") : l.Body;
 		var v = new VBoxContainer();
 		v.AddThemeConstantOverride("separation", 6);
+
+		// the clerk's docket: how the letter came
+		if (head.Docket.Length > 0) v.AddChild(Print.Label(head.Docket, Print.FellIt, 13, color: new Color(Print.Ink, 0.85f)));
 
 		// the letterhead: printed, or nothing (a hand-written note)
 		var lh = new HBoxContainer();
@@ -94,9 +133,9 @@ public partial class LettersDesk : VBoxContainer
 		if (head.Seal.Length > 0) lh.AddChild(Seal(head.Seal));
 		v.AddChild(lh);
 		if (head.Sender.Length > 0) v.AddChild(Print.Rule(2, 0.8f, 2));
-		v.AddChild(Print.Label($"New-York, {date.ToString("MMMM d", CultureInfo.InvariantCulture)}{Ordinal(date.Day)}, {date.Year}.", Print.FellIt, 14, HorizontalAlignment.Right));
-		v.AddChild(Print.Label("Re: " + l.Title, Print.Rye, 15));
-		v.AddChild(Print.Body((head.Sender.Length > 0 ? "Sir,—" : "") + Print.Escape(l.Body), 16, justify: false));
+		v.AddChild(Print.Label($"{(l.EventId == "diploma_mill" ? "Cincinnati" : "New-York")}, {date.ToString("MMMM d", CultureInfo.InvariantCulture)}{Ordinal(date.Day)}, {date.Year}.", Print.FellIt, 14, HorizontalAlignment.Right));
+		v.AddChild(Print.Label("Re: " + EditionWriter.Set(l.Title), Print.Rye, 15));
+		v.AddChild(Print.Body(Print.Escape(EditionWriter.Set(head.Salute + body)), 16, justify: false));
 		v.AddChild(Print.Label(head.Sign, Print.FellIt, 14, HorizontalAlignment.Right));
 
 		// the replies, each a slip to send back
@@ -104,13 +143,14 @@ public partial class LettersDesk : VBoxContainer
 		Control? sheet = null;
 		foreach (var (id, text) in l.Choices)
 		{
-			var b = Print.Button("☞  " + text, 14, sound: null);
+			var b = Print.Button("☞  " + EditionWriter.Set(text), 14, sound: null);
 			b.AutowrapMode = TextServer.AutowrapMode.WordSmart;
 			b.Alignment = HorizontalAlignment.Left;
 			var choice = id;
 			var said = text;
 			b.Pressed += () => Answer(sheet!, l.InstanceId, choice, said);
 			v.AddChild(b);
+			if (Risks.TryGetValue(id, out var risk)) v.AddChild(Print.Label(risk, Print.FellIt, 13, color: new Color(Print.Ink, 0.85f)));
 		}
 		var s = Print.Slip(v, 18);
 		s.RotationDegrees = index % 2 == 0 ? -0.6f : 0.5f;

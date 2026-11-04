@@ -115,18 +115,25 @@ public partial class ProofView : Control
 		var bench = new VBoxContainer { CustomMinimumSize = new Vector2(BenchWidth, 0) };
 		bench.AddThemeConstantOverride("separation", 10);
 		root.AddChild(bench);
-		bench.AddChild(TypeCase(m));
-		bench.AddChild(LettersSlip(m));
+		// the slips scroll if the type case runs long; the warnings and the lever never move
+		var slipsFrame = new ScrollContainer { SizeFlagsVertical = SizeFlags.ExpandFill, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
+		Print.QuietScrollbar(slipsFrame);
+		bench.AddChild(slipsFrame);
+		var slips = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+		slips.AddThemeConstantOverride("separation", 10);
+		slipsFrame.AddChild(slips);
+		slips.AddChild(TypeCase(m));
+		slips.AddChild(LettersSlip(m));
+		// the works hold the drawers' buttons: always in view, never scrolled away
 		bench.AddChild(WorksSlip(m));
-		bench.AddChild(new Control { SizeFlagsVertical = SizeFlags.ExpandFill });
 		var warn = new List<string>();
 		var unansweredInquests = m.Letters.Count(l => l.Title.StartsWith("Inquest", StringComparison.Ordinal));
 		if (unansweredInquests > 0) warn.Add($"{Spell(unansweredInquests)} inquest{(unansweredInquests == 1 ? "" : "s")} unanswered: the coroner will proceed without you.");
 		else if (m.Letters.Count > 0) warn.Add($"{m.Letters.Count} letter{(m.Letters.Count == 1 ? "" : "s")} unanswered: the usual reply will go out for you.");
 		var nothing = m.Formulas.Sum(f => f.Stock) == 0 && m.Brewing.Count == 0;
 		if (nothing) warn.Add("Nothing on the shelf and nothing on the still: the shop will sell nothing this month.");
-		foreach (var w in warn) bench.AddChild(Print.Label("☞ " + w, Print.FellIt, 14, color: Print.Paper));
-		bench.AddChild(Lever(nothing));
+		foreach (var w in warn) bench.AddChild(Print.Label("☞ " + w, Print.FellIt, 13, color: Print.Paper));
+		bench.AddChild(Lever(nothing || unansweredInquests > 0));
 
 		if (_drawer != null) leftStack.AddChild(Drawer(_drawer));
 		Changed?.Invoke();
@@ -143,9 +150,14 @@ public partial class ProofView : Control
 		page.AddChild(Print.Label("THE BOWERY GAZETTE", Print.Rye, 40, HorizontalAlignment.Center));
 		page.AddChild(Print.Rule(4, 1.4f, 2));
 
-		var cols = new HBoxContainer { SizeFlagsVertical = SizeFlags.ExpandFill };
+		// the columns take whatever height is left and never push the counter down: a long
+		// Coroner's Court is cut off at the foot of the proof, as a compositor would
+		var holder = new Control { SizeFlagsVertical = SizeFlags.ExpandFill, ClipContents = true };
+		page.AddChild(holder);
+		var cols = new HBoxContainer();
+		cols.SetAnchorsPreset(LayoutPreset.FullRect);
 		cols.AddThemeConstantOverride("separation", 0);
-		page.AddChild(cols);
+		holder.AddChild(cols);
 
 		// left column: what will be set after press
 		var lc = Col(186);
@@ -223,8 +235,10 @@ public partial class ProofView : Control
 		else if (!m.CanAdvertise)
 		{
 			var ads = m.NextUnlocks.FirstOrDefault(u => u.Name.Contains("Advertis"));
-			var how = ads.Name == null ? "" : $" ({ads.Progress:P0} of the way there)";
-			v.AddChild(Print.Body($"[i]The Gazette will not take your money yet: it wants $100 in savings and a printed testimonial{how}.[/i]", 13, centre: true));
+			var savings = m.CashCents >= 10000 ? "$100 in savings (you have it)" : $"$100 in savings (you have {EditionWriter.Money(m.CashCents)})";
+			v.AddChild(Print.Body(ads.Name != null && ads.Progress >= 0.999
+				? "[i]Both conditions are met. The Gazette will take your money from next month.[/i]"
+				: $"[i]The Gazette will not take your money yet. It wants {savings} and a printed testimonial: print one when a grateful customer writes.[/i]", 13, centre: true));
 		}
 		else if (tier == 0)
 			v.AddChild(Print.Body("[i]Empty. Buy space from the type case and the ward will read your claims.[/i]", 13, centre: true));
@@ -440,7 +454,7 @@ public partial class ProofView : Control
 	{
 		var v = SlipBody(m.Letters.Count == 0 ? "NO LETTERS" : m.Letters.Count == 1 ? "1 LETTER" : $"{m.Letters.Count} LETTERS");
 		if (m.Letters.Count == 0) v.AddChild(Print.Body("[i]Nothing in the post but a circular for galvanic belts.[/i]", 13, justify: false));
-		foreach (var l in m.Letters.Take(2)) v.AddChild(Print.Body($"[b]{Print.Escape(l.Title)}.[/b]", 13, justify: false));
+		foreach (var l in m.Letters.Take(1)) v.AddChild(Print.Body($"[b]{Print.Escape(EditionWriter.Set(l.Title))}.[/b]" + (m.Letters.Count > 1 ? $" [i]And {Spell(m.Letters.Count - 1)} more.[/i]" : ""), 13, justify: false));
 		if (m.Letters.Count > 0)
 		{
 			var open = Print.Button("OPEN THE LETTERS", 13, solid: true);
@@ -465,7 +479,10 @@ public partial class ProofView : Control
 		var books = new VBoxContainer();
 		books.AddThemeConstantOverride("separation", -2);
 		books.AddChild(Print.Label(EditionWriter.Money(m.CashCents), Print.Rye, 22, HorizontalAlignment.Right, wrap: false));
-		books.AddChild(Print.Label($"talk: {DeskView.Talk(m.Heat)}", Print.FellIt, 12, HorizontalAlignment.Right, wrap: false));
+		var talk = Print.Label($"suspicion: {DeskView.Talk(m.Heat)} ({m.Heat:0} of 100)", Print.FellIt, 12, HorizontalAlignment.Right, wrap: false);
+		talk.TooltipText = "What the ward says about your bottles. The more it talks, the more inquests the coroner calls; at 100 the Board of Health moves to close the shop.";
+		talk.MouseFilter = MouseFilterEnum.Pass;
+		books.AddChild(talk);
 		grid.AddChild(books);
 		v.AddChild(grid);
 		var row = new HBoxContainer();
@@ -487,14 +504,14 @@ public partial class ProofView : Control
 	private Control Lever(bool nothingToSell)
 	{
 		var b = Print.Button("SEND TO PRESS ▸", 28, solid: true, sound: null);
-		b.CustomMinimumSize = new Vector2(0, 84);
+		b.CustomMinimumSize = new Vector2(0, 70);
 		b.TooltipText = "End the month. The lead story is written by what happens.";
 		b.AddThemeStyleboxOverride("normal", Print.Box(Print.Ink, Print.Paper, 3, 10));
 		b.AddThemeStyleboxOverride("hover", Print.Box(Print.Paper, Print.Paper, 3, 10));
 		b.AddThemeColorOverride("font_hover_color", Print.Ink);
 		b.Pressed += () =>
 		{
-			// sending an empty month asks once: press again to send anyway
+			// an empty month, or an unanswered coroner, asks once: press again to send anyway
 			if (nothingToSell && !_armed) { _armed = true; b.Text = "SEND IT ANYWAY ▸"; Sfx.Play("ticket", 0f, 0.02f, 0.7f); return; }
 			_armed = false;
 			PressRequested?.Invoke();

@@ -425,10 +425,14 @@ public partial class Main : Control
 				ct.TweenCallback(Callable.From(() => Sfx.Play("coin", db, 0.12f)));
 				ct.TweenInterval(seconds / coins * (0.6f + 0.08f * k));
 			}
-			ct.TweenCallback(Callable.From(() => { if (to > from) Sfx.Play("till", -3f); else Sfx.Play("ticket", 0f, 0.02f, 0.55f); }));
+			var paid = _game.Facts.CashCents >= _game.Facts.CashStartCents;
+			ct.TweenCallback(Callable.From(() => { if (paid) Sfx.Play("till", -3f); else Sfx.Play("ticket", 0f, 0.02f, 0.55f); }));
 		}
 		var t = CreateTween();
-		_monthDelta = to - from;
+		// the footer quotes the same figure as the books: closing cash against the month's opening,
+		// purchases made at the bench included, so it can never disagree with THE MONTH IN BRIEF
+		var f = _game.Facts;
+		_monthDelta = f.CashCents - f.CashStartCents;
 		t.TweenMethod(Callable.From<float>(v => UpdateStatus((long)Mathf.Round(v))), (float)from, (float)to, seconds)
 			.SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.Out);
 	}
@@ -477,7 +481,7 @@ public partial class Main : Control
 		var when = new System.DateTime(d.Year, d.Month, 1).ToString("MMMM yyyy", System.Globalization.CultureInfo.InvariantCulture);
 		_status.Text = _game.Ended
 			? "The business is closed. The paper has the last word."
-			: $"{when} · cash in hand {EditionWriter.Money(cash ?? d.CashCents)}{(_monthDelta is long dm && !_onDesk ? $" ({(dm >= 0 ? "+" : "−")}{EditionWriter.Money(Math.Abs(dm))} this month)" : "")} · {d.Customers} regulars · {d.Letters.Count} letter{(d.Letters.Count == 1 ? "" : "s")} waiting";
+			: $"{when} · cash in hand {EditionWriter.Money(cash ?? d.CashCents)}{(_monthDelta is long dm && !_onDesk ? $" (the books {(dm >= 0 ? "up" : "down")} {EditionWriter.Money(Math.Abs(dm))})" : "")} · {d.Customers} regulars · {d.Letters.Count} letter{(d.Letters.Count == 1 ? "" : "s")} waiting";
 	}
 }
 

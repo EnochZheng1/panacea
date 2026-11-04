@@ -83,11 +83,15 @@ public static class Scrutiny
         return record;
     }
 
-    /// <summary>What the coroner currently charges. Rises with every bribe and with the heat.</summary>
+    /// <summary>
+    /// What the coroner currently charges. Rises with every bribe and with the heat, and is asked
+    /// in round sums: a coroner names his price to the nearest five dollars.
+    /// </summary>
     public static long BribeCostCents(GameState state, ContentPack content)
     {
         long @base = content.Config.Scrutiny.BribeBaseCents;
-        return (long)JsMath.Round(@base * (1 + 0.5 * state.Scrutiny.BribesPaid) * (1 + state.Scrutiny.Heat / 50));
+        double raw = @base * (1 + 0.5 * state.Scrutiny.BribesPaid) * (1 + state.Scrutiny.Heat / 50);
+        return Math.Max(500, (long)JsMath.Round(raw / 500) * 500);
     }
 
     /// <summary>Probability the jury blames your medicine. Approach: "testify" or "silent".</summary>
@@ -97,7 +101,7 @@ public static class Scrutiny
         bool testify = approach == "testify";
         if (!record.ProductImplicated)
         {
-            return Math.Min(0.3, Math.Max(0, 0.05 + heat / 300 - (testify ? 0.03 : 0)));
+            return Math.Min(0.3, Math.Max(0, 0.05 + heat / 300 + state.Scrutiny.TimesImplicated * 0.01 - (testify ? 0.04 : 0)));
         }
         double p =
             0.25 +
@@ -105,8 +109,10 @@ public static class Scrutiny
             heat / 200 -
             state.Player.Reputation / 400 +
             record.Boldness * 0.02 +
-            (record.BadBatch ? 0.2 : 0) -
-            (testify ? 0.1 : 0);
+            (record.BadBatch ? 0.2 : 0) +
+            // the coroner remembers the label: every verdict against it makes the next one likelier
+            state.Scrutiny.TimesImplicated * 0.03 -
+            (testify ? 0.15 : 0);
         return Math.Min(0.95, Math.Max(0.05, p));
     }
 
@@ -130,8 +136,9 @@ public static class Scrutiny
         }
         else if (rng.Chance(ImplicationChance(state, record, approach)))
         {
-            Ledger.Adjust(state, Metrics.Reputation, approach == "testify" ? -15 : -12, Causes.Inquest, record.Id);
-            Ledger.Adjust(state, Metrics.Heat, 20, Causes.Inquest, record.Id);
+            // a proprietor who would not come and speak for his bottle looks the guiltier for it
+            Ledger.Adjust(state, Metrics.Reputation, -12, Causes.Inquest, record.Id);
+            Ledger.Adjust(state, Metrics.Heat, approach == "silent" ? 28 : 20, Causes.Inquest, record.Id);
             Ledger.Adjust(state, Metrics.Notoriety, 8, Causes.Inquest, record.Id);
             state.Scrutiny.TimesImplicated += 1;
             state.Player.Flags["implicated_at_inquest"] = true;

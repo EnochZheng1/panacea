@@ -36,7 +36,8 @@ describe('C# parity fixtures (sim-cs/fixtures)', () => {
       expect(hashValue(state), run.file).toBe(run.finalHash);
       expect(fixture.hashes).toHaveLength(run.turns + 1);
     }
-  });
+    // 24 full games replayed: a few seconds alone, longer when the machine is busy
+  }, 30_000);
 
   it('the replay log records only the fields the rules read', () => {
     const state = newGame(content, { seed: 'canonical' });

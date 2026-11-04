@@ -121,7 +121,8 @@ public static class Print
 		b.AddThemeColorOverride("font_pressed_color", bg);
 		b.AddThemeColorOverride("font_hover_pressed_color", bg);
 		b.AddThemeColorOverride("font_focus_color", fg);
-		b.AddThemeColorOverride("font_disabled_color", new Color(fg, 0.6f));
+		// a ticket that cannot be pressed is never inked: outlined faintly, whatever its kind
+		b.AddThemeColorOverride("font_disabled_color", new Color(Ink, 0.6f));
 		StyleBoxFlat Make(Color fill, Color border, int width)
 		{
 			var st = Box(fill, border, width, 6);
@@ -133,7 +134,7 @@ public static class Print
 		b.AddThemeStyleboxOverride("hover", Make(solid ? new Color("3a3434") : new Color("dcd8ce"), Ink, 3));
 		b.AddThemeStyleboxOverride("pressed", Make(fg, Ink, 3));
 		b.AddThemeStyleboxOverride("hover_pressed", Make(fg, Ink, 3));
-		b.AddThemeStyleboxOverride("disabled", Make(bg, new Color(Ink, 0.5f), 1));
+		b.AddThemeStyleboxOverride("disabled", Make(Paper, new Color(Ink, 0.5f), 1));
 		Anim.LiftOnHover(b);
 		b.MouseEntered += () => { if (!b.Disabled) Sfx.Play("tick", -14f, 0.15f); };
 		if (sound != null) b.Pressed += () => Sfx.Play(sound);

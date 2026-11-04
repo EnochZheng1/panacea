@@ -73,7 +73,7 @@
     "trade": "THE TRADE.",
     "markets": "THE MARKETS.",
     "era": "FROM ABROAD & AT HOME.",
-    "classified": "WANTS & NOTICES."
+    "classified": "WANTS & SUNDRIES."
   },
   "deathSelf": [
     "{surname}.—On {weekday} last, {name}, {occupation}, of {street}, aged {age} years. Funeral private.",
@@ -87,7 +87,7 @@
     "{surname}.—Infant child of {name}, aged {months} months. The family ask for privacy."
   ],
   "deathAnonymous": [
-    "UNKNOWN.—The body of {someone}, name unknown, was found in {street} on {weekday}. A brown bottle was found near it. The Coroner has been informed.",
+    "UNKNOWN.—The body of {someone}, name unknown, was found in {street} on {weekday}. A green bottle was found near it. The Coroner has been informed.",
     "UNKNOWN.—The body of {someone} was taken from a lodging house in {street} on {weekday}. Nothing was found on it but a spoon."
   ],
   "inquestCleared": [
@@ -95,7 +95,7 @@
     "Coroner {coroner} sat upon the death of {name}. A bottle found at the bedside was examined and pronounced \"perfectly harmless, in moderation.\" Verdict: \"{verdict}.\""
   ],
   "inquestBribed": [
-    "An inquest upon the body of {name} was opened before Coroner {coroner}. A brown bottle entered in evidence could not afterward be found. The Coroner returned a verdict of \"{verdict},\" observing that he had his reasons, and that they were none of the jury's business.",
+    "An inquest upon the body of {name} was opened before Coroner {coroner}. A green bottle entered in evidence could not afterward be found. The Coroner returned a verdict of \"{verdict},\" observing that he had his reasons, and that they were none of the jury's business.",
     "Coroner {coroner}, lately seen in a new overcoat, found that {name} \"{verdict}.\" The jury was not consulted."
   ],
   "inquestImplicated": [
@@ -104,7 +104,7 @@
   ],
   "joined": [
     "A NEW PATRON.—{name}, {occupation}, troubled by {ailment}, has taken up {product}, and reports great hopes of it.",
-    "{name}, of {street}, has begun upon {product} for {ailment}, on the recommendation of a neighbour, since departed.",
+    "{name}, of {street}, has begun upon {product} for {ailment}, on the recommendation of a neighbour, who has not been seen about lately.",
     "Among the new customers at the shop this month: {name}, {occupation}, who complains of {ailment}."
   ],
   "leftRecovered": [
@@ -133,7 +133,7 @@
     "TO ADVERTISERS.—The account of the proprietor of {product} being in arrears, his notice does not appear in this edition."
   ],
   "shutdown": [
-    "NOTICE.—The Board of Health gives warning that the premises of the proprietor of {product} will be closed in {months} month(s), unless the public complaint subsides."
+    "NOTICE.—The Board of Health gives warning that the premises of the proprietor of {product} will be closed {within}, unless the public complaint subsides."
   ],
   "unlock": ["IN THE TRADE.—{title}. {description}"],
   "firstEdition": {
@@ -238,7 +238,7 @@
     "FOR SALE.—A quantity of empty bottles, slightly used. Apply to Fogg & Sons.",
     "WANTED.—A PHYSICIAN willing to endorse anything. Diploma not required, but helpful.",
     "WANTED.—A NIGHT WATCHMAN for a laboratory. Must be a heavy sleeper. Board included.",
-    "FOUND.—A brown bottle, three-quarters empty, in Baxter street. The owner will not be needing it.",
+    "FOUND.—A bottle, green, three-quarters empty, in Baxter street. The owner will not be needing it.",
     "SITUATION WANTED.—By a clergyman, to endorse remedies. References from the families of satisfied customers.",
     "TO LET.—A cellar, suitable for brewing, dry, discreet. No questions; no windows.",
     "WANTED.—Empty bottles of any make, bought by the gross. No enquiry made as to the former contents.",
@@ -308,6 +308,110 @@
     "_": {
       "male": "a man",
       "female": "a woman"
+    }
+  },
+  "tradeLeads": {
+    "bribed": {
+      "headline": "THE CORONER IS SATISFIED",
+      "cut": "wc_death",
+      "cutline": "A GENTLEMAN LEAVING THE CORONER'S OFFICE.",
+      "decks": [
+        "A Short Inquest.",
+        "THE JURY RETURNS ITS VERDICT IN TIME FOR LUNCHEON; NO BOTTLE IS EXAMINED.",
+        "The Ward Is Reassured."
+      ],
+      "bodies": [
+        "The inquest upon the body of {name} was over before the jury had taken their coats off. Coroner {coroner} pronounced himself satisfied, and was seen afterward at Delmonico's, satisfied again.",
+        "Asked why no bottle was examined at the inquest upon {name}, Coroner {coroner} replied that he did not hold with chemistry, and that his new overcoat was none of our business.",
+        "The jury in the matter of {name} returned their verdict without retiring. One juror, asked what he made of the evidence, said that there had not been any, and that this had been explained to him."
+      ]
+    },
+    "arrears": {
+      "headline": "A SHOP IN ARREARS",
+      "cut": "wc_proprietor",
+      "cutline": "THE PROPRIETOR.—Not at home to callers.",
+      "decks": [
+        "Creditors on Mulberry Street.",
+        "THE PROPRIETOR OF {product_upper} IS FOUND TO OWE MORE THAN HE HAS.",
+        "He Is Confident."
+      ],
+      "bodies": [
+        "The proprietor of {product} owes the landlord, the wholesaler and the Gazette, in that order of patience. He informs our reporter that the remedy is on the point of a great success, and asked to borrow the car fare home.",
+        "A gentleman from the wholesale house on Pearl street called at the shop twice this month and was twice told the proprietor was out. The proprietor was seen through the window, mixing.",
+        "The landlord of the shop on Mulberry street has begun to read the deaths column with a professional interest, as the only column in which his tenant's affairs improve."
+      ]
+    },
+    "dull": {
+      "headline": "TRADE DULL ON MULBERRY STREET",
+      "cut": "wc_clerk",
+      "cutline": "A CUSTOMER, UNDECIDED.",
+      "decks": [
+        "The Remedy Lingers.",
+        "ONLY {sold_upper} BOTTLES SOLD; THE PROPRIETOR BLAMES THE WEATHER.",
+        "Other Bottles Are Mentioned."
+      ],
+      "bodies": [
+        "The shop on Mulberry street had a slow month. The proprietor attributes it to the weather, the price of coal and the jealousy of the medical faculty. His customers attribute it to the remedy.",
+        "Our reporter spent an afternoon at the shop and saw three customers, one of whom wanted directions. The proprietor sold him a bottle anyway.",
+        "Trade in {product} is reported quiet. The proprietor has been seen studying the advertisements of his rivals with the expression of a man reading his own obituary."
+      ]
+    },
+    "nothing": {
+      "headline": "NOT A BOTTLE SOLD",
+      "cut": "wc_proprietor",
+      "cutline": "THE PROPRIETOR.—Waiting.",
+      "decks": [
+        "A Remedy Without Takers.",
+        "THE SHOP ON MULBERRY STREET OPENS EVERY DAY AND SELLS NOTHING.",
+        "The Ward Remains Unwell."
+      ],
+      "bodies": [
+        "The shop on Mulberry street kept its hours all month and did not sell a single bottle. The ward continues to cough, and appears to prefer it.",
+        "Not one bottle left the shop on Mulberry street this month. The proprietor tells our reporter that he is building anticipation."
+      ]
+    },
+    "growing": {
+      "headline": "NEW FACES AT THE COUNTER",
+      "cut": "wc_bottle_panacea",
+      "cutline": "A BOTTLE.—From the engraver's stock.",
+      "decks": [
+        "The Ward Discovers a Remedy.",
+        "{joined_upper} NEW CUSTOMERS CALL AT THE SHOP ON MULBERRY STREET.",
+        "Word Gets Round."
+      ],
+      "bodies": [
+        "Word of {product} is going round the ward faster than the ailments it treats. Among this month's new customers is {name}, {occupation}, who heard of it from a neighbour and has not been the same since.",
+        "{name} is the latest of the ward to take up {product}. {pronounCap} tells our reporter that {pronoun} cannot say exactly what it does, but that {pronoun} feels it doing it."
+      ]
+    },
+    "losing": {
+      "headline": "CUSTOMERS DESERT A REMEDY",
+      "cut": "wc_clerk",
+      "cutline": "A FORMER CUSTOMER.—From a stock likeness.",
+      "decks": [
+        "The Ward Has Second Thoughts.",
+        "{left_upper} REGULARS STOP CALLING AT THE SHOP ON MULBERRY STREET.",
+        "The Proprietor Is Hurt."
+      ],
+      "bodies": [
+        "Several of the proprietor's regulars have stopped calling at the shop. Some have got better; some have found another bottle; the proprietor declines to say which he finds more insulting.",
+        "The shop on Mulberry street is losing custom. {name}, lately a regular, tells our reporter that {pronoun} has given up the remedy, and feels about the same, and is saving the money."
+      ]
+    },
+    "brisk": {
+      "headline": "BRISK TRADE ON MULBERRY STREET",
+      "cut": "wc_bottle_panacea",
+      "cutline": "A BOTTLE.—From the engraver's stock.",
+      "decks": [
+        "The Remedy Moves.",
+        "{sold_upper} BOTTLES SOLD AT THE SHOP THIS MONTH; THE PROPRIETOR IS SATISFIED, AND SO, FOR NOW, IS THE WARD."
+      ],
+      "bodies": [
+        "Customers were seen leaving the shop with brown paper parcels and returning, some days later, for more. Our reporter asked one of them what the remedy was for. \"For everything,\" he said, and asked our reporter for a dime.",
+        "The proprietor of {product} reports a good month and has bought a new hat on the strength of it. The hat is said to be the healthiest thing in the shop.",
+        "Business is good at the shop on Mulberry street. {name}, a regular, tells our reporter that {pronoun} would not be without the remedy, and has not tried to be.",
+        "The proprietor is counting his takings, and has twice been heard to laugh. The ward, which has heard him laugh before, is keeping its children indoors."
+      ]
     }
   }
 }

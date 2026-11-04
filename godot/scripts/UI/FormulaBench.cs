@@ -247,7 +247,7 @@ public partial class FormulaBench : HBoxContainer
 			g.Set(value, Words(key, value), animateFrom);
 		}
 		_cost.Text = p.Error == null ? $"Costs {EditionWriter.Money(p.UnitCostCents)} a bottle to make." : "";
-		_verdict.Text = p.Error != null ? $"[b]Not yet.[/b] [i]{Print.Escape(p.Error)}[/i]" : Verdict(p.Properties);
+		_verdict.Text = p.Error != null ? $"[b]Not yet.[/b] [i]{Print.Escape(Plain(p.Error))}[/i]" : Verdict(p.Properties);
 
 		foreach (var c in _actions.GetChildren()) { _actions.RemoveChild(c); c.QueueFree(); }
 		var nameEdit = new LineEdit { Text = _name, SelectAllOnFocus = true, PlaceholderText = "Name your remedy", TooltipText = "The name on the label and in the Gazette. Choose with care: it cannot be changed once entered." };
@@ -377,7 +377,18 @@ public partial class FormulaBench : HBoxContainer
 			_t.TweenProperty(_bar, "size:x", Math.Max(2, target), 0.35f).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.Out);
 			if (_words.Text != words && !fromZero) Anim.Punch(_words, 1.12f);
 			_words.Text = words;
-			_value.Text = $"{value:0.0}";
+			// the figure is the chemist's pencil note, not print: on hover only
+			_value.Text = "";
+			TooltipText = $"The chemist's figure: {value:0.0} on a scale of 15.";
+			MouseFilter = MouseFilterEnum.Pass;
 		}
+	}
+
+	/// <summary>The sim's refusals, in the bench's own words.</summary>
+	private static string Plain(string err)
+	{
+		var m = System.Text.RegularExpressions.Regex.Match(err, @"volume ([\d.]+) oz exceeds bottle capacity ([\d.]+)");
+		if (m.Success) return $"That is {m.Groups[1].Value} oz, and the bottle holds {m.Groups[2].Value}. It is running over the lip: take some back.";
+		return err.Length > 0 ? char.ToUpperInvariant(err[0]) + err[1..] : err;
 	}
 }

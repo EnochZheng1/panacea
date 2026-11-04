@@ -42,7 +42,8 @@ public partial class OrderForm : VBoxContainer
 		names.AddChild(Print.Label("Wholesale Druggists & Importers of Drugs · 81 Pearl Street, New-York", Print.FellIt, 14));
 		head.AddChild(names);
 		var no = new VBoxContainer();
-		no.AddChild(Print.Label("ORDER FORM", Print.Rye, 15, HorizontalAlignment.Right, wrap: false));
+		no.AddChild(Print.Label("PRICE CURRENT", Print.Rye, 15, HorizontalAlignment.Right, wrap: false));
+		no.AddChild(Print.Label("AND ORDER BLANK", Print.Fell, 11, HorizontalAlignment.Right, wrap: false));
 		no.AddChild(Print.Label($"No. {4100 + d.Turn * 7}", Print.Fell, 14, HorizontalAlignment.Right, wrap: false));
 		head.AddChild(no);
 		v.AddChild(head);
@@ -82,7 +83,7 @@ public partial class OrderForm : VBoxContainer
 				b.TooltipText = step < 0 ? "Strike out 8 oz" : $"{step} oz: {EditionWriter.Money(step * i.CostPerOunceCents)}";
 				var id = i.Id; var s = step;
 				b.Pressed += () => { _order[id] = Math.Max(0, _order.GetValueOrDefault(id) + s); _note = null; Refresh(); };
-				if (step < 0) { q.AddChild(b); q.AddChild(written); }
+				if (step < 0) { b.Disabled = oz == 0; q.AddChild(b); q.AddChild(written); }
 				else q.AddChild(b);
 			}
 			grid.AddChild(q);
@@ -102,8 +103,8 @@ public partial class OrderForm : VBoxContainer
 		var f = d.Formulas.FirstOrDefault();
 		if (f != null)
 		{
-			var fill = Print.Button($"FILL IN FOR 24 BOTTLES OF {Short(f.Name)}", 12);
-			fill.TooltipText = "Writes in whatever the recipe is short of, for a batch of 24.";
+			var fill = Print.Button("FILL IN FOR 24 BOTTLES", 12);
+			fill.TooltipText = $"Writes in whatever {f.Name} is short of, for a batch of 24.";
 			fill.Pressed += () =>
 			{
 				foreach (var (id, per) in f.Components)

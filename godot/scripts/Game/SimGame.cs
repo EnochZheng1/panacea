@@ -70,6 +70,7 @@ public sealed class SimGame : IGame
 
 	/// <summary>Everyone ever seen at the counter, as last seen (the paper remembers them).</summary>
 	private readonly Dictionary<string, Regular> _known = new();
+	private bool _testimonialPrinted;
 
 	public void GoToPress()
 	{
@@ -251,6 +252,18 @@ public sealed class SimGame : IGame
 				f.CashLines.Add((_content.Text($"cause.{g.Key}"), (long)Math.Round(g.Sum(x => x.Amount))));
 			foreach (var g in report.Deltas.Where(x => x.Metric == "heat").GroupBy(x => x.Cause))
 				f.HeatLines.Add((_content.Text($"cause.{g.Key}"), g.Sum(x => x.Amount)));
+		}
+
+		// what the trade says the shop is near to: the next things it can earn
+		foreach (var u in o.NextUnlocks.OrderByDescending(u => u.Progress).Take(2))
+			f.Prospects.Add((_content.Text($"unlock.{u.Id}.name"), u.Progress));
+
+		// a printed testimonial appears in the next edition, once
+		if (!_testimonialPrinted && _state.Player.Flags.TryGetValue("testimonial_received", out var printed) && printed && report != null)
+		{
+			_testimonialPrinted = true;
+			var writer = o.Customers.FirstOrDefault(c => c.Mood == "delighted" && IsFemale(c.Name)) ?? o.Customers.FirstOrDefault(c => IsFemale(c.Name)) ?? o.Customers.FirstOrDefault();
+			if (writer != null) f.Testimonial = Person(writer);
 		}
 
 		if (report == null)

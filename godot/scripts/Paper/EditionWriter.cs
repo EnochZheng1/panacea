@@ -132,6 +132,16 @@ public sealed class EditionWriter
             notices.Blocks.Add(new Block { Text = Fill(Pick(f, "bad", _copy.GetProperty("badBatch")), f, null, prod).Replace("{bottles}", bottles.ToString(CultureInfo.InvariantCulture)) });
         if (f.BottlesSeized > 0)
             notices.Blocks.Add(new Block { Text = Fill(Pick(f, "seized", _copy.GetProperty("stockSeized")), f, null, productName).Replace("{bottles}", f.BottlesSeized.ToString(CultureInfo.InvariantCulture)) });
+        if (f.Testimonial is { } tw)
+        {
+            notices.Blocks.Add(new Block
+            {
+                Kind = BlockKind.Notice,
+                Lead = "A TESTIMONIAL.—",
+                Text = $"\u201cThree physicians gave me up, and {productName} gave me back. I am a new woman.\u201d So writes {Misspell(tw.Name)}, of {Home(f, tw)}, who asks that her name be spelled correctly.—Adv.",
+                Clip = PersonClip(f, tw, "YOUR TESTIMONIAL", "Printed as she asked, very nearly.", "Standing in the ward rose, and the Gazette will sell you space once you have $100 put by."),
+            });
+        }
         if (f.AdsLapsed)
             notices.Blocks.Add(new Block { Text = Fill(Pick(f, "lapsed", _copy.GetProperty("adsLapsed")), f, null, productName) });
         foreach (var (id, title, description) in f.Unlocks)
@@ -179,6 +189,15 @@ public sealed class EditionWriter
                 Clip = books,
             });
         }
+        if (f.Prospects.Count > 0 && !f.FirstEdition)
+        {
+            string Near(double p) => p >= 0.75 ? "very near to" : p >= 0.4 ? "halfway to" : "some way yet from";
+            var talk = string.Join(", and ", f.Prospects.Select(x => $"{Near(x.Progress)} {x.Name.Trim('"').ToLowerInvariant()}"));
+            trade.Blocks.Add(new Block { Text = $"TRADE TALK.—The proprietor is said to be {talk}." });
+        }
+        var stockDelta = f.StockValueCents - f.StockValueStartCents;
+        if (!f.FirstEdition && f.StockValueCents > 0)
+            trade.Blocks.Add(new Block { Text = $"Stock on the shelf and in the jars, at cost: {Money(f.StockValueCents)}" + (Math.Abs(stockDelta) >= 100 ? $" ({(stockDelta > 0 ? "up" : "down")} {Money(Math.Abs(stockDelta))} on the month)." : "."), Clip = books });
         if (f.TurnedAwayByPrice > 0)
             trade.Blocks.Add(new Block { Text = $"Callers who asked the price and went away: {Words(f.TurnedAwayByPrice)}.", Clip = books });
         if (!f.FirstEdition && f.CashLines.Count > 0)
@@ -401,7 +420,8 @@ public sealed class EditionWriter
     private Story TradeLead(PaperFacts f, ProductFact product)
     {
         var sold = f.Sales.Sum(x => x.Bottles);
-        var delta = f.CashCents - f.CashStartCents;
+        // money laid out on stock still on the shelf is not a bad month: judge cash and stock together
+        var delta = f.CashCents - f.CashStartCents + (f.StockValueCents - f.StockValueStartCents);
         var bribed = f.Inquests.FirstOrDefault(q => q.Outcome == "bribed");
         var lost = f.Left.Where(l => l.Reason != "bereaved").ToList();
         // every lead the month could carry, most pressing first
@@ -559,6 +579,9 @@ public sealed class EditionWriter
         parts.Add(sold == 0 ? "Not a bottle sold" : $"{Cap(Words(sold))} bottle{(sold == 1 ? "" : "s")} sold");
         var delta = f.CashCents - f.CashStartCents;
         parts.Add(delta == 0 ? "the books even" : $"the books {(delta > 0 ? "up" : "down")} {Money(Math.Abs(delta))}");
+        // money laid out on stock is still on the shelf: say so beside the cash
+        var stock = f.StockValueCents - f.StockValueStartCents;
+        if (Math.Abs(stock) >= 100) parts.Add($"stock on hand {(stock > 0 ? "up" : "down")} {Money(Math.Abs(stock))}");
         var people = new List<string>();
         if (f.Deaths.Count > 0) people.Add($"{Words(f.Deaths.Count)} dead");
         if (f.Inquests.Count > 0) people.Add($"{Words(f.Inquests.Count)} inquest{(f.Inquests.Count == 1 ? "" : "s")}");
@@ -715,6 +738,16 @@ public sealed class EditionWriter
         var m = Regex.Match(text, "^([A-Z'’ ]+\\.—)(.*)$", RegexOptions.Singleline);
         if (m.Success) { lead = m.Groups[1].Value; rest = m.Groups[2].Value; }
         else { lead = ""; rest = text; }
+    }
+
+    /// <summary>The Gazette's compositor at work: one pair of letters in the surname swapped.</summary>
+    private static string Misspell(string name)
+    {
+        var (_, surname) = SplitName(name);
+        if (surname.Length < 4) return name;
+        var i = surname.Length / 2;
+        var wrong = surname[..(i - 1)] + surname[i] + surname[i - 1] + surname[(i + 1)..];
+        return name[..name.LastIndexOf(surname, StringComparison.Ordinal)] + wrong;
     }
 
     /// <summary>The ward's coroner: one man for the whole game, not a new one every month.</summary>

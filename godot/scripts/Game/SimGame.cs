@@ -162,7 +162,7 @@ public sealed class SimGame : IGame
 		{
 			// an inquest into an infant names the infant, not the parent who bought the bottle
 			var dead = e.DeathId == null ? null : o.Deaths.FirstOrDefault(x => x.Id == e.DeathId);
-			var subject = string.IsNullOrWhiteSpace(e.SubjectName) || dead is { Anonymous: true } ? "a Person Unknown"
+			var subject = string.IsNullOrWhiteSpace(e.SubjectName) || dead is { Anonymous: true } ? Unknown(dead?.Segment)
 				: dead is { Consumer: "infant" } ? $"the Infant of {e.SubjectName}" : e.SubjectName;
 			string Sub(string s) => s.Replace("{name}", subject ?? "a customer")
 				.Replace("{cost}", e.BribeCostCents is long c ? EditionWriter.Money(c) : "");
@@ -174,11 +174,29 @@ public sealed class SimGame : IGame
 				Body = Sub(_content.Text($"event.{e.EventId}.body")),
 			};
 			foreach (var c in e.ChoiceIds) letter.Choices.Add((c, Sub(_content.Text($"event.{e.EventId}.choice.{c}"))));
+			// the jury's odds, as the sim will roll them the moment the reply is sent
+			var record = e.DeathId == null ? null : _state.Deaths.Find(x => x.Id == e.DeathId);
+			if (record != null && e.EventId == "inquest")
+				foreach (var (c, approach) in new[] { ("testify", "testify"), ("stay_silent", "silent") })
+					letter.Odds[c] = Scrutiny.ImplicationChance(_state, record, approach);
 			d.Letters.Add(letter);
 		}
 		foreach (var u in o.NextUnlocks) d.NextUnlocks.Add((_content.Text($"unlock.{u.Id}.name"), u.Progress));
 		return d;
 	}
+
+	/// <summary>An unknown dead customer, described as the deaths column describes them.</summary>
+	private static string Unknown(string? segment) => segment switch
+	{
+		"labourer" => "an Unknown Labouring Man",
+		"dockworker" => "an Unknown Longshoreman",
+		"mother" => "an Unknown Young Mother",
+		"elderly" => "an Unknown Elderly Person",
+		"clerk" => "an Unknown Clerk",
+		"seamstress" => "an Unknown Seamstress",
+		"well_to_do" => "an Unknown Person of Means",
+		_ => "a Person Unknown",
+	};
 
 	// ---------- the paper ----------
 
@@ -271,7 +289,7 @@ public sealed class SimGame : IGame
 					f.Era.Add((_content.Text($"timeline.{t.Id}.headline"), _content.Text($"timeline.{t.Id}.body")));
 					break;
 				case UnlockNews u:
-					f.Unlocks.Add((_content.Text($"unlock.{u.Id}.name"), _content.Text($"unlock.{u.Id}.description")));
+					f.Unlocks.Add((u.Id, _content.Text($"unlock.{u.Id}.name"), _content.Text($"unlock.{u.Id}.description")));
 					break;
 				case BadBatchCaughtNews b:
 					f.BadBatches.Add((FormulaName(b.FormulaId), b.Bottles));

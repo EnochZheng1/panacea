@@ -55,23 +55,35 @@
       <path d="M0,6 L8,6" stroke="#141212" stroke-width="1.3" opacity="0.28"/>
     </pattern>
   </defs>
-  <defs><path id="rim-league" d="M120,120 m-92,0 a92,92 0 1,1 184,0 a92,92 0 1,1 -184,0"/></defs>
+  <defs>
+    <path id="top-league" d="M28,120 A92,92 0 0,1 212,120"/>
+    <path id="bot-league" d="M18,120 A102,102 0 0,0 222,120"/>
+  </defs>
   <g id="seal" filter="url(#soft)">
-    <circle cx="120" cy="120" r="114" class="ln" stroke-width="7"/>
-    <circle cx="120" cy="120" r="106" class="ln" stroke-width="1.8"/>
+    <circle cx="120" cy="120" r="117" class="ln" stroke-width="5"/>
+    <g class="k"><circle cx="230.0" cy="120.0" r="1.9"/><circle cx="229.6" cy="129.6" r="1.9"/><circle cx="228.3" cy="139.1" r="1.9"/><circle cx="226.3" cy="148.5" r="1.9"/><circle cx="223.4" cy="157.6" r="1.9"/><circle cx="219.7" cy="166.5" r="1.9"/><circle cx="215.3" cy="175.0" r="1.9"/><circle cx="210.1" cy="183.1" r="1.9"/><circle cx="204.3" cy="190.7" r="1.9"/><circle cx="197.8" cy="197.8" r="1.9"/><circle cx="190.7" cy="204.3" r="1.9"/><circle cx="183.1" cy="210.1" r="1.9"/><circle cx="175.0" cy="215.3" r="1.9"/><circle cx="166.5" cy="219.7" r="1.9"/><circle cx="157.6" cy="223.4" r="1.9"/><circle cx="148.5" cy="226.3" r="1.9"/><circle cx="139.1" cy="228.3" r="1.9"/><circle cx="129.6" cy="229.6" r="1.9"/><circle cx="120.0" cy="230.0" r="1.9"/><circle cx="110.4" cy="229.6" r="1.9"/><circle cx="100.9" cy="228.3" r="1.9"/><circle cx="91.5" cy="226.3" r="1.9"/><circle cx="82.4" cy="223.4" r="1.9"/><circle cx="73.5" cy="219.7" r="1.9"/><circle cx="65.0" cy="215.3" r="1.9"/><circle cx="56.9" cy="210.1" r="1.9"/><circle cx="49.3" cy="204.3" r="1.9"/><circle cx="42.2" cy="197.8" r="1.9"/><circle cx="35.7" cy="190.7" r="1.9"/><circle cx="29.9" cy="183.1" r="1.9"/><circle cx="24.7" cy="175.0" r="1.9"/><circle cx="20.3" cy="166.5" r="1.9"/><circle cx="16.6" cy="157.6" r="1.9"/><circle cx="13.7" cy="148.5" r="1.9"/><circle cx="11.7" cy="139.1" r="1.9"/><circle cx="10.4" cy="129.6" r="1.9"/><circle cx="10.0" cy="120.0" r="1.9"/><circle cx="10.4" cy="110.4" r="1.9"/><circle cx="11.7" cy="100.9" r="1.9"/><circle cx="13.7" cy="91.5" r="1.9"/><circle cx="16.6" cy="82.4" r="1.9"/><circle cx="20.3" cy="73.5" r="1.9"/><circle cx="24.7" cy="65.0" r="1.9"/><circle cx="29.9" cy="56.9" r="1.9"/><circle cx="35.7" cy="49.3" r="1.9"/><circle cx="42.2" cy="42.2" r="1.9"/><circle cx="49.3" cy="35.7" r="1.9"/><circle cx="56.9" cy="29.9" r="1.9"/><circle cx="65.0" cy="24.7" r="1.9"/><circle cx="73.5" cy="20.3" r="1.9"/><circle cx="82.4" cy="16.6" r="1.9"/><circle cx="91.5" cy="13.7" r="1.9"/><circle cx="100.9" cy="11.7" r="1.9"/><circle cx="110.4" cy="10.4" r="1.9"/><circle cx="120.0" cy="10.0" r="1.9"/><circle cx="129.6" cy="10.4" r="1.9"/><circle cx="139.1" cy="11.7" r="1.9"/><circle cx="148.5" cy="13.7" r="1.9"/><circle cx="157.6" cy="16.6" r="1.9"/><circle cx="166.5" cy="20.3" r="1.9"/><circle cx="175.0" cy="24.7" r="1.9"/><circle cx="183.1" cy="29.9" r="1.9"/><circle cx="190.7" cy="35.7" r="1.9"/><circle cx="197.8" cy="42.2" r="1.9"/><circle cx="204.3" cy="49.3" r="1.9"/><circle cx="210.1" cy="56.9" r="1.9"/><circle cx="215.3" cy="65.0" r="1.9"/><circle cx="219.7" cy="73.5" r="1.9"/><circle cx="223.4" cy="82.4" r="1.9"/><circle cx="226.3" cy="91.5" r="1.9"/><circle cx="228.3" cy="100.9" r="1.9"/><circle cx="229.6" cy="110.4" r="1.9"/></g>
+    <circle cx="120" cy="120" r="105" class="ln" stroke-width="1.6"/>
     <circle cx="120" cy="120" r="82" class="ln" stroke-width="3.4"/>
-    <text font-family="Rye" font-size="15.5" class="k" letter-spacing="0.5">
-      <textPath href="#rim-league" textLength="566" lengthAdjust="spacing">LADIES' TEMPERANCE LEAGUE ★ SIXTH WARD ★ TOUCH NOT ★</textPath>
+    <circle cx="120" cy="120" r="77" class="ln" stroke-width="0.9" opacity="0.55"/>
+    <circle cx="120" cy="120" r="73" class="ln" stroke-width="0.7" opacity="0.4"/>
+    <text font-family="Rye" font-size="15" class="k" letter-spacing="0.6" text-anchor="middle">
+      <textPath href="#top-league" startOffset="50%">LADIES' TEMPERANCE LEAGUE</textPath>
     </text>
+    <text font-family="Rye" font-size="13" class="k" letter-spacing="0.6" text-anchor="middle">
+      <textPath href="#bot-league" startOffset="50%">SIXTH WARD · TOUCH NOT</textPath>
+    </text>
+    <g class="k"><path d="M12,120 l6,-4 l6,4 l-6,4 Z"/><path d="M216,120 l6,-4 l6,4 l-6,4 Z"/></g>
   </g>
   <g id="emblem" filter="url(#carve)">
-    <path class="k" d="M100,82 L136,82 L136,184 L100,184 Z"/>
-    <path class="cut" d="M106,96 L106,176 M130,96 L130,176" stroke-width="1.8"/>
+    <path class="p" d="M100,82 L136,82 L136,184 L100,184 Z"/>
+    <path class="g" d="M120,82 L136,82 L136,184 L120,184 Z"/>
+    <path class="ln" d="M100,82 L136,82 L136,184 L100,184 Z" stroke-width="4"/>
+    <path class="ln" d="M106,90 L106,178 M112,90 L112,178" stroke-width="1.2"/>
     <path class="k" d="M94,72 L142,72 L146,84 L90,84 Z"/>
     <path class="k" d="M96,184 L140,184 L146,196 L90,196 Z"/>
     <path class="ln" d="M136,100 C152,92 168,80 178,62" stroke-width="6"/>
     <path class="ln" d="M100,118 L74,118 L74,128" stroke-width="7"/>
-    <path class="grl" d="M74,134 L74,160" stroke="#141212" stroke-width="3" stroke-dasharray="5 6"/>
+    <path class="ln" d="M74,134 L74,160" stroke-width="3" stroke-dasharray="5 6"/>
     <path class="k" d="M62,164 L86,164 L84,184 L64,184 Z"/>
     <path class="ln" d="M86,168 C94,170 94,180 86,180" stroke-width="2.4"/>
   </g>

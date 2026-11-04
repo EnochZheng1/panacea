@@ -122,7 +122,7 @@ public partial class FormulaBench : HBoxContainer
 		var name = Print.Label(i.Name, Print.Fell, 13, HorizontalAlignment.Center);
 		name.MouseFilter = MouseFilterEnum.Ignore;
 		v.AddChild(name);
-		var sub = Print.Label(on ? $"{inGlass:0.##} oz in the glass" : $"{EditionWriter.Money(i.CostPerOunceCents)}/oz", Print.FellIt, 11, HorizontalAlignment.Center);
+		var sub = Print.Label(on ? $"{inGlass:0.##} oz in the glass" : (i.CostPerOunceCents == 0 ? "free" : $"{EditionWriter.Money(i.CostPerOunceCents)}/oz"), Print.FellIt, 11, HorizontalAlignment.Center);
 		sub.MouseFilter = MouseFilterEnum.Ignore;
 		v.AddChild(sub);
 		box.AddChild(v);

@@ -95,7 +95,7 @@ public partial class OrderForm : VBoxContainer
 				b.TooltipText = step < 0 ? "Strike out 8 oz" : $"{step} oz: {EditionWriter.Money(step * i.CostPerOunceCents)}";
 				var id = i.Id; var s = step;
 				b.Pressed += () => { _order[id] = Math.Max(0, _order.GetValueOrDefault(id) + s); _note = null; Refresh(); };
-				if (step < 0) { b.Disabled = oz == 0; q.AddChild(b); q.AddChild(written); }
+				if (step < 0) { Print.SetLive(b, oz > 0); q.AddChild(b); q.AddChild(written); }
 				else q.AddChild(b);
 			}
 			grid.AddChild(q);

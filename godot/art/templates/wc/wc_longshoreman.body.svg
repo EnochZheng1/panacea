@@ -31,10 +31,15 @@
     <path class="cut" d="M252,226 C276,206 330,204 356,224 M300,190 L300,240" stroke-width="1.8"/>
     <path class="k" d="M262,268 L290,264 L290,272 L262,276 Z M310,264 L338,268 L338,276 L310,272 Z"/>
     <path class="ln" d="M264,284 C270,278 282,278 288,284 M312,284 C318,278 330,278 336,284" stroke-width="3"/>
-    <ellipse cx="300" cy="300" rx="16" ry="14" class="k"/>
-    <path class="cut" d="M292,294 C294,290 298,288 302,289" stroke-width="2"/>
-    <path class="k" d="M270,318 C286,336 314,336 330,318 C326,334 314,342 300,342 C286,342 274,334 270,318 Z"/>
-    <g class="p"><rect x="282" y="322" width="7" height="7"/><rect x="291" y="324" width="7" height="7"/><rect x="309" y="323" width="7" height="7"/></g>
+    <!-- a broken, hatched nose rather than a ball, and a heavy moustache over a set mouth -->
+    <path class="p" d="M294,276 C292,288 282,298 284,308 C288,316 312,316 316,308 C318,298 308,288 306,276 Z"/>
+    <path class="g" d="M306,284 C310,294 318,302 314,310 C310,314 304,314 301,312 C305,302 306,292 306,284 Z"/>
+    <path class="ln" d="M294,276 C292,288 282,298 284,308 C288,316 312,316 316,308 C318,298 308,288 306,276" stroke-width="2.4"/>
+    <path class="ln" d="M291,309 C293,312 296,312 297,310 M303,310 C305,312 308,312 310,309" stroke-width="1.6"/>
+    <path class="k" d="M270,322 C282,314 294,316 300,321 C306,316 318,314 330,322 C326,330 314,331 300,327 C286,331 274,330 270,322 Z"/>
+    <path class="cut" d="M280,322 L286,326 M290,321 L294,325 M306,321 L310,325 M314,322 L320,326" stroke-width="1.2"/>
+    <path class="ln" d="M286,338 C294,341 306,341 314,338" stroke-width="2"/>
+    <path class="ln" d="M262,300 C266,312 268,322 272,330 M338,300 C334,312 332,322 328,330" stroke-width="1.4"/>
     <!-- fist on the hip -->
     <path class="ln" d="M212,412 C170,450 176,532 222,552" stroke-width="44"/>
     <path d="M212,412 C170,450 176,532 222,552" fill="none" stroke="#efece4" stroke-width="36" stroke-linecap="round"/>

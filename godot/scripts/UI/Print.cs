@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Collections.Generic;
 using Godot;
@@ -148,36 +149,65 @@ public static class Print
 
 	/// <summary>A thin paper-white scrollbar that suits the black table.</summary>
 	/// <summary>
-	/// Where keyboard focus sits inside a panel that is about to be rebuilt: its place in the
-	/// panel's tab order, or -1. Pair with <see cref="RestoreFocus"/> so a keyboard player does
-	/// not start again from the top after every action.
+	/// Where keyboard focus sits inside a panel that is about to be rebuilt: the focused
+	/// control's path from the panel (child indices), or null. A rebuilt panel has the same shape,
+	/// so the same path finds the same button. Pair with <see cref="RestoreFocus"/> so a keyboard
+	/// player does not start again from the top after every action.
 	/// </summary>
-	public static int FocusIndex(Control root)
+	public static int[]? FocusIndex(Control root)
 	{
-		if (!root.IsInsideTree()) return -1;
+		if (!root.IsInsideTree()) return null;
 		var f = root.GetViewport().GuiGetFocusOwner();
-		return f != null && root.IsAncestorOf(f) ? Focusables(root).IndexOf(f) : -1;
+		if (f == null || !root.IsAncestorOf(f)) return null;
+		var path = new List<int>();
+		for (Node n = f; n != root; n = n.GetParent()) path.Insert(0, n.GetIndex());
+		return path.ToArray();
 	}
 
-	/// <summary>Gives focus back to the same place in the rebuilt panel (or the nearest left).</summary>
-	public static void RestoreFocus(Control root, int index)
+	/// <summary>Gives focus back to the same place in the rebuilt panel, or the nearest live control.</summary>
+	public static void RestoreFocus(Control root, int[]? path)
 	{
-		if (index < 0) return;
+		if (path == null) return;
 		Callable.From(() =>
 		{
 			if (!GodotObject.IsInstanceValid(root) || !root.IsInsideTree()) return;
+			Node n = root;
+			foreach (var i in path)
+			{
+				var kids = n.GetChildren().Where(k => !k.IsQueuedForDeletion()).ToList();
+				if (i >= kids.Count) { n = kids.Count > 0 ? kids[^1] : n; break; }
+				n = kids[i];
+			}
 			var list = Focusables(root);
 			if (list.Count == 0) return;
-			// the same place in the order; if that control is now disabled, the next live one
-			var i = Math.Min(index, list.Count - 1);
+			// that control, if it can still take focus; otherwise the next one after it
+			var at = n is Control c ? list.IndexOf(c) : -1;
+			if (at < 0) at = list.FindIndex(x => n.IsAncestorOf(x) || IsAfter(x, n));
+			if (at < 0) at = list.Count - 1;
 			for (var k = 0; k < list.Count; k++)
 			{
-				var c = list[(i + k) % list.Count];
-				if (c is BaseButton { Disabled: true }) continue;
-				c.GrabFocus();
+				var cand = list[(at + k) % list.Count];
+				if (cand is BaseButton { Disabled: true }) continue;
+				cand.GrabFocus();
 				return;
 			}
 		}).CallDeferred();
+	}
+
+	private static bool IsAfter(Node a, Node b)
+	{
+		// tree order: is a after b?
+		var pa = new List<int>(); for (var n = a; n != null; n = n.GetParent()) pa.Insert(0, n.GetIndex());
+		var pb = new List<int>(); for (var n = b; n != null; n = n.GetParent()) pb.Insert(0, n.GetIndex());
+		for (var i = 0; i < Math.Min(pa.Count, pb.Count); i++) if (pa[i] != pb[i]) return pa[i] > pb[i];
+		return pa.Count > pb.Count;
+	}
+
+	/// <summary>Disables a ticket and takes it out of the Tab order, or brings it back.</summary>
+	public static void SetLive(BaseButton b, bool live)
+	{
+		b.Disabled = !live;
+		b.FocusMode = live ? Control.FocusModeEnum.All : Control.FocusModeEnum.None;
 	}
 
 	public static List<Control> Focusables(Control root)
@@ -190,7 +220,6 @@ public static class Print
 				if (k is Control c && !c.IsQueuedForDeletion())
 				{
 					if (!c.Visible) continue;
-					// disabled buttons count, so a button coming alive does not shift everyone's place
 					if (c.FocusMode == Control.FocusModeEnum.All) list.Add(c);
 				}
 				Walk(k);

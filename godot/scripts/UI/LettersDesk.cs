@@ -57,8 +57,8 @@ public partial class LettersDesk : VBoxContainer
 	/// <summary>What each answer to the coroner risks, said plainly under the slip.</summary>
 	private static readonly Dictionary<string, string> Risks = new()
 	{
-		["testify"] = "The best odds with the jury, and if they name your bottle anyway, no worse than silence.",
-		["stay_silent"] = "Costs nothing now. If the jury names your bottle, the ward will talk all the more for your absence.",
+		["testify"] = "The best odds with the jury. If they name your bottle anyway, suspicion rises 20.",
+		["stay_silent"] = "Costs nothing. If the jury names your bottle, suspicion rises 28: your absence is noticed.",
 		["bribe_coroner"] = "The verdict you pay for. His fee rises every time, and with the talk in the ward.",
 	};
 
@@ -85,7 +85,7 @@ public partial class LettersDesk : VBoxContainer
 		top.AddChild(Print.Label(d.Letters.Count == 0 ? "nothing for you" : d.Letters.Count == 1 ? "one letter" : $"{d.Letters.Count} letters", Print.FellIt, 17, HorizontalAlignment.Right, Print.Paper));
 		// a band of ink, so the heading never sits on the proof behind the shade
 		AddChild(Print.Panel(top, Print.Box(Print.Ink, Print.Ink, 0, 8)));
-		if (_note != null) AddChild(Print.Slip(Print.Body($"[i]{Print.Escape(_note)}[/i]", 15, justify: false), 10));
+		if (_note != null) AddChild(Print.Slip(Print.Body($"[i]{Print.Escape(EditionWriter.Set(_note))}[/i]", 15, justify: false), 10));
 		if (d.Letters.Count == 0)
 		{
 			AddChild(Envelope());
@@ -117,7 +117,7 @@ public partial class LettersDesk : VBoxContainer
 	{
 		var head = Heads.GetValueOrDefault(l.EventId) ?? new Head("", "", "Yours, &c.", "", "", "Sir,—", "");
 		var at = l.Title.IndexOf("Death of ", StringComparison.Ordinal);
-		var concerns = at >= 0 ? l.Title[(at + 9)..].Replace("the Infant of", "the infant child of") : "";
+		var concerns = at >= 0 ? l.Title[(at + 9)..].Replace("the Infant of", "the infant child of").Replace("an Unknown", "an unknown") : "";
 		var body = head.Voice.Length > 0 ? head.Voice.Replace("{name}", concerns.Length > 0 ? concerns : "a person") : l.Body;
 		var v = new VBoxContainer();
 		v.AddThemeConstantOverride("separation", 6);
@@ -140,9 +140,11 @@ public partial class LettersDesk : VBoxContainer
 		if (head.Seal.Length > 0) lh.AddChild(Seal(head.Seal));
 		v.AddChild(lh);
 		if (head.Sender.Length > 0) v.AddChild(Print.Rule(2, 0.8f, 2));
-		v.AddChild(Print.Label($"{(l.EventId == "diploma_mill" ? "Cincinnati" : "New-York")}, {date.ToString("MMMM d", CultureInfo.InvariantCulture)}{Ordinal(date.Day)}, {date.Year}.", Print.FellIt, 14, HorizontalAlignment.Right));
+		// a printed letter is dated; a note pushed under the door knows only the day
+		var note = head.Sender.Length == 0;
+		v.AddChild(Print.Label(note ? date.DayOfWeek + "." : $"{(l.EventId == "diploma_mill" ? "Cincinnati" : "New-York")}, {date.ToString("MMMM d", CultureInfo.InvariantCulture)}{Ordinal(date.Day)}, {date.Year}.", Print.FellIt, 14, HorizontalAlignment.Right));
 		v.AddChild(Print.Label("Re: " + EditionWriter.Set(l.Title), Print.Rye, 15));
-		v.AddChild(Print.Body(Print.Escape(EditionWriter.Set(head.Salute + body)), 16, justify: false));
+		v.AddChild(Print.Body(note ? $"[i]{Print.Escape(EditionWriter.Set(head.Salute + body))}[/i]" : Print.Escape(EditionWriter.Set(head.Salute + body)), note ? 17 : 16, justify: false));
 		v.AddChild(Print.Label(head.Sign, Print.FellIt, 14, HorizontalAlignment.Right));
 
 		// the replies, each a slip to send back
@@ -157,22 +159,38 @@ public partial class LettersDesk : VBoxContainer
 			var said = text;
 			b.Pressed += () => Answer(sheet!, l.InstanceId, choice, said);
 			v.AddChild(b);
-			if (Risks.TryGetValue(id, out var risk)) v.AddChild(Print.Label(risk, Print.FellIt, 13, color: new Color(Print.Ink, 0.85f)));
+			if (Risks.TryGetValue(id, out var risk))
+			{
+				// the verdict is given as soon as the reply goes: say what the odds are now
+				if (l.Odds.TryGetValue(id, out var p)) risk += $" The jury sits at once; as things stand, about {Math.Clamp((int)Math.Round(p * 10), 1, 9)} juries in 10 would name your bottle.";
+				v.AddChild(Print.Label(risk, Print.FellIt, 13, color: new Color(Print.Ink, 0.85f)));
+			}
 		}
 		var s = Print.Slip(v, 18);
-		s.RotationDegrees = index % 2 == 0 ? -0.6f : 0.5f;
+		// notes lie crooked on the desk; printed letters nearly straight
+		s.RotationDegrees = (index % 2 == 0 ? -0.6f : 0.5f) * (head.Sender.Length == 0 ? 3f : 1f);
 		sheet = s;
 		return s;
 	}
 
 	private void Answer(Control sheet, string instance, string choice, string said)
 	{
-		var before = _game.Desk().CashCents;
+		var d0 = _game.Desk();
+		var before = d0.CashCents;
+		var heat0 = d0.Heat;
+		var inquest = d0.Letters.FirstOrDefault(x => x.InstanceId == instance)?.EventId == "inquest";
 		var err = _game.Resolve(instance, choice);
 		if (err != null) { _note = "Refused: " + err; Refresh(); return; }
-		var after = _game.Desk().CashCents;
+		var d1 = _game.Desk();
+		var after = d1.CashCents;
 		var money = after == before ? "" : after < before ? $" It cost {EditionWriter.Money(before - after)}." : $" It brought in {EditionWriter.Money(after - before)}.";
-		_note = $"Sent: “{said}”{money} The outcome, if any, will be in the next edition.";
+		// an inquest sits the moment it is answered: say what the jury did, not "next edition"
+		var outcome = !inquest ? " The outcome, if any, will be in the next edition."
+			: choice == "bribe_coroner" ? " The coroner has your envelope; the verdict will be the one you paid for."
+			: d1.Heat > heat0 + 10 ? $" The jury sat at once and named your bottle. Suspicion is now {d1.Heat:0} of 100. The paper will have the rest."
+			: " The jury sat at once and found nothing against you. The paper will have the verdict.";
+		_note = $"Sent: “{said}”{money}{outcome}";
+		Main.Guard(800);
 
 		// the rubber stamp comes down, and the letter is folded away
 		Sfx.Play("sheet", 0f, 0.05f, 0.8f);

@@ -32,7 +32,11 @@ public partial class StillBench : HBoxContainer
 		left.AddChild(_still);
 		AddChild(Print.Slip(left, 10, 330));
 		_right.AddThemeConstantOverride("separation", 8);
-		AddChild(Print.Slip(_right, 14));
+		// the batch card keeps its width whatever it holds, so a short message never collapses it
+		_right.CustomMinimumSize = new Vector2(330, 0);
+		var card = Print.Slip(_right, 14);
+		card.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+		AddChild(card);
 		Refresh();
 	}
 
@@ -101,7 +105,7 @@ public partial class StillBench : HBoxContainer
 		// the ingredients were paid for when they were ordered: lighting the fire costs only the glass
 		var stuff = Math.Max(0, n * f.UnitCostCents - bottles);
 		_right.AddChild(Print.Label(want > max
-			? $"You have marked {want}; the stock on the shelf makes {(max == 0 ? "none" : max.ToString(CultureInfo.InvariantCulture))}. Order the rest, or light the fire for {(max == 0 ? "nothing" : max.ToString(CultureInfo.InvariantCulture))}."
+			? $"You have marked {want}; the stock on the shelf makes {(max == 0 ? "none" : max.ToString(CultureInfo.InvariantCulture))}. {(max == 0 ? "Order the rest to light the fire." : $"Order the rest, or light the fire for {max}.")}"
 			: $"{n} bottle{(n == 1 ? "" : "s")} · {EditionWriter.Money(bottles)} for bottles and corks when lit · {(stuff > 0 ? $"takes {EditionWriter.Money(stuff)} of stock off the shelf · " : "")}most the stock allows: {max}", Print.Fell, 15));
 
 		// what limits the batch, and the remedy for it
@@ -145,7 +149,7 @@ public partial class StillBench : HBoxContainer
 		}
 		var fire = Print.Button(n > 0 ? $"LIGHT THE FIRE · {n} BOTTLES" : "LIGHT THE FIRE", 17, solid: true, sound: "lever");
 		fire.Disabled = n <= 0 || d.StillsFree <= 0;
-		fire.TooltipText = d.StillsFree <= 0 ? "Every still is already on the fire this month." : n <= 0 ? "Choose a batch on the shelf (and have the stock for it)." : "Brews the batch; it is bottled by press time.";
+		fire.TooltipText = d.StillsFree <= 0 ? "Every still is already on the fire this month." : n <= 0 ? (want > 0 ? "Not enough stock on the shelf: order first." : "Choose a batch on the shelf.") : "Brews the batch; it is bottled by press time.";
 		var fid = f.Id; var count = n; var fname = f.Name;
 		fire.Pressed += () =>
 		{
@@ -245,7 +249,7 @@ public partial class StillDrawing : Control
 
 	// where the engraving leaves room for the game (in this control's coordinates)
 	private static readonly Rect2 FireDoor = new(67, 267, 76, 37);
-	private static readonly Vector2 Head = new(105, 81);
+	private static readonly Vector2 Joint = new(250, 104);
 	private static readonly Vector2 Spout = new(252.5f, 252);
 	private static readonly Vector2 Receiver = new(252.5f, 291);
 	private const float ReceiverR = 23f;
@@ -255,7 +259,8 @@ public partial class StillDrawing : Control
 	{
 		CustomMinimumSize = new Vector2(310, 372);
 		MouseFilter = MouseFilterEnum.Ignore;
-		_cut ??= ResourceLoader.Exists("res://assets/art/wc_still.png") ? GD.Load<Texture2D>("res://assets/art/wc_still.png") : null;
+		// the card, not the bare sprite: the cut keeps its ruled ground and frame in the drawer
+		_cut ??= ResourceLoader.Exists("res://assets/art/wc_still.card.png") ? GD.Load<Texture2D>("res://assets/art/wc_still.card.png") : null;
 	}
 
 	public void Flare() => _flare = 1.2f;
@@ -273,7 +278,7 @@ public partial class StillDrawing : Control
 		var paper = Print.Paper;
 		if (_cut != null)
 		{
-			// the sprite is the whole 620 x 880 card at 2x; the engraving is its top 620 x 720
+			// the card is 620 x 880 at 2x; the framed engraving is its top 620 x 720
 			var k = _cut.GetWidth() / 620f;
 			DrawTextureRectRegion(_cut, new Rect2(0, 0, 310, 360), new Rect2(0, 0, 620 * k, 720 * k));
 		}
@@ -289,6 +294,12 @@ public partial class StillDrawing : Control
 			pts.Add(Receiver + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * ReceiverR);
 		}
 		DrawColoredPolygon(pts.ToArray(), Print.Green);
+		// the liquid is printed, not painted: ruled with ink like the bottle's label
+		for (var y = top + 2; y < Receiver.Y + ReceiverR - 1; y += 3)
+		{
+			var hw = Mathf.Sqrt(Mathf.Max(0, ReceiverR * ReceiverR - (y - Receiver.Y) * (y - Receiver.Y))) - 1;
+			DrawLine(new Vector2(Receiver.X - hw, y), new Vector2(Receiver.X + hw, y), new Color(ink, 0.28f), 0.8f);
+		}
 		// the label on the glass sits over the liquid
 		DrawRect(Label, paper);
 		DrawRect(Label, ink, false, 1f);
@@ -296,30 +307,53 @@ public partial class StillDrawing : Control
 
 		if (Lit)
 		{
-			// flames: paper tongues in the dark of the fire door, never still
+			// the glow, cut white into the brick round the fire door
+			var door = new Vector2(FireDoor.GetCenter().X, FireDoor.End.Y);
+			for (var i = 0; i < 9; i++)
+			{
+				var a = Mathf.Pi + (i + 0.5f) * Mathf.Pi / 9f;
+				var flick = 0.6f + 0.4f * Mathf.Abs(Mathf.Sin(_t * 2.3f + i));
+				var dir = Vector2.FromAngle(a);
+				DrawLine(door + dir * new Vector2(46, 42), door + dir * new Vector2(46 + 9 * flick, 42 + 8 * flick), new Color(paper, 0.85f), 1.6f);
+			}
+			// flames: uneven paper tongues with curled tips, never still
 			var floor = FireDoor.End.Y - 2;
 			for (var i = 0; i < 7; i++)
 			{
-				var h = 12 + 13 * Mathf.Abs(Mathf.Sin(_t * (5 + i) + i * 1.7f));
-				var x = FireDoor.Position.X + 7 + i * 10.5f;
-				var lean = 2.5f * Mathf.Sin(_t * 3 + i);
-				var flame = new[] { new Vector2(x - 5, floor), new Vector2(x + lean, floor - h), new Vector2(x + 5, floor) };
+				var h = 10 + 15 * Mathf.Abs(Mathf.Sin(_t * (4.3f + i * 0.7f) + i * 1.9f)) + (i % 3) * 3;
+				var w = 4.5f + (i * 7 % 3);
+				var x = FireDoor.Position.X + 8 + i * 10.2f;
+				var lean = 3f * Mathf.Sin(_t * 2.7f + i * 1.3f);
+				var flame = new[]
+				{
+					new Vector2(x - w, floor),
+					new Vector2(x - w * 0.8f + lean * 0.3f, floor - h * 0.45f),
+					new Vector2(x + lean, floor - h),
+					new Vector2(x + lean + 3.5f, floor - h + 4),
+					new Vector2(x + w * 0.7f + lean * 0.4f, floor - h * 0.5f),
+					new Vector2(x + w, floor),
+				};
 				DrawColoredPolygon(flame, paper);
-				DrawPolyline(flame, ink, 1.2f);
+				DrawPolyline(flame, ink, 1.1f);
 			}
-			// the drip from the worm
-			var drip = (_t * 1.4f) % 1f;
-			DrawCircle(Spout + new Vector2(0, 2 + drip * 12), 2.2f, Print.Green);
-			// steam from the head
-			for (var i = 0; i < 4; i++)
+			// a drop falls from the worm into the receiver's neck
+			var drip = (_t * 1.3f) % 1f;
+			DrawCircle(Spout + new Vector2(0, 2 + drip * drip * 16), 2f, Print.Green);
+			// vapour escaping at the joint of the arm and the tub, in curling inked wisps
+			for (var w = 0; w < 3; w++)
 			{
-				var p = (_t * 0.45f + i * 0.25f) % 1f;
-				var c = new Vector2(Head.X + Mathf.Sin(_t + i * 2f) * 9 - p * 16, Head.Y - p * 70);
-				DrawArc(c, 6 + p * 14, 0, Mathf.Tau, 18, new Color(ink, 0.6f * (1 - p)), 1.6f);
+				var p = (_t * 0.35f + w / 3f) % 1f;
+				var wisp = new Vector2[9];
+				for (var k = 0; k < wisp.Length; k++)
+				{
+					var q = k / 8f;
+					wisp[k] = Joint + new Vector2(-6 - 10 * w + Mathf.Sin(q * 5f + _t * 1.5f + w) * (3 + 6 * q), -p * 38 - q * 22);
+				}
+				DrawPolyline(wisp, new Color(ink, 0.55f * (1 - p)), 1.4f);
 			}
 		}
 		if (_flare > 0) DrawCircle(FireDoor.GetCenter(), 30 * _flare, new Color(paper, 0.35f * _flare));
 		var caption = Lit ? "On the fire." : "Cold.";
-		DrawString(Print.FellIt, new Vector2(24, 362), Stills > 1 ? $"{caption} You have {Stills} stills." : caption, HorizontalAlignment.Left, -1, 15, ink);
+		DrawString(Print.FellIt, new Vector2(24, 362), Stills > 1 ? $"{caption} Still No. 1 of {Stills}." : caption, HorizontalAlignment.Left, -1, 15, ink);
 	}
 }

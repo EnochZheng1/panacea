@@ -1,11 +1,21 @@
-  <defs><path id="rim-college" d="M120,120 m-92,0 a92,92 0 1,1 184,0 a92,92 0 1,1 -184,0"/></defs>
+  <defs>
+    <path id="top-college" d="M28,120 A92,92 0 0,1 212,120"/>
+    <path id="bot-college" d="M18,120 A102,102 0 0,0 222,120"/>
+  </defs>
   <g id="seal" filter="url(#soft)">
-    <circle cx="120" cy="120" r="114" class="ln" stroke-width="7"/>
-    <circle cx="120" cy="120" r="106" class="ln" stroke-width="1.8"/>
+    <circle cx="120" cy="120" r="117" class="ln" stroke-width="5"/>
+    <g class="k"><circle cx="230.0" cy="120.0" r="1.9"/><circle cx="229.6" cy="129.6" r="1.9"/><circle cx="228.3" cy="139.1" r="1.9"/><circle cx="226.3" cy="148.5" r="1.9"/><circle cx="223.4" cy="157.6" r="1.9"/><circle cx="219.7" cy="166.5" r="1.9"/><circle cx="215.3" cy="175.0" r="1.9"/><circle cx="210.1" cy="183.1" r="1.9"/><circle cx="204.3" cy="190.7" r="1.9"/><circle cx="197.8" cy="197.8" r="1.9"/><circle cx="190.7" cy="204.3" r="1.9"/><circle cx="183.1" cy="210.1" r="1.9"/><circle cx="175.0" cy="215.3" r="1.9"/><circle cx="166.5" cy="219.7" r="1.9"/><circle cx="157.6" cy="223.4" r="1.9"/><circle cx="148.5" cy="226.3" r="1.9"/><circle cx="139.1" cy="228.3" r="1.9"/><circle cx="129.6" cy="229.6" r="1.9"/><circle cx="120.0" cy="230.0" r="1.9"/><circle cx="110.4" cy="229.6" r="1.9"/><circle cx="100.9" cy="228.3" r="1.9"/><circle cx="91.5" cy="226.3" r="1.9"/><circle cx="82.4" cy="223.4" r="1.9"/><circle cx="73.5" cy="219.7" r="1.9"/><circle cx="65.0" cy="215.3" r="1.9"/><circle cx="56.9" cy="210.1" r="1.9"/><circle cx="49.3" cy="204.3" r="1.9"/><circle cx="42.2" cy="197.8" r="1.9"/><circle cx="35.7" cy="190.7" r="1.9"/><circle cx="29.9" cy="183.1" r="1.9"/><circle cx="24.7" cy="175.0" r="1.9"/><circle cx="20.3" cy="166.5" r="1.9"/><circle cx="16.6" cy="157.6" r="1.9"/><circle cx="13.7" cy="148.5" r="1.9"/><circle cx="11.7" cy="139.1" r="1.9"/><circle cx="10.4" cy="129.6" r="1.9"/><circle cx="10.0" cy="120.0" r="1.9"/><circle cx="10.4" cy="110.4" r="1.9"/><circle cx="11.7" cy="100.9" r="1.9"/><circle cx="13.7" cy="91.5" r="1.9"/><circle cx="16.6" cy="82.4" r="1.9"/><circle cx="20.3" cy="73.5" r="1.9"/><circle cx="24.7" cy="65.0" r="1.9"/><circle cx="29.9" cy="56.9" r="1.9"/><circle cx="35.7" cy="49.3" r="1.9"/><circle cx="42.2" cy="42.2" r="1.9"/><circle cx="49.3" cy="35.7" r="1.9"/><circle cx="56.9" cy="29.9" r="1.9"/><circle cx="65.0" cy="24.7" r="1.9"/><circle cx="73.5" cy="20.3" r="1.9"/><circle cx="82.4" cy="16.6" r="1.9"/><circle cx="91.5" cy="13.7" r="1.9"/><circle cx="100.9" cy="11.7" r="1.9"/><circle cx="110.4" cy="10.4" r="1.9"/><circle cx="120.0" cy="10.0" r="1.9"/><circle cx="129.6" cy="10.4" r="1.9"/><circle cx="139.1" cy="11.7" r="1.9"/><circle cx="148.5" cy="13.7" r="1.9"/><circle cx="157.6" cy="16.6" r="1.9"/><circle cx="166.5" cy="20.3" r="1.9"/><circle cx="175.0" cy="24.7" r="1.9"/><circle cx="183.1" cy="29.9" r="1.9"/><circle cx="190.7" cy="35.7" r="1.9"/><circle cx="197.8" cy="42.2" r="1.9"/><circle cx="204.3" cy="49.3" r="1.9"/><circle cx="210.1" cy="56.9" r="1.9"/><circle cx="215.3" cy="65.0" r="1.9"/><circle cx="219.7" cy="73.5" r="1.9"/><circle cx="223.4" cy="82.4" r="1.9"/><circle cx="226.3" cy="91.5" r="1.9"/><circle cx="228.3" cy="100.9" r="1.9"/><circle cx="229.6" cy="110.4" r="1.9"/></g>
+    <circle cx="120" cy="120" r="105" class="ln" stroke-width="1.6"/>
     <circle cx="120" cy="120" r="82" class="ln" stroke-width="3.4"/>
-    <text font-family="Rye" font-size="15.5" class="k" letter-spacing="0.5">
-      <textPath href="#rim-college" textLength="566" lengthAdjust="spacing">ECLECTIC MEDICAL COLLEGE ★ CINCINNATI ★ DIPLOMAS BY POST ★</textPath>
+    <circle cx="120" cy="120" r="77" class="ln" stroke-width="0.9" opacity="0.55"/>
+    <circle cx="120" cy="120" r="73" class="ln" stroke-width="0.7" opacity="0.4"/>
+    <text font-family="Rye" font-size="15" class="k" letter-spacing="0.6" text-anchor="middle">
+      <textPath href="#top-college" startOffset="50%">ECLECTIC MEDICAL COLLEGE</textPath>
     </text>
+    <text font-family="Rye" font-size="13" class="k" letter-spacing="0.6" text-anchor="middle">
+      <textPath href="#bot-college" startOffset="50%">CINCINNATI · BY POST</textPath>
+    </text>
+    <g class="k"><path d="M12,120 l6,-4 l6,4 l-6,4 Z"/><path d="M216,120 l6,-4 l6,4 l-6,4 Z"/></g>
   </g>
   <g id="emblem" filter="url(#carve)">
     <path class="p" d="M70,92 L170,92 L170,144 L70,144 Z"/>

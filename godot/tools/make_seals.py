@@ -7,6 +7,7 @@ vignette was engraved. Then build and render them like any woodcut:
   node tools/render_art.mjs seal_coroner ... && python3 tools/make_cuts.py
 Each seal is 240 x 240, ink only on a transparent ground (the letter's paper shows through).
 """
+import math
 import os
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
@@ -56,44 +57,64 @@ EMBLEMS = {
     <text x="120" y="186" font-family="Rye" font-size="11" text-anchor="middle" class="k" textLength="92" lengthAdjust="spacingAndGlyphs">PECUNIA DOCET</text>''',
     # the town pump and a tin cup: cold water, and plenty of it
     'league': '''
-    <path class="k" d="M100,82 L136,82 L136,184 L100,184 Z"/>
-    <path class="cut" d="M106,96 L106,176 M130,96 L130,176" stroke-width="1.8"/>
+    <path class="p" d="M100,82 L136,82 L136,184 L100,184 Z"/>
+    <path class="g" d="M120,82 L136,82 L136,184 L120,184 Z"/>
+    <path class="ln" d="M100,82 L136,82 L136,184 L100,184 Z" stroke-width="4"/>
+    <path class="ln" d="M106,90 L106,178 M112,90 L112,178" stroke-width="1.2"/>
     <path class="k" d="M94,72 L142,72 L146,84 L90,84 Z"/>
     <path class="k" d="M96,184 L140,184 L146,196 L90,196 Z"/>
     <path class="ln" d="M136,100 C152,92 168,80 178,62" stroke-width="6"/>
     <path class="ln" d="M100,118 L74,118 L74,128" stroke-width="7"/>
-    <path class="grl" d="M74,134 L74,160" stroke="#141212" stroke-width="3" stroke-dasharray="5 6"/>
+    <path class="ln" d="M74,134 L74,160" stroke-width="3" stroke-dasharray="5 6"/>
     <path class="k" d="M62,164 L86,164 L84,184 L64,184 Z"/>
     <path class="ln" d="M86,168 C94,170 94,180 86,180" stroke-width="2.4"/>''',
     # a mortar and pestle, the druggist's sign
     'hobart': '''
     <path class="ln" d="M128,58 L104,130" stroke-width="12"/>
     <path class="cut" d="M126,64 L106,124" stroke-width="2.4"/>
-    <path class="k" d="M64,114 L176,114 L170,124 C166,156 146,174 120,176 C94,174 74,156 70,124 Z"/>
-    <path class="cut" d="M80,130 C86,150 100,162 118,166" stroke-width="2.6"/>
+    <path class="p" d="M64,114 L176,114 L170,124 C166,156 146,174 120,176 C94,174 74,156 70,124 Z"/>
+    <path class="g" d="M120,124 L170,124 C166,156 146,174 120,176 Z"/>
+    <path class="ln" d="M64,114 L176,114 L170,124 C166,156 146,174 120,176 C94,174 74,156 70,124 Z" stroke-width="4"/>
+    <path class="ln" d="M82,132 C88,150 100,162 116,168 M96,128 C100,142 108,152 118,158" stroke-width="1.4"/>
     <path class="k" d="M100,176 L140,176 L148,194 L92,194 Z"/>
     <path class="cut" d="M76,120 L164,120" stroke-width="2"/>''',
 }
 
+# the legend: the name along the top, read left to right; the place along the bottom, set
+# upright the way a die-sinker turns it (never running on round and upside down)
 LEGENDS = {
-    'coroner': 'OFFICE OF THE CORONER ★ CITY AND COUNTY OF NEW-YORK ★',
-    'health': 'BOARD OF HEALTH ★ CITY OF NEW-YORK ★ SALUS POPULI ★',
-    'sanitary': 'SANITARY BUREAU ★ INSPECTOR OF NUISANCES ★ SIXTH WARD ★',
-    'college': 'ECLECTIC MEDICAL COLLEGE ★ CINCINNATI ★ DIPLOMAS BY POST ★',
-    'league': "LADIES' TEMPERANCE LEAGUE ★ SIXTH WARD ★ TOUCH NOT ★",
-    'hobart': 'J. & W. HOBART & CO. ★ 81 PEARL STREET ★ ESTD. 1852 ★',
+    'coroner': ('OFFICE OF THE CORONER', 'CITY AND COUNTY OF NEW-YORK'),
+    'health': ('BOARD OF HEALTH', 'CITY OF NEW-YORK · SALUS POPULI'),
+    'sanitary': ('SANITARY BUREAU', 'INSPECTOR OF NUISANCES'),
+    'college': ('ECLECTIC MEDICAL COLLEGE', 'CINCINNATI · BY POST'),
+    'league': ("LADIES' TEMPERANCE LEAGUE", 'SIXTH WARD · TOUCH NOT'),
+    'hobart': ('J. & W. HOBART & CO.', '81 PEARL ST. · ESTD. 1852'),
 }
 
 
 def body(name):
-    return f'''  <defs><path id="rim-{name}" d="M120,120 m-92,0 a92,92 0 1,1 184,0 a92,92 0 1,1 -184,0"/></defs>
+    top, bottom = (x.replace('&', '&amp;') for x in LEGENDS[name])
+    beads = ''.join(
+        f'<circle cx="{120 + 110 * math.cos(a):.1f}" cy="{120 + 110 * math.sin(a):.1f}" r="1.9"/>'
+        for a in (k * math.tau / 72 for k in range(72)))
+    return f'''  <defs>
+    <path id="top-{name}" d="M28,120 A92,92 0 0,1 212,120"/>
+    <path id="bot-{name}" d="M18,120 A102,102 0 0,0 222,120"/>
+  </defs>
   <g id="seal" filter="url(#soft)">
-    <circle cx="120" cy="120" r="114" class="ln" stroke-width="7"/>
-    <circle cx="120" cy="120" r="106" class="ln" stroke-width="1.8"/>
+    <circle cx="120" cy="120" r="117" class="ln" stroke-width="5"/>
+    <g class="k">{beads}</g>
+    <circle cx="120" cy="120" r="105" class="ln" stroke-width="1.6"/>
     <circle cx="120" cy="120" r="82" class="ln" stroke-width="3.4"/>
-    <text font-family="Rye" font-size="15.5" class="k" letter-spacing="0.5">
-      <textPath href="#rim-{name}" textLength="566" lengthAdjust="spacing">{LEGENDS[name].replace("&", "&amp;")}</textPath>
+    <circle cx="120" cy="120" r="77" class="ln" stroke-width="0.9" opacity="0.55"/>
+    <circle cx="120" cy="120" r="73" class="ln" stroke-width="0.7" opacity="0.4"/>
+    <text font-family="Rye" font-size="15" class="k" letter-spacing="0.6" text-anchor="middle">
+      <textPath href="#top-{name}" startOffset="50%">{top}</textPath>
     </text>
+    <text font-family="Rye" font-size="13" class="k" letter-spacing="0.6" text-anchor="middle">
+      <textPath href="#bot-{name}" startOffset="50%">{bottom}</textPath>
+    </text>
+    <g class="k"><path d="M12,120 l6,-4 l6,4 l-6,4 Z"/><path d="M216,120 l6,-4 l6,4 l-6,4 Z"/></g>
   </g>
   <g id="emblem" filter="url(#carve)">{EMBLEMS[name]}
   </g>

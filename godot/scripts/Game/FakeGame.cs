@@ -30,7 +30,7 @@ public sealed class FakeGame : IGame
 		f.Left.Add(new LeftFact(new PersonFact { Id = "c2", Name = "Mr. Jan Kowalski", Segment = "labourer", Ailment = "Rheumatism" }, "dissatisfied"));
 		f.Enthusiasts.Add(doyle);
 		f.Era.Add(("New Coal-Tar Remedy for Fever", "German chemists offer acetanilide, sold as Antifebrin, for headache and fever."));
-		f.Unlocks.Add(("Newspaper Advertising", "With savings in hand and a testimonial to print, the papers will take your money."));
+		f.Unlocks.Add(("newspaper_ads", "Newspaper Advertising", "With savings in hand and a testimonial to print, the papers will take your money."));
 		return f;
 	}
 

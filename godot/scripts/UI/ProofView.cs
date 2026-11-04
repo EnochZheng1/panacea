@@ -54,6 +54,7 @@ public partial class ProofView : Control
 
 	/// <summary>Opens a tool over the proof: letters, still, formula or supplies.</summary>
 	private bool _drawerOpened;
+	private bool _skipRestore;
 	private FormulaBench? _bench;
 	private Control? _tool;
 	private string? _toolKind;
@@ -134,11 +135,15 @@ public partial class ProofView : Control
 		else if (m.Letters.Count > 0) warn.Add($"{m.Letters.Count} letter{(m.Letters.Count == 1 ? "" : "s")} unanswered: the usual reply will go out for you.");
 		var nothing = m.Formulas.Sum(f => f.Stock) == 0 && m.Brewing.Count == 0;
 		if (nothing) warn.Add("Nothing on the shelf and nothing on the still: the shop will sell nothing this month.");
+		// space the shop cannot pay for is not printed: say so before the press, not after
+		if (m.CanAdvertise && m.AdSpendCents > m.CashCents)
+			warn.Add($"The notice costs {EditionWriter.Money(m.AdSpendCents)} and you have {EditionWriter.Money(m.CashCents)}: the Gazette will not print it unpaid.");
 		foreach (var w in warn) bench.AddChild(Print.Label("☞ " + w, Print.FellIt, 13, color: Print.Paper));
 		bench.AddChild(Lever(nothing || unansweredInquests > 0));
 
 		if (_drawer != null) leftStack.AddChild(Drawer(_drawer));
-		Print.RestoreFocus(this, keep);
+		if (!_skipRestore) Print.RestoreFocus(this, keep);
+		_skipRestore = false;
 		Changed?.Invoke();
 	}
 
@@ -195,8 +200,8 @@ public partial class ProofView : Control
 		}
 		else
 		{
-			lv.AddChild(Print.Label("THE LEAD STORY", Print.Rye, 26, HorizontalAlignment.Center, new Color(Print.Ink, 0.45f)));
-			lv.AddChild(Print.Body("[i]The editor sets it when the month is out. Whatever happens in the ward, it will be printed here.[/i]", 14, new Color(Print.Ink, 0.7f), centre: true));
+			lv.AddChild(Print.Label("THE LEAD STORY", Print.Rye, 26, HorizontalAlignment.Center, new Color(Print.Ink, 0.72f)));
+			lv.AddChild(Print.Body("[i]The editor sets it when the month is out. Whatever happens in the ward, it will be printed here.[/i]", 14, new Color(Print.Ink, 0.88f), centre: true));
 		}
 		var ghostDeath = Print.Cut("wc_death");
 		if (ghostDeath != null)
@@ -323,6 +328,15 @@ public partial class ProofView : Control
 				else Anim.Breathe(fig, r.Looks == "poorly" ? 0.006f : 0.012f, 2.4f + phase * 0.4f, phase);
 				if (r.Withdrawal) Anim.Shake(fig);
 			}
+			// the printer owns one engraving per trade: a repeat is labelled as what it is
+			if (shown.Take(i).Any(o => CutFor(o) == cut))
+			{
+				var no = Print.Label($"Cut No. {3 + StableHash(cut) % 37u}, again.", Print.FellIt, 12, HorizontalAlignment.Center, wrap: false);
+				no.Position = new Vector2(x, CounterTop - 22);
+				no.CustomMinimumSize = new Vector2(slot - 10, 0);
+				no.MouseFilter = MouseFilterEnum.Ignore;
+				strip.AddChild(no);
+			}
 			var tag = Print.Slip(Tag(r), 5);
 			tag.Position = new Vector2(x, CounterTop + 2);
 			tag.CustomMinimumSize = new Vector2(slot - 10, 0);
@@ -375,7 +389,8 @@ public partial class ProofView : Control
 		"seamstress" => female ? "wc_seamstress" : "wc_clerk",
 		"clerk" => female ? "wc_seamstress" : "wc_clerk",
 		"elderly" => female ? "wc_widow" : "wc_oldman",
-		"well_to_do" => female ? "wc_lady" : "wc_proprietor",
+		// the proprietor's own likeness is never a customer
+		"well_to_do" => female ? "wc_lady" : "wc_oldman",
 		_ => female ? "wc_widow" : "wc_oldman",
 	};
 
@@ -441,28 +456,31 @@ public partial class ProofView : Control
 			var t = AdSpace.Tiers[i];
 			var b = Print.Button(t.Short, 11, solid: m.CanAdvertise && i == tier);
 			b.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-			b.TooltipText = $"{t.Name}: {EditionWriter.Money(t.Cents)} a month";
-			b.Disabled = !m.CanAdvertise;
+			b.TooltipText = t.Cents == 0 ? "No notice in the Gazette" : $"{t.Name}: {EditionWriter.Money(t.Cents)} a month";
+			Print.SetLive(b, m.CanAdvertise);
 			var cents = t.Cents;
 			b.Pressed += () => Act(_game.SetAdSpend(cents));
 			sizes.AddChild(b);
 		}
 		v.AddChild(sizes);
-		if (!m.CanAdvertise) v.AddChild(Print.Body("[i]Not yet: the Gazette wants $100 in savings and a printed testimonial first.[/i]", 12, justify: false));
+		var adsNext = m.NextUnlocks.FirstOrDefault(u => u.Name.Contains("Advertis"));
+		if (!m.CanAdvertise) v.AddChild(Print.Body(adsNext.Name != null && adsNext.Progress >= 0.999
+			? "[i]Both conditions are met: space can be bought from next month.[/i]"
+			: "[i]Not yet: the Gazette wants $100 in savings and a printed testimonial first.[/i]", 12, justify: false));
 		if (_note != null) v.AddChild(Print.Body($"[b]Refused.[/b] [i]{Print.Escape(_note)}[/i]", 12, justify: false));
 		return Print.Slip(v, 10);
 	}
 
 	private Control LettersSlip(DeskModel m)
 	{
-		var v = SlipBody(m.Letters.Count == 0 ? "NO LETTERS" : m.Letters.Count == 1 ? "1 LETTER" : $"{m.Letters.Count} LETTERS");
+		var v = SlipBody(m.Letters.Count == 0 ? "NO LETTERS" : m.Letters.Count == 1 ? "ONE LETTER" : $"{Spell(m.Letters.Count).ToUpperInvariant()} LETTERS");
 		if (m.Letters.Count == 0) v.AddChild(Print.Body("[i]Nothing in the post but a circular for galvanic belts.[/i]", 13, justify: false));
 		foreach (var l in m.Letters.Take(1))
 		{
 			// one line, cut short if need be: the whole post is in the drawer
 			var title = EditionWriter.Set(l.Title);
 			if (title.Length > 40) title = title[..38].TrimEnd(' ', ',') + "…";
-			var line = Print.Label(title + (m.Letters.Count > 1 ? $" And {Spell(m.Letters.Count - 1)} more." : ""), Print.Fell, 13);
+			var line = Print.Label(title + (m.Letters.Count > 1 ? $"; and {Spell(m.Letters.Count - 1)} more." : "."), Print.Fell, 13);
 			line.TooltipText = string.Join("\n", m.Letters.Select(x => x.Title));
 			line.MouseFilter = MouseFilterEnum.Pass;
 			v.AddChild(line);
@@ -571,7 +589,7 @@ public partial class ProofView : Control
 			}
 			_bench.GetParent()?.RemoveChild(_bench);
 			// a scroll frame holds the bench at the drawer's size, whatever its text asks for
-			var frame = new ScrollContainer { SizeFlagsVertical = SizeFlags.ExpandFill, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
+			var frame = new ScrollContainer { SizeFlagsVertical = SizeFlags.ExpandFill, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled, FollowFocus = true };
 			Print.QuietScrollbar(frame);
 			_bench.SizeFlagsHorizontal = SizeFlags.ExpandFill;
 			frame.AddChild(_bench);
@@ -593,14 +611,26 @@ public partial class ProofView : Control
 				_tool.SizeFlagsHorizontal = SizeFlags.ExpandFill;
 			}
 			_tool.GetParent()?.RemoveChild(_tool);
-			var frame = new ScrollContainer { SizeFlagsVertical = SizeFlags.ExpandFill, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
+			var frame = new ScrollContainer { SizeFlagsVertical = SizeFlags.ExpandFill, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled, FollowFocus = true };
 			Print.QuietScrollbar(frame);
 			frame.AddChild(_tool);
 			holder.AddChild(frame);
 		}
 		shade.AddChild(holder);
 		Anim.SlideIn(holder, new Vector2(0, 60), 0.24f);
-		if (_drawerOpened) { _drawerOpened = false; Sfx.Play("slip"); }
+		if (_drawerOpened)
+		{
+			_drawerOpened = false;
+			Sfx.Play("slip");
+			// the keyboard goes into the drawer: its first control after CLOSE, never back to the bench
+			Callable.From(() =>
+			{
+				if (!IsInstanceValid(holder)) return;
+				var inside = Print.Focusables(holder).Where(c => c != close && !(c is BaseButton { Disabled: true })).ToList();
+				(inside.FirstOrDefault() ?? close).GrabFocus();
+			}).CallDeferred();
+			_skipRestore = true;
+		}
 		shade.GuiInput += e => { if (e is InputEventMouseButton { Pressed: true } mb && mb.ButtonIndex == MouseButton.Left && !holder.GetGlobalRect().HasPoint(mb.GlobalPosition)) { _drawer = null; DropBench(); CallDeferred(nameof(Refresh)); } };
 		return shade;
 	}

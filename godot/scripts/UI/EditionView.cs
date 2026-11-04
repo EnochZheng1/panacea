@@ -31,6 +31,9 @@ public partial class EditionView : ScrollContainer
 	public void WireFocus()
 	{
 		if (_enter == null || _leave == null || !IsInsideTree()) return;
+		// the footer's own pair wraps round to each other, whatever the proof last set
+		_leave.FocusNext = _enter.GetPath();
+		_enter.FocusPrevious = _leave.GetPath();
 		var items = Print.Focusables(this);
 		if (items.Count == 0) { _enter.FocusNext = new NodePath(); _leave.FocusPrevious = new NodePath(); return; }
 		_enter.FocusNext = items[0].GetPath();

@@ -57,7 +57,7 @@ public sealed class EditionWriter
                 SplitLead(text, out var lead, out var rest);
                 var q = f.Inquests.FirstOrDefault(x => x.Person.Id == d.Id);
                 var extra = new List<string>();
-                if (d.Infant) extra.Add("The medicine was for an infant in the family's care.");
+                if (d.Infant && !d.Anonymous) extra.Add("The medicine was for an infant in the family's care.");
                 extra.Add(q != null ? $"The coroner's jury found: \u201c{q.Verdict}.\u201d" : "No inquest has been called. Yet.");
                 deaths.Blocks.Add(new Block { Kind = BlockKind.Notice, Lead = lead, Text = rest, Clip = PersonClip(f, d, "IN MEMORIAM", extra.ToArray()) });
             }
@@ -66,11 +66,23 @@ public sealed class EditionWriter
         if (f.Inquests.Count > 0)
         {
             var court = new Section { Title = S(sec, "coroner") };
+            // a busy month in the court is a story of its own, under one run-in head
+            if (f.Inquests.Count >= 3)
+            {
+                var named = f.Inquests.Count(q => q.Outcome == "implicated");
+                court.Blocks.Add(new Block
+                {
+                    Kind = BlockKind.Notice,
+                    Lead = "THE MULBERRY STREET BOTTLES.—",
+                    Text = $"{Cap(Words(f.Inquests.Count))} inquests sat this month upon customers of a single shop, and the same label was found at every bedside." +
+                        (named > 0 ? $" {Cap(Words(named))} {(named == 1 ? "jury" : "juries")} named it." : " No jury named it, which the ward has found remarkable."),
+                });
+            }
             foreach (var q in f.Inquests)
             {
                 var key = q.Outcome switch { "bribed" => "inquestBribed", "implicated" => "inquestImplicated", _ => "inquestCleared" };
                 var template = Pick(f, key + q.Person.Id, _copy.GetProperty(key));
-                if (q.Person.Infant) template = template.Replace("{name}", "the infant child of {name}");
+                if (q.Person.Infant && !q.Person.Anonymous) template = template.Replace("{name}", "the infant child of {name}");
                 var text = Fill(template, f, q.Person, q.Product ?? productName)
                     .Replace("{verdict}", q.Verdict);
                 var meaning = q.Outcome switch
@@ -118,10 +130,13 @@ public sealed class EditionWriter
             notices.Blocks.Add(new Block { Text = Fill(Pick(f, "seized", _copy.GetProperty("stockSeized")), f, null, productName).Replace("{bottles}", f.BottlesSeized.ToString(CultureInfo.InvariantCulture)) });
         if (f.AdsLapsed)
             notices.Blocks.Add(new Block { Text = Fill(Pick(f, "lapsed", _copy.GetProperty("adsLapsed")), f, null, productName) });
-        foreach (var (title, description) in f.Unlocks)
+        foreach (var (id, title, description) in f.Unlocks)
             notices.Blocks.Add(new Block
             {
-                Text = Pick(f, "unlock", _copy.GetProperty("unlock")).Replace("{title}", title.ToUpperInvariant()).Replace("{description}", description),
+                // the paper reports the trade's gossip about a third party; the cutting tells you
+                Text = _copy.GetProperty("unlockNotices").TryGetProperty(id, out var said)
+                    ? Fill(said.GetString() ?? "", f, null, productName)
+                    : Pick(f, "unlock", _copy.GetProperty("unlock")).Replace("{title}", title.ToUpperInvariant()).Replace("{description}", description),
                 Clip = new Clipping { Kicker = "A NEW CAPABILITY", Title = title, Cut = "wc_proprietor", Lines = { description, "Earned this month. It is yours to use from the next." } },
             });
         if (notices.Blocks.Count > 0) e.Left.Add(notices);
@@ -203,7 +218,7 @@ public sealed class EditionWriter
                     {
                         $"Space bought: {AdSpace.Tiers[tier].Name.ToLowerInvariant()}, {Money(AdSpace.Tiers[tier].Cents)} a month.",
                         product.ClaimNames.Count > 0 ? "Claims set in type: " + string.Join("; ", product.ClaimNames) + "." : "No claims: just the name and the price.",
-                        "Bolder claims bring in more custom, and more talk in the ward. Change them on the proof.",
+                        f.Ended ? "Bolder claims brought in more custom, and more talk in the ward." : "Bolder claims bring in more custom, and more talk in the ward. Change them on the proof.",
                     },
                 },
             });
@@ -263,6 +278,21 @@ public sealed class EditionWriter
                 Body = S(fe, "body"),
             };
         }
+        // the lead is the month's biggest fact: the coroner naming you, then the dead, then the
+        // news of the age, then trade; a quiet month only when nothing happened at all
+        var named = f.Inquests.FirstOrDefault(q => q.Outcome == "implicated");
+        if (named != null)
+        {
+            return new Story
+            {
+                Headline = "THE CORONER NAMES A REMEDY",
+                Decks = new List<string> { "A Verdict Against the Bottle.", $"THE JURY FINDS THAT {Who(f, named.Person).ToUpperInvariant()}: \u201c{named.Verdict.ToUpperInvariant()}.\u201d", "The Board of Health Is Informed." },
+                Cut = "wc_death",
+                Cutline = "A GENTLEMAN SEEN AT THE INQUEST.",
+                Body = $"The bottle found at the bedside bore the label of {named.Product ?? product?.Name ?? "a proprietary medicine"}. Whatever its proprietor had to say for the purity of his preparations did not detain the jury long. Physicians observe that the remedy is purely vegetable, and that so is hemlock.",
+                Clip = PersonClip(f, named.Person, "THE INQUEST", $"Verdict: \u201c{named.Verdict}.\u201d", "Your product is named in the findings. The Board of Health will take an interest, and the ward will talk."),
+            };
+        }
         // An advertisement dressed as news, when the player is paying for space.
         if (product != null && f.CanAdvertise && AdSpace.TierFor(f.AdSpendCents) == AdSpace.Front)
         {
@@ -288,21 +318,6 @@ public sealed class EditionWriter
                 Clip = subject == null ? null : PersonClip(f, subject, "QUOTED IN YOUR NOTICE", "The Gazette set your advertisement as news, and found this customer to quote. Nobody asked them."),
             };
         }
-        // the lead is the month's biggest fact: the coroner naming you, then the dead, then the
-        // news of the age, then trade; a quiet month only when nothing happened at all
-        var named = f.Inquests.FirstOrDefault(q => q.Outcome == "implicated");
-        if (named != null)
-        {
-            return new Story
-            {
-                Headline = "THE CORONER NAMES A REMEDY",
-                Decks = new List<string> { "A Verdict Against the Bottle.", $"THE JURY FINDS THAT {Who(f, named.Person).ToUpperInvariant()} \u201c{named.Verdict.ToUpperInvariant()}.\u201d", "The Board of Health Is Informed." },
-                Cut = "wc_death",
-                Cutline = "A GENTLEMAN SEEN AT THE INQUEST.",
-                Body = $"The bottle found at the bedside bore the label of {named.Product ?? product?.Name ?? "a proprietary medicine"}. Whatever its proprietor had to say for the purity of his preparations did not detain the jury long. Physicians observe that the remedy is purely vegetable, and that so is hemlock.",
-                Clip = PersonClip(f, named.Person, "THE INQUEST", $"Verdict: \u201c{named.Verdict}.\u201d", "Your product is named in the findings. The Board of Health will take an interest, and the ward will talk."),
-            };
-        }
         if (f.Deaths.Count >= 3)
         {
             return new Story
@@ -310,7 +325,7 @@ public sealed class EditionWriter
                 Headline = "A SICKLY SEASON",
                 Decks = new List<string> { "The Ward Mourns.", $"{Words(f.Deaths.Count).ToUpperInvariant()} DEATHS IN THE WARD THIS MONTH; UNDERTAKERS REPORT A BRISK TRADE." },
                 Cut = "wc_death",
-                Cutline = "A GENTLEMAN SEEN IN THE NEIGHBOURHOOD.",
+                Cutline = "A GENTLEMAN SEEN IN THE NEIGHBORHOOD.",
                 Body = "The deaths column runs long this month. Physicians attribute the trouble to the weather, the water and the foreign element, in that order. Nobody has thought to look at the bottles.",
                 Clip = BooksClip(f),
             };
@@ -326,15 +341,15 @@ public sealed class EditionWriter
                     : $"DEATH OF {ShortName(d).ToUpperInvariant()}",
                 Decks = new List<string>
                 {
-                    d.Infant ? "An Infant Taken." : "Suddenly, in the Ward.",
+                    d.Infant && !d.Anonymous ? "An Infant Taken." : "In the Ward.",
                     d.Anonymous ? "A GREEN BOTTLE WAS FOUND NEAR THE BODY. THE CORONER HAS BEEN INFORMED." : $"{Who(f, d).ToUpperInvariant()}, WELL KNOWN AT THE SHOP ON MULBERRY STREET.",
                 },
                 Cut = d.Anonymous ? "wc_death" : CutFor(d),
-                Cutline = d.Anonymous ? "A GENTLEMAN SEEN IN THE NEIGHBOURHOOD." : d.Infant ? $"THE MOTHER, {ShortName(d).ToUpperInvariant()}.—From a stock likeness." : $"{ShortName(d).ToUpperInvariant()}.—From a stock likeness.",
-                Body = d.Infant
-                    ? "The family had been giving the child a soothing preparation for its teeth, on the advice of the label. The physician who attended declined to say more, except that the child had been very quiet."
-                    : "Friends describe the deceased as a regular and devoted customer of a certain remedy, which had lately become indispensable to them. The proprietor sends his condolences, and reminds the ward that the remedy is purely vegetable.",
-                Clip = PersonClip(f, d, "IN MEMORIAM", d.Infant ? "The medicine was for an infant in the family's care." : "See the deaths column for the notice."),
+                Cutline = d.Anonymous ? "A GENTLEMAN SEEN IN THE NEIGHBORHOOD." : d.Infant ? $"THE MOTHER, {ShortName(d).ToUpperInvariant()}.—From a stock likeness." : $"{ShortName(d).ToUpperInvariant()}.—From a stock likeness.",
+                Body = d.Anonymous ? Pick(f, "unknownLead" + d.Id, _copy.GetProperty("unknownLead"))
+                    : d.Infant ? Pick(f, "infantLead" + d.Id, _copy.GetProperty("infantLead"))
+                    : Fill(Pick(f, "deathLead" + d.Id, _copy.GetProperty("deathLead")), f, d, product?.Name ?? "the remedy"),
+                Clip = PersonClip(f, d, "IN MEMORIAM", d.Infant && !d.Anonymous ? "The medicine was for an infant in the family's care." : "See the deaths column for the notice."),
             };
         }
         if (f.Era.Count > 0)
@@ -358,23 +373,49 @@ public sealed class EditionWriter
     /// A bought verdict, arrears, a dull month, new faces, lost custom or a good month, each with
     /// its own cut and several bodies so the same words do not run month after month.
     /// </summary>
+    /// <summary>Which trade lead ran in each edition, so the next can avoid repeating it.</summary>
+    private readonly Dictionary<int, string> _leadKinds = new();
+
     private Story TradeLead(PaperFacts f, ProductFact product)
     {
         var sold = f.Sales.Sum(x => x.Bottles);
         var delta = f.CashCents - f.CashStartCents;
         var bribed = f.Inquests.FirstOrDefault(q => q.Outcome == "bribed");
         var lost = f.Left.Where(l => l.Reason != "bereaved").ToList();
-        PersonFact? subject = null;
-        string kind;
-        if (bribed != null) { kind = "bribed"; subject = bribed.Person; }
-        else if (f.CashCents < 0) kind = "arrears";
-        else if (sold == 0) kind = "nothing";
-        else if (f.Joined.Count >= 2 && f.Joined.Count > lost.Count) { kind = "growing"; subject = f.Joined[0]; }
-        else if (lost.Count >= 2 && lost.Count > f.Joined.Count) { kind = "losing"; subject = lost[0].Person; }
-        else if (delta < 0 || (f.SoldLastMonth >= 6 && sold * 3 < f.SoldLastMonth * 2)) kind = "dull";
-        else { kind = "brisk"; subject = f.Enthusiasts.FirstOrDefault(); }
+        // every lead the month could carry, most pressing first
+        var soldOut = sold > 0 && f.Products.Count > 0 && f.Products.All(p => p.Stock == 0);
+        var record = f.SoldLastMonth >= 6 && sold * 10 >= f.SoldLastMonth * 13 && delta > 0;
+        var slump = delta < 0 || (f.SoldLastMonth >= 6 && sold * 3 < f.SoldLastMonth * 2);
+        var options = new List<string>();
+        if (bribed != null) options.Add("bribed");
+        if (f.CashCents < 0) options.Add("arrears");
+        if (sold == 0) options.Add("nothing");
+        if (soldOut) options.Add("shortage");
+        if (record) options.Add("record");
+        if (slump && !soldOut) options.Add("dull");
+        if (f.Joined.Count >= 3 || (f.Joined.Count >= 2 && f.Joined.Count > lost.Count)) options.Add("growing");
+        if (lost.Count >= 2 && lost.Count > f.Joined.Count) options.Add("losing");
+        if (delta >= 0) options.Add("brisk");
+        if (options.Count == 0) options.Add("dull");
+        // never the same lead two editions running if the month offers another; the pressing
+        // ones (a bought verdict, arrears, an idle shop, a bare shelf) follow up instead
+        _leadKinds.TryGetValue(f.Turn - 1, out var last);
+        var kind = options[0];
+        if (kind == last && kind is not ("bribed" or "arrears" or "nothing" or "shortage"))
+            kind = options.FirstOrDefault(o => o != last) ?? kind;
+        var again = kind == last;
+        _leadKinds[f.Turn] = kind;
+        PersonFact? subject = kind switch
+        {
+            "bribed" => bribed!.Person,
+            "growing" => f.Joined.FirstOrDefault(),
+            "losing" => lost.FirstOrDefault()?.Person,
+            "brisk" => f.Enthusiasts.FirstOrDefault(),
+            _ => null,
+        };
 
         var t = _copy.GetProperty("tradeLeads").GetProperty(kind);
+        var head = again && t.TryGetProperty("again", out var follow) ? follow : t;
         var bodies = t.GetProperty("bodies").EnumerateArray().Select(x => x.GetString() ?? "").ToList();
         // a body that names someone needs someone to name
         if (subject == null) bodies = bodies.Where(b => !b.Contains("{name}")).ToList();
@@ -391,8 +432,8 @@ public sealed class EditionWriter
         }
         return new Story
         {
-            Headline = S(t, "headline"),
-            Decks = t.GetProperty("decks").EnumerateArray().Select(x => Sub(x.GetString() ?? "")).ToList(),
+            Headline = S(head, "headline"),
+            Decks = head.GetProperty("decks").EnumerateArray().Select(x => Sub(x.GetString() ?? "")).ToList(),
             Cut = kind is "growing" or "losing" && subject != null ? CutFor(subject) : S(t, "cut"),
             Cutline = kind is "growing" or "losing" && subject != null ? $"{ShortName(subject).ToUpperInvariant()}.—From a stock likeness." : S(t, "cutline"),
             Body = Sub(body),
@@ -424,6 +465,8 @@ public sealed class EditionWriter
         t = Regex.Replace(t, "([—\u2014-])'(?![sS]\\b)", "$1\u2018");
         t = t.Replace("'", "\u2019");
         t = Regex.Replace(t, " {2,}", " ");
+        // a blanked name is never broken across a line: "Dr. ——" travels together
+        t = t.Replace("Dr. ——", "Dr.\u00a0——").Replace("DR. ——", "DR.\u00a0——");
         return t;
     }
 
@@ -466,12 +509,19 @@ public sealed class EditionWriter
     private static string ShortName(PersonFact p)
     {
         var parts = p.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        return parts.Length >= 2 ? parts[0] + " " + parts[^1] : p.Name;
+        return parts.Length >= 2 ? parts[0] + " " + SplitName(p.Name).Surname : p.Name;
     }
 
     /// <summary>"Mr. Elias Whitlock, retired", or "the infant child of Mrs. Halloran".</summary>
     private string Who(PaperFacts f, PersonFact p) =>
-        p.Anonymous ? "a stranger" : p.Infant ? $"the infant child of {ShortName(p)}" : $"{p.Name}, {Occupation(p)}";
+        p.Anonymous ? "a stranger" : p.Infant ? $"the infant child of {ShortName(p)}" : NameAnd(p);
+
+    /// <summary>"Mr. Elias Whitlock, retired"; "Widow Agnes Pruitt" (the honorific already says it).</summary>
+    private string NameAnd(PersonFact p)
+    {
+        var occ = Occupation(p);
+        return p.Name.StartsWith("Widow ", StringComparison.Ordinal) && occ == "widow" ? p.Name : $"{p.Name}, {occ}";
+    }
 
     /// <summary>The month at a glance, printed under the dateline.</summary>
     private static string Brief(PaperFacts f)
@@ -569,7 +619,8 @@ public sealed class EditionWriter
             c.Title = child ? $"The Infant of {ShortName(p)}" : p.Name;
             var ailment = string.IsNullOrEmpty(p.Ailment) ? "" : p.Ailment.ToLowerInvariant();
             if (child) c.Lines.Add($"Infant child of {ShortName(p)}, {Occupation(p)}" + (ailment.Length > 0 ? $"; given the remedy for {ailment}." : "."));
-            else if (p.Infant) c.Lines.Add(Cap(Occupation(p)) + (ailment.Length > 0 ? $", who buys at the shop for her infant's {ailment}." : ", who buys at the shop for her infant."));
+            else if (p.Infant) c.Lines.Add(Cap(Occupation(p)) + (ailment.Length == 0 ? ", who buys at the shop for her infant." : ailment.StartsWith("a ") ? $", who buys at the shop for {ailment}." : $", who buys at the shop for her infant's {ailment}."));
+            else if (p.Name.StartsWith("Widow ", StringComparison.Ordinal) && Occupation(p) == "widow") c.Lines.Add(ailment.Length > 0 ? $"Came to the shop for {ailment}." : "A customer of the shop.");
             else c.Lines.Add(Cap(Occupation(p)) + (ailment.Length > 0 ? $", who came to the shop for {ailment}." : "."));
             c.Lines.Add(kicker == "A NEW CUSTOMER" ? "New to the shop this month." : p.Months switch
             {
@@ -625,6 +676,9 @@ public sealed class EditionWriter
     {
         var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length == 0) return ("", "");
+        // "Van Wyck", "De Groot": a particle belongs to the surname
+        if (parts.Length >= 3 && parts[^2] is "Van" or "De" or "Von" or "Del" or "Di")
+            return (parts.Length >= 4 ? parts[1] : parts[0], parts[^2] + " " + parts[^1]);
         return (parts.Length >= 3 ? parts[1] : parts[0], parts[^1]);
     }
 

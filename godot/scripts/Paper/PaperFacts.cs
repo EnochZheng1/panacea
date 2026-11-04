@@ -28,7 +28,7 @@ public sealed class PaperFacts
     public List<PersonFact> Joined = new();
     public List<LeftFact> Left = new();
     public List<(string Headline, string Body)> Era = new();
-    public List<(string Title, string Description)> Unlocks = new();
+    public List<(string Id, string Title, string Description)> Unlocks = new();
     public List<(string Product, int Bottles)> BadBatches = new();
     public int BottlesSeized;
     public bool AdsLapsed;

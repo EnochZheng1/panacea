@@ -34,7 +34,7 @@
     "Baxter street",
     "Ludlow street"
   ],
-  "coroners": ["Fogarty", "Messemer", "Nugent", "Levy"],
+  "coroners": ["Fogarty", "Messemer", "Nugent", "Hanlon"],
   "weekdays": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
   "occupations": {
     "mother": {
@@ -88,7 +88,10 @@
   ],
   "deathAnonymous": [
     "UNKNOWN.—The body of {someone}, name unknown, was found in {street} on {weekday}. A green bottle was found near it. The Coroner has been informed.",
-    "UNKNOWN.—The body of {someone} was taken from a lodging house in {street} on {weekday}. Nothing was found on it but a spoon."
+    "UNKNOWN.—The body of {someone} was taken from a lodging house in {street} on {weekday}. Nothing was found on it but a spoon.",
+    "UNKNOWN.—The body of {someone}, name unknown, was found at the foot of a stair in {street} on {weekday}. A bottle, green and empty, was in the pocket. It is unclaimed.",
+    "UNKNOWN.—The body of {someone} was taken from a doorway in {street} on {weekday}. The police describe the face as peaceful. A cork was found in one hand.",
+    "UNKNOWN.—The body of {someone}, name unknown, was found in a lodging-house in {street}. The keeper had not seen the lodger for some days, and had thought it a blessing."
   ],
   "inquestCleared": [
     "An inquest upon the body of {name} was held before Coroner {coroner}. The jury returned a verdict of \"{verdict},\" and went home to supper.",
@@ -104,8 +107,11 @@
   ],
   "joined": [
     "A NEW PATRON.—{name}, {occupation}, troubled by {ailment}, has taken up {product}, and reports great hopes of it.",
-    "{name}, of {street}, has begun upon {product} for {ailment}, on the recommendation of a neighbour, who has not been seen about lately.",
-    "Among the new customers at the shop this month: {name}, {occupation}, who complains of {ailment}."
+    "{name}, of {street}, has begun upon {product} for {ailment}, on the recommendation of a neighbor, who has not been seen about lately.",
+    "Among the new customers at the shop this month: {name}, {occupation}, who complains of {ailment}.",
+    "{name}, {occupation}, of {street}, has tried every remedy for {ailment} but one, and as of this month has tried that one too.",
+    "{name} was seen entering the shop on Mulberry street on {weekday}, on account of {ailment}. {pronounCap} came out with a bottle and a look of hope.",
+    "WELCOME.—{name}, {occupation}, a sufferer from {ailment}, is the newest friend of {product}. {pronounCap} was recommended to it by the label."
   ],
   "leftRecovered": [
     "RECOVERED.—{name} reports that {pronoun} is quite well again and will not be needing {product}. The proprietor congratulates {object}, without enthusiasm.",
@@ -130,7 +136,7 @@
     "SEIZED.—Officers of the Board of Health carried away {bottles} bottles of a proprietary medicine from premises in {street}."
   ],
   "adsLapsed": [
-    "TO ADVERTISERS.—The account of the proprietor of {product} being in arrears, his notice does not appear in this edition."
+    "TO ADVERTISERS.—The notice of the proprietor of {product} could not be paid for at press, and does not appear in this edition. The Gazette prints on cash terms, like the coroner."
   ],
   "shutdown": [
     "NOTICE.—The Board of Health gives warning that the premises of the proprietor of {product} will be closed {within}, unless the public complaint subsides."
@@ -143,17 +149,17 @@
       "A PROPRIETOR OF REMEDIES OPENS HIS DOORS TO THE AFFLICTED OF THE WARD.",
       "He Promises Much."
     ],
-    "body": "A new apothecary has opened on Mulberry street, with one copper still, a shelf of drugs and a dozen regular callers. Its proprietor, who styles himself Dr. ——, informs our reporter that he intends to cure the neighbourhood of everything, and that the details are a trade secret. The ward wishes him every success, and has its coughs ready."
+    "body": "A new apothecary has opened on Mulberry street, with one copper still, a shelf of drugs and a dozen regular callers. Its proprietor, who styles himself Dr. ——, informs our reporter that he intends to cure the neighborhood of everything, and that the details are a trade secret. The ward wishes him every success, and has its coughs ready."
   },
   "readingNotice": {
     "decks": [
       "A Remarkable Restoration.",
       "{name}, OF {street_upper}, RESTORED BY {product_upper}.",
-      "The Neighbours Astonished."
+      "The Neighbors Astonished."
     ],
     "bodies": [
       "{name}, {occupation}, had for years endured {ailment}. \"I tried everything,\" {pronoun} informs our reporter, \"until a friend pressed upon me a bottle of {product}. After the first spoonful I felt nothing whatever. After the second I felt magnificent.\" {pronounCap} now takes it daily. Sold at the shop on Mulberry street, {price} the bottle.—Adv.",
-      "\"I cannot do without it,\" says {name} of {product}, and {possessive} neighbours confirm that {pronoun} has not tried. For {ailment} and all kindred complaints. {price} the bottle.—Adv."
+      "\"I cannot do without it,\" says {name} of {product}, and {possessive} neighbors confirm that {pronoun} has not tried. For {ailment} and all kindred complaints. {price} the bottle.—Adv."
     ],
     "fallbackBody": "{product} is purely vegetable, contains nothing injurious, and is recommended for infants, invalids and the aged. Sold at the shop on Mulberry street, {price} the bottle.—Adv."
   },
@@ -339,7 +345,14 @@
         "The proprietor of {product} owes the landlord, the wholesaler and the Gazette, in that order of patience. He informs our reporter that the remedy is on the point of a great success, and asked to borrow the car fare home.",
         "A gentleman from the wholesale house on Pearl street called at the shop twice this month and was twice told the proprietor was out. The proprietor was seen through the window, mixing.",
         "The landlord of the shop on Mulberry street has begun to read the deaths column with a professional interest, as the only column in which his tenant's affairs improve."
-      ]
+      ],
+      "again": {
+        "headline": "THE PROPRIETOR STILL IN ARREARS",
+        "decks": [
+          "Creditors Call Again.",
+          "THE BOOKS OF {product_upper} DO NOT IMPROVE; THE LANDLORD IS LOSING PATIENCE."
+        ]
+      }
     },
     "dull": {
       "headline": "TRADE DULL ON MULBERRY STREET",
@@ -354,7 +367,14 @@
         "The shop on Mulberry street had a slow month. The proprietor attributes it to the weather, the price of coal and the jealousy of the medical faculty. His customers attribute it to the remedy.",
         "Our reporter spent an afternoon at the shop and saw three customers, one of whom wanted directions. The proprietor sold him a bottle anyway.",
         "Trade in {product} is reported quiet. The proprietor has been seen studying the advertisements of his rivals with the expression of a man reading his own obituary."
-      ]
+      ],
+      "again": {
+        "headline": "TRADE STILL DULL",
+        "decks": [
+          "The Dull Season Continues.",
+          "ANOTHER SLOW MONTH AT THE SHOP ON MULBERRY STREET; THE PROPRIETOR NOW BLAMES THE PAPERS."
+        ]
+      }
     },
     "nothing": {
       "headline": "NOT A BOTTLE SOLD",
@@ -368,7 +388,14 @@
       "bodies": [
         "The shop on Mulberry street kept its hours all month and did not sell a single bottle. The ward continues to cough, and appears to prefer it.",
         "Not one bottle left the shop on Mulberry street this month. The proprietor tells our reporter that he is building anticipation."
-      ]
+      ],
+      "again": {
+        "headline": "ANOTHER MONTH WITHOUT A SALE",
+        "decks": [
+          "The Shop Stands Idle.",
+          "NOT A BOTTLE SOLD; THE PROPRIETOR INSISTS IT IS A MATTER OF TIME."
+        ]
+      }
     },
     "growing": {
       "headline": "NEW FACES AT THE COUNTER",
@@ -380,9 +407,16 @@
         "Word Gets Round."
       ],
       "bodies": [
-        "Word of {product} is going round the ward faster than the ailments it treats. Among this month's new customers is {name}, {occupation}, who heard of it from a neighbour and has not been the same since.",
+        "Word of {product} is going round the ward faster than the ailments it treats. Among this month's new customers is {name}, {occupation}, who heard of it from a neighbor and has not been the same since.",
         "{name} is the latest of the ward to take up {product}. {pronounCap} tells our reporter that {pronoun} cannot say exactly what it does, but that {pronoun} feels it doing it."
-      ]
+      ],
+      "again": {
+        "headline": "MORE NEW FACES",
+        "decks": [
+          "The Remedy Spreads.",
+          "{joined_upper} MORE CUSTOMERS TAKE UP THE REMEDY; THE OLD ONES DO NOT LET GO."
+        ]
+      }
     },
     "losing": {
       "headline": "CUSTOMERS DESERT A REMEDY",
@@ -396,7 +430,14 @@
       "bodies": [
         "Several of the proprietor's regulars have stopped calling at the shop. Some have got better; some have found another bottle; the proprietor declines to say which he finds more insulting.",
         "The shop on Mulberry street is losing custom. {name}, lately a regular, tells our reporter that {pronoun} has given up the remedy, and feels about the same, and is saving the money."
-      ]
+      ],
+      "again": {
+        "headline": "THE WARD DRIFTS AWAY",
+        "decks": [
+          "Custom Falls Off Again.",
+          "{left_upper} MORE REGULARS GONE; THE PROPRIETOR TAKES IT PERSONALLY."
+        ]
+      }
     },
     "brisk": {
       "headline": "BRISK TRADE ON MULBERRY STREET",
@@ -411,7 +452,75 @@
         "The proprietor of {product} reports a good month and has bought a new hat on the strength of it. The hat is said to be the healthiest thing in the shop.",
         "Business is good at the shop on Mulberry street. {name}, a regular, tells our reporter that {pronoun} would not be without the remedy, and has not tried to be.",
         "The proprietor is counting his takings, and has twice been heard to laugh. The ward, which has heard him laugh before, is keeping its children indoors."
+      ],
+      "again": {
+        "headline": "TRADE HOLDS UP ON MULBERRY STREET",
+        "decks": [
+          "Another Good Month.",
+          "{sold_upper} BOTTLES SOLD AGAIN; THE PROPRIETOR BEGINS TO SPEAK OF A SECOND SHOP."
+        ]
+      }
+    },
+    "shortage": {
+      "headline": "THE SHELF BARE ON MULBERRY STREET",
+      "cut": "wc_bottle_panacea",
+      "cutline": "A BOTTLE.—Not to be had for love or money.",
+      "decks": [
+        "Callers Turned Away.",
+        "EVERY BOTTLE OF {product_upper} SOLD BEFORE THE MONTH WAS OUT; THE WARD WAITS.",
+        "The Proprietor Cannot Brew Fast Enough."
+      ],
+      "bodies": [
+        "Callers at the shop on Mulberry street were sent away empty-handed in the last days of the month, the shelf being bare. Several waited on the step in the hope of a fresh batch, and one, being told there was none, wept.",
+        "The proprietor of {product} has sold out. Our reporter found a short queue outside the shop and a notice in the window: \"MORE TUESDAY.\" Nobody in the queue looked well enough to wait until Tuesday.",
+        "There was not a bottle of {product} to be had in the ward by the month's end. Druggists report customers asking for it by name, and taking something else, and complaining."
+      ],
+      "again": {
+        "headline": "STILL NO BOTTLES TO BE HAD",
+        "decks": [
+          "The Shortage Continues.",
+          "THE SHELF ON MULBERRY STREET BARE A SECOND MONTH; THE WARD GROWS IMPATIENT."
+        ]
+      }
+    },
+    "record": {
+      "headline": "A RECORD MONTH ON MULBERRY STREET",
+      "cut": "wc_proprietor",
+      "cutline": "THE PROPRIETOR.—Counting.",
+      "decks": [
+        "Trade Brisker Than Ever.",
+        "{sold_upper} BOTTLES SOLD, AND THE BOOKS WELL UP; THE PROPRIETOR ORDERS A NEW HAT.",
+        "The Ward Pays."
+      ],
+      "bodies": [
+        "The shop on Mulberry street has had its best month yet, and the proprietor his best hat. Asked the secret of his success, he said it was the purity of his preparations, and laughed for some time.",
+        "Trade in {product} has never been brisker. Our reporter counted the callers on a single afternoon and lost count at forty; the proprietor did not, and will not say what it came to."
       ]
     }
-  }
+  },
+  "infantLead": [
+    "The family had been giving the child a soothing preparation for its teeth, on the advice of the label. The physician who attended declined to say more, except that the child had been very quiet.",
+    "The mother, who is a regular customer of a certain soothing syrup, informs the neighbors that the child slept through every night since Easter, and this last one also.",
+    "Neighbors say the infant was the best-behaved child in the house: it never cried. The bottle on the mantel, which promised as much, is said to have been nearly empty."
+  ],
+  "unknownLead": [
+    "No one has come forward to claim the body. A bottle, green, was found in the coat, and nothing else of value; the proprietor of the remedy has not come forward either.",
+    "The body lay a day in the dead-house before anyone thought to look at the bottle in its pocket. It was a remedy of the neighborhood, and three parts empty."
+  ],
+  "unlockNotices": {
+    "second_still": "IN THE TRADE.—A second copper still was carried into the back of a shop on Mulberry street this month. The neighbors report that the smell has doubled.",
+    "third_still": "IN THE TRADE.—A third still has gone into the shop on Mulberry street. The back room is now spoken of locally as \"the works,\" and the landlord as a fortunate man.",
+    "percolator": "IN THE TRADE.—The proprietor of {product} has bought a glass percolator, and is said to be getting a great deal more out of his drugs. So, it is said, are his customers.",
+    "newspaper_ads": "TO ADVERTISERS.—The Gazette is pleased to announce that the proprietor of {product} is now in a position to buy space in these columns, having both money and a satisfied customer. Rates on application.",
+    "doctor_title": "IN THE TRADE.—The proprietor of {product} is to be addressed henceforward as Doctor. He has a diploma to show it, and the ink on it is very nearly dry.",
+    "coroner_fees": "IN THE TRADE.—It is said in Centre street that Coroner {coroner} is a practical man, and that proprietors who call on him before the jury sits seldom regret it.",
+    "quality_control": "IN THE TRADE.—The proprietor of {product} has engaged an assistant to taste each batch before it is bottled. The position was advertised three times.",
+    "larger_shop": "IN THE TRADE.—The wall between the shop on Mulberry street and the cobbler's next door has been knocked through. The cobbler is understood to have been consulted afterward.",
+    "bulk_supplier": "IN THE TRADE.—A drug importer on Pearl street has agreed to supply the proprietor of {product} at a discount. The importer asks no questions, and is asked none."
+  },
+  "deathLead": [
+    "Friends describe the deceased as a regular and devoted customer of a certain remedy, which had lately become indispensable to {object}. The proprietor sends his condolences, and reminds the ward that the remedy is purely vegetable.",
+    "The deceased had been taking a remedy of the neighborhood for some months, and was heard to say that {pronoun} had never felt better. The physician who signed the certificate did not ask what it was.",
+    "{pronounCap} was a familiar figure at the shop on Mulberry street, where {pronoun} was known as a customer who never missed a month. The proprietor speaks of {object} warmly, and in the past tense."
+  ]
 }

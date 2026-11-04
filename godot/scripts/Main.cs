@@ -66,7 +66,7 @@ public partial class Main : Control
 		AddChild(_edition);
 		_desk = new ProofView { Visible = false, OffsetBottom = -FooterHeight };
 		_desk.PressRequested += GoToPress;
-		_desk.Changed += () => UpdateStatus(null);
+		_desk.Changed += () => { UpdateStatus(null); if (_onDesk) Callable.From(WireDesk).CallDeferred(); };
 		AddChild(_desk);
 
 		var layer = new CanvasLayer { Layer = 5 };
@@ -143,6 +143,22 @@ public partial class Main : Control
 	private const int FooterHeight = 64;
 	private Label _status = null!;
 	private Button _sound = null!;
+
+	/// <summary>
+	/// On the proof, Tab runs through the bench (and any open drawer) and then out to the footer,
+	/// so LAST EDITION and SOUND can be reached without a mouse.
+	/// </summary>
+	private void WireDesk()
+	{
+		if (!_onDesk) return;
+		var items = Print.Focusables(_desk);
+		if (items.Count == 0) return;
+		_sound.FocusPrevious = items[^1].GetPath();
+		items[^1].FocusNext = _sound.GetPath();
+		_nav.FocusNext = items[0].GetPath();
+		items[0].FocusPrevious = _nav.GetPath();
+		_sound.FocusNext = _nav.GetPath();
+	}
 
 	/// <summary>The keyboard starts on each screen's main action.</summary>
 	private void FocusMain()
@@ -292,7 +308,10 @@ public partial class Main : Control
 		_guardUntil = Time.GetTicksMsec() + 1200;
 	}
 
-	private ulong _guardUntil;
+	private static ulong _guardUntil;
+
+	/// <summary>Ignore keys and clicks for a moment, so one impatient press does not do two things.</summary>
+	public static void Guard(ulong ms) => _guardUntil = Math.Max(_guardUntil, Time.GetTicksMsec() + ms);
 
 	public override void _Input(InputEvent e)
 	{
@@ -470,7 +489,7 @@ public partial class Main : Control
 		_desk.Visible = _onDesk;
 		_wood.Visible = _onDesk;
 		// Tab from the footer reaches into the paper only while the paper is up
-		if (_onDesk) { _sound.FocusNext = new NodePath(); _nav.FocusPrevious = new NodePath(); }
+		if (_onDesk) Callable.From(WireDesk).CallDeferred();
 		else Callable.From(_edition.WireFocus).CallDeferred();
 		_edition.Visible = !_onDesk;
 		if (_onDesk && _desk.DeathPresent) Sfx.Loop("death", -14f, 2.0f);
@@ -501,9 +520,9 @@ public partial class Main : Control
 	{
 		var d = _game.Desk();
 		var when = new System.DateTime(d.Year, d.Month, 1).ToString("MMMM yyyy", System.Globalization.CultureInfo.InvariantCulture);
-		_status.Text = _game.Ended
+		_status.Text = _pressing ? "☞ Click, or press any key, to see the edition." : _game.Ended
 			? "The business is closed. The paper has the last word."
-			: $"{when} · cash in hand {EditionWriter.Money(cash ?? d.CashCents)}{(_monthDelta is long dm && !_onDesk ? $" (the books {(dm >= 0 ? "up" : "down")} {EditionWriter.Money(Math.Abs(dm))})" : "")} · {d.Customers} regulars · {d.Letters.Count} letter{(d.Letters.Count == 1 ? "" : "s")} waiting";
+			: $"{when} · cash in hand {EditionWriter.Money(cash ?? d.CashCents)}{(_monthDelta is long dm && !_onDesk ? (dm == 0 ? " (the books even)" : $" (the books {(dm > 0 ? "up" : "down")} {EditionWriter.Money(Math.Abs(dm))})") : "")} · {d.Customers} regulars · {d.Letters.Count} letter{(d.Letters.Count == 1 ? "" : "s")} waiting";
 	}
 }
 

@@ -119,7 +119,9 @@ public partial class ProofView : Control
 		bench.AddChild(WorksSlip(m));
 		bench.AddChild(new Control { SizeFlagsVertical = SizeFlags.ExpandFill });
 		var warn = new List<string>();
-		if (m.Letters.Count > 0) warn.Add($"{m.Letters.Count} letter{(m.Letters.Count == 1 ? "" : "s")} unanswered: the usual reply will go out for you.");
+		var unansweredInquests = m.Letters.Count(l => l.Title.StartsWith("Inquest", StringComparison.Ordinal));
+		if (unansweredInquests > 0) warn.Add($"{Spell(unansweredInquests)} inquest{(unansweredInquests == 1 ? "" : "s")} unanswered: the coroner will proceed without you.");
+		else if (m.Letters.Count > 0) warn.Add($"{m.Letters.Count} letter{(m.Letters.Count == 1 ? "" : "s")} unanswered: the usual reply will go out for you.");
 		var nothing = m.Formulas.Sum(f => f.Stock) == 0 && m.Brewing.Count == 0;
 		if (nothing) warn.Add("Nothing on the shelf and nothing on the still: the shop will sell nothing this month.");
 		foreach (var w in warn) bench.AddChild(Print.Label("☞ " + w, Print.FellIt, 14, color: Print.Paper));
@@ -221,7 +223,7 @@ public partial class ProofView : Control
 		{
 			var ads = m.NextUnlocks.FirstOrDefault(u => u.Name.Contains("Advertis"));
 			var how = ads.Name == null ? "" : $" ({ads.Progress:P0} of the way there)";
-			v.AddChild(Print.Body($"[i]The Gazette will not take your money yet: it wants $150 in savings and a printed testimonial{how}.[/i]", 13, centre: true));
+			v.AddChild(Print.Body($"[i]The Gazette will not take your money yet: it wants $100 in savings and a printed testimonial{how}.[/i]", 13, centre: true));
 		}
 		else if (tier == 0)
 			v.AddChild(Print.Body("[i]Empty. Buy space from the type case and the ward will read your claims.[/i]", 13, centre: true));
@@ -428,7 +430,7 @@ public partial class ProofView : Control
 			sizes.AddChild(b);
 		}
 		v.AddChild(sizes);
-		if (!m.CanAdvertise) v.AddChild(Print.Body("[i]Not yet: the Gazette wants $150 in savings and a printed testimonial first.[/i]", 12, justify: false));
+		if (!m.CanAdvertise) v.AddChild(Print.Body("[i]Not yet: the Gazette wants $100 in savings and a printed testimonial first.[/i]", 12, justify: false));
 		if (_note != null) v.AddChild(Print.Body($"[b]Refused.[/b] [i]{Print.Escape(_note)}[/i]", 12, justify: false));
 		return Print.Slip(v, 10);
 	}

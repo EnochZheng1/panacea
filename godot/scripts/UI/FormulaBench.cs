@@ -71,7 +71,7 @@ public partial class FormulaBench : HBoxContainer
 		var v = new VBoxContainer();
 		v.AddThemeConstantOverride("separation", 6);
 		v.AddChild(Print.Label("THE DRUG SHELF", Print.Rye, 18, HorizontalAlignment.Center));
-		v.AddChild(Print.Body("[i]Click a jar to pour half an ounce. Right-click to take it back.[/i]", 13, centre: true));
+		v.AddChild(Print.Body("[i]Click a jar to pour half an ounce; hold Shift for a quarter. Right-click to take it back.[/i]", 13, centre: true));
 		var scroll = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled, SizeFlagsVertical = SizeFlags.ExpandFill, CustomMinimumSize = new Vector2(0, 380) };
 		Print.QuietScrollbar(scroll);
 		_shelf = new GridContainer { Columns = 3, SizeFlagsHorizontal = SizeFlags.ExpandFill };
@@ -128,7 +128,7 @@ public partial class FormulaBench : HBoxContainer
 		box.AddChild(v);
 		Anim.LiftOnHover(box, 1.05f);
 		box.MouseEntered += () => Sfx.Play("tick", -14f, 0.15f);
-		box.TooltipText += "\nClick or Enter: pour ½ oz. Right-click or Backspace: take it back.";
+		box.TooltipText += "\nClick or Enter: pour ½ oz (Shift: ¼ oz). Right-click or Backspace: take it back.";
 		box.FocusEntered += () => box.AddThemeStyleboxOverride("panel", Print.Box(new Color(Print.Ink, 0.08f), Print.Ink, 3, 4));
 		box.FocusExited += () => box.AddThemeStyleboxOverride("panel", Print.Box(on ? new Color(Print.Ink, 0.08f) : new Color(0, 0, 0, 0), Print.Ink, on ? 2 : 1, 4));
 		var id = i.Id;
@@ -136,8 +136,10 @@ public partial class FormulaBench : HBoxContainer
 		{
 			if (e is InputEventMouseButton { Pressed: true } mb)
 			{
-				if (mb.ButtonIndex == MouseButton.Left) Add(id, 0.5);
-				else if (mb.ButtonIndex == MouseButton.Right) Add(id, -0.5);
+				// shift for the fine measure: a quarter ounce
+				var step = mb.ShiftPressed ? 0.25 : 0.5;
+				if (mb.ButtonIndex == MouseButton.Left) Add(id, step);
+				else if (mb.ButtonIndex == MouseButton.Right) Add(id, -step);
 			}
 			else if (e is InputEventKey { Pressed: true } k)
 			{

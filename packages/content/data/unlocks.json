@@ -30,7 +30,7 @@
       "of": [
         {
           "type": "cash",
-          "atLeastCents": 15000
+          "atLeastCents": 10000
         },
         {
           "type": "flag",

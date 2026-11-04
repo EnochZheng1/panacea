@@ -252,7 +252,7 @@ Every expansion is earned. The game always shows the **next 2–3 unlocks with p
 | Second still                  | Sell 200 bottles                                             |
 | Percolator                    | Brew 10 batches of one formula                               |
 | "Dr." title                   | Reputation 50 **or** buy a diploma-mill degree               |
-| Newspaper advertising         | $150 saved + 1 testimonial                                   |
+| Newspaper advertising         | $100 saved + 1 testimonial                                   |
 | Almanac printing              | Newspaper ads in 2 regions                                   |
 | Wholesale druggist contract   | Sustain 300 bottles a month for 3 months with low complaints |
 | Coroner "consulting fees"     | Survive your first inquest                                   |

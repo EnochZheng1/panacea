@@ -41,7 +41,7 @@ const { values } = parseArgs({
   options: {
     out: { type: 'string', default: resolve(import.meta.dirname, '../../../../sim-cs/fixtures') },
     bots: { type: 'string', default: 'greedy,briber,adaptive,mercurial,shopkeeper,random' },
-    seeds: { type: 'string', default: 'parity-1,parity-2,parity-3' },
+    seeds: { type: 'string', default: 'parity-1,parity-2,parity-3,hunt-3' },
     'max-turns': { type: 'string', default: '10000' },
   },
 });

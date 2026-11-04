@@ -43,7 +43,7 @@ if (!Number.isInteger(runs) || runs < 1) {
 
 const report = runBatch({
   content,
-  bots: botIds.map((id) => (BOTS[id] as () => ReturnType<(typeof BOTS)[string]>)()),
+  bots: botIds.map((id) => BOTS[id] as () => ReturnType<(typeof BOTS)[string]>),
   runs,
   seedPrefix: values.seed,
   ...(values.backgrounds ? { backgroundIds: values.backgrounds.split(',') } : {}),

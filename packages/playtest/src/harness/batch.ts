@@ -4,7 +4,11 @@ import { runGame, type RunResult } from './run.ts';
 
 export interface BatchOptions {
   content: ContentPack;
-  bots: Bot[];
+  /**
+   * Bots to run. Pass a factory to get a fresh bot for every run: bots may keep state between
+   * turns (an escalating dose), and a shared instance would carry it from one game into the next.
+   */
+  bots: (Bot | (() => Bot))[];
   runs: number;
   seedPrefix: string;
   backgroundIds?: string[];
@@ -59,13 +63,15 @@ export function runBatch(options: BatchOptions): BatchReport {
   const summaries: BotSummary[] = [];
   const violations: BatchReport['violations'] = [];
 
-  for (const bot of options.bots) {
+  for (const entry of options.bots) {
+    const fresh = typeof entry === 'function' ? entry : () => entry;
+    const bot = fresh();
     const results: RunResult[] = [];
     for (let i = 0; i < options.runs; i++) {
       const backgroundId = backgrounds[i % backgrounds.length] as string;
       const r = runGame({
         content: options.content,
-        bot,
+        bot: i === 0 ? bot : fresh(),
         seed: `${options.seedPrefix}-${i}`,
         backgroundId,
         ...(options.checkEveryStep === undefined ? {} : { checkEveryStep: options.checkEveryStep }),

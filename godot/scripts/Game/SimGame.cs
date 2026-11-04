@@ -221,6 +221,8 @@ public sealed class SimGame : IGame
 			AdSpendCents = o.AdSpendCents,
 			Ended = Ended,
 			EndReason = _state.Meta.EndReason,
+			StockValueCents = o.StockValue.TotalCents,
+			StockValueStartCents = report?.StockValueStartCents ?? o.StockValue.TotalCents,
 		};
 		if (f.FirstEdition) f.Turn = 0;
 		else f.Turn = report!.Turn + 1;

@@ -1,5 +1,5 @@
 {
-  "contentVersion": "0.2.0",
+  "contentVersion": "0.3.0",
   "startDate": {
     "year": 1885,
     "month": 1
@@ -30,12 +30,15 @@
     "bottlesPerAttachment": 2.25,
     "budgetBase": 1.5,
     "budgetPerAttachment": 2,
-    "meansPerMonth": 3.5
+    "meansPerMonth": 3.5,
+    "meansLostToHabit": 0.35,
+    "priceHesitation": 0.65,
+    "hesitationMargin": 0.3
   },
   "advertising": {
     "visitorsPerSqrtCent": 0.8,
     "heatPerBoldness": 0.1,
-    "labelHeatPerBoldness": 0.15
+    "labelHeatPerBoldness": 0.2
   },
   "batches": {
     "potencySpread": 0.08,
@@ -62,13 +65,16 @@
   "scrutiny": {
     "heatDecayFlat": 1,
     "heatDecayRate": 0.06,
+    "heatDecayHigh": 0.03,
     "heatPerDeath": 6,
     "heatPerInfantDeath": 12,
     "heatPerAnonymousDeath": 4,
-    "heatPerComplaint": 0.2,
+    "heatPerComplaint": 0.12,
     "shutdownHeat": 100,
     "inquestBaseChance": 0.25,
-    "bribeBaseCents": 2000,
+    "bribeBaseCents": 1500,
+    "bribeRisePerBribe": 0.1,
+    "bribeHeatDoubling": 100,
     "bribeExposurePerBribe": 0.03,
     "bribeExposurePerNotoriety": 0.0025,
     "bribeExposureMax": 0.5,

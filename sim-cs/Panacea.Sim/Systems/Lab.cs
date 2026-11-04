@@ -45,6 +45,30 @@ public static class Lab
         return ing.CostPerUnitCents * (1 - discount / 100) * (1 + surcharge / 100);
     }
 
+    /// <summary>
+    /// What the shop's stock is worth at today's cost (with any discount or surcharge): the
+    /// ingredients on hand, and every bottle brewing or on the shelf at what its ingredients and
+    /// bottling would cost now. Money spent on stock is not lost, and the books can say so.
+    /// </summary>
+    public static StockValue StockValue(GameState state, ContentPack content)
+    {
+        double ingredients = 0;
+        foreach (var (id, qty) in state.Lab.Inventory)
+            if (qty > 0) ingredients += qty * IngredientUnitCost(state, id, content);
+        double BottleCost(List<FormulaComponent> components, string processId)
+        {
+            double cost = BottlingCostPerBottle(processId, content);
+            foreach (var c in components) cost += c.Amount * IngredientUnitCost(state, c.IngredientId, content);
+            return cost;
+        }
+        double shelf = 0;
+        foreach (var b in state.Lab.Batches) shelf += b.Bottles * BottleCost(b.Components, b.ProcessId);
+        foreach (var lot in state.Lab.Stock) shelf += lot.Bottles * BottleCost(lot.Components, lot.ProcessId);
+        long shelfCents = (long)JsMath.Round(shelf);
+        long ingredientsCents = (long)JsMath.Round(ingredients);
+        return new StockValue(shelfCents, ingredientsCents, shelfCents + ingredientsCents);
+    }
+
     public static ActionResult BuyIngredient(GameState state, BuyIngredient action, ContentPack content)
     {
         if (action.IngredientId is null || !content.ById.Ingredients.TryGetValue(action.IngredientId, out var ing))
@@ -253,3 +277,6 @@ public static class Lab
         state.Lab.Batches = remaining;
     });
 }
+
+/// <summary>The stock at cost (systems/lab.ts StockValue): bottles brewing or on the shelf, and ingredients on hand.</summary>
+public sealed record StockValue(long ShelfCents, long IngredientsCents, long TotalCents);

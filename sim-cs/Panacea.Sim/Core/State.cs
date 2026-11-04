@@ -155,6 +155,8 @@ public sealed class MonthInProgress
     public double StartReputation { get; set; }
     public double StartNotoriety { get; set; }
     public double StartHeat { get; set; }
+    /// <summary>What the stock was worth at cost when the month opened (see <see cref="Lab.StockValue"/>).</summary>
+    public long StartStockValueCents { get; set; }
     public List<CausalDelta> Deltas { get; set; } = new();
     public List<NewsItem> News { get; set; } = new();
     public List<SaleRecord> Sales { get; set; } = new();
@@ -180,6 +182,12 @@ public sealed class LedgerEntry
     public double NotorietyEnd { get; set; }
     public double HeatStart { get; set; }
     public double HeatEnd { get; set; }
+    /// <summary>
+    /// Ingredients on hand and bottles brewing or on the shelf, valued at cost, when the month
+    /// opened and when it closed. Cash spent on stock is not lost: the books show it here.
+    /// </summary>
+    public long StockValueStartCents { get; set; }
+    public long StockValueEndCents { get; set; }
     public List<CausalDelta> Deltas { get; set; } = new();
     public List<NewsItem> News { get; set; } = new();
     public List<SaleRecord> Sales { get; set; } = new();

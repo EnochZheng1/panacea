@@ -356,6 +356,18 @@ export const ConfigSchema = z.strictObject({
      * ruined: they buy one bottle at most, and their family complains.
      */
     meansPerMonth: z.number().positive(),
+    /**
+     * The habit eats the means: a regular's means are multiplied by
+     * (1 − meansLostToHabit × dependency).
+     */
+    meansLostToHabit: z.number().min(0).max(1),
+    /**
+     * A walk-in hesitates over a dear bottle: their chance to buy is multiplied by
+     * 1 − priceHesitation × clamp(1 − headroom / hesitationMargin, 0, 1), where headroom is
+     * 1 − price / willingness to pay.
+     */
+    priceHesitation: z.number().min(0).max(1),
+    hesitationMargin: z.number().positive(),
   }),
   advertising: z.strictObject({
     /** Extra walk-ins ≈ visitorsPerSqrtCent × √(monthly spend in cents). */
@@ -395,6 +407,8 @@ export const ConfigSchema = z.strictObject({
   scrutiny: z.strictObject({
     heatDecayFlat: z.number().min(0),
     heatDecayRate: z.number().min(0).max(1),
+    /** Extra decay at high heat: heatDecayHigh × heat × heat / 100 a month. */
+    heatDecayHigh: z.number().min(0).max(1),
     heatPerDeath: z.number().min(0),
     heatPerInfantDeath: z.number().min(0),
     heatPerAnonymousDeath: z.number().min(0),
@@ -405,6 +419,10 @@ export const ConfigSchema = z.strictObject({
     shutdownGraceMonths: z.number().int().min(1),
     inquestBaseChance: z.number().min(0).max(1),
     bribeBaseCents: z.number().int().min(0),
+    /** Each bribe already paid makes the next dearer by this share of the base fee. */
+    bribeRisePerBribe: z.number().min(0),
+    /** The fee is multiplied by 1 + heat / bribeHeatDoubling: a notorious case costs more. */
+    bribeHeatDoubling: z.number().positive(),
     /**
      * Chance a bribe comes out (the coroner's clerk talks): per bribe already paid, plus per
      * point of notoriety, up to the max. An exposed bribe is a verdict against you, and worse.

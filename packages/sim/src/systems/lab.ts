@@ -9,7 +9,7 @@ import {
 import { CAUSES } from '../core/causes.ts';
 import { adjust } from '../core/ledger.ts';
 import { gaussian } from '../core/rng.ts';
-import type { GameState, Lot, Phase } from '../core/index.ts';
+import type { FormulaComponent, GameState, Lot, Phase } from '../core/index.ts';
 import { isIngredientAvailable, validateClaims, validateFormula } from './formula.ts';
 
 /** Inventory quantities are rounded to avoid floating-point dust accumulating over a run. */
@@ -44,6 +44,39 @@ export function ingredientUnitCost(state: GameState, ingredientId: string, conte
   // a supplier's rise (a shortage, a trust) for one ingredient
   const surcharge = Math.max(0, state.player.capabilities[`surcharge_pct_${ing.id}`] ?? 0);
   return ing.costPerUnitCents * (1 - discount / 100) * (1 + surcharge / 100);
+}
+
+export interface StockValue {
+  /** Bottles on the shelf or brewing: their ingredients and bottling. */
+  shelfCents: number;
+  /** Ingredients on hand. */
+  ingredientsCents: number;
+  totalCents: number;
+}
+
+/**
+ * What the shop's stock is worth at today's cost (with any discount or surcharge): the
+ * ingredients on hand, and every bottle brewing or on the shelf at what its ingredients and
+ * bottling would cost now. Money spent on stock is not lost, and the books can say so.
+ */
+export function stockValue(state: GameState, content: ContentPack): StockValue {
+  let ingredients = 0;
+  for (const [id, qty] of Object.entries(state.lab.inventory)) {
+    if (qty > 0) ingredients += qty * ingredientUnitCost(state, id, content);
+  }
+  const bottleCost = (components: readonly FormulaComponent[], processId: string) => {
+    let cost = bottlingCostPerBottle(processId, content);
+    for (const c of components)
+      cost += c.amount * ingredientUnitCost(state, c.ingredientId, content);
+    return cost;
+  };
+  let shelf = 0;
+  for (const b of state.lab.batches) shelf += b.bottles * bottleCost(b.components, b.processId);
+  for (const lot of state.lab.stock)
+    shelf += lot.bottles * bottleCost(lot.components, lot.processId);
+  const shelfCents = Math.round(shelf);
+  const ingredientsCents = Math.round(ingredients);
+  return { shelfCents, ingredientsCents, totalCents: shelfCents + ingredientsCents };
 }
 
 export function buyIngredient(

@@ -22,6 +22,7 @@ import {
   setAdSpend,
   setClaims,
   setPrice,
+  stockValue,
 } from './systems/lab.ts';
 import { advertisingPhase, expensesPhase, salesPhase } from './systems/market.ts';
 import {
@@ -119,6 +120,7 @@ export function newGame(content: ContentPack, options: NewGameOptions): GameStat
       startReputation: content.config.startingReputation,
       startNotoriety: 0,
       startHeat: 0,
+      startStockValueCents: 0,
       deltas: [],
       news: [],
       sales: [],
@@ -278,7 +280,7 @@ export function endTurnInPlace(draft: GameState, content: ContentPack): LedgerEn
       monthsLeft: shutdownGraceMonths - scrutiny.monthsAtShutdownHeat,
     });
   }
-  const report = closeMonth(draft);
+  const report = closeMonth(draft, stockValue(draft, content).totalCents);
   draft.ledger.push(report);
 
   if (draft.player.monthsInsolvent >= content.config.bankruptcyGraceMonths) {
@@ -293,7 +295,7 @@ export function endTurnInPlace(draft: GameState, content: ContentPack): LedgerEn
   } else {
     draft.meta.turn += 1;
     draft.meta.date = addMonths(draft.meta.date, 1);
-    draft.month = openMonth(draft);
+    draft.month = openMonth(draft, stockValue(draft, content).totalCents);
     drawEvents(draft, content, rng);
   }
 

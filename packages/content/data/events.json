@@ -387,6 +387,11 @@
             "type": "capability",
             "id": "shop_capacity",
             "delta": -8
+          },
+          {
+            "type": "capability",
+            "id": "rent_extra_cents",
+            "delta": -100
           }
         ]
       },

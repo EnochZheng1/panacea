@@ -89,8 +89,9 @@ public static class Scrutiny
     /// </summary>
     public static long BribeCostCents(GameState state, ContentPack content)
     {
-        long @base = content.Config.Scrutiny.BribeBaseCents;
-        double raw = @base * (1 + 0.5 * state.Scrutiny.BribesPaid) * (1 + state.Scrutiny.Heat / 50);
+        var cfg = content.Config.Scrutiny;
+        double raw = cfg.BribeBaseCents * (1 + cfg.BribeRisePerBribe * state.Scrutiny.BribesPaid) *
+            (1 + state.Scrutiny.Heat / cfg.BribeHeatDoubling);
         return Math.Max(500, (long)JsMath.Round(raw / 500) * 500);
     }
 
@@ -114,16 +115,20 @@ public static class Scrutiny
         {
             return Math.Min(0.3, Math.Max(0, 0.05 + heat / 300 + state.Scrutiny.TimesImplicated * 0.01 - (testify ? 0.04 : 0)));
         }
+        // Testifying puts the formula on the record: a proprietor who speaks for a mild bottle is
+        // believed, but the coroner's chemist then knows what to look for, so testimony for a loaded
+        // one damns it — and he finds a mis-measured batch. Silence keeps the formula out of court.
+        double testimony = testify ? record.Detectability * 0.05 - 0.25 : 0;
         double p =
             0.25 +
             record.Detectability / 25 +
             heat / 200 -
             state.Player.Reputation / 400 +
             record.Boldness * 0.02 +
-            (record.BadBatch ? 0.2 : 0) +
+            (record.BadBatch && testify ? 0.2 : 0) +
             // the coroner remembers the label: every verdict against it makes the next one likelier
-            state.Scrutiny.TimesImplicated * 0.03 -
-            (testify ? 0.15 : 0);
+            state.Scrutiny.TimesImplicated * 0.03 +
+            testimony;
         return Math.Min(0.95, Math.Max(0.05, p));
     }
 
@@ -168,8 +173,7 @@ public static class Scrutiny
         }
         else if (rng.Chance(ImplicationChance(state, record, approach)))
         {
-            // a proprietor who would not come and speak for his bottle looks the guiltier for it
-            Implicate(approach == "silent" ? 28 : 20, 12, 8);
+            Implicate(24, 12, 8);
             outcome = InquestStates.Implicated;
         }
         else
@@ -179,8 +183,8 @@ public static class Scrutiny
             outcome = InquestStates.Cleared;
         }
 
-        // A chemist's analysis at an honest inquest reveals a mis-measured batch.
-        if (record.BadBatch && approach != "bribe") state.Player.Flags["suffered_bad_batch"] = true;
+        // The chemist's analysis of the formula a proprietor testified to reveals a mis-measured batch.
+        if (record.BadBatch && approach == "testify") state.Player.Flags["suffered_bad_batch"] = true;
 
         record.Inquest = outcome;
         record.Verdict = outcome == InquestStates.Implicated ? "proprietary_poisoning" : rng.Pick(cfg.BenignVerdicts);
@@ -195,7 +199,9 @@ public static class Scrutiny
     {
         var cfg = ctx.Content.Config.Scrutiny;
         var s = ctx.State.Scrutiny;
-        double decay = Math.Min(s.Heat, cfg.HeatDecayFlat + s.Heat * cfg.HeatDecayRate);
+        double heat = s.Heat;
+        // a scandal burns itself out: the hotter the talk, the faster it moves on to something new
+        double decay = Math.Min(heat, cfg.HeatDecayFlat + heat * cfg.HeatDecayRate + cfg.HeatDecayHigh * heat * (heat / 100));
         if (decay > 0) Ledger.Adjust(ctx.State, Metrics.Heat, -decay, Causes.HeatDecay);
     });
 }

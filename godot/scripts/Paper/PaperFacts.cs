@@ -42,6 +42,12 @@ public sealed class PaperFacts
 
     /// <summary>The month's books by cause, as the Ledger keeps them.</summary>
     public long CashStartCents;
+    /// <summary>
+    /// The stock at cost (ingredients on hand, bottles brewing or on the shelf) now and when the
+    /// month opened, so the books can show cash spent on stock as stock, not as a loss.
+    /// </summary>
+    public long StockValueCents;
+    public long StockValueStartCents;
     /// <summary>Bottles sold the month before, so the paper can tell a slump from a steady trade.</summary>
     public int SoldLastMonth;
     /// <summary>

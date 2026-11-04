@@ -7,7 +7,13 @@ import {
   isProcessAvailable,
   validateClaims,
 } from '../systems/formula.ts';
-import { ingredientUnitCost, maxBrewable, stillsFree, stockOf } from '../systems/lab.ts';
+import {
+  ingredientUnitCost,
+  maxBrewable,
+  stillsFree,
+  stockOf,
+  stockValue,
+} from '../systems/lab.ts';
 import { availableChoices, nextUnlocks, type UnlockProgress } from '../systems/progression.ts';
 import { isRuined } from '../systems/market.ts';
 import { bribeCostCents, bribeExposureChance, INQUEST_EVENT_ID } from '../systems/scrutiny.ts';
@@ -71,6 +77,11 @@ export interface Observation {
   capabilities: Record<string, number>;
   stillsFree: number;
   inventory: Record<string, number>;
+  /**
+   * The stock at today's cost: bottles brewing or on the shelf, and ingredients on hand. Buying
+   * stock moves money from cash into here; the month's books are cash and stock together.
+   */
+  stockValue: { shelfCents: number; ingredientsCents: number; totalCents: number };
   ingredients: { id: string; costPerUnitCents: number }[];
   processes: string[];
   claims: string[];
@@ -119,6 +130,7 @@ export function observe(state: GameState, content: ContentPack): Observation {
     capabilities: { ...state.player.capabilities },
     stillsFree: stillsFree(state),
     inventory: { ...state.lab.inventory },
+    stockValue: stockValue(state, content),
     ingredients: content.ingredients
       .filter((i) => isIngredientAvailable(i.id, state, content))
       .map((i) => ({ id: i.id, costPerUnitCents: ingredientUnitCost(state, i.id, content) })),

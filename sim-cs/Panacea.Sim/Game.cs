@@ -181,7 +181,7 @@ public static class Game
         {
             state.Month.News.Add(new ShutdownWarningNews(cfg.ShutdownGraceMonths - scrutiny.MonthsAtShutdownHeat));
         }
-        var report = Ledger.CloseMonth(state);
+        var report = Ledger.CloseMonth(state, Lab.StockValue(state, content).TotalCents);
         state.Ledger.Add(report);
 
         if (state.Player.MonthsInsolvent >= content.Config.BankruptcyGraceMonths)
@@ -203,7 +203,7 @@ public static class Game
         {
             state.Meta.Turn += 1;
             state.Meta.Date = Dates.AddMonths(state.Meta.Date, 1);
-            state.Month = Ledger.OpenMonth(state);
+            state.Month = Ledger.OpenMonth(state, Lab.StockValue(state, content).TotalCents);
             Progression.DrawEvents(state, content, rng);
         }
 

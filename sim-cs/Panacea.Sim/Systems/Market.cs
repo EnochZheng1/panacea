@@ -71,9 +71,25 @@ public static class Market
         return false;
     }
 
-    /// <summary>What a regular can afford to spend in a month, in cents.</summary>
+    /// <summary>
+    /// How much a price near a stranger's limit puts them off: 1 when the bottle costs at most
+    /// (1 − HesitationMargin) of what they would pay, falling to 1 − PriceHesitation at their limit.
+    /// </summary>
+    public static double PriceHesitation(double priceCents, double wtpCents, ContentPack content)
+    {
+        var m = content.Config.Market;
+        if (m.PriceHesitation <= 0 || wtpCents <= 0) return 1;
+        double headroom = 1 - priceCents / wtpCents;
+        return 1 - m.PriceHesitation * Math.Max(0, Math.Min(1, 1 - headroom / m.HesitationMargin));
+    }
+
+    /// <summary>
+    /// What a regular can afford to spend in a month, in cents. A habit eats into it: a craving
+    /// regular loses work and wages to the bottle, so the more dependent they are, the less they have.
+    /// </summary>
     public static double MeansCents(Customer c, ContentPack content) =>
-        c.Profile.BaseWillingnessCents * content.Config.Market.MeansPerMonth;
+        c.Profile.BaseWillingnessCents * content.Config.Market.MeansPerMonth *
+        (1 - content.Config.Market.MeansLostToHabit * c.Body.Dependency);
 
     /// <summary>A regular who owes more than a month's means: one bottle at most, and a family that complains.</summary>
     public static bool IsRuined(Customer c, ContentPack content) => c.DebtCents > MeansCents(c, content);
@@ -240,7 +256,12 @@ public static class Market
                 continue;
             }
             double claims = Formulas.ClaimAppeal(offer.Formula.Claims, ailmentId, content);
-            if (!rng.Chance(Math.Min(0.95, segment.Profile.BuyChance * (1 + 0.1 * claims)))) continue;
+            // A stranger hesitates over a bottle priced near the most they would pay.
+            double wtp = WillingnessToPay(buyer,
+                Pharmacology.Appeal(offer.Analysis, buyer.Tolerance, buyer.Profile, 0, claims), content);
+            double hesitation = PriceHesitation(offer.Formula.PriceCents, wtp, content);
+            double pBuy = Math.Min(0.95, segment.Profile.BuyChance * (1 + 0.1 * claims)) * hesitation;
+            if (!rng.Chance(pBuy)) continue;
             var bought = sell(offer, Causes.SalesWalkIn);
             if (bought is null) continue;
 

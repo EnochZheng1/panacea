@@ -7,6 +7,7 @@ import {
   bribeCostCents,
   bribeExposureChance,
   checkInvariants,
+  implicationChance,
   endTurn,
   newScratch,
   observe,
@@ -15,6 +16,7 @@ import {
   Rng,
   seedRng,
   stockOf,
+  stockValue,
   type Bought,
   type Customer,
   type FormulaComponent,
@@ -23,7 +25,12 @@ import {
 } from '../src/index.ts';
 import { bodyPhase } from '../src/systems/body.ts';
 import { productionPhase } from '../src/systems/lab.ts';
-import { advertisingPhase, salesPhase } from '../src/systems/market.ts';
+import {
+  advertisingPhase,
+  meansCents,
+  priceHesitation,
+  salesPhase,
+} from '../src/systems/market.ts';
 import { zeroTolerance } from '../src/systems/pharmacology.ts';
 import { resolveInquest } from '../src/systems/scrutiny.ts';
 import { act, content, months, start } from './helpers.ts';
@@ -326,7 +333,11 @@ describe('scrutiny', () => {
     expect(after.player.cashCents).toBe(s.player.cashCents - cost);
     expect(after.deaths[0]).toMatchObject({ inquest: 'bribed' });
     expect(content.config.scrutiny.benignVerdicts).toContain(after.deaths[0]!.verdict);
-    expect(bribeCostCents(after, content)).toBeGreaterThan(cost);
+    // he comes back for more: each fee paid raises the next (named to the nearest five dollars)
+    expect(bribeCostCents(after, content)).toBeGreaterThanOrEqual(cost);
+    const regular = structuredClone(after);
+    regular.scrutiny.bribesPaid += 4;
+    expect(bribeCostCents(regular, content)).toBeGreaterThan(cost);
   });
 
   it('juries usually blame a detectable poison, and rarely an innocent death', () => {
@@ -363,7 +374,12 @@ describe('scrutiny', () => {
       ...content,
       config: {
         ...content.config,
-        scrutiny: { ...content.config.scrutiny, heatDecayFlat: 0, heatDecayRate: 0 },
+        scrutiny: {
+          ...content.config.scrutiny,
+          heatDecayFlat: 0,
+          heatDecayRate: 0,
+          heatDecayHigh: 0,
+        },
       },
     };
     const s = start('heat');
@@ -427,7 +443,7 @@ describe('the habit, the coroner and the post (balance pass 2)', () => {
         c.body.dependency = 0.95;
         c.satisfaction = 0.5;
       }
-      const means = a!.profile.baseWillingnessCents * content.config.market.meansPerMonth;
+      const means = meansCents(a!, content);
       a!.debtCents = means + 1;
       expect(observe(state, content).customers.find((c) => c.id === a!.id)!.ruined).toBe(true);
       const ctx = sellTo(state, `r${i}`);
@@ -437,7 +453,7 @@ describe('the habit, the coroner and the post (balance pass 2)', () => {
       ruinedBottles += boughtA.length;
       solventBottles += boughtB.length;
       const spentB = boughtB.length * 150;
-      const meansB = b!.profile.baseWillingnessCents * content.config.market.meansPerMonth;
+      const meansB = meansCents(b!, content);
       expect(b!.debtCents).toBe(Math.max(0, spentB - meansB));
     }
     expect(solventBottles).toBeGreaterThan(ruinedBottles * 1.5);
@@ -548,5 +564,119 @@ describe('the habit, the coroner and the post (balance pass 2)', () => {
     const paid = s.ledger.filter((e) => e.deltas.some((d) => d.cause === 'expense.retainer'));
     expect(paid).toHaveLength(12);
     expect(s.player.capabilities['walk_in_bonus']).toBe(0);
+  });
+});
+
+describe('testimony, the habit’s cost, dear bottles and the books (balance pass 3)', () => {
+  const record = (s: GameState) => s.deaths[0]!;
+
+  it('testimony helps a mild bottle and damns a loaded one; silence is the better bet for a strong one', () => {
+    const mild = withInquest(true, 2);
+    expect(implicationChance(mild, record(mild), 'testify')).toBeLessThan(
+      implicationChance(mild, record(mild), 'silent'),
+    );
+    const loaded = withInquest(true, 9);
+    expect(implicationChance(loaded, record(loaded), 'testify')).toBeGreaterThan(
+      implicationChance(loaded, record(loaded), 'silent'),
+    );
+  });
+
+  it('silence keeps a mis-measured batch out of the record; testimony has it found', () => {
+    const base = withInquest(true, 4);
+    base.deaths[0]!.badBatch = true;
+    const clean = withInquest(true, 4);
+    expect(implicationChance(base, record(base), 'silent')).toBeCloseTo(
+      implicationChance(clean, record(clean), 'silent'),
+    );
+    expect(implicationChance(base, record(base), 'testify')).toBeCloseTo(
+      implicationChance(clean, record(clean), 'testify') + 0.2,
+    );
+    const silent = structuredClone(base);
+    resolveInquest(silent, content, Rng.fromSeed('bb'), 'death_x', 'silent');
+    expect(silent.player.flags['suffered_bad_batch']).toBeUndefined();
+    const testified = structuredClone(base);
+    resolveInquest(testified, content, Rng.fromSeed('bb'), 'death_x', 'testify');
+    expect(testified.player.flags['suffered_bad_batch']).toBe(true);
+  });
+
+  it('a verdict against you costs the same heat however you answered', () => {
+    const heatAfter = (approach: 'testify' | 'silent') => {
+      for (let i = 0; i < 50; i++) {
+        const s = withInquest(true, 40, `v${i}`);
+        resolveInquest(s, content, Rng.fromSeed(`v${i}`), 'death_x', approach);
+        if (s.deaths[0]!.inquest === 'implicated') return s.scrutiny.heat;
+      }
+      throw new Error('never implicated');
+    };
+    expect(heatAfter('testify')).toBe(heatAfter('silent'));
+  });
+
+  it('the habit eats a regular’s means', () => {
+    const { customer } = oneCustomer('means');
+    customer.body.dependency = 0;
+    const sober = meansCents(customer, content);
+    expect(sober).toBe(customer.profile.baseWillingnessCents * content.config.market.meansPerMonth);
+    customer.body.dependency = 1;
+    expect(meansCents(customer, content)).toBeCloseTo(
+      sober * (1 - content.config.market.meansLostToHabit),
+    );
+  });
+
+  it('a stranger hesitates over a bottle priced near the most they would pay', () => {
+    const { priceHesitation: h, hesitationMargin } = content.config.market;
+    expect(priceHesitation(50, 100, content)).toBe(1);
+    expect(priceHesitation(100 * (1 - hesitationMargin), 100, content)).toBeCloseTo(1);
+    expect(priceHesitation(100, 100, content)).toBeCloseTo(1 - h);
+    expect(priceHesitation(90, 100, content)).toBeGreaterThan(1 - h);
+    expect(priceHesitation(90, 100, content)).toBeLessThan(1);
+  });
+
+  it('the coroner’s fee follows the configured rise per bribe and with heat', () => {
+    const s = withInquest(true);
+    const { bribeBaseCents, bribeRisePerBribe, bribeHeatDoubling } = content.config.scrutiny;
+    s.scrutiny.bribesPaid = 4;
+    s.scrutiny.heat = 40;
+    const raw = bribeBaseCents * (1 + 4 * bribeRisePerBribe) * (1 + 40 / bribeHeatDoubling);
+    expect(bribeCostCents(s, content)).toBe(Math.max(500, Math.round(raw / 500) * 500));
+  });
+
+  it('stock bought is not money lost: the books value ingredients and bottles at cost', () => {
+    let s = start('books');
+    s.player.cashCents = 100_000;
+    s.month.startCashCents = s.player.cashCents;
+    expect(observe(s, content).stockValue).toEqual({
+      shelfCents: 0,
+      ingredientsCents: 0,
+      totalCents: 0,
+    });
+    s = act(s, { type: 'BuyIngredient', ingredientId: 'morphine', units: 2 });
+    s = act(s, { type: 'BuyIngredient', ingredientId: 'grain_alcohol', units: 20 });
+    const spent = 100_000 - s.player.cashCents;
+    expect(observe(s, content).stockValue).toEqual({
+      shelfCents: 0,
+      ingredientsCents: spent,
+      totalCents: spent,
+    });
+    s = act(s, {
+      type: 'CreateFormula',
+      name: 'Books',
+      components: [
+        { ingredientId: 'morphine', amount: 0.1 },
+        { ingredientId: 'grain_alcohol', amount: 2 },
+      ],
+      processId: 'simple_mix',
+      priceCents: 100,
+    });
+    s = act(s, { type: 'BrewBatch', formulaId: s.lab.formulas[0]!.id, bottles: 10 });
+    const brewing = observe(s, content).stockValue;
+    const perBottle = 0.1 * 250 + 2 * 2 + content.config.bottleCostCents;
+    expect(brewing.shelfCents).toBe(Math.round(10 * perBottle));
+    expect(brewing.totalCents).toBe(spent + 10 * content.config.bottleCostCents);
+    const { state, report } = endTurn(s, content);
+    expect(report.stockValueStartCents).toBe(0);
+    expect(report.stockValueEndCents).toBe(stockValue(state, content).totalCents - 0);
+    expect(state.month.startStockValueCents).toBe(report.stockValueEndCents);
+    const next = endTurn(state, content).report;
+    expect(next.stockValueStartCents).toBe(report.stockValueEndCents);
   });
 });

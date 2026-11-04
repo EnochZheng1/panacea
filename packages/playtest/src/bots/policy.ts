@@ -206,7 +206,9 @@ export const PRESETS: Record<string, Policy> = {
   greedy: {
     id: 'greedy',
     description: 'Morphine and cocaine, escalating doses, wild claims, heavy advertising, bribes.',
-    narcotic: { ingredientId: 'morphine', oz: 0.4 },
+    // Doses in content 0.3.0 morphine (4× the strength per ounce of 0.2.0's): the same
+    // 0.4 → 1.5 old ounces, escalating by 0.1.
+    narcotic: { ingredientId: 'morphine', oz: 0.1 },
     alcoholOz: 2,
     extras: [{ ingredientId: 'coca_extract', amount: 0.3 }],
     priceCents: 120,
@@ -216,7 +218,7 @@ export const PRESETS: Record<string, Policy> = {
     adSpendCents: 2000,
     inquest: 'bribe',
     events: 'first',
-    escalate: { stepOz: 0.1, maxOz: 1.5 },
+    escalate: { stepOz: 0.025, maxOz: 0.375 },
   },
   briber: {
     id: 'briber',

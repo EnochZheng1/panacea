@@ -32,7 +32,7 @@ const EXTRAS: Policy['extras'][] = [
 
 export function randomPolicy(rng: Rng, id: string): Policy {
   const narcotic = rng.pick(NARCOTICS);
-  const maxOz = narcotic === 'laudanum' ? 1.2 : narcotic === 'morphine' ? 0.6 : 0.8;
+  const maxOz = narcotic === 'laudanum' ? 1.2 : narcotic === 'morphine' ? 0.15 : 0.8;
   const oz = Math.round(rng.float() * maxOz * 100) / 100;
   const escalate = narcotic && rng.chance(0.4);
   const deescalate = narcotic && rng.chance(0.4);

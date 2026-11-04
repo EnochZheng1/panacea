@@ -54,6 +54,8 @@ export interface MonthInProgress {
   startReputation: number;
   startNotoriety: number;
   startHeat: number;
+  /** What the stock was worth at cost when the month opened (see `stockValue`). */
+  startStockValueCents: number;
   deltas: CausalDelta[];
   news: NewsItem[];
   sales: SaleRecord[];
@@ -78,6 +80,12 @@ export interface LedgerEntry {
   notorietyEnd: number;
   heatStart: number;
   heatEnd: number;
+  /**
+   * Ingredients on hand and bottles brewing or on the shelf, valued at cost, when the month
+   * opened and when it closed. Cash spent on stock is not lost: the books show it here.
+   */
+  stockValueStartCents: number;
+  stockValueEndCents: number;
   deltas: CausalDelta[];
   news: NewsItem[];
   sales: SaleRecord[];

@@ -183,21 +183,21 @@
     "substanceClass": "narcotic",
     "drugClass": "opiate",
     "properties": {
-      "kick": 3,
-      "calm": 20,
-      "habit": 15,
-      "acuteToxicity": 4,
+      "kick": 12,
+      "calm": 80,
+      "habit": 60,
+      "acuteToxicity": 12,
       "accumulation": 0,
-      "bitterness": 6,
-      "detectability": 6
+      "bitterness": 24,
+      "detectability": 24
     },
-    "costPerUnitCents": 40,
+    "costPerUnitCents": 250,
     "tags": ["opiate"],
     "appearance": {
       "color": "#cdb8ff",
       "opacity": 0.45
     },
-    "note": "Purified opium alkaloid, far stronger per ounce than laudanum. Infant 'soothing syrups' contained it."
+    "note": "Morphine sulphate, the purified alkaloid, sold by the druggist in eighth-ounce vials: an eighth of an ounce calms like an ounce and a quarter of laudanum, and is cleaner for the calm it gives (less bitter, less dangerous, harder to find in an assay). The price (about $2.50 an ounce) is approximate and is to be checked against a period price current. Infant 'soothing syrups' contained it."
   },
   {
     "id": "coca_extract",
@@ -207,18 +207,18 @@
       "kick": 7,
       "calm": 1,
       "habit": 5,
-      "acuteToxicity": 3,
+      "acuteToxicity": 2.5,
       "accumulation": 0,
       "bitterness": 3,
       "detectability": 4
     },
-    "costPerUnitCents": 25,
+    "costPerUnitCents": 40,
     "tags": ["cocaine"],
     "appearance": {
       "color": "#2fa65a",
       "opacity": 0.88
     },
-    "note": "Fluid extract of coca / cocaine. Fashionable in tonics and wines from the mid-1880s."
+    "note": "Fluid extract of coca leaf, far milder than the pure alkaloid. Fashionable in tonics and wines from the mid-1880s. The price (about 40c an ounce; leaf was dear in the 1885-86 craze) is approximate and is to be checked against a period price current."
   },
   {
     "id": "calomel",
@@ -295,7 +295,7 @@
     "costPerUnitCents": 10,
     "availableFrom": {
       "year": 1886,
-      "month": 1
+      "month": 10
     },
     "tags": ["headache_powder"],
     "appearance": {

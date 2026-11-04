@@ -55,7 +55,7 @@ public class GameTests
     [Fact]
     public void EmbeddedContentLoads()
     {
-        Assert.Equal("0.2.0", C.Config.ContentVersion);
+        Assert.Equal("0.3.0", C.Config.ContentVersion);
         Assert.Equal(17, C.Ingredients.Count);
         Assert.Equal(3, C.Processes.Count);
         Assert.Equal(9, C.Unlocks.Count);
@@ -416,5 +416,46 @@ public class GameTests
         Game.EndTurnInPlace(copy, C);
         Assert.Equal(Game.HashState(copy), Game.HashState(next));
         Assert.NotEqual(Game.HashState(state), Game.HashState(next));
+    }
+
+    // --- balance pass 3 ----------------------------------------------------------------------
+
+    private static DeathRecord Death(double detectability, bool badBatch = false) => new()
+    {
+        Id = "death_x", Date = new GameDate(1885, 1), Name = "Mr. Test", Segment = "labourer",
+        Consumer = "self", Cause = "overdose", ProductImplicated = true, Detectability = detectability,
+        BadBatch = badBatch, Inquest = InquestStates.Pending,
+    };
+
+    [Fact]
+    public void TestimonyHelpsAMildBottleAndDamnsALoadedOne()
+    {
+        var s = Start("inq");
+        Assert.True(Scrutiny.ImplicationChance(s, Death(2), "testify") < Scrutiny.ImplicationChance(s, Death(2), "silent"));
+        Assert.True(Scrutiny.ImplicationChance(s, Death(9), "testify") > Scrutiny.ImplicationChance(s, Death(9), "silent"));
+        // silence keeps a mis-measured batch out of the record
+        Assert.Equal(Scrutiny.ImplicationChance(s, Death(4), "silent"), Scrutiny.ImplicationChance(s, Death(4, true), "silent"));
+        Assert.Equal(Scrutiny.ImplicationChance(s, Death(4), "testify") + 0.2, Scrutiny.ImplicationChance(s, Death(4, true), "testify"), 9);
+    }
+
+    [Fact]
+    public void TheBooksValueStockAtCost()
+    {
+        var s = Start("books");
+        s.Player.CashCents = 100_000;
+        s.Month.StartCashCents = s.Player.CashCents;
+        Assert.Equal(new StockValue(0, 0, 0), Machine.Observe(s, C).StockValue);
+        s = Act(s, new BuyIngredient("morphine", 2), new BuyIngredient("grain_alcohol", 20));
+        long spent = 100_000 - s.Player.CashCents;
+        Assert.Equal(new StockValue(0, spent, spent), Machine.Observe(s, C).StockValue);
+        var (made, created) = Game.ApplyAction(s,
+            new CreateFormula("Books", [new("morphine", 0.1), new("grain_alcohol", 2)], "simple_mix", 100), C);
+        Assert.True(created.Ok);
+        s = Act(made, new BrewBatch(created.CreatedId!, 10));
+        Assert.Equal(spent + 10 * C.Config.BottleCostCents, Machine.Observe(s, C).StockValue.TotalCents);
+        var (next, report) = Game.EndTurn(s, C);
+        Assert.Equal(0, report.StockValueStartCents);
+        Assert.Equal(Lab.StockValue(next, C).TotalCents, report.StockValueEndCents);
+        Assert.Equal(report.StockValueEndCents, next.Month.StartStockValueCents);
     }
 }

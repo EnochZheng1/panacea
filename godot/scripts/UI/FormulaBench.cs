@@ -71,7 +71,7 @@ public partial class FormulaBench : HBoxContainer
 		var v = new VBoxContainer();
 		v.AddThemeConstantOverride("separation", 6);
 		v.AddChild(Print.Label("THE DRUG SHELF", Print.Rye, 18, HorizontalAlignment.Center));
-		v.AddChild(Print.Body("[i]Click a jar to pour half an ounce; hold Shift for a quarter. Right-click to take it back.[/i]", 13, centre: true));
+		v.AddChild(Print.Body("[i]Click a jar to pour half an ounce (the dear drugs by the eighth); hold Shift for half as much. Right-click to take it back.[/i]", 13, centre: true));
 		var scroll = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled, SizeFlagsVertical = SizeFlags.ExpandFill, CustomMinimumSize = new Vector2(0, 380) };
 		Print.QuietScrollbar(scroll);
 		_shelf = new GridContainer { Columns = 3, SizeFlagsHorizontal = SizeFlags.ExpandFill };
@@ -122,13 +122,17 @@ public partial class FormulaBench : HBoxContainer
 		var name = Print.Label(i.Name, Print.Fell, 13, HorizontalAlignment.Center);
 		name.MouseFilter = MouseFilterEnum.Ignore;
 		v.AddChild(name);
-		var sub = Print.Label(on ? $"{inGlass:0.##} oz in the glass" : (i.CostPerOunceCents == 0 ? "free" : $"{EditionWriter.Money(i.CostPerOunceCents)}/oz"), Print.FellIt, 11, HorizontalAlignment.Center);
+		var sub = Print.Label(on ? $"{inGlass:0.###} oz in the glass" : (i.CostPerOunceCents == 0 ? "free" : $"{EditionWriter.Money(i.CostPerOunceCents)}/oz" + (i.CostPerOunceCents >= 200 ? " · by the ⅛" : "")), Print.FellIt, 11, HorizontalAlignment.Center);
 		sub.MouseFilter = MouseFilterEnum.Ignore;
 		v.AddChild(sub);
 		box.AddChild(v);
 		Anim.LiftOnHover(box, 1.05f);
 		box.MouseEntered += () => Sfx.Play("tick", -14f, 0.15f);
-		box.TooltipText += "\nClick or Enter: pour ½ oz (Shift: ¼ oz). Right-click or Backspace: take it back.";
+		// a dear, potent drug is measured by the eighth: a half ounce of morphine would empty the ward
+		var unit = i.CostPerOunceCents >= 200 ? 0.125 : 0.5;
+		var unitText = unit < 0.5 ? "⅛ oz" : "½ oz";
+		var fineText = unit < 0.5 ? "1/16 oz" : "¼ oz";
+		box.TooltipText += $"\nClick or Enter: pour {unitText} (Shift: {fineText}). Right-click or Backspace: take it back.";
 		box.FocusEntered += () => box.AddThemeStyleboxOverride("panel", Print.Box(new Color(Print.Ink, 0.08f), Print.Ink, 3, 4));
 		box.FocusExited += () => box.AddThemeStyleboxOverride("panel", Print.Box(on ? new Color(Print.Ink, 0.08f) : new Color(0, 0, 0, 0), Print.Ink, on ? 2 : 1, 4));
 		var id = i.Id;
@@ -136,15 +140,15 @@ public partial class FormulaBench : HBoxContainer
 		{
 			if (e is InputEventMouseButton { Pressed: true } mb)
 			{
-				// shift for the fine measure: a quarter ounce
-				var step = mb.ShiftPressed ? 0.25 : 0.5;
+				// shift for the fine measure: half the jar's usual pour
+				var step = mb.ShiftPressed ? unit / 2 : unit;
 				if (mb.ButtonIndex == MouseButton.Left) Add(id, step);
 				else if (mb.ButtonIndex == MouseButton.Right) Add(id, -step);
 			}
 			else if (e is InputEventKey { Pressed: true } k)
 			{
-				if (k.Keycode == Key.Backspace || (k.Keycode == Key.Enter && k.ShiftPressed)) { Add(id, -0.5); box.AcceptEvent(); }
-				else if (k.Keycode is Key.Enter or Key.KpEnter or Key.Space) { Add(id, 0.5); box.AcceptEvent(); }
+				if (k.Keycode == Key.Backspace || (k.Keycode == Key.Enter && k.ShiftPressed)) { Add(id, -unit); box.AcceptEvent(); }
+				else if (k.Keycode is Key.Enter or Key.KpEnter or Key.Space) { Add(id, unit); box.AcceptEvent(); }
 			}
 		};
 		return box;

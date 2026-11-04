@@ -95,8 +95,11 @@ export function recordDeath(
  * in round sums: a coroner names his price to the nearest five dollars.
  */
 export function bribeCostCents(state: GameState, content: ContentPack): number {
-  const base = content.config.scrutiny.bribeBaseCents;
-  const raw = base * (1 + 0.5 * state.scrutiny.bribesPaid) * (1 + state.scrutiny.heat / 50);
+  const { bribeBaseCents, bribeRisePerBribe, bribeHeatDoubling } = content.config.scrutiny;
+  const raw =
+    bribeBaseCents *
+    (1 + bribeRisePerBribe * state.scrutiny.bribesPaid) *
+    (1 + state.scrutiny.heat / bribeHeatDoubling);
   return Math.max(500, Math.round(raw / 500) * 500);
 }
 
@@ -132,16 +135,20 @@ export function implicationChance(
       ),
     );
   }
+  // Testifying puts the formula on the record: a proprietor who speaks for a mild bottle is
+  // believed, but the coroner's chemist then knows what to look for, so testimony for a loaded
+  // one damns it — and he finds a mis-measured batch. Silence keeps the formula out of court.
+  const testimony = approach === 'testify' ? record.detectability * 0.05 - 0.25 : 0;
   const p =
     0.25 +
     record.detectability / 25 +
     heat / 200 -
     state.player.reputation / 400 +
     record.boldness * 0.02 +
-    (record.badBatch ? 0.2 : 0) +
+    (record.badBatch && approach === 'testify' ? 0.2 : 0) +
     // the coroner remembers the label: every verdict against it makes the next one likelier
-    state.scrutiny.timesImplicated * 0.03 -
-    (approach === 'testify' ? 0.15 : 0);
+    state.scrutiny.timesImplicated * 0.03 +
+    testimony;
   return Math.min(0.95, Math.max(0.05, p));
 }
 
@@ -184,8 +191,7 @@ export function resolveInquest(
       outcome = 'bribed';
     }
   } else if (rng.chance(implicationChance(state, record, approach))) {
-    // a proprietor who would not come and speak for his bottle looks the guiltier for it
-    implicate(approach === 'silent' ? 28 : 20, 12, 8);
+    implicate(24, 12, 8);
     outcome = 'implicated';
   } else {
     adjust(state, 'heat', -3, CAUSES.inquest, record.id);
@@ -193,8 +199,8 @@ export function resolveInquest(
     outcome = 'cleared';
   }
 
-  // A chemist's analysis at an honest inquest reveals a mis-measured batch.
-  if (record.badBatch && approach !== 'bribe') state.player.flags['suffered_bad_batch'] = true;
+  // The chemist's analysis of the formula a proprietor testified to reveals a mis-measured batch.
+  if (record.badBatch && approach === 'testify') state.player.flags['suffered_bad_batch'] = true;
 
   record.inquest = outcome;
   record.verdict =
@@ -209,10 +215,12 @@ export function resolveInquest(
 export const heatDecayPhase: Phase = {
   id: 'heat_decay',
   run({ state, content }) {
-    const { heatDecayFlat, heatDecayRate } = content.config.scrutiny;
+    const { heatDecayFlat, heatDecayRate, heatDecayHigh } = content.config.scrutiny;
+    const heat = state.scrutiny.heat;
+    // a scandal burns itself out: the hotter the talk, the faster it moves on to something new
     const decay = Math.min(
-      state.scrutiny.heat,
-      heatDecayFlat + state.scrutiny.heat * heatDecayRate,
+      heat,
+      heatDecayFlat + heat * heatDecayRate + heatDecayHigh * heat * (heat / 100),
     );
     if (decay > 0) adjust(state, 'heat', -decay, CAUSES.heatDecay);
   },

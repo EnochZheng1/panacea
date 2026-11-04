@@ -63,6 +63,11 @@ public sealed class Observation
     public required OrderedMap<int> Capabilities { get; init; }
     public int StillsFree { get; init; }
     public required OrderedMap<double> Inventory { get; init; }
+    /// <summary>
+    /// The stock at today's cost: bottles brewing or on the shelf, and ingredients on hand. Buying
+    /// stock moves money from cash into here; the month's books are cash and stock together.
+    /// </summary>
+    public required StockValue StockValue { get; init; }
     public required IReadOnlyList<ObservedIngredient> Ingredients { get; init; }
     public required IReadOnlyList<string> Processes { get; init; }
     public required IReadOnlyList<string> Claims { get; init; }
@@ -168,6 +173,7 @@ public static class Machine
             Capabilities = state.Player.Capabilities.Clone(),
             StillsFree = Lab.StillsFree(state),
             Inventory = state.Lab.Inventory.Clone(),
+            StockValue = Lab.StockValue(state, content),
             Ingredients = content.Ingredients
                 .Where(i => Formulas.IsIngredientAvailable(i.Id, state, content))
                 .Select(i => new ObservedIngredient(i.Id, Lab.IngredientUnitCost(state, i.Id, content)))

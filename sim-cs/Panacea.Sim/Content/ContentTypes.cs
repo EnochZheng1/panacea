@@ -442,6 +442,15 @@ public sealed class MarketConfig
     /// a regular who owes more than a month's means is ruined.
     /// </summary>
     public double MeansPerMonth { get; init; }
+    /// <summary>The habit eats the means: they are multiplied by 1 − MeansLostToHabit × dependency.</summary>
+    public double MeansLostToHabit { get; init; }
+    /// <summary>
+    /// A walk-in hesitates over a dear bottle: their chance to buy is multiplied by
+    /// 1 − PriceHesitation × clamp(1 − headroom / HesitationMargin, 0, 1), where headroom is
+    /// 1 − price / willingness to pay.
+    /// </summary>
+    public double PriceHesitation { get; init; }
+    public double HesitationMargin { get; init; }
 }
 
 public sealed class AdvertisingConfig
@@ -481,6 +490,8 @@ public sealed class ScrutinyConfig
 {
     public double HeatDecayFlat { get; init; }
     public double HeatDecayRate { get; init; }
+    /// <summary>Extra decay at high heat: HeatDecayHigh × heat × heat / 100 a month.</summary>
+    public double HeatDecayHigh { get; init; }
     public double HeatPerDeath { get; init; }
     public double HeatPerInfantDeath { get; init; }
     public double HeatPerAnonymousDeath { get; init; }
@@ -489,6 +500,10 @@ public sealed class ScrutinyConfig
     public int ShutdownGraceMonths { get; init; }
     public double InquestBaseChance { get; init; }
     public long BribeBaseCents { get; init; }
+    /// <summary>Each bribe already paid raises the fee by this share of the base.</summary>
+    public double BribeRisePerBribe { get; init; }
+    /// <summary>The fee is multiplied by 1 + heat / BribeHeatDoubling: a notorious case costs more.</summary>
+    public double BribeHeatDoubling { get; init; }
     /// <summary>Chance a bribe comes out: per bribe already paid, plus per point of notoriety, up to the max.</summary>
     public double BribeExposurePerBribe { get; init; }
     public double BribeExposurePerNotoriety { get; init; }

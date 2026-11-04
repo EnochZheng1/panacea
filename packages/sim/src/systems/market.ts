@@ -108,9 +108,29 @@ export function turnedAwayByPrice(
   return false;
 }
 
-/** What a regular can afford to spend in a month, in cents. */
+/**
+ * How much a price near a stranger's limit puts them off: 1 when the bottle costs at most
+ * (1 − hesitationMargin) of what they would pay, falling to 1 − priceHesitation at their limit.
+ */
+export function priceHesitation(
+  priceCents: number,
+  wtpCents: number,
+  content: ContentPack,
+): number {
+  const { priceHesitation: h, hesitationMargin } = content.config.market;
+  if (h <= 0 || wtpCents <= 0) return 1;
+  const headroom = 1 - priceCents / wtpCents;
+  return 1 - h * Math.max(0, Math.min(1, 1 - headroom / hesitationMargin));
+}
+
+/**
+ * What a regular can afford to spend in a month, in cents. A habit eats into it: a craving
+ * regular loses work and wages to the bottle, so the more dependent they are, the less they have.
+ */
 export const meansCents = (c: Customer, content: ContentPack): number =>
-  c.profile.baseWillingnessCents * content.config.market.meansPerMonth;
+  c.profile.baseWillingnessCents *
+  content.config.market.meansPerMonth *
+  (1 - content.config.market.meansLostToHabit * c.body.dependency);
 
 /** A regular who owes more than a month's means: one bottle at most, and a family that complains. */
 export const isRuined = (c: Customer, content: ContentPack): boolean =>
@@ -285,7 +305,15 @@ function walkIns(
       continue;
     }
     const claims = claimAppeal(offer.formula.claims, ailmentId, content);
-    if (!rng.chance(Math.min(0.95, segment.profile.buyChance * (1 + 0.1 * claims)))) continue;
+    // A stranger hesitates over a bottle priced near the most they would pay.
+    const wtp = willingnessToPay(
+      buyer,
+      appeal(offer.analysis, buyer.tolerance, buyer.profile, 0, claims),
+      content,
+    );
+    const hesitation = priceHesitation(offer.formula.priceCents, wtp, content);
+    const pBuy = Math.min(0.95, segment.profile.buyChance * (1 + 0.1 * claims)) * hesitation;
+    if (!rng.chance(pBuy)) continue;
     const bought = sell(offer, CAUSES.salesWalkIn);
     if (!bought) continue;
 

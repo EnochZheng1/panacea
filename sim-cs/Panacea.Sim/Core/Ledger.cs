@@ -57,15 +57,16 @@ public static class Ledger
         return applied;
     }
 
-    public static MonthInProgress OpenMonth(GameState state) => new()
+    public static MonthInProgress OpenMonth(GameState state, long stockValueCents) => new()
     {
         StartCashCents = state.Player.CashCents,
         StartReputation = state.Player.Reputation,
         StartNotoriety = state.Player.Notoriety,
         StartHeat = state.Scrutiny.Heat,
+        StartStockValueCents = stockValueCents,
     };
 
-    public static LedgerEntry CloseMonth(GameState state)
+    public static LedgerEntry CloseMonth(GameState state, long stockValueCents)
     {
         var m = state.Month;
         return new LedgerEntry
@@ -80,6 +81,8 @@ public static class Ledger
             NotorietyEnd = state.Player.Notoriety,
             HeatStart = m.StartHeat,
             HeatEnd = state.Scrutiny.Heat,
+            StockValueStartCents = m.StartStockValueCents,
+            StockValueEndCents = stockValueCents,
             Deltas = m.Deltas,
             News = m.News,
             Sales = m.Sales,

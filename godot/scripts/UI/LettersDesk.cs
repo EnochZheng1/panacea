@@ -54,7 +54,7 @@ public partial class LettersDesk : VBoxContainer
 			"FEENEY'S TONIC, SIXTY-FIVE CENTS THE BOTTLE. Why pay more on Mulberry street? For the next four months, two callers in five whose bottle costs more than mine will try mine instead. Ask anyone. — J. Feeney"),
 		["landlord_rent"] = new("", "Upstairs, the front room", "Your obedient servant, M. O'ROURKE, Landlord", "",
 			"Brought down by the landlord's boy, who waited for an answer.", "Sir,—",
-			"I see the trade is good, and I am glad of it. From this month the rent is a dollar more, and it will stay so. I would sell you the lease outright for sixty dollars, which would bring it a dollar under the old rent for good. The shop across the street is to let at the old rent, if you can do with room for eight fewer regulars."),
+			"I see the trade is good, and I am glad of it. From this month the rent is a dollar more, and it will stay so. I would sell you the lease outright for sixty dollars, which would bring it a dollar under the old rent for good. The narrow shop across the street is to let at a dollar under the old rent, if you can do with room for eight fewer regulars."),
 		["spirits_dearer"] = new("J. & W. HOBART & CO.", "Wholesale Druggists & Importers of Drugs · 81 Pearl Street", "J. & W. HOBART & CO., per T. Hobart", "seal_hobart",
 			"A printed circular from Pearl street, with a note in the margin.", "Sir,—",
 			"We regret that the distillers have combined, and that grain spirit will be charged at double the old price for six months from your acknowledgment. Should you prefer it, a Jersey distiller outside the ring will supply at the old price for six dollars down; we are not to be named in the matter."),
@@ -69,8 +69,8 @@ public partial class LettersDesk : VBoxContainer
 	/// <summary>What each answer to the coroner risks, said plainly under the slip.</summary>
 	private static readonly Dictionary<string, string> Risks = new()
 	{
-		["inquest.testify"] = "The best odds with the jury. If they name your bottle anyway, suspicion rises 20.",
-		["inquest.stay_silent"] = "Costs nothing. If the jury names your bottle, suspicion rises 28: your absence is noticed.",
+		["inquest.testify"] = "Your word helps a mild bottle, and hurts a strong one: the jury's chemist tests whatever you bring. If they name your bottle, suspicion rises 24.",
+		["inquest.stay_silent"] = "No chemistry is heard, which suits a strong bottle. If the jury names your bottle anyway, suspicion rises 24.",
 		["inquest.bribe_coroner"] = "The verdict you pay for. His fee rises every time, and an envelope can come to light: a bought verdict found out is worse than a jury's.",
 		["grateful_letter.print_testimonial"] = "Standing in the ward +3, and the Gazette will sell you space once you have $100 put by.",
 		["grateful_letter.file_away"] = "Nothing gained, nothing risked.",
@@ -90,7 +90,7 @@ public partial class LettersDesk : VBoxContainer
 		["rival_price_war.cry_him_down"] = "Free, and Feeney takes nothing, but suspicion +4 and standing −2.",
 		["rival_price_war.let_him_try"] = "For four months he takes two callers in five from any bottle dearer than 65c.",
 		["landlord_rent.buy_the_lease"] = "$60 now, and the rent falls a dollar a month, for good.",
-		["landlord_rent.smaller_premises"] = "The old rent, but room for eight fewer regulars.",
+		["landlord_rent.smaller_premises"] = "Rent a dollar under the old, for good, but room for eight fewer regulars.",
 		["landlord_rent.pay_the_rise"] = "Rent up a dollar a month, for good.",
 		["spirits_dearer.outside_distiller"] = "$6 now, and spirit stays at the old price.",
 		["spirits_dearer.pay_the_new_price"] = "Grain spirit costs double for six months.",

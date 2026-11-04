@@ -56,12 +56,13 @@ export function adjust(
   return applied;
 }
 
-export function openMonth(state: GameState): MonthInProgress {
+export function openMonth(state: GameState, stockValueCents: number): MonthInProgress {
   return {
     startCashCents: state.player.cashCents,
     startReputation: state.player.reputation,
     startNotoriety: state.player.notoriety,
     startHeat: state.scrutiny.heat,
+    startStockValueCents: stockValueCents,
     deltas: [],
     news: [],
     sales: [],
@@ -70,7 +71,7 @@ export function openMonth(state: GameState): MonthInProgress {
   };
 }
 
-export function closeMonth(state: GameState): LedgerEntry {
+export function closeMonth(state: GameState, stockValueCents: number): LedgerEntry {
   const m = state.month;
   return {
     turn: state.meta.turn,
@@ -83,6 +84,8 @@ export function closeMonth(state: GameState): LedgerEntry {
     notorietyEnd: state.player.notoriety,
     heatStart: m.startHeat,
     heatEnd: state.scrutiny.heat,
+    stockValueStartCents: m.startStockValueCents,
+    stockValueEndCents: stockValueCents,
     deltas: m.deltas,
     news: m.news,
     sales: m.sales,

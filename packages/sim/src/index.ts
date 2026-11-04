@@ -32,7 +32,7 @@ export {
   validateFormula,
   type FormulaAnalysis,
 } from './systems/formula.ts';
-export { maxBrewable, stockOf, totalStock } from './systems/lab.ts';
+export { maxBrewable, stockOf, stockValue, totalStock, type StockValue } from './systems/lab.ts';
 export { acuteDanger, feltEffect, overdoseChance, reliefScore } from './systems/pharmacology.ts';
 export { availableChoices, nextUnlocks, type UnlockProgress } from './systems/progression.ts';
 export {

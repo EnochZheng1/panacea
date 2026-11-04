@@ -169,7 +169,16 @@ public partial class DeskView : ScrollContainer
 				b.Alignment = HorizontalAlignment.Left;
 				var instance = l.InstanceId;
 				var choice = id;
-				b.Pressed += () => Act(_game!.Resolve(instance, choice), "Answered.");
+				var said = text;
+				b.Pressed += () =>
+				{
+					// say what the answer did, there and then: the letter is gone, the money may be too
+					var before = _game!.Desk().CashCents;
+					var err = _game.Resolve(instance, choice);
+					var after = _game.Desk().CashCents;
+					var money = after == before ? "" : after < before ? $" It cost {EditionWriter.Money(before - after)}." : $" It brought in {EditionWriter.Money(after - before)}.";
+					Act(err, $"Sent: \u201c{said}\u201d{money} The outcome, if any, will be in the next edition.");
+				};
 				v.AddChild(b);
 			}
 			v.AddChild(Print.Dash(80));
@@ -192,6 +201,7 @@ public partial class DeskView : ScrollContainer
 			foreach (var amount in new[] { 8, 32 })
 			{
 				var b = Print.Button($"+{amount}", 13);
+				b.TooltipText = $"{amount} oz of {i.Name}: {EditionWriter.Money(amount * i.CostPerOunceCents)}";
 				var id = i.Id; var name = i.Name; var a = amount;
 				b.Pressed += () => Act(_game!.Buy(id, a), $"Bought {a} oz of {name}.");
 				row.AddChild(b);
@@ -304,6 +314,38 @@ public partial class DeskView : ScrollContainer
 			}
 			row.AddChild(Print.Label($"{n} bottles (most you can: {f.MaxBrewable})", Print.FellIt, 14));
 			v.AddChild(row);
+			// say what limits the batch, and offer to buy what the recipe needs
+			var stock = m.Ingredients.ToDictionary(i => i.Id, i => i);
+			var limits = f.Components.Where(c => c.Ounces > 0).Select(c => (c, can: stock.TryGetValue(c.IngredientId, out var i) ? (int)Math.Floor(i.OnHand / c.Ounces + 1e-9) : 0)).ToList();
+			var shortest = limits.OrderBy(x => x.can).FirstOrDefault();
+			if (limits.Count > 0 && shortest.can <= f.MaxBrewable && shortest.can < 24)
+			{
+				var nm = stock.TryGetValue(shortest.c.IngredientId, out var si) ? si.Name : shortest.c.IngredientId;
+				v.AddChild(Print.Body($"[i]Short of {Print.Escape(nm.ToLowerInvariant())}: {shortest.c.Ounces:0.##} oz a bottle, {(stock.TryGetValue(shortest.c.IngredientId, out var oh) ? oh.OnHand : 0):0.#} oz on hand.[/i]", 14, justify: false));
+			}
+			const int Batch = 24;
+			long cost = 0;
+			var needs = new List<(string Id, double Oz)>();
+			foreach (var c in f.Components.Where(c => c.Ounces > 0))
+			{
+				var have = stock.TryGetValue(c.IngredientId, out var i) ? i.OnHand : 0;
+				var need = Math.Ceiling(Math.Max(0, c.Ounces * Batch - have));
+				if (need <= 0) continue;
+				needs.Add((c.IngredientId, need));
+				cost += (long)Math.Round(need * (stock.TryGetValue(c.IngredientId, out var ii) ? ii.CostPerOunceCents : 0));
+			}
+			if (needs.Count > 0)
+			{
+				var buy = Print.Button($"BUY ENOUGH FOR {Batch} BOTTLES · {EditionWriter.Money(cost)}", 13);
+				buy.TooltipText = "Orders whatever the recipe is short of, for a batch of " + Batch + ".";
+				buy.Pressed += () =>
+				{
+					string? err = null;
+					foreach (var (id, oz) in needs) err ??= _game!.Buy(id, oz);
+					Act(err, $"Ordered from Pearl street: enough for {Batch} bottles, {EditionWriter.Money(cost)}.");
+				};
+				v.AddChild(buy);
+			}
 			var brew = Print.Button($"FIRE THE STILL: {n} BOTTLES", 15, solid: true);
 			brew.Disabled = n <= 0 || m.StillsFree <= 0;
 			var fid = f.Id; var count = n; var fname = f.Name;

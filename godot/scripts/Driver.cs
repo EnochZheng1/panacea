@@ -37,8 +37,17 @@ public partial class Driver : Node
 	{
 		var d = new Driver { _state = state };
 		parent.AddChild(d);
-		d._listener = new TcpListener(IPAddress.Loopback, port);
-		d._listener.Start();
+		try
+		{
+			d._listener = new TcpListener(IPAddress.Loopback, port);
+			d._listener.Start();
+		}
+		catch (Exception e)
+		{
+			d._listener = null;
+			GD.PrintErr($"DRIVER could not listen on {port}: {e.Message}");
+			return d;
+		}
 		GD.Print($"DRIVER listening on 127.0.0.1:{port}");
 		return d;
 	}

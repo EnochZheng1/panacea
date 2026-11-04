@@ -9,18 +9,54 @@
     "yearly": "$4.00 A YEAR."
   },
   "weather": {
-    "1": ["Snow, with general coughing.", "Bitter cold. Consumptives advised to lay in a supply."],
-    "2": ["Sleet. Rheumatics complain.", "Fog. Good for business."],
-    "3": ["Raw winds. Coughs plentiful.", "Thaw, then otherwise."],
-    "4": ["Showers. Spirits low.", "Mild. The well recover, regrettably."],
-    "5": ["Fair. Melancholy general among the unemployed.", "Warm. Flies."],
-    "6": ["Close and damp. Dyspepsia prevalent.", "Hot. Nerves frayed in the tenements."],
-    "7": ["Heat. Cholera feared.", "Stifling. Infants fretful."],
-    "8": ["Heat continues. Infants very fretful.", "Thunder. Sleeplessness general."],
-    "9": ["Cooler. Catarrh returns with the children to school.", "Fair to middling."],
-    "10": ["Fog, with coughing.", "Damp. Neuralgia reported in Hester Street."],
-    "11": ["Raw. Coughs ripening nicely.", "Cold rain. Pine coffins advance."],
-    "12": ["Snow. Goodwill toward men, and toward the trade.", "Bitter. A good month for tonics."]
+    "1": [
+      "Snow, with general coughing.",
+      "Bitter cold. Consumptives advised to lay in a supply."
+    ],
+    "2": [
+      "Sleet. Rheumatics complain.",
+      "Fog. Good for business."
+    ],
+    "3": [
+      "Raw winds. Coughs plentiful.",
+      "Thaw, then otherwise."
+    ],
+    "4": [
+      "Showers. Spirits low.",
+      "Mild. The well recover, regrettably."
+    ],
+    "5": [
+      "Fair. Melancholy general among the unemployed.",
+      "Warm. Flies."
+    ],
+    "6": [
+      "Close and damp. Dyspepsia prevalent.",
+      "Hot. Nerves frayed in the tenements."
+    ],
+    "7": [
+      "Heat. Cholera feared.",
+      "Stifling. Infants fretful."
+    ],
+    "8": [
+      "Heat continues. Infants very fretful.",
+      "Thunder. Sleeplessness general."
+    ],
+    "9": [
+      "Cooler. Catarrh returns with the children to school.",
+      "Fair to middling."
+    ],
+    "10": [
+      "Fog, with coughing.",
+      "Damp. Neuralgia reported in Hester Street."
+    ],
+    "11": [
+      "Raw. Coughs ripening nicely.",
+      "Cold rain. Pine coffins advance."
+    ],
+    "12": [
+      "Snow. Goodwill toward men, and toward the trade.",
+      "Bitter. A good month for tonics."
+    ]
   },
   "streets": [
     "Mulberry street",
@@ -34,8 +70,21 @@
     "Baxter street",
     "Ludlow street"
   ],
-  "coroners": ["Fogarty", "Messemer", "Nugent", "Levy"],
-  "weekdays": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+  "coroners": [
+    "Fogarty",
+    "Messemer",
+    "Nugent",
+    "Levy"
+  ],
+  "weekdays": [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday"
+  ],
   "occupations": {
     "mother": {
       "female": "wife of a working man"
@@ -135,7 +184,9 @@
   "shutdown": [
     "NOTICE.—The Board of Health gives warning that the premises of the proprietor of {product} will be closed in {months} month(s), unless the public complaint subsides."
   ],
-  "unlock": ["IN THE TRADE.—{title}. {description}"],
+  "unlock": [
+    "IN THE TRADE.—{title}. {description}"
+  ],
   "firstEdition": {
     "headline": "A NEW CONCERN",
     "decks": [
@@ -164,12 +215,18 @@
   "tradeNoSales": [
     "The shop on Mulberry street sold nothing of its own manufacture this month. Its proprietor was seen staring at the still."
   ],
-  "tradeBooks": ["The proprietor's books close the month at {cash}."],
+  "tradeBooks": [
+    "The proprietor's books close the month at {cash}."
+  ],
   "markets": {
     "lead": "Patent medicines, active.",
     "coffinsBase": 400,
     "coffinsPerDeath": 15,
-    "lilies": ["Lilies, plentiful.", "Lilies, firm.", "Lilies, scarce."]
+    "lilies": [
+      "Lilies, plentiful.",
+      "Lilies, firm.",
+      "Lilies, scarce."
+    ]
   },
   "rivals": [
     {
@@ -197,6 +254,24 @@
       "mid": "BALDNESS CONQUERED",
       "body": "Rubbed on nightly, it raises hair on billiard balls. Testimonials from the Bald of Three Continents.",
       "fine": "Do not apply to the face."
+    },
+    {
+      "head": "PROFESSOR KLINE'S ELECTRIC LIVER PAD",
+      "mid": "A MIRACLE OF SCIENCE",
+      "body": "Laid upon the liver, it draws out bile, gloom and torpor by magnetism alone. No medicine required.",
+      "fine": "Not to be worn near the watch."
+    },
+    {
+      "head": "THE ANTI-FAT CORDIAL",
+      "mid": "STOUTNESS CURED",
+      "body": "Reduces the figure by a pound a day without diet or exercise. Twelve ladies of Brooklyn have vanished entirely.",
+      "fine": "The proprietors are not responsible for vanished ladies."
+    },
+    {
+      "head": "DR. ST. JOHN'S CONSUMPTION CURE",
+      "mid": "A RIVAL OF REPUTE",
+      "body": "Cures consumption in all its stages. Testimonials from every state in the Union, and several beyond it.",
+      "fine": "Several of the testimonials were received posthumously."
     }
   ],
   "undertaker": {
@@ -218,7 +293,13 @@
     "TO LET.—Furnished room, lately vacated, Mott street. The previous tenant will not be returning.",
     "WANTED.—A respectable widow to answer letters in another lady's name. Discretion essential.",
     "FOR SALE.—A quantity of empty bottles, slightly used. Apply to Fogg & Sons.",
-    "WANTED.—A PHYSICIAN willing to endorse anything. Diploma not required, but helpful."
+    "WANTED.—A PHYSICIAN willing to endorse anything. Diploma not required, but helpful.",
+    "WANTED.—A NIGHT WATCHMAN for a laboratory. Must be a heavy sleeper. Board included.",
+    "FOUND.—A brown bottle, three-quarters empty, in Baxter street. The owner will not be needing it.",
+    "SITUATION WANTED.—By a clergyman, to endorse remedies. References from the families of satisfied customers.",
+    "TO LET.—A cellar, suitable for brewing, dry, discreet. No questions; no windows.",
+    "WANTED.—Empty bottles of any make, bought by the gross. No enquiry made as to the former contents.",
+    "NOTICE.—The Ladies' Temperance League meets Thursdays. Members are reminded that bitters are not liquor."
   ],
   "regularsIntro": "AMONG THE CALLERS.—{name}, {occupation}, troubled by {ailment}, has been seen at the new shop.",
   "endings": {

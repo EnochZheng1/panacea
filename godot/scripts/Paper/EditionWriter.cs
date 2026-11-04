@@ -32,10 +32,12 @@ public sealed class EditionWriter
         e.EarRightTitle = S(mast, "price");
         e.EarRight = S(mast, "priceNote");
 
-        var date = PublicationDate(f.Year, f.Month);
+        var date = f.FirstEdition ? FirstSaturday(f.Year, f.Month) : PublicationDate(f.Year, f.Month);
         e.DatelineLeft = $"VOL. {Roman(f.Year - 1871 + 1)}.—NO. {600 + f.Turn}.";
         e.DatelineCentre = $"NEW-YORK, {date.DayOfWeek.ToString().ToUpperInvariant()}, {date.ToString("MMMM", CultureInfo.InvariantCulture).ToUpperInvariant()} {date.Day}, {date.Year}.";
         e.DatelineRight = S(mast, "yearly");
+        e.Brief = Brief(f);
+        e.BriefClip = f.FirstEdition ? null : BooksClip(f);
 
         var product = f.Products.FirstOrDefault();
         var productName = product?.Name ?? "Dr. ——'s remedies";
@@ -152,6 +154,13 @@ public sealed class EditionWriter
                 Clip = books,
             });
         }
+        if (!f.FirstEdition && f.CashLines.Count > 0)
+        {
+            var takings = f.CashLines.Where(x => x.Cents > 0).Sum(x => x.Cents);
+            var costs = f.CashLines.Where(x => x.Cents < 0).OrderBy(x => x.Cents).ToList();
+            var itemised = string.Join(", ", costs.Take(3).Select(x => $"{x.Label.ToLowerInvariant()} {Money(-x.Cents)}"));
+            trade.Blocks.Add(new Block { Text = $"Takings {Money(takings)}; outgoings {Money(-costs.Sum(x => x.Cents))}" + (itemised.Length > 0 ? $" ({itemised})." : "."), Clip = books });
+        }
         trade.Blocks.Add(new Block { Text = Pick(f, "books", _copy.GetProperty("tradeBooks")).Replace("{cash}", Money(f.CashCents)), Clip = books });
         e.LeadFoot.Add(trade);
         if (f.Era.Count > 0 && !(e.Lead.Headline == f.Era[0].Headline.ToUpperInvariant() && f.Era.Count == 1))
@@ -255,7 +264,7 @@ public sealed class EditionWriter
             var decks = rn.GetProperty("decks").EnumerateArray().Select(x => x.GetString() ?? "").ToList();
             if (subject == null) decks = new List<string> { decks[0], decks[2] };
             var body = subject != null ? Pick(f, "rn", rn.GetProperty("bodies")) : S(rn, "fallbackBody");
-            var street = Pick(f, "street" + (subject?.Id ?? ""), _copy.GetProperty("streets"));
+            var street = Home(f, subject);
             string Sub(string s) => Fill(s, f, subject, product.Name)
                 .Replace("{street_upper}", street.ToUpperInvariant())
                 .Replace("{product_upper}", product.Name.ToUpperInvariant())
@@ -271,20 +280,71 @@ public sealed class EditionWriter
                 Clip = subject == null ? null : PersonClip(f, subject, "QUOTED IN YOUR NOTICE", "The Gazette set your advertisement as news, and found this customer to quote. Nobody asked them."),
             };
         }
-        if (f.Era.Count > 0)
+        // the lead is the month's biggest fact: the coroner naming you, then the dead, then the
+        // news of the age, then trade; a quiet month only when nothing happened at all
+        var named = f.Inquests.FirstOrDefault(q => q.Outcome == "implicated");
+        if (named != null)
         {
-            var (headline, body) = f.Era[0];
-            return new Story { Headline = headline.ToUpperInvariant(), Body = body };
+            return new Story
+            {
+                Headline = "THE CORONER NAMES A REMEDY",
+                Decks = new List<string> { "A Verdict Against the Bottle.", $"THE JURY FINDS THAT {Who(f, named.Person).ToUpperInvariant()} \u201c{named.Verdict.ToUpperInvariant()}.\u201d", "The Board of Health Is Informed." },
+                Cut = "wc_death",
+                Cutline = "A GENTLEMAN SEEN AT THE INQUEST.",
+                Body = $"The bottle found at the bedside bore the label of {named.Product ?? product?.Name ?? "a proprietary medicine"}. Its proprietor was not called to give evidence, and was not seen in the ward on the day the jury sat. Physicians observe that the remedy is purely vegetable, and that so is hemlock.",
+                Clip = PersonClip(f, named.Person, "THE INQUEST", $"Verdict: \u201c{named.Verdict}.\u201d", "Your product is named in the findings. The Board of Health will take an interest, and the ward will talk."),
+            };
         }
         if (f.Deaths.Count >= 3)
         {
             return new Story
             {
                 Headline = "A SICKLY SEASON",
-                Decks = new List<string> { "The Ward Mourns.", "UNDERTAKERS REPORT A BRISK MONTH." },
+                Decks = new List<string> { "The Ward Mourns.", $"{Words(f.Deaths.Count).ToUpperInvariant()} DEATHS IN THE WARD THIS MONTH; UNDERTAKERS REPORT A BRISK TRADE." },
                 Cut = "wc_death",
                 Cutline = "A GENTLEMAN SEEN IN THE NEIGHBOURHOOD.",
-                Body = $"The deaths column runs long this month. Physicians attribute the trouble to the weather, the water and the foreign element, in that order. Nobody has thought to look at the bottles.",
+                Body = "The deaths column runs long this month. Physicians attribute the trouble to the weather, the water and the foreign element, in that order. Nobody has thought to look at the bottles.",
+                Clip = BooksClip(f),
+            };
+        }
+        if (f.Deaths.Count > 0)
+        {
+            var d = f.Deaths[0];
+            var street = Home(f, d);
+            return new Story
+            {
+                Headline = d.Anonymous ? $"FOUND DEAD IN {street.ToUpperInvariant().Replace("THE ", "")}"
+                    : d.Infant ? $"THE {SplitName(d.Name).Surname.ToUpperInvariant()} INFANT"
+                    : $"DEATH OF {ShortName(d).ToUpperInvariant()}",
+                Decks = new List<string>
+                {
+                    d.Infant ? "An Infant Taken." : "Suddenly, in the Ward.",
+                    d.Anonymous ? "A BROWN BOTTLE WAS FOUND NEAR THE BODY. THE CORONER HAS BEEN INFORMED." : $"{Who(f, d).ToUpperInvariant()}, WELL KNOWN AT THE SHOP ON MULBERRY STREET.",
+                },
+                Cut = d.Anonymous ? "wc_death" : CutFor(d),
+                Cutline = d.Anonymous ? "A GENTLEMAN SEEN IN THE NEIGHBOURHOOD." : d.Infant ? $"THE MOTHER, {ShortName(d).ToUpperInvariant()}.—From a stock likeness." : $"{ShortName(d).ToUpperInvariant()}.—From a stock likeness.",
+                Body = d.Infant
+                    ? "The family had been giving the child a soothing preparation for its teeth, on the advice of the label. The physician who attended declined to say more, except that the child had been very quiet."
+                    : "Friends describe the deceased as a regular and devoted customer of a certain remedy, which had lately become indispensable to them. The proprietor sends his condolences, and reminds the ward that the remedy is purely vegetable.",
+                Clip = PersonClip(f, d, "IN MEMORIAM", d.Infant ? "The medicine was for an infant in the family's care." : "See the deaths column for the notice."),
+            };
+        }
+        if (f.Era.Count > 0)
+        {
+            var (headline, body) = f.Era[0];
+            return new Story { Headline = headline.ToUpperInvariant(), Body = body };
+        }
+        var sold = f.Sales.Sum(x => x.Bottles);
+        if (sold > 0)
+        {
+            return new Story
+            {
+                Headline = "BRISK TRADE ON MULBERRY STREET",
+                Decks = new List<string> { "The Remedy Moves.", $"{sold} BOTTLES SOLD AT THE SHOP THIS MONTH; THE PROPRIETOR IS SATISFIED, AND SO, FOR NOW, IS THE WARD." },
+                Cut = product != null ? "wc_bottle_panacea" : "wc_proprietor",
+                Cutline = "THE REMEDY.—Actual size.",
+                Body = "Customers were seen leaving the shop with brown paper parcels and returning, some days later, for more. Our reporter asked one of them what the remedy was for. \u201cFor everything,\u201d he said, and asked our reporter for a dime.",
+                Clip = BooksClip(f),
             };
         }
         return new Story
@@ -297,11 +357,47 @@ public sealed class EditionWriter
         };
     }
 
+    /// <summary>Where someone lives: chosen once per person, the same in every notice.</summary>
+    private string Home(PaperFacts f, PersonFact? p)
+    {
+        var streets = _copy.GetProperty("streets");
+        var key = p == null ? "street-" + f.Turn : "home" + (string.IsNullOrEmpty(p.Name) ? p.Id : p.Name);
+        return streets[(int)(Hash(f.Seed, 0, key) % (uint)streets.GetArrayLength())].GetString() ?? "";
+    }
+
+    private static string Words(int n) => n switch { 3 => "three", 4 => "four", 5 => "five", 6 => "six", 7 => "seven", 8 => "eight", _ => n.ToString(CultureInfo.InvariantCulture) };
+
+    private static string ShortName(PersonFact p)
+    {
+        var parts = p.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length >= 2 ? parts[0] + " " + parts[^1] : p.Name;
+    }
+
+    /// <summary>"Mr. Elias Whitlock, retired", or "the infant child of Mrs. Halloran".</summary>
+    private string Who(PaperFacts f, PersonFact p) =>
+        p.Anonymous ? "a stranger" : p.Infant ? $"the infant child of {ShortName(p)}" : $"{p.Name}, {Occupation(p)}";
+
+    /// <summary>The month at a glance, printed under the dateline.</summary>
+    private static string Brief(PaperFacts f)
+    {
+        if (f.FirstEdition) return "";
+        var parts = new List<string>();
+        var sold = f.Sales.Sum(x => x.Bottles);
+        parts.Add(sold == 0 ? "nothing sold" : $"{sold} bottle{(sold == 1 ? "" : "s")} sold");
+        var delta = f.CashCents - f.CashStartCents;
+        parts.Add($"the books {(delta >= 0 ? "up" : "down")} {Money(Math.Abs(delta))}");
+        if (f.Deaths.Count > 0) parts.Add($"{f.Deaths.Count} dead");
+        if (f.Inquests.Count > 0) parts.Add($"{f.Inquests.Count} inquest{(f.Inquests.Count == 1 ? "" : "s")}");
+        if (f.Joined.Count > 0) parts.Add($"{f.Joined.Count} new customer{(f.Joined.Count == 1 ? "" : "s")}");
+        if (f.Left.Count > 0) parts.Add($"{f.Left.Count} gone");
+        return string.Join(" · ", parts);
+    }
+
     private string WriteMarkets(PaperFacts f, ProductFact? product)
     {
         var m = _copy.GetProperty("markets");
         var parts = new List<string> { S(m, "lead") };
-        if (product != null) parts.Add($"{product.Name}, steady at {Money(product.PriceCents)}.");
+        if (product != null) parts.Add($"{product.Name}, steady at {Money(product.PriceCents)}".TrimEnd('.') + ".");
         foreach (var (name, cost) in f.Markets.Take(4))
             parts.Add($"{name}, {Money(cost)} the ounce.");
         var coffins = m.GetProperty("coffinsBase").GetInt32() + f.Deaths.Count * m.GetProperty("coffinsPerDeath").GetInt32();
@@ -349,7 +445,7 @@ public sealed class EditionWriter
                 .Replace("{object}", p.Female ? "her" : "him")
                 .Replace("{possessive}", p.Female ? "her" : "his");
         }
-        s = s.Replace("{street}", Pick(f, "street" + (p?.Id ?? ""), _copy.GetProperty("streets")))
+        s = s.Replace("{street}", Home(f, p))
             .Replace("{weekday}", Pick(f, "day" + (p?.Id ?? ""), _copy.GetProperty("weekdays")))
             .Replace("{coroner}", Pick(f, "coroner", _copy.GetProperty("coroners")))
             .Replace("{cash}", Money(f.CashCents));
@@ -367,7 +463,7 @@ public sealed class EditionWriter
         }
         else
         {
-            c.Title = p.Name;
+            c.Title = p.Infant ? $"The Infant of {ShortName(p)}" : p.Name;
             var line = Cap(Occupation(p));
             if (!string.IsNullOrEmpty(p.Ailment)) line += $", who came to the shop for {p.Ailment.ToLowerInvariant()}";
             c.Lines.Add(line + ".");
@@ -460,6 +556,13 @@ public sealed class EditionWriter
             h *= 16777619u;
         }
         return h;
+    }
+
+    public static DateTime FirstSaturday(int year, int month)
+    {
+        var d = new DateTime(year, month, 1);
+        while (d.DayOfWeek != DayOfWeek.Saturday) d = d.AddDays(1);
+        return d;
     }
 
     /// <summary>The paper comes out on the last Saturday of the month.</summary>

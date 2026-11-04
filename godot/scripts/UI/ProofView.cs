@@ -19,6 +19,23 @@ public partial class ProofView : Control
 	private IGame _game = null!;
 	private string? _drawer;
 	public event Action? PressRequested;
+	/// <summary>Raised after every rebuild (an action changed the game), so the footer can follow.</summary>
+	public event Action? Changed;
+	private Button? _lever;
+
+	public void FocusLever() { if (_drawer == null && _lever != null && IsInstanceValid(_lever)) _lever.GrabFocus(); }
+
+	/// <summary>Closes an open tool slip; false if none was open.</summary>
+	public bool CloseDrawer()
+	{
+		if (_drawer == null) return false;
+		Sfx.Play("slip", -4f, 0.04f, 0.85f);
+		_drawer = null;
+		DropBench();
+		Rebuild();
+		FocusLever();
+		return true;
+	}
 
 	public ProofView()
 	{
@@ -98,9 +115,15 @@ public partial class ProofView : Control
 		bench.AddChild(LettersSlip(m));
 		bench.AddChild(WorksSlip(m));
 		bench.AddChild(new Control { SizeFlagsVertical = SizeFlags.ExpandFill });
-		bench.AddChild(Lever());
+		var warn = new List<string>();
+		if (m.Letters.Count > 0) warn.Add($"{m.Letters.Count} letter{(m.Letters.Count == 1 ? "" : "s")} unanswered: the usual reply will go out for you.");
+		var nothing = m.Formulas.Sum(f => f.Stock) == 0 && m.Brewing.Count == 0;
+		if (nothing) warn.Add("Nothing on the shelf and nothing on the still: the shop will sell nothing this month.");
+		foreach (var w in warn) bench.AddChild(Print.Label("☞ " + w, Print.FellIt, 14, color: Print.Paper));
+		bench.AddChild(Lever(nothing));
 
 		if (_drawer != null) leftStack.AddChild(Drawer(_drawer));
+		Changed?.Invoke();
 	}
 
 	// ---------- the proof page ----------
@@ -191,7 +214,11 @@ public partial class ProofView : Control
 		if (product == null)
 			v.AddChild(Print.Body("[i]Nothing to advertise. Enter a recipe in the formula book.[/i]", 13, centre: true));
 		else if (!m.CanAdvertise)
-			v.AddChild(Print.Body("[i]The Gazette will not take your money yet. Save a little, and get yourself a testimonial.[/i]", 13, centre: true));
+		{
+			var ads = m.NextUnlocks.FirstOrDefault(u => u.Name.Contains("Advertis"));
+			var how = ads.Name == null ? "" : $" ({ads.Progress:P0} of the way there)";
+			v.AddChild(Print.Body($"[i]The Gazette will not take your money yet: it wants $150 in savings and a printed testimonial{how}.[/i]", 13, centre: true));
+		}
 		else if (tier == 0)
 			v.AddChild(Print.Body("[i]Empty. Buy space from the type case and the ward will read your claims.[/i]", 13, centre: true));
 		else
@@ -262,13 +289,15 @@ public partial class ProofView : Control
 			var fig = AddFigure(strip, cut, x + 10, h, 1f, flip);
 			if (fig != null)
 			{
+				fig.MouseFilter = MouseFilterEnum.Pass;
+				fig.TooltipText = $"{r.Name}: {(r.Infant ? "for " : "")}{r.Ailment.ToLowerInvariant()}. A regular for {r.MonthsAsCustomer} month{(r.MonthsAsCustomer == 1 ? "" : "s")}; {Panacea.Game.SimGame.Describe(r)}.";
 				var phase = (StableHash(r.Id) % 100u) / 100f * 2f;
 				if (r.Looks == "gravely_ill") Anim.Sway(fig, 1.6f, 3.0f + phase * 0.5f);
 				else Anim.Breathe(fig, r.Looks == "poorly" ? 0.006f : 0.012f, 2.4f + phase * 0.4f, phase);
 				if (r.Withdrawal) Anim.Shake(fig);
 			}
 			var tag = Print.Slip(Tag(r), 5);
-			tag.Position = new Vector2(x, CounterTop + 6);
+			tag.Position = new Vector2(x, CounterTop + 2);
 			tag.CustomMinimumSize = new Vector2(slot - 10, 0);
 			strip.AddChild(tag);
 		}
@@ -327,11 +356,8 @@ public partial class ProofView : Control
 	{
 		var v = new VBoxContainer();
 		v.AddThemeConstantOverride("separation", -1);
-		var name = Print.Label(r.Name, Print.Rye, 12, wrap: false);
-		name.ClipText = true;
-		name.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
+		var name = Print.Label(r.Name, Print.Rye, 12);
 		name.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-		name.TooltipText = r.Name;
 		v.AddChild(name);
 		v.AddChild(Print.Label((r.Infant ? "for " : "") + r.Ailment.ToLowerInvariant(), Print.Fell, 12, wrap: false));
 		var status = new List<string>
@@ -395,7 +421,7 @@ public partial class ProofView : Control
 			sizes.AddChild(b);
 		}
 		v.AddChild(sizes);
-		if (!m.CanAdvertise) v.AddChild(Print.Body("[i]Not yet: the Gazette wants savings and a testimonial first.[/i]", 12, justify: false));
+		if (!m.CanAdvertise) v.AddChild(Print.Body("[i]Not yet: the Gazette wants $150 in savings and a printed testimonial first.[/i]", 12, justify: false));
 		if (_note != null) v.AddChild(Print.Body($"[b]Refused.[/b] [i]{Print.Escape(_note)}[/i]", 12, justify: false));
 		return Print.Slip(v, 10);
 	}
@@ -446,7 +472,9 @@ public partial class ProofView : Control
 		return Print.Slip(v, 10);
 	}
 
-	private Control Lever()
+	private bool _armed;
+
+	private Control Lever(bool nothingToSell)
 	{
 		var b = Print.Button("SEND TO PRESS ▸", 28, solid: true, sound: null);
 		b.CustomMinimumSize = new Vector2(0, 84);
@@ -454,7 +482,14 @@ public partial class ProofView : Control
 		b.AddThemeStyleboxOverride("normal", Print.Box(Print.Ink, Print.Paper, 3, 10));
 		b.AddThemeStyleboxOverride("hover", Print.Box(Print.Paper, Print.Paper, 3, 10));
 		b.AddThemeColorOverride("font_hover_color", Print.Ink);
-		b.Pressed += () => PressRequested?.Invoke();
+		b.Pressed += () =>
+		{
+			// sending an empty month asks once: press again to send anyway
+			if (nothingToSell && !_armed) { _armed = true; b.Text = "SEND IT ANYWAY ▸"; Sfx.Play("ticket", 0f, 0.02f, 0.7f); return; }
+			_armed = false;
+			PressRequested?.Invoke();
+		};
+		_lever = b;
 		return b;
 	}
 
@@ -462,7 +497,7 @@ public partial class ProofView : Control
 
 	private Control Drawer(string which)
 	{
-		var shade = new ColorRect { Color = new Color(0, 0, 0, 0.55f) };
+		var shade = new ColorRect { Color = new Color(0, 0, 0, 0.42f) };
 		shade.SetAnchorsPreset(LayoutPreset.FullRect);
 		var holder = new VBoxContainer();
 		holder.SetAnchorsPreset(LayoutPreset.FullRect);
@@ -480,7 +515,8 @@ public partial class ProofView : Control
 		var close = Print.Button("CLOSE ✕", 14, solid: true);
 		close.SizeFlagsHorizontal = SizeFlags.ShrinkEnd;
 		close.AddThemeStyleboxOverride("normal", Print.Box(Print.Ink, Print.Paper, 2, 6));
-		close.Pressed += () => { Sfx.Play("slip", -4f, 0.04f, 0.85f); _drawer = null; DropBench(); Rebuild(); };
+		close.Pressed += () => CloseDrawer();
+		close.TooltipText = "Close (Escape)";
 		holder.AddChild(close);
 		if (which == "formula")
 		{

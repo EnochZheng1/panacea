@@ -66,6 +66,7 @@ public partial class Main : Control
 		AddChild(_edition);
 		_desk = new ProofView { Visible = false, OffsetBottom = -FooterHeight };
 		_desk.PressRequested += GoToPress;
+		_desk.Changed += () => UpdateStatus(null);
 		AddChild(_desk);
 
 		var layer = new CanvasLayer { Layer = 5 };
@@ -91,6 +92,8 @@ public partial class Main : Control
 		_nav.CustomMinimumSize = new Vector2(230, 0);
 		_nav.Pressed += Navigate;
 		var sound = InvertedButton("SOUND: ON");
+		_sound = sound;
+		sound.CustomMinimumSize = new Vector2(118, 0);
 		sound.SizeFlagsVertical = SizeFlags.ShrinkCenter;
 		sound.AddThemeFontSizeOverride("font_size", 13);
 		sound.Pressed += () => { Sfx.SetEnabled(!Sfx.Enabled); sound.Text = Sfx.Enabled ? "SOUND: ON" : "SOUND: OFF"; };
@@ -138,6 +141,15 @@ public partial class Main : Control
 
 	private const int FooterHeight = 64;
 	private Label _status = null!;
+	private Button _sound = null!;
+
+	/// <summary>The keyboard starts on each screen's main action.</summary>
+	private void FocusMain()
+	{
+		if (_clipping != null) return;
+		if (_onDesk) _desk.FocusLever();
+		else _nav.GrabFocus();
+	}
 	private string _seed = "";
 	private int _restarts;
 
@@ -183,6 +195,8 @@ public partial class Main : Control
 	{
 		if (_game.Ended || _pressing) return;
 		_pressing = true;
+		_nav.Disabled = true;
+		_sound.Disabled = true;
 		var cashBefore = _game.Desk().CashCents;
 		Sfx.Play("lever", 0f, 0.02f);
 		Sfx.StopLoop("death", 0.3f);
@@ -205,7 +219,7 @@ public partial class Main : Control
 		{
 			var land = sheet.Position;
 			sheet.Position = land + new Vector2(-900, -140);
-			t.TweenProperty(sheet, "position", land, 0.22f).SetTrans(Tween.TransitionType.Quad).SetEase(Tween.EaseType.In);
+			t.TweenProperty(sheet, "position", land, 0.34f).SetTrans(Tween.TransitionType.Quad).SetEase(Tween.EaseType.In);
 			t.TweenCallback(Callable.From(() =>
 			{
 				Anim.Jolt(run, 8f);
@@ -213,7 +227,7 @@ public partial class Main : Control
 				count += target / sheets.Count;
 				copies.Text = $"{count:N0} COPIES";
 			}));
-			t.TweenInterval(0.1f);
+			t.TweenInterval(0.2f);
 		}
 		t.TweenCallback(Callable.From(() => copies.Text = $"{target:N0} COPIES"));
 		t.TweenInterval(0.25f);
@@ -241,12 +255,25 @@ public partial class Main : Control
 		if (_pressRun != null && IsInstanceValid(_pressRun)) _pressRun.QueueFree();
 		_pressRun = null;
 		_pressing = false;
+		_nav.Disabled = false;
+		_sound.Disabled = false;
+		FocusMain();
 	}
 
 	/// <summary>A click during the press run goes straight to the printed paper.</summary>
 	public override void _UnhandledInput(InputEvent e)
 	{
-		if (!_pressing || e is not InputEventMouseButton { Pressed: true }) return;
+		// Escape puts down whatever is in your hand: a cutting, then a tool slip
+		if (!_pressing && e.IsActionPressed("ui_cancel"))
+		{
+			if (_clipping != null) { CloseClipping(); GetViewport().SetInputAsHandled(); }
+			else if (_onDesk && _desk.CloseDrawer()) GetViewport().SetInputAsHandled();
+			return;
+		}
+		// during the press, any click or key skips to the printed edition (never past it)
+		var skip = e is InputEventMouseButton { Pressed: true } || e is InputEventKey { Pressed: true, Echo: false };
+		if (!_pressing || !skip) return;
+		GetViewport().SetInputAsHandled();
 		_pressTween?.Kill();
 		_desk.Position = Vector2.Zero;
 		_desk.Modulate = Colors.White;
@@ -270,6 +297,9 @@ public partial class Main : Control
 		run.AddChild(sub);
 		copies = Print.Label("0 COPIES", Print.Rye, 30, HorizontalAlignment.Center, Print.Paper);
 		copies.AnchorRight = 1; copies.OffsetTop = 160;
+		var skip = Print.Label("click, or press any key, to see the edition", Print.FellIt, 15, HorizontalAlignment.Center, new Color(Print.Paper, 0.75f));
+		skip.AnchorTop = skip.AnchorBottom = 1; skip.AnchorRight = 1; skip.OffsetTop = -40; skip.OffsetBottom = -14;
+		run.AddChild(skip);
 		sheets = new List<Control>();
 		var rng = new RandomNumberGenerator { Seed = (ulong)(e.DatelineCentre.GetHashCode() & 0x7fffffff) };
 		for (var i = 0; i < 5; i++)
@@ -330,6 +360,16 @@ public partial class Main : Control
 
 	private Control? _clipping;
 
+	private void CloseClipping()
+	{
+		if (_clipping == null) return;
+		Sfx.Play("slip", -4f, 0.04f, 0.85f);
+		_clipping.QueueFree();
+		_clipping = null;
+		((ShaderMaterial)_press.Material).SetShaderParameter("speck", _onDesk ? 0.0f : 0.16f);
+		FocusMain();
+	}
+
 	/// <summary>The cutting behind a paper item: laid over the edition; any click puts it down.</summary>
 	private void ShowClipping(Clipping c)
 	{
@@ -360,21 +400,12 @@ public partial class Main : Control
 		text.AddChild(Print.Rule(3, 1, 2));
 		foreach (var line in c.Lines) text.AddChild(Print.Body(Print.Escape(line), 17, justify: false));
 		text.AddChild(new Control { CustomMinimumSize = new Vector2(0, 8) });
-		text.AddChild(Print.Label("Click anywhere to put it down.", Print.FellIt, 13, color: Print.Faint));
+		text.AddChild(Print.Label("Click anywhere, or press Escape, to put it down.", Print.FellIt, 14, color: Print.Faint));
 		row.AddChild(text);
 		var card = Print.Slip(row, 20);
 		card.RotationDegrees = -1.2f;
 		centre.AddChild(card);
-		shade.GuiInput += e =>
-		{
-			if (e is InputEventMouseButton { Pressed: true })
-			{
-				Sfx.Play("slip", -4f, 0.04f, 0.85f);
-				shade.QueueFree();
-				_clipping = null;
-				((ShaderMaterial)_press.Material).SetShaderParameter("speck", _onDesk ? 0.0f : 0.16f);
-			}
-		};
+		shade.GuiInput += e => { if (e is InputEventMouseButton { Pressed: true }) CloseClipping(); };
 		AddChild(shade);
 		_clipping = shade;
 		Anim.Settle(card);
@@ -397,6 +428,7 @@ public partial class Main : Control
 			ct.TweenCallback(Callable.From(() => { if (to > from) Sfx.Play("till", -3f); else Sfx.Play("ticket", 0f, 0.02f, 0.55f); }));
 		}
 		var t = CreateTween();
+		_monthDelta = to - from;
 		t.TweenMethod(Callable.From<float>(v => UpdateStatus((long)Mathf.Round(v))), (float)from, (float)to, seconds)
 			.SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.Out);
 	}
@@ -430,19 +462,22 @@ public partial class Main : Control
 		}
 		_nav.Text = _onDesk ? "◂ LAST EDITION" : (_game.Ended ? "BEGIN AGAIN" : "TO THE PROOF ▸");
 		UpdateStatus(null);
+		if (!_pressing) Callable.From(FocusMain).CallDeferred();
 		var mat = (ShaderMaterial)_press.Material;
 		mat.SetShaderParameter("speck", _onDesk ? 0.0f : 0.16f);
 		mat.SetShaderParameter("wobble", _onDesk ? 0.25f : 0.55f);
 	}
 
 	/// <summary>The footer line; <paramref name="cash"/> overrides the figure while it counts.</summary>
+	private long? _monthDelta;
+
 	private void UpdateStatus(long? cash)
 	{
 		var d = _game.Desk();
 		var when = new System.DateTime(d.Year, d.Month, 1).ToString("MMMM yyyy", System.Globalization.CultureInfo.InvariantCulture);
 		_status.Text = _game.Ended
 			? "The business is closed. The paper has the last word."
-			: $"{when} · cash in hand {EditionWriter.Money(cash ?? d.CashCents)} · {d.Customers} regulars · {d.Letters.Count} letter{(d.Letters.Count == 1 ? "" : "s")} waiting";
+			: $"{when} · cash in hand {EditionWriter.Money(cash ?? d.CashCents)}{(_monthDelta is long dm && !_onDesk ? $" ({(dm >= 0 ? "+" : "−")}{EditionWriter.Money(Math.Abs(dm))} this month)" : "")} · {d.Customers} regulars · {d.Letters.Count} letter{(d.Letters.Count == 1 ? "" : "s")} waiting";
 	}
 }
 

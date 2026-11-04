@@ -23,9 +23,10 @@ public partial class EditionView : ScrollContainer
 
 	private static StyleBoxFlat Wash(bool on)
 	{
+		// a fine rule in the margin marks every item with a cutting behind it; it thickens under the hand
 		var st = new StyleBoxFlat { BgColor = on ? new Color(Print.Ink, 0.07f) : new Color(0, 0, 0, 0) };
-		st.BorderColor = Print.Ink;
-		st.BorderWidthLeft = on ? 3 : 0;
+		st.BorderColor = on ? Print.Ink : new Color(Print.Ink, 0.4f);
+		st.BorderWidthLeft = on ? 3 : 1;
 		st.ContentMarginLeft = 6; st.ContentMarginRight = 4; st.ContentMarginTop = 2; st.ContentMarginBottom = 2;
 		return st;
 	}
@@ -34,7 +35,10 @@ public partial class EditionView : ScrollContainer
 	private Control Clickable(Control inner, Clipping? clip)
 	{
 		if (clip == null) return inner;
-		var p = new PanelContainer { MouseFilter = MouseFilterEnum.Stop, MouseDefaultCursorShape = CursorShape.PointingHand, TooltipText = "Click to read the cutting." };
+		var p = new PanelContainer { MouseFilter = MouseFilterEnum.Stop, MouseDefaultCursorShape = CursorShape.PointingHand, FocusMode = FocusModeEnum.All };
+		// the item's own boxes (an advertisement's rules) must not swallow the click
+		void Through(Node n) { foreach (var k in n.GetChildren()) { if (k is Control kc && kc.MouseFilter == MouseFilterEnum.Stop) kc.MouseFilter = MouseFilterEnum.Pass; Through(k); } }
+		Through(inner);
 		p.AddThemeStyleboxOverride("panel", Wash(false));
 		p.AddChild(inner);
 		p.MouseEntered += () =>
@@ -43,11 +47,17 @@ public partial class EditionView : ScrollContainer
 			p.AddThemeStyleboxOverride("panel", Wash(true));
 			Sfx.Play("tick", -12f, 0.2f);
 		};
-		p.MouseExited += () => p.AddThemeStyleboxOverride("panel", Wash(false));
+		p.MouseExited += () => { if (!p.HasFocus()) p.AddThemeStyleboxOverride("panel", Wash(false)); };
+		p.FocusEntered += () => p.AddThemeStyleboxOverride("panel", Wash(true));
+		p.FocusExited += () => p.AddThemeStyleboxOverride("panel", Wash(false));
 		p.GuiInput += e =>
 		{
-			if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } && _reveal == null)
+			var open = e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } || e.IsActionPressed("ui_accept");
+			if (open && _reveal == null)
+			{
+				p.AcceptEvent();
 				ClippingRequested?.Invoke(clip);
+			}
 		};
 		return p;
 	}
@@ -144,6 +154,13 @@ public partial class EditionView : ScrollContainer
 		dateline.AddChild(Print.Label(e.DatelineRight, Print.Fell, 14, HorizontalAlignment.Right));
 		page.AddChild(dateline);
 		page.AddChild(Print.Rule(1.6f, 0));
+		if (!string.IsNullOrEmpty(e.Brief))
+		{
+			// the month at a glance, above the fold
+			var brief = Print.Body($"[center][b]THE MONTH IN BRIEF.[/b]  {Print.Escape(e.Brief)}.[/center]", 16, justify: false);
+			page.AddChild(Clickable(brief, e.BriefClip));
+			page.AddChild(Print.Rule(1.6f, 0));
+		}
 
 		// ---- three columns ----
 		var cols = new HBoxContainer();

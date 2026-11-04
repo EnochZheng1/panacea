@@ -15,6 +15,9 @@ public sealed class Edition
     public string DatelineLeft = "";
     public string DatelineCentre = "";
     public string DatelineRight = "";
+    /// <summary>The month at a glance (sold, books, dead, new and lost customers).</summary>
+    public string Brief = "";
+    public Clipping? BriefClip;
 
     public Story Lead = new();
     /// <summary>Left column (deaths, coroner, personals), right column (ads, notices).</summary>

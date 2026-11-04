@@ -2,7 +2,8 @@
 # Start the game for scripted playtesting, listening for driver commands on 127.0.0.1:PORT.
 # Usage: tools/drive_start.sh PORT [seed] [extra game args...]   (run from the godot/ folder)
 # Logs to /tmp/panacea-driver-PORT.log; the PID is in /tmp/panacea-driver-PORT.pid.
-# Stop with: kill $(cat /tmp/panacea-driver-PORT.pid)
+# Stop with: tools/drive_stop.sh PORT
+tools_dir="$(dirname "$0")"; "$tools_dir/drive_stop.sh" "$1" >/dev/null 2>&1
 PORT=$1; SEED=${2:-ward-7}; shift 2 || shift $#
 cd "$(dirname "$0")/.."
 LOG=/tmp/panacea-driver-$PORT.log

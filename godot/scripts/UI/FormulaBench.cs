@@ -47,7 +47,8 @@ public partial class FormulaBench : HBoxContainer
 		}
 		else
 		{
-			foreach (var (id, oz) in new[] { ("water", 4.0), ("grain_alcohol", 2.0), ("sugar_syrup", 1.0), ("peppermint_oil", 0.5) })
+			// a plain starting mixture with room left in the bottle for whatever you add
+			foreach (var (id, oz) in new[] { ("water", 3.0), ("grain_alcohol", 2.0), ("sugar_syrup", 1.0), ("peppermint_oil", 0.5) })
 			{ _recipe[id] = oz; _order.Add(id); }
 		}
 		_glass.Capacity = d.BottleCapacityOunces;
@@ -85,7 +86,12 @@ public partial class FormulaBench : HBoxContainer
 	private void BuildShelf(DeskModel d)
 	{
 		foreach (var c in _shelf.GetChildren()) { _shelf.RemoveChild(c); c.QueueFree(); }
-		foreach (var i in d.Ingredients) _shelf.AddChild(Jar(i));
+		foreach (var i in d.Ingredients)
+		{
+			var jar = Jar(i);
+			_shelf.AddChild(jar);
+			if (i.Id == _focusJar) Callable.From(() => { if (IsInstanceValid(jar)) jar.GrabFocus(); }).CallDeferred();
+		}
 	}
 
 	private static string JarCut(IngredientRow i) => i.DrugClass switch
@@ -99,7 +105,7 @@ public partial class FormulaBench : HBoxContainer
 	private Control Jar(IngredientRow i)
 	{
 		var inGlass = _recipe.GetValueOrDefault(i.Id);
-		var box = new PanelContainer { CustomMinimumSize = new Vector2(84, 108), MouseFilter = MouseFilterEnum.Stop, MouseDefaultCursorShape = CursorShape.PointingHand };
+		var box = new PanelContainer { CustomMinimumSize = new Vector2(84, 108), MouseFilter = MouseFilterEnum.Stop, MouseDefaultCursorShape = CursorShape.PointingHand, FocusMode = FocusModeEnum.All };
 		var on = inGlass > 0;
 		box.AddThemeStyleboxOverride("panel", Print.Box(on ? new Color(Print.Ink, 0.08f) : new Color(0, 0, 0, 0), Print.Ink, on ? 2 : 1, 4));
 		box.TooltipText = $"{i.Name}: {EditionWriter.Money(i.CostPerOunceCents)} the ounce, {i.OnHand:0.#} oz on hand.\n{i.Description}";
@@ -122,11 +128,22 @@ public partial class FormulaBench : HBoxContainer
 		box.AddChild(v);
 		Anim.LiftOnHover(box, 1.05f);
 		box.MouseEntered += () => Sfx.Play("tick", -14f, 0.15f);
+		box.TooltipText += "\nClick or Enter: pour ½ oz. Right-click or Backspace: take it back.";
+		box.FocusEntered += () => box.AddThemeStyleboxOverride("panel", Print.Box(new Color(Print.Ink, 0.08f), Print.Ink, 3, 4));
+		box.FocusExited += () => box.AddThemeStyleboxOverride("panel", Print.Box(on ? new Color(Print.Ink, 0.08f) : new Color(0, 0, 0, 0), Print.Ink, on ? 2 : 1, 4));
+		var id = i.Id;
 		box.GuiInput += e =>
 		{
-			if (e is not InputEventMouseButton { Pressed: true } mb) return;
-			if (mb.ButtonIndex == MouseButton.Left) Add(i.Id, 0.5);
-			else if (mb.ButtonIndex == MouseButton.Right) Add(i.Id, -0.5);
+			if (e is InputEventMouseButton { Pressed: true } mb)
+			{
+				if (mb.ButtonIndex == MouseButton.Left) Add(id, 0.5);
+				else if (mb.ButtonIndex == MouseButton.Right) Add(id, -0.5);
+			}
+			else if (e is InputEventKey { Pressed: true } k)
+			{
+				if (k.Keycode == Key.Backspace || (k.Keycode == Key.Enter && k.ShiftPressed)) { Add(id, -0.5); box.AcceptEvent(); }
+				else if (k.Keycode is Key.Enter or Key.KpEnter or Key.Space) { Add(id, 0.5); box.AcceptEvent(); }
+			}
 		};
 		return box;
 	}
@@ -144,8 +161,11 @@ public partial class FormulaBench : HBoxContainer
 		}
 	}
 
+	private string? _focusJar;
+
 	private void Add(string id, double oz)
 	{
+		_focusJar = GetViewport()?.GuiGetFocusOwner() is Control fc && _shelf.IsAncestorOf(fc) ? id : null;
 		var now = Math.Max(0, _recipe.GetValueOrDefault(id) + oz);
 		if (now == _recipe.GetValueOrDefault(id)) return;
 		_recipe[id] = now;
@@ -229,7 +249,7 @@ public partial class FormulaBench : HBoxContainer
 		_verdict.Text = p.Error != null ? $"[b]Not yet.[/b] [i]{Print.Escape(p.Error)}[/i]" : Verdict(p.Properties);
 
 		foreach (var c in _actions.GetChildren()) { _actions.RemoveChild(c); c.QueueFree(); }
-		var nameEdit = new LineEdit { Text = _name };
+		var nameEdit = new LineEdit { Text = _name, SelectAllOnFocus = true, PlaceholderText = "Name your remedy", TooltipText = "The name on the label and in the Gazette. Choose with care: it cannot be changed once entered." };
 		nameEdit.AddThemeFontOverride("font", Print.Fell);
 		nameEdit.AddThemeFontSizeOverride("font_size", 15);
 		nameEdit.AddThemeColorOverride("font_color", Print.Ink);
@@ -337,6 +357,9 @@ public partial class FormulaBench : HBoxContainer
 			row.AddThemeConstantOverride("separation", 6);
 			var track = new Control { CustomMinimumSize = new Vector2(Track, 9) };
 			track.AddChild(new ColorRect { Color = new Color(Print.Ink, 0.12f), Size = new Vector2(Track, 9) });
+			var frame = new Panel { Size = new Vector2(Track, 9), MouseFilter = MouseFilterEnum.Ignore };
+			frame.AddThemeStyleboxOverride("panel", Print.Box(new Color(0, 0, 0, 0), new Color(Print.Ink, 0.7f), 1, 0));
+			track.AddChild(frame);
 			track.AddChild(_bar);
 			row.AddChild(track);
 			_value = Print.Label("", Print.Fell, 12, wrap: false);

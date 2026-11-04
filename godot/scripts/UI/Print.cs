@@ -12,7 +12,7 @@ public static class Print
 	public static readonly Color Ink = new("141212");
 	public static readonly Color Paper = new("efece4");
 	public static readonly Color Table = new("0d0c0b");
-	public static readonly Color Faint = new("141212", 0.55f);
+	public static readonly Color Faint = new("141212", 0.78f);
 	public static readonly Color Green = new("23a862");
 
 	private static FontFile? _rye, _fell, _fellIt;
@@ -115,11 +115,13 @@ public static class Print
 		var fg = solid ? Paper : Ink;
 		var bg = solid ? Ink : Paper;
 		b.AddThemeColorOverride("font_color", fg);
-		b.AddThemeColorOverride("font_hover_color", bg);
+		// hover thickens the rule and washes the ticket; only pressing (and being set) inks it in,
+		// so a ticket under the hand never looks like one already chosen
+		b.AddThemeColorOverride("font_hover_color", fg);
 		b.AddThemeColorOverride("font_pressed_color", bg);
 		b.AddThemeColorOverride("font_hover_pressed_color", bg);
 		b.AddThemeColorOverride("font_focus_color", fg);
-		b.AddThemeColorOverride("font_disabled_color", new Color(fg, 0.35f));
+		b.AddThemeColorOverride("font_disabled_color", new Color(fg, 0.6f));
 		StyleBoxFlat Make(Color fill, Color border, int width)
 		{
 			var st = Box(fill, border, width, 6);
@@ -128,15 +130,15 @@ public static class Print
 			return st;
 		}
 		b.AddThemeStyleboxOverride("normal", Make(bg, Ink, 2));
-		b.AddThemeStyleboxOverride("hover", Make(fg, Ink, 2));
+		b.AddThemeStyleboxOverride("hover", Make(solid ? new Color("3a3434") : new Color("dcd8ce"), Ink, 3));
 		b.AddThemeStyleboxOverride("pressed", Make(fg, Ink, 3));
 		b.AddThemeStyleboxOverride("hover_pressed", Make(fg, Ink, 3));
-		b.AddThemeStyleboxOverride("disabled", Make(bg, new Color(Ink, 0.3f), 1));
+		b.AddThemeStyleboxOverride("disabled", Make(bg, new Color(Ink, 0.5f), 1));
 		Anim.LiftOnHover(b);
 		b.MouseEntered += () => { if (!b.Disabled) Sfx.Play("tick", -14f, 0.15f); };
 		if (sound != null) b.Pressed += () => Sfx.Play(sound);
-		var focus = Make(new Color(0, 0, 0, 0), Ink, 1);
-		focus.ExpandMarginLeft = focus.ExpandMarginRight = focus.ExpandMarginTop = focus.ExpandMarginBottom = 3;
+		var focus = Make(new Color(0, 0, 0, 0), Ink, 2);
+		focus.ExpandMarginLeft = focus.ExpandMarginRight = focus.ExpandMarginTop = focus.ExpandMarginBottom = 4;
 		b.AddThemeStyleboxOverride("focus", focus);
 		return b;
 	}

@@ -1,0 +1,117 @@
+# Panacea · round 1 · playtest by "Careful Newcomer"
+
+A player new to business sims who reads every tooltip, slip, letter, cutting and notice, and checks that what the game says matches what then happens.
+
+**Verdict:** The writing is sharp and the books are honest: every Ledger cutting I checked added up to the cent, month after month. Still, the page often says something different from what the game does. The lead story reads "ALL QUIET IN THE WARD" in the same month as a death or an inquest. The footer shows stale cash. The assay promises "they cannot stop" while customers stop or recover. The still's quantity buttons do nothing. A careful reader notices these quickly, and they wear away trust in the paper, which is supposed to be the board.
+
+**Setup:**
+- Build: frozen copy at commit `0ccdab7`, port 47012.
+- Game 1: seed `careful-1`, played by hand from January 1885 to the November 1885 edition (10 sends to press).
+- Game 2: seed `careful-2 --play 6 --dose 1.5`, a **jump-ahead** game. A scripted proprietor played Jan–Jun 1885; I took over at the July 1885 edition and played to the January 1886 edition (6 sends to press).
+- Time: about 50 minutes of active testing.
+- Tooling: only the provided `drive.py`, plus one-line Python filters over `read` and `targets` so I could quote text exactly. Screenshots are in `/tmp/claude-0/-home-user-panacea/5950a741-0a66-5ec4-aee9-4515d76a27d7/scratchpad/r1/careful-newcomer/`, and both driver logs are saved there.
+
+## Run log
+
+| Seed | Months played | What I tried | Result |
+|---|---|---|---|
+| careful-1 | Jan–Mar 1885 | Read the first edition and all 4 caller cuttings. Composed 1 oz laudanum "Mulberry Soothing Cordial" (water 3.5, alcohol 2, syrup 1, peppermint 0.5, laudanum 1). Claims "Soothes the Nerves" and "Banishes Rheumatism". Brewed 24; printed the grateful letter as a testimonial; raised the price to 70c. | Ads stayed locked ("wants savings and a testimonial"). Cash drifted down: $150.00 → $148.08 → $145.86. |
+| careful-1 | Apr–May 1885 | Skipped one brew, then cut the peppermint (cost 28c → 23c), brewed only 8, and added "Woman's Best Friend". | Cash reached $151.52 and the paper announced "IN THE TRADE.—NEWSPAPER ADVERTISING." |
+| careful-1 | May–Jun 1885 | Bought FRONT ($20) to test "The front page, as news". | Lead story became "SOOTHES THE NERVES! … MR. JAN KOWALSKI, OF BAXTER STREET, RESTORED". 25 bottles sold (sold out). Cash $138.50. |
+| careful-1 | Jun–Oct 1885 | ¼ COL, price 75c, 24 per batch (the steppers would not change it). In August I cut laudanum to 0.5 oz. In October I answered the Sanitary Inspector ("Let him look."). | Sold out every month. Widow Agnes Pruitt died (Aug edition). Two customers left and two "got better on their own". Cash $161.14 by November. |
+| careful-2 (jump-ahead, 1.5 oz) | Jul 1885 – Jan 1886 | Read the inherited inquest, ran down the stock, rebrewed 24 twice, and bought the $50 diploma. | No new deaths in 6 months. Two customers recovered and left. The second still unlocked. A "DOCTOR" notice appeared with no visible change. |
+
+**Timeline of key moments**
+- **Jan 1885 edition (No. 600):** "A NEW CONCERN … He Promises Much." Four "AMONG THE CALLERS" notices, but the proof's counter shows 5 customers tagged "new".
+- **Jan proof:** I bought ingredients and fired the still. The Works shows **$142.88**, but the footer still says **"cash in hand $150.00"** (`17-proof-ready.png`).
+- **Feb edition (No. 601):** dated "SATURDAY, JANUARY 31, 1885", the same date as No. 600, while the footer says "February 1885" (`20-feb.png`). The books show a **−$5.00 Rent** that nothing had mentioned before.
+- **Feb proof:** I printed the letter as a testimonial. The footer still says "1 letter waiting" (`25-letter-done.png`).
+- **May edition:** the newspaper-advertising unlock arrived at $151.52. The threshold turned out to be exactly the $150 I started with; I confirmed this in `unlocks.json` afterwards (see Disclosures).
+- **Jun edition:** FRONT ad set as news. It works as described and looks good (`43-jun.png`, `44-jun-mid.png`).
+- **Jul edition:** "GONE FROM THE SHOP … Simply stopped coming", for a customer on a remedy whose assay said "they cannot stop".
+- **Aug edition:** DEATHS: "PRUITT.—Widow Agnes Pruitt, retired, of Orchard street, aged 58 years, after a short and remarkably cheerful illness." The lead story is still **"ALL QUIET IN THE WARD / Nothing to Report."** (`57-aug.png`)
+- **careful-2, Jul edition:** CORONER'S COURT: "Mrs. Bridget Halloran 'Died of poisoning by a proprietary medicine.' … The papers have been sent to the District Attorney." The lead story is again **"ALL QUIET IN THE WARD"** (`80-j-jul.png`).
+- **careful-2, Jan 1886 edition:** after the $50 diploma: "IN THE TRADE.—"DOCTOR". A title for your name and your labels". The product had been "Dr. ——'s Celebrated Panacea" since day one.
+
+## Metrics
+
+**Cash and sales, careful-1** (edition month: footer cash · regulars · bottles sold · price):
+
+| Edition | Cash | Regulars | Sold | Price | Notes |
+|---|---|---|---|---|---|
+| Jan | $150.00 | 12 | 0 | – | start |
+| Feb | $148.08 | 13 | 17 | 60c | |
+| Mar | $145.86 | 13 | 13 | 70c | |
+| Apr | $148.56 | 13 | 11 | 70c | no brew |
+| May | $151.52 | 14 | 14 | 70c | ads unlock |
+| Jun | $138.50 | 16 | 25 (sold out) | 70c | FRONT, $20 |
+| Jul | $141.38 | 15 | 24 (sold out) | 75c | ¼ col; Halloran left |
+| Aug | $144.26 | 13 | 24 (sold out) | 75c | 1 death, 1 left |
+| Sep | $153.14 | 13 | 24 (sold out) | 75c | 0.5 oz laudanum |
+| Oct | $160.02 | 12 | 24 (sold out) | 75c | 1 recovered |
+| Nov | $161.14 | 11 | 16 (sold out) | 75c | 1 recovered |
+
+- **Books reconciliation:** I checked all 10 Ledger cuttings in careful-1 by hand (opening cash + sales − bottles − rent − ads − ingredients). **All 10 match the closing figure and the next edition's footer to the cent.**
+- **Proof footer vs The Works panel:** 3 of 3 checks were stale. Jan: $150.00 vs $142.88. Feb: "1 letter waiting" after the letter was answered. May: $151.52 vs $146.00.
+- **Months to unlock newspaper ads, playing carefully:** 4 (first possible in the May edition). The game never states the amount required.
+- **Assay wording vs outcomes:**
+  - 1 oz laudanum ("Habit: they cannot stop", "Customers will return to this bottle whether they like it or not"): 2 of 16 regulars quit and 2 recovered over 9 months.
+  - 1.5 oz ("Danger: fatal in a large dose", "Some of the customers will not be back to buy it again"): 0 deaths and 2 recoveries over the 6 months I played. The inherited inquest came from the scripted months.
+- **Lead story:** "ALL QUIET IN THE WARD" ran in 9 of 10 careful-1 editions, and in all 6 careful-2 editions I read, including both months with a death or an inquest. The only other lead was the paid FRONT notice.
+- **Still steppers:** 0 of 12 clicks on −12/−1/+1/+12 changed the count. The batch was always min(24, what the ingredients allow).
+- **Driver log:** no game exceptions in either game, only ALSA audio warnings.
+
+## Findings
+
+| # | Severity | What I saw | Where | How to reproduce | Suggested fix |
+|---|---|---|---|---|---|
+| 1 | Major | The still's **−12 / −1 / +1 / +12 buttons do nothing**. The label stays at "24 bottles (most you can: 40)". Firing then brews 24 (charged 72c of bottles = 24). A batch is therefore always min(24, what the ingredients allow), so I sold out 5 months running and could not brew more. | Proof → THE STILL (`56-still-plus1.png`) | Buy ingredients for 32+ bottles, open THE STILL, click +1 or +12, and read the label. | Make the buttons work. Clamp +12 to the maximum instead of ignoring it. Default to the maximum. |
+| 2 | Major | The lead story says **"ALL QUIET IN THE WARD / Nothing to Report. / COUGHS STEADY."** in the month of a death ("PRUITT.—Widow Agnes Pruitt … aged 58 years") and in the month of an inquest that sent papers "to the District Attorney". The proof promises: "Whatever happens in the ward, it will be printed here." | Edition lead (`57-aug.png`, `80-j-jul.png`) | careful-1: play to the Aug 1885 edition. careful-2 `--play 6 --dose 1.5`: the first edition shown. | When a death or inquest happens, it should take the lead. Keep "All quiet" for months when nothing happened. |
+| 3 | Major | The footer shows stale numbers while working on the proof: "cash in hand $150.00" after spending $7.12 (The Works shows $142.88), and "1 letter waiting" after the letter was answered. The footer stays stale through the press screen. | Footer on proof and press screens (`17-proof-ready.png`, `25-letter-done.png`, `19-press-a.png`) | Buy any supplies or answer a letter, then compare the footer with The Works. | Refresh the footer on every desk change. |
+| 4 | Major | The ad unlock asks for "savings" but never gives the amount: "Not yet: the Gazette wants savings and a testimonial first." / "Save a little, and get yourself a testimonial." The threshold is $150, exactly the starting cash, so the first brew puts you under it. Rent ($5 a month) eats the thin margin, and it took me 4 months to cross. After the testimonial was printed, nothing acknowledged it. | Type case, proof "YOUR SPACE" slip | New game: brew anything, print the February letter, and see the lock stay. | State the target ("$150 in hand and one printed testimonial: you have $142.88 and 1 testimonial"). Tick off the testimonial when it is printed. |
+| 5 | Major | The assay's wording is absolute but outcomes contradict it. At 1 oz the assay says "Habit: they cannot stop" and "Customers will return to this bottle whether they like it or not", yet Mrs. Bridget Halloran and Mrs. Lucia Pruitt are "GONE FROM THE SHOP … Simply stopped coming. Perhaps a rival's bottle; perhaps the price." At 1.5 oz, two regulars "got better on his own" or were "quite well again and will not be needing" it. In the month I had no stock, all regulars bought nothing and showed no withdrawal. | Formula book assay vs PERSONAL cuttings | careful-1 at 1 oz: Jul and Aug editions. careful-2: Oct and Dec 1885 editions. | Soften the wording ("most of them cannot stop"), or make heavy habit actually hold customers and show withdrawal when the shelf is empty. |
+| 6 | Minor | The masthead date lags the footer, and the first two editions share a date. No. 600 and No. 601 are both "SATURDAY, JANUARY 31, 1885", and No. 601 is read under a footer saying "February 1885". Every later edition carries the previous month's date. | Edition masthead (`01-first.png`, `20-feb.png`) | Press once and compare the masthead with the footer. | Date the first edition earlier (or call it an opening notice), or make the footer name the edition's month. |
+| 7 | Minor | The Works "talk" gauge disagrees with the books. After "Talk in the ward rose 6 · Deaths among customers", the panel still says "talk: none to speak of". The September books say "rose 2 · fell 1", yet the next month's talk was unchanged. | The Works vs Ledger cutting | careful-1: Aug and Sep 1885. | Show the net change and its real size, and use the same scale in both places. |
+| 8 | Minor | Claims draw talk without an ad. With no space bought (Feb–Apr), the books say "Talk in the ward rose 1 · Bold advertising claims", while the proof says "Buy space from the type case and the ward will read your claims." | Ledger cutting vs proof slip | Set claims, buy no space, then press. | Explain that the label's claims count in the shop, or don't charge talk for them without an ad. |
+| 9 | Minor | The "DOCTOR" unlock changes nothing visible. After "Send the fifty dollars": "IN THE TRADE.—"DOCTOR". A title for your name and your labels, earned or otherwise." But the first edition already says he "styles himself Dr. ——", and the default product is "Dr. ——'s Celebrated Panacea". | careful-2, Jan 1886 edition | Accept the diploma letter in Dec 1885. | Don't use "Dr." before the title is earned, or show what changed. |
+| 10 | Minor | Costs only appear after the fact. Rent of $5.00 a month first appears in the February books. The Works cash doesn't subtract ad space already committed ($146.00 shown with FRONT at $20 pending). | Proof / The Works | Any month. | Show "rent $5 and ad $20 due at press" on the proof. |
+| 11 | Minor | Unanswered letters disappear without any notice: "2 letters waiting" in Sep (careful-2), then "0 letters waiting" in Oct after I pressed without opening them. | Letters drawer | careful-2: press the Sep 1885 proof without opening the letters. | Warn before pressing with letters unread, or say what became of them. |
+| 12 | Minor | The game never says when stock ran out. I sold 24 of 24 for five months, and the Trade column only says "moved 24 bottles". A careful player can't tell how much demand went unmet. | THE TRADE / Ledger | careful-1: Jun–Nov 1885. | Add a line such as "The shelf was bare by the 20th; 6 callers turned away." |
+| 13 | Minor | Choices in letters show no visible result. "Let him look." (Sanitary Inspector) produced nothing in the next edition. The two buttons have no tooltip about consequences. | Letters drawer, Oct 1885 | careful-1: the Oct 1885 letter. | Print the outcome (a notice or cutting). |
+| 14 | Minor | My own advertisement in the edition shows the tooltip "Click to read the cutting." but clicking it opens nothing (tried twice). | Edition, right column, own ad | careful-1: Jun 1885 edition, click the Mulberry ad. | Open a cutting (spend, reach, claims) or remove the tooltip. |
+| 15 | Low | Number formatting typos: "Sales of Mulberry Soothing Cordial: 17 bottles, at 60c.." and the markets column "steady at 70c.." (double period) in every edition. Also "1 bottles on the shelf". | THE TRADE, THE MARKETS, The Works | Any edition with sales; leave 1 bottle in stock. | Don't add a period after "c."; pluralise correctly. |
+| 16 | Low | The markets column says "Mulberry Soothing Cordial, steady at 70c.." in the month I raised the price from 60c. | THE MARKETS, Mar 1885 | Change the price and press. | Say "advanced to 70c." when the price changes. |
+| 17 | Low | Opening quotation marks print as closing ones: "”I tried everything,” he informs our reporter, ”until…" and Coroner's Court "”Died of poisoning by a proprietary medicine.”" (the cutting itself uses proper “ ”). | FRONT notice, Coroner's Court | careful-1 Jun edition; careful-2 Jul edition. | Convert straight quotes to “ ” in the generated text. |
+| 18 | Low | Generated cutting text is awkward or repetitive: "Wife of a working man, who came to the shop for a teething infant." followed by "Looking for something for a teething infant."; "Retired, who came to the shop for neuralgia."; "found this customer to quote. Nobody asked them." (said of Mr. Jan Kowalski). | Customer cuttings | Open any customer cutting. | Vary the second line; handle "retired" and "widow" as status, not occupation; use the customer's pronoun. |
+| 19 | Low | Stock text repeats every month: "Our reporter walked the length of Mulberry street and found nothing worth printing" and the "A RESIDENT." cut appeared 9 times. "Mrs. Whittle's correspondence continues brisk, notwithstanding her funeral in March" appears in the February 28 edition, before March. | Lead story, rival ad | Any quiet months. | Rotate the quiet-month copy; make dated jokes match the edition date. |
+| 20 | Low | The FRONT notice headlines the first claim, "SOOTHES THE NERVES!", but quotes Mr. Kowalski, who "had for years endured rheumatism" (and had been a regular for 5 months). | Jun 1885 FRONT notice | Buy FRONT with several claims. | Quote a customer whose ailment matches the headline claim. |
+| 21 | Low | Halloran's death and her purchase don't match. She came "for a teething infant", but the inquest finds that she herself "Died of poisoning". Who drinks the bottle is unclear. | careful-2, Coroner's Court | careful-2 Jul 1885 edition. | If the infant is the patient, make the obituary the child's (with the mother named). |
+| 22 | Low | The January counter shows 5 customers tagged "new" (Widow Agnes Pruitt and Mr. Elias Whitlock included), but the paper's "AMONG THE CALLERS" listed 4. Customers hold green bottles before any remedy exists. | Proof, AT THE COUNTER | New game, open the proof. | Match the counter to the notices; empty hands until the first sale. |
+| 23 | Low | "A regular for N months" looks off by one between customers: Kowalski (new in Jan) is "5 months" in the June edition, Agnes Pruitt (new in Jan) is "6 months" in the August edition. | Cuttings | Compare the two cuttings. | Count one way (months bought, or months since joining) and say which. |
+| 24 | Low | Truncation: "Widow Agnes Pr…", "Mr. Elias Whitlo…", "Mrs. Bridget Hal…" at the counter, and the claim button "CURES CONSUMPTION, CHOLE… !!!". | Proof counter, type case | Any proof. | Allow two lines, or shrink the type. |
+| 25 | Low | Developer wording in the formula book: "Not yet. Formula volume 8.5 oz exceeds bottle capacity 8 oz." The glass already shows "IT OVERFLOWS" nicely. "STEEPING" has no explanation (it raised cost 28c → 29c and Kick 8.3 → 9.1). | Formula book | Overfill the glass; click STEEPING. | Use period wording; add a tooltip for steeping. |
+| 26 | Low | Supplies: you must buy water ("0c.") from "the wholesale druggist on Pearl street", although its jar says "From the pump in the yard". Dilute Sulphuric Acid is listed at "0c.". | Supplies | Open SUPPLIES. | Make water free and always on hand; check the acid's price. |
+| 27 | Low | The name field puts the cursor where you click and has no select-all. I had to backspace about 60 times to replace "Dr. ——'s Celebrated Panacea" (ctrl+a did nothing through the driver). | Formula book name field | Click the field and type. | Select all on first focus. |
+
+## What works
+
+- **The books are honest.** "The Month's Books" itemises every cent ("+$5.40 · Sales to regulars", "−72c. · Bottles, corks and labels", "−$5.00 · Rent") and matched the footer and the next edition every time. The closing line, "The silent partner keeps a second set of books. They are not shown.", is a great touch.
+- **The FRONT notice does what the type case promises** ("The front page, as news"). The proof previews "YOUR NOTICE, SET AS NEWS … The Gazette will find a satisfied customer to quote, and end the column with a very small Adv.", and the printed page does exactly that, ending with "—Adv." The quoted customer's cutting says "Nobody asked them."
+- **The ad-size previews on the proof grow sensibly:** ¼ col (name and claims), ½ col (+ price), full col (+ "The Wonder of the Age!" and the bottle cut). Prices are in the tooltips ("A quarter column: $3.00 a month"), and the space carries over month to month as "a month" implies.
+- **The assay vocabulary is evocative and graded:** "a warm wallop" → "knocks them flat"; "harmless" → "a risk to the frail" → "fatal in a large dose"; "none" → "they'll come back shaking" → "they cannot stop". The overflow state "IT OVERFLOWS" is clear.
+- **The satire lands:** "has got better on his own. The trade regards this as a breach of faith."; "after a short and remarkably cheerful illness."; "Coffins, pine, $4.00. Lilies, plentiful."; "Mild. The well recover, regrettably."
+- **Clear feedback on reformulating:** "Reformulated. The next batch will be the new recipe; the customers will not be told."
+- **No exceptions in either game's log.**
+
+## Disclosures
+
+- **Jump-ahead:** game 2 used `careful-2 --play 6 --dose 1.5`. The first six months, the inquest, and Mrs. Halloran's death were played by the scripted proprietor, not me.
+- **State reads:** I used `state` to confirm cash, heat, reputation and bottles sold. Heat 1.9 → 8.3 → 8.3 and reputation 18.1 → 16.1 after "Let him look." came from state reads; a player would not see them.
+- **Source reads:** I looked at `packages/content/data/unlocks.json` to confirm the $150 ad threshold, and at `godot/scripts/UI/DeskView.cs` to check that the still's steppers really don't work rather than my clicks missing. I edited nothing.
+- **Driver input:** I used `ctrl+a` once in the name field, and the driver may not support key combinations, so finding 27 may partly be a tool limitation.
+- **Missed letters:** in careful-2 I pressed in September without opening the 2 letters, so I can't say what they were (finding 11).
+- **Tooling note (not the game):** `kill $(cat /tmp/panacea-driver-PORT.pid)` killed only the `xvfb-run` wrapper. The Godot process kept port 47012, and the next `drive_start.sh` failed with "Address already in use". I had to kill the processes matching `--driver 47012`.
+
+## Score
+
+**6 / 10.** The writing, the woodcut paper and the honest ledger are strong. But a paper that says "Nothing to Report" over a death notice, stale footer numbers, broken still buttons and absolute assay words that outcomes contradict all undermine the game's central promise that the page tells you what happened.

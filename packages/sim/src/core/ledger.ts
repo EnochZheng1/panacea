@@ -68,6 +68,8 @@ export function openMonth(state: GameState, stockValueCents: number): MonthInPro
     sales: [],
     complaints: 0,
     turnedAwayByPrice: 0,
+    callers: {},
+    wholesale: { ordered: 0, delivered: 0, revenueCents: 0 },
   };
 }
 
@@ -92,6 +94,8 @@ export function closeMonth(state: GameState, stockValueCents: number): LedgerEnt
     customers: state.customers.length,
     complaints: m.complaints,
     turnedAwayByPrice: m.turnedAwayByPrice,
+    callers: m.callers,
+    wholesale: m.wholesale,
   };
 }
 

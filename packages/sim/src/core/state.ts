@@ -40,7 +40,25 @@ export type NewsItem =
   | { kind: 'bad_batch_caught'; formulaId: string; bottles: number }
   | { kind: 'stock_seized'; bottles: number }
   | { kind: 'ads_lapsed' }
-  | { kind: 'shutdown_warning'; monthsLeft: number };
+  | { kind: 'shutdown_warning'; monthsLeft: number }
+  /** An investment bought, run out (an almanac's year), lost (a contract cancelled), or a mishap. */
+  | { kind: 'investment'; id: string; change: InvestmentChange };
+
+export type InvestmentChange = 'bought' | 'lapsed' | 'lost' | 'mishap';
+
+/** What the druggists out of town ordered this month, what they got, and what they paid. */
+export interface WholesaleMonth {
+  ordered: number;
+  delivered: number;
+  revenueCents: number;
+}
+
+/** An investment the shop holds. */
+export interface InvestmentHolding {
+  boughtTurn: number;
+  /** It runs through the month before this one, then lapses; null if it is held for good. */
+  endsTurn: number | null;
+}
 
 export interface SaleRecord {
   formulaId: string;
@@ -66,6 +84,12 @@ export interface MonthInProgress {
    * bottle, for whom some bottle on the shelf appealed but every one cost more than they would pay.
    */
   turnedAwayByPrice: number;
+  /**
+   * Callers at the shop this month, by where they came from: `ward` (the neighbourhood, by
+   * reputation), `newspaper`, `subscriptions` (societies and the like), and each investment id.
+   */
+  callers: Record<string, number>;
+  wholesale: WholesaleMonth;
 }
 
 /** A closed month, as shown in the Ledger. */
@@ -93,6 +117,9 @@ export interface LedgerEntry {
   complaints: number;
   /** Callers who asked the price and left (see `MonthInProgress.turnedAwayByPrice`). */
   turnedAwayByPrice: number;
+  /** Callers by source (see `MonthInProgress.callers`). */
+  callers: Record<string, number>;
+  wholesale: WholesaleMonth;
 }
 
 export interface FormulaComponent {
@@ -231,6 +258,11 @@ export interface GameState {
     endReason: EndReason | null;
     /** Counter for generated ids (formulas, batches, customers, events…). */
     nextId: number;
+    /**
+     * Every given name and surname ("Elias Whitlock") a customer has had in this game, living,
+     * dead or gone, so that no two people share one.
+     */
+    usedNames: string[];
   };
   player: {
     cashCents: number;
@@ -241,6 +273,8 @@ export interface GameState {
     timedCapabilities: TimedCapability[];
     flags: Record<string, boolean>;
     monthsInsolvent: number;
+    /** Investment id → the holding, for investments the shop holds now. */
+    investments: Record<string, InvestmentHolding>;
   };
   lab: {
     /** Fluid ounces on hand, by ingredient id. */

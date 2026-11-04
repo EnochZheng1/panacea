@@ -14,6 +14,7 @@ import {
   stockOf,
   stockValue,
 } from '../systems/lab.ts';
+import { investRefusal, wholesaleOrder, wholesalePrice } from '../systems/investments.ts';
 import { availableChoices, nextUnlocks, type UnlockProgress } from '../systems/progression.ts';
 import { isRuined } from '../systems/market.ts';
 import { bribeCostCents, bribeExposureChance, INQUEST_EVENT_ID } from '../systems/scrutiny.ts';
@@ -64,6 +65,32 @@ export interface ObservedDeath {
   verdict: string | null;
 }
 
+/** An investment as the proprietor sees it: what it costs, what it does, and whether it is held. */
+export interface ObservedInvestment {
+  id: string;
+  costCents: number;
+  /** Paid every month-end while held. */
+  upkeepCents: number;
+  /** How long it runs once bought, or null for good. */
+  months: number | null;
+  held: boolean;
+  boughtTurn: number | null;
+  /** Held, with a term: month-ends left, this one included. */
+  monthsLeft: number | null;
+  canBuy: boolean;
+  /** Why it cannot be bought: "already held", "not yet offered" or "not enough cash". */
+  refusal: string | null;
+  walkInsPerMonth: number;
+  /** Heat a month per point of label boldness while held. */
+  heatPerBoldness: number;
+  /** Wholesale: bottles the druggists would order this month, at the shop's present name. */
+  wholesaleBottles: number | null;
+  /** Wholesale: what they would pay a bottle for the bottle the shop has most of. */
+  wholesalePriceCents: number | null;
+  /** Chance of an accident each month while held. */
+  mishapChance: number | null;
+}
+
 export interface Observation {
   turn: number;
   date: GameDate;
@@ -112,7 +139,47 @@ export interface Observation {
   }[];
   unlocked: string[];
   nextUnlocks: UnlockProgress[];
+  investments: ObservedInvestment[];
   lastMonth: LedgerEntry | null;
+}
+
+/** The formula druggists under contract would take: the one with most bottles on the shelf. */
+function wholesaleFormula(state: GameState) {
+  let best = state.lab.formulas[0];
+  let most = 0;
+  for (const f of state.lab.formulas) {
+    const n = stockOf(state, f.id);
+    if (n > most) {
+      best = f;
+      most = n;
+    }
+  }
+  return best;
+}
+
+export function observeInvestments(state: GameState, content: ContentPack): ObservedInvestment[] {
+  const formula = wholesaleFormula(state);
+  return content.investments.map((inv) => {
+    const holding = state.player.investments[inv.id];
+    const refusal = investRefusal(state, inv, content);
+    return {
+      id: inv.id,
+      costCents: inv.costCents,
+      upkeepCents: inv.upkeepCents,
+      months: inv.months ?? null,
+      held: holding !== undefined,
+      boughtTurn: holding?.boughtTurn ?? null,
+      monthsLeft: holding && holding.endsTurn !== null ? holding.endsTurn - state.meta.turn : null,
+      canBuy: refusal === null,
+      refusal,
+      walkInsPerMonth: inv.walkInsPerMonth,
+      heatPerBoldness: inv.heatPerBoldness,
+      wholesaleBottles: inv.wholesale ? wholesaleOrder(state, inv) : null,
+      wholesalePriceCents:
+        inv.wholesale && formula ? wholesalePrice(inv, formula.priceCents) : null,
+      mishapChance: inv.mishap?.chancePerMonth ?? null,
+    };
+  });
 }
 
 export function observe(state: GameState, content: ContentPack): Observation {
@@ -203,6 +270,7 @@ export function observe(state: GameState, content: ContentPack): Observation {
     }),
     unlocked: Object.keys(state.unlocks.unlocked),
     nextUnlocks: nextUnlocks(state, content),
+    investments: observeInvestments(state, content),
     lastMonth: state.ledger.at(-1) ?? null,
   };
 }
@@ -227,7 +295,8 @@ export type ActionSpec =
   | { type: 'SetClaims'; formulaId: string; claimIds: string[]; maxClaims: number }
   | { type: 'SetAdSpend' }
   | { type: 'BrewBatch'; formulaId: string; maxBottles: number }
-  | { type: 'ResolveEvent'; instanceId: string; choiceIds: string[] };
+  | { type: 'ResolveEvent'; instanceId: string; choiceIds: string[] }
+  | { type: 'Invest'; investmentIds: string[] };
 
 /** Every kind of move currently available, with parameter bounds. */
 export function legalActions(state: GameState, content: ContentPack): ActionSpec[] {
@@ -281,5 +350,9 @@ export function legalActions(state: GameState, content: ContentPack): ActionSpec
     if (choiceIds.length > 0)
       specs.push({ type: 'ResolveEvent', instanceId: p.instanceId, choiceIds });
   }
+  const investmentIds = content.investments
+    .filter((inv) => investRefusal(state, inv, content) === null)
+    .map((inv) => inv.id);
+  if (investmentIds.length > 0) specs.push({ type: 'Invest', investmentIds });
   return specs;
 }

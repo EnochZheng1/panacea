@@ -28,9 +28,14 @@ export interface BotSummary {
   /** 10th and 90th percentiles of final cash: the spread of outcomes. */
   p10FinalCashCents: number;
   p90FinalCashCents: number;
-  /** Median cash at the end of months 6 and 12 (a game that ended sooner counts its final cash). */
+  /**
+   * Median cash at the end of months 6, 12, 48 and 120 (a game that ended sooner counts its final
+   * cash): the early game, and whether the long game keeps growing.
+   */
   medianCashMonth6Cents: number;
   medianCashMonth12Cents: number;
+  medianCashMonth48Cents: number;
+  medianCashMonth120Cents: number;
   medianBottlesSold: number;
   medianPeakCustomers: number;
   medianDeaths: number;
@@ -44,6 +49,10 @@ export interface BotSummary {
   unlockReach: Record<string, number>;
   /** Unlock id → median month it was reached (among runs that reached it). */
   unlockMedianMonth: Record<string, number>;
+  /** Investment id → share of runs that bought it at least once. */
+  investmentReach: Record<string, number>;
+  /** Investment id → median month it was first bought (among runs that bought it). */
+  investmentMedianMonth: Record<string, number>;
   runsWithViolations: number;
   avgMsPerRun: number;
 }
@@ -124,6 +133,20 @@ export function summarise(botId: string, results: RunResult[], content: ContentP
       unlockMedianMonth[u.id] = median(reached.map((r) => r.unlocks[u.id] as number));
     }
   }
+  const investmentReach: Record<string, number> = {};
+  const investmentMedianMonth: Record<string, number> = {};
+  for (const inv of content.investments) {
+    const firstBought = results
+      .map((r) =>
+        r.finalState.log.find(
+          (e) => 'action' in e && e.action.type === 'Invest' && e.action.investmentId === inv.id,
+        ),
+      )
+      .filter((e) => e !== undefined)
+      .map((e) => e.turn);
+    investmentReach[inv.id] = firstBought.length / results.length;
+    if (firstBought.length > 0) investmentMedianMonth[inv.id] = median(firstBought);
+  }
   const pick = (f: (r: RunResult) => number) => results.map(f);
   return {
     botId,
@@ -145,6 +168,8 @@ export function summarise(botId: string, results: RunResult[], content: ContentP
     ),
     medianCashMonth6Cents: median(pick((r) => cashAtMonth(r, 6))),
     medianCashMonth12Cents: median(pick((r) => cashAtMonth(r, 12))),
+    medianCashMonth48Cents: median(pick((r) => cashAtMonth(r, 48))),
+    medianCashMonth120Cents: median(pick((r) => cashAtMonth(r, 120))),
     medianBottlesSold: median(pick((r) => r.bottlesSold)),
     medianPeakCustomers: median(pick((r) => r.peakCustomers)),
     medianDeaths: median(pick((r) => r.deaths)),
@@ -156,6 +181,8 @@ export function summarise(botId: string, results: RunResult[], content: ContentP
     medianPeakHeat: median(pick((r) => r.peakHeat)),
     unlockReach,
     unlockMedianMonth,
+    investmentReach,
+    investmentMedianMonth,
     runsWithViolations: results.filter((r) => r.violations.length > 0).length,
     avgMsPerRun: mean(pick((r) => r.ms)),
   };
@@ -194,6 +221,8 @@ export function formatReport(report: BatchReport): string {
     'p90 final cash',
     'Cash m6 (median)',
     'Cash m12 (median)',
+    'Cash m48 (median)',
+    'Cash m120 (median)',
     'Median bottles sold',
     'Median peak customers',
     'ms/run',
@@ -210,6 +239,8 @@ export function formatReport(report: BatchReport): string {
       dollars(s.p90FinalCashCents),
       dollars(s.medianCashMonth6Cents),
       dollars(s.medianCashMonth12Cents),
+      dollars(s.medianCashMonth48Cents),
+      dollars(s.medianCashMonth120Cents),
       s.medianBottlesSold,
       s.medianPeakCustomers,
       s.avgMsPerRun.toFixed(0),
@@ -250,6 +281,19 @@ export function formatReport(report: BatchReport): string {
       ...report.summaries.map((s) => {
         const reach = s.unlockReach[id] ?? 0;
         return reach === 0 ? '—' : `${pct(reach)} · m${s.unlockMedianMonth[id]}`;
+      }),
+    ]);
+  }
+  lines.push('');
+  lines.push('## Investments bought (share of runs · median month first bought)');
+  lines.push('');
+  header(['Investment', ...report.summaries.map((s) => s.botId)]);
+  for (const id of Object.keys(report.summaries[0]?.investmentReach ?? {})) {
+    row([
+      id,
+      ...report.summaries.map((s) => {
+        const reach = s.investmentReach[id] ?? 0;
+        return reach === 0 ? '—' : `${pct(reach)} · m${s.investmentMedianMonth[id]}`;
       }),
     ]);
   }

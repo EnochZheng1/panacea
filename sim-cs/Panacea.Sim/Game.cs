@@ -19,6 +19,7 @@ public static class Game
         Market.SalesPhase,
         BodySystem.BodyPhase,
         Market.ExpensesPhase,
+        Investments.InvestmentsPhase,
         Progression.TimelinePhase,
         Progression.UnlocksPhase,
         Progression.TimersPhase,
@@ -60,7 +61,7 @@ public static class Game
             },
             Lab = new LabState(),
             Marketing = new MarketingState { AdSpendCents = 0 },
-            Customers = CustomersSystem.InitialCustomers(content),
+            Customers = new List<Customer>(),
             Deaths = new List<DeathRecord>(),
             Scrutiny = new ScrutinyState(),
             Stats = new StatsState(),
@@ -77,6 +78,7 @@ public static class Game
         };
 
         var rng = new Rng(state.Meta.Rng);
+        state.Customers = CustomersSystem.InitialCustomers(state, content, rng);
         Progression.DrawEvents(state, content, rng);
         state.Meta.Rng = rng.State();
         return state;
@@ -132,6 +134,9 @@ public static class Game
                 result = error is not null ? ActionResult.Fail(error) : ActionResult.Success;
                 break;
             }
+            case Invest a:
+                result = Investments.Invest(state, a, content);
+                break;
             default:
                 result = ActionResult.Fail($"unknown action type \"{action?.Type}\"");
                 break;

@@ -48,6 +48,23 @@ public sealed record ObservedPendingEvent(
     long? BribeCostCents,
     double? BribeExposureChance); // inquests: the chance a bribe paid now would come out
 
+/// <summary>An investment as the proprietor sees it (api/machine.ts ObservedInvestment).</summary>
+public sealed record ObservedInvestment(
+    string Id,
+    long CostCents,
+    long UpkeepCents, // paid every month-end while held
+    int? Months, // how long it runs once bought, or null for good
+    bool Held,
+    int? BoughtTurn,
+    int? MonthsLeft, // held, with a term: month-ends left, this one included
+    bool CanBuy,
+    string? Refusal, // "already held", "not yet offered" or "not enough cash"
+    int WalkInsPerMonth,
+    double HeatPerBoldness, // heat a month per point of label boldness while held
+    int? WholesaleBottles, // wholesale: bottles ordered this month at the shop's present name
+    int? WholesalePriceCents, // wholesale: paid a bottle for the bottle the shop has most of
+    double? MishapChance); // chance of an accident each month while held
+
 /// <summary>What a player could know (api/machine.ts Observation).</summary>
 public sealed class Observation
 {
@@ -81,6 +98,7 @@ public sealed class Observation
     public required IReadOnlyList<ObservedPendingEvent> PendingEvents { get; init; }
     public required IReadOnlyList<string> Unlocked { get; init; }
     public required IReadOnlyList<UnlockProgress> NextUnlocks { get; init; }
+    public required IReadOnlyList<ObservedInvestment> Investments { get; init; }
     public LedgerEntry? LastMonth { get; init; }
 }
 
@@ -136,6 +154,11 @@ public sealed record BrewBatchSpec(string FormulaId, int MaxBottles) : ActionSpe
 public sealed record ResolveEventSpec(string InstanceId, IReadOnlyList<string> ChoiceIds) : ActionSpec
 {
     public override string Type => "ResolveEvent";
+}
+
+public sealed record InvestSpec(IReadOnlyList<string> InvestmentIds) : ActionSpec
+{
+    public override string Type => "Invest";
 }
 
 /// <summary>
@@ -215,8 +238,51 @@ public static class Machine
             }).ToList(),
             Unlocked = state.Unlocks.Unlocked.Keys.ToList(),
             NextUnlocks = Progression.NextUnlocks(state, content),
+            Investments = ObserveInvestments(state, content),
             LastMonth = state.Ledger.Count > 0 ? state.Ledger[^1] : null,
         };
+    }
+
+    /// <summary>The formula druggists under contract would take: the one with most bottles on the shelf.</summary>
+    private static Formula? WholesaleFormula(GameState state)
+    {
+        Formula? best = state.Lab.Formulas.Count > 0 ? state.Lab.Formulas[0] : null;
+        int most = 0;
+        foreach (var f in state.Lab.Formulas)
+        {
+            int n = Lab.StockOf(state, f.Id);
+            if (n > most)
+            {
+                best = f;
+                most = n;
+            }
+        }
+        return best;
+    }
+
+    public static List<ObservedInvestment> ObserveInvestments(GameState state, ContentPack content)
+    {
+        var formula = WholesaleFormula(state);
+        return content.Investments.Select(inv =>
+        {
+            state.Player.Investments.TryGetValue(inv.Id, out var holding);
+            string? refusal = Sim.Investments.InvestRefusal(state, inv, content);
+            return new ObservedInvestment(
+                inv.Id,
+                inv.CostCents,
+                inv.UpkeepCents,
+                inv.Months,
+                holding is not null,
+                holding?.BoughtTurn,
+                holding?.EndsTurn is int ends ? ends - state.Meta.Turn : null,
+                refusal is null,
+                refusal,
+                inv.WalkInsPerMonth,
+                inv.HeatPerBoldness,
+                inv.Wholesale is not null ? Sim.Investments.WholesaleOrder(state, inv) : null,
+                inv.Wholesale is not null && formula is not null ? Sim.Investments.WholesalePrice(inv, formula.PriceCents) : null,
+                inv.Mishap?.ChancePerMonth);
+        }).ToList();
     }
 
     /// <summary>Every kind of move currently available, with parameter bounds.</summary>
@@ -253,6 +319,11 @@ public static class Machine
             var choiceIds = Progression.AvailableChoices(state, content, p).Select(c => c.Id).ToList();
             if (choiceIds.Count > 0) specs.Add(new ResolveEventSpec(p.InstanceId, choiceIds));
         }
+        var investmentIds = content.Investments
+            .Where(inv => Sim.Investments.InvestRefusal(state, inv, content) is null)
+            .Select(inv => inv.Id)
+            .ToList();
+        if (investmentIds.Count > 0) specs.Add(new InvestSpec(investmentIds));
         return specs;
     }
 }

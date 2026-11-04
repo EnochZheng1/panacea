@@ -4,8 +4,15 @@ import { adjust } from '../core/ledger.ts';
 import type { Bought, Customer, Formula, GameState, Phase, TurnContext } from '../core/index.ts';
 import { pickAilment, pickSegment, customerCapacity, generateCustomer } from './customers.ts';
 import { analyzeFormula, claimAppeal, claimBoldness, type FormulaAnalysis } from './formula.ts';
+import {
+  heldInvestments,
+  investmentWalkIns,
+  wholesaleOrder,
+  wholesalePrice,
+} from './investments.ts';
 import { stockOf, takeBottle } from './lab.ts';
-import { appeal, reliefScore, zeroTolerance } from './pharmacology.ts';
+import { acuteDanger, appeal, overdoseChance, reliefScore, zeroTolerance } from './pharmacology.ts';
+import { recordDeath } from './scrutiny.ts';
 
 /**
  * The shop's market (M1: one neighbourhood).
@@ -152,6 +159,16 @@ export const advertisingPhase: Phase = {
     const labelBoldness = Math.max(0, ...onSale.map((f) => claimBoldness(f.claims, content)));
     if (labelBoldness > 0)
       adjust(state, 'heat', labelBoldness * labelHeatPerBoldness, CAUSES.claims);
+    // An almanac prints every claim in the formula book, for a year, on every kitchen table.
+    const printedBoldness = Math.max(
+      0,
+      ...state.lab.formulas.map((f) => claimBoldness(f.claims, content)),
+    );
+    for (const inv of heldInvestments(state, content)) {
+      if (inv.heatPerBoldness > 0 && printedBoldness > 0) {
+        adjust(state, 'heat', printedBoldness * inv.heatPerBoldness, CAUSES.claims, inv.id);
+      }
+    }
 
     const spend = state.marketing.adSpendCents;
     if (spend <= 0) return;
@@ -267,6 +284,8 @@ export const salesPhase: Phase = {
     walkIns(ctx, offers, sell);
 
     for (const r of revenue.values()) adjust(state, 'cash', r.cents, r.cause, r.formulaId);
+
+    wholesale(ctx);
   },
 };
 
@@ -278,10 +297,12 @@ function walkIns(
   if (offers.length === 0) return;
   const { base, perReputation, conversionChance } = content.config.walkIns;
   const caps = state.player.capabilities;
-  const visitors =
-    rng.int(0, base + Math.floor(state.player.reputation * perReputation)) +
-    scratch.adVisitors +
-    Math.max(0, caps['walk_in_bonus'] ?? 0);
+  const callers = state.month.callers;
+  callers['ward'] = rng.int(0, base + Math.floor(state.player.reputation * perReputation));
+  callers['newspaper'] = scratch.adVisitors;
+  callers['subscriptions'] = Math.max(0, caps['walk_in_bonus'] ?? 0);
+  for (const [id, n] of investmentWalkIns(state, content)) callers[id] = n;
+  const visitors = Object.values(callers).reduce((a, b) => a + b, 0);
   // A rival's sale: a share of the callers whose bottle costs more than his go to him instead.
   const rivalShare = Math.min(100, caps['rival_share_pct'] ?? 0) / 100;
   const rivalPrice = caps['rival_price_cents'] ?? 0;
@@ -336,6 +357,77 @@ function walkIns(
     } else {
       scratch.walkIns.push({ segmentId: segment.id, ailmentId, bought });
     }
+  }
+}
+
+/**
+ * Druggists out of town under contract take their order from the shelf at month's end, at the
+ * wholesale price, of the bottle the shop has most of. They sell to strangers with no tolerance:
+ * a strong enough bottle kills some of them, and the talk comes home.
+ */
+function wholesale({ state, content, rng }: TurnContext): void {
+  for (const inv of heldInvestments(state, content)) {
+    if (!inv.wholesale) continue;
+    const ordered = wholesaleOrder(state, inv);
+    state.month.wholesale.ordered += ordered;
+    let formula: Formula | undefined;
+    let most = 0;
+    for (const f of state.lab.formulas) {
+      const n = stockOf(state, f.id);
+      if (n > most) {
+        formula = f;
+        most = n;
+      }
+    }
+    if (!formula || ordered <= 0) continue;
+    const price = wholesalePrice(inv, formula.priceCents);
+    const strangerHealth = inv.wholesale.strangerHealth;
+    const risk = new Map<string, { p: number; detectability: number }>();
+    let revenue = 0;
+    for (let i = 0; i < ordered; i++) {
+      const lot = takeBottle(state, formula.id);
+      if (!lot) break;
+      state.month.wholesale.delivered += 1;
+      state.stats.bottlesSold += 1;
+      state.stats.revenueCents += price;
+      revenue += price;
+      const sale = state.month.sales.find((s) => s.formulaId === formula.id);
+      if (sale) {
+        sale.bottles += 1;
+        sale.revenueCents += price;
+      } else {
+        state.month.sales.push({ formulaId: formula.id, bottles: 1, revenueCents: price });
+      }
+      // A stranger in Paterson, of ordinary health, with no tolerance.
+      let r = risk.get(lot.id);
+      if (!r) {
+        const a = analyzeFormula(lot.components, lot.processId, content);
+        const dose = { potency: lot.potency, doseScale: 1, vulnerability: 1 };
+        const danger = acuteDanger(a, zeroTolerance(), dose, content);
+        r = {
+          p: overdoseChance(danger, strangerHealth),
+          detectability: a.properties.detectability,
+        };
+        risk.set(lot.id, r);
+      }
+      if (r.p > 0 && rng.chance(r.p)) {
+        const segment = pickSegment(content, rng);
+        recordDeath(state, content, rng, {
+          customerId: null,
+          name: '',
+          segment: segment.id,
+          consumer: 'self',
+          anonymous: true,
+          cause: 'overdose',
+          productImplicated: true,
+          formulaId: null,
+          badBatch: lot.badBatch,
+          detectability: r.detectability,
+        });
+      }
+    }
+    state.month.wholesale.revenueCents += revenue;
+    if (revenue > 0) adjust(state, 'cash', revenue, CAUSES.salesWholesale, inv.id);
   }
 }
 

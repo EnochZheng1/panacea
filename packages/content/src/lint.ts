@@ -31,6 +31,7 @@ export function lintContent(pack: ContentPack): ContentIssue[] {
     timeline: pack.timeline,
     regulars: pack.regulars,
     backgrounds: pack.backgrounds,
+    investments: pack.investments,
   } as const;
   for (const [file, items] of Object.entries(collections)) {
     const seen = new Set<string>();
@@ -63,6 +64,9 @@ export function lintContent(pack: ContentPack): ContentIssue[] {
       requireStrings('events', `${i}.choices.${j}`, stringKeys.eventChoice(ev.id, c.id)),
     );
   });
+  pack.investments.forEach((x, i) =>
+    requireStrings('investments', `${i}`, stringKeys.investment(x.id)),
+  );
   pack.segments.forEach((x, i) => requireStrings('segments', `${i}`, stringKeys.segment(x.id)));
   pack.ailments.forEach((x, i) => requireStrings('ailments', `${i}`, stringKeys.ailment(x.id)));
   pack.claims.forEach((x, i) => requireStrings('claims', `${i}`, stringKeys.claim(x.id)));
@@ -150,6 +154,7 @@ export function lintContent(pack: ContentPack): ContentIssue[] {
   pack.unlocks.forEach((u) => collectFlags(u.effects));
   pack.events.forEach((ev) => ev.choices.forEach((c) => collectFlags(c.effects)));
   pack.timeline.forEach((t) => collectFlags(t.effects));
+  pack.investments.forEach((x) => collectFlags(x.effects));
   pack.backgrounds.forEach((b) => b.flags.forEach((f) => producedFlags.add(f)));
 
   const checkRequirement = (file: string, path: string, req: Requirement) =>
@@ -166,6 +171,19 @@ export function lintContent(pack: ContentPack): ContentIssue[] {
     if (ev.condition) checkRequirement('events', `${i}.condition`, ev.condition);
     ev.choices.forEach((c, j) => {
       if (c.requires) checkRequirement('events', `${i}.choices.${j}.requires`, c.requires);
+    });
+  });
+
+  pack.investments.forEach((x, i) => {
+    if (x.requires) checkRequirement('investments', `${i}.requires`, x.requires);
+    if (x.lostWhen) checkRequirement('investments', `${i}.lostWhen`, x.lostWhen);
+    x.effects.forEach((e, j) => {
+      if (e.type === 'capability' && e.months !== undefined) {
+        error('investments', `${i}.effects.${j}`, 'investment capabilities last while it is held');
+      }
+      if (e.type === 'inquest' || e.type === 'seizeStock') {
+        error('investments', `${i}.effects.${j}`, `"${e.type}" is not an investment effect`);
+      }
     });
   });
 

@@ -25,7 +25,9 @@ export type Action =
   | { type: 'SetClaims'; formulaId: string; claims: string[] }
   | { type: 'SetAdSpend'; cents: number }
   | { type: 'BrewBatch'; formulaId: string; bottles: number }
-  | { type: 'ResolveEvent'; instanceId: string; choiceId: string };
+  | { type: 'ResolveEvent'; instanceId: string; choiceId: string }
+  /** Buy an investment (a branch, an almanac, a contract, a laboratory). */
+  | { type: 'Invest'; investmentId: string };
 
 export type ActionType = Action['type'];
 

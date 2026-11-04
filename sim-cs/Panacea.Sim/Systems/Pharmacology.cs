@@ -82,16 +82,42 @@ public static class Pharmacology
 /// <summary>The shop's regulars (systems/customers.ts).</summary>
 public static class CustomersSystem
 {
-    /// <summary>Builds the shop's starting regulars from content.</summary>
-    public static List<Customer> InitialCustomers(ContentPack content) =>
+    /// <summary>Tries before a name drawn for a new customer may repeat one (a pool all but used up).</summary>
+    private const int NameTries = 40;
+
+    /// <summary>
+    /// Draws a given name and a surname nobody in this game has had yet, living, dead or gone, and
+    /// records it as used. Returns "Given Surname".
+    /// </summary>
+    private static string DrawName(GameState state, ContentPack content, Rng rng, bool female)
+    {
+        var used = state.Meta.UsedNames;
+        string name = "";
+        for (int i = 0; i < NameTries; i++)
+        {
+            string given = rng.Pick(female ? content.Names.Female : content.Names.Male);
+            name = $"{given} {rng.Pick(content.Names.Surnames)}";
+            if (!used.Contains(name)) break;
+        }
+        used.Add(name);
+        return name;
+    }
+
+    /// <summary>
+    /// Builds the shop's starting regulars from content. Each keeps the content's form of address
+    /// ("Mrs.", "Widow"), but the name is drawn for this game, so every seed opens with a new cast.
+    /// </summary>
+    public static List<Customer> InitialCustomers(GameState state, ContentPack content, Rng rng) =>
         content.Regulars.Select(r =>
         {
             content.ById.Segments.TryGetValue(r.Segment, out var seg);
             content.ById.Ailments.TryGetValue(r.Ailment, out var ailment);
+            string title = r.DisplayName.Split(' ')[0];
+            string name = $"{title} {DrawName(state, content, rng, title != "Mr.")}";
             return new Customer
             {
                 Id = r.Id,
-                Name = r.DisplayName,
+                Name = name,
                 Segment = r.Segment,
                 Ailment = r.Ailment,
                 Consumer = ailment?.Consumer ?? Consumers.Self,
@@ -124,7 +150,6 @@ public static class CustomersSystem
     public static Customer GenerateCustomer(GameState state, ContentPack content, Rng rng, Segment segment, string ailmentId)
     {
         bool female = segment.Gender == "female" || (segment.Gender == "any" && rng.Chance(0.5));
-        string given = rng.Pick(female ? content.Names.Female : content.Names.Male);
         IReadOnlyList<string> titles = segment.Titles;
         if (segment.Gender == "any")
         {
@@ -132,8 +157,7 @@ public static class CustomersSystem
             if (gendered.Count > 0) titles = gendered;
         }
         string title = rng.Pick(titles);
-        string surname = rng.Pick(content.Names.Surnames);
-        string name = $"{title} {given} {surname}";
+        string name = $"{title} {DrawName(state, content, rng, female)}";
         content.ById.Ailments.TryGetValue(ailmentId, out var ailment);
         var resolves = ailment?.ResolvesAfterMonths;
         string id = $"cust_{state.Meta.NextId++}";

@@ -8,6 +8,7 @@ import {
   ConfigSchema,
   GameEventSchema,
   IngredientSchema,
+  InvestmentSchema,
   ProcessSchema,
   RegularSchema,
   TimelineEntrySchema,
@@ -20,6 +21,7 @@ import {
   type Config,
   type GameEvent,
   type Ingredient,
+  type Investment,
   type Process,
   type Regular,
   type TimelineEntry,
@@ -36,6 +38,7 @@ export interface RawContent {
   timeline: unknown;
   regulars: unknown;
   backgrounds: unknown;
+  investments: unknown;
   segments: unknown;
   ailments: unknown;
   claims: unknown;
@@ -53,6 +56,7 @@ export interface ContentPack {
   timeline: readonly TimelineEntry[];
   regulars: readonly Regular[];
   backgrounds: readonly Background[];
+  investments: readonly Investment[];
   segments: readonly Segment[];
   ailments: readonly Ailment[];
   claims: readonly Claim[];
@@ -65,6 +69,7 @@ export interface ContentPack {
     unlocks: ReadonlyMap<string, Unlock>;
     events: ReadonlyMap<string, GameEvent>;
     backgrounds: ReadonlyMap<string, Background>;
+    investments: ReadonlyMap<string, Investment>;
     segments: ReadonlyMap<string, Segment>;
     ailments: ReadonlyMap<string, Ailment>;
     claims: ReadonlyMap<string, Claim>;
@@ -87,6 +92,7 @@ const RawSchemas = {
   timeline: z.array(TimelineEntrySchema),
   regulars: z.array(RegularSchema),
   backgrounds: z.array(BackgroundSchema),
+  investments: z.array(InvestmentSchema),
   segments: z.array(SegmentSchema),
   ailments: z.array(AilmentSchema),
   claims: z.array(ClaimSchema),
@@ -127,6 +133,7 @@ export function parseContent(raw: RawContent): ParseResult {
     timeline: TimelineEntry[];
     regulars: Regular[];
     backgrounds: Background[];
+    investments: Investment[];
     segments: Segment[];
     ailments: Ailment[];
     claims: Claim[];
@@ -147,6 +154,7 @@ export function parseContent(raw: RawContent): ParseResult {
         unlocks: byIdOf(v.unlocks),
         events: byIdOf(v.events),
         backgrounds: byIdOf(v.backgrounds),
+        investments: byIdOf(v.investments),
         segments: byIdOf(v.segments),
         ailments: byIdOf(v.ailments),
         claims: byIdOf(v.claims),

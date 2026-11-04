@@ -58,6 +58,7 @@ public sealed class SimGame : IGame
 	public string? SetAdSpend(long cents) => Do(new SetAdSpend((int)cents));
 	public string? Brew(string formulaId, int bottles) => Do(new BrewBatch(formulaId, bottles));
 	public string? Resolve(string instanceId, string choiceId) => Do(new ResolveEvent(instanceId, choiceId));
+	public string? Invest(string investmentId) => Do(new Invest(investmentId));
 
 	public FormulaPreview Preview(IReadOnlyList<(string IngredientId, double Ounces)> components, string processId)
 	{
@@ -197,6 +198,27 @@ public sealed class SimGame : IGame
 			d.Letters.Add(letter);
 		}
 		foreach (var u in o.NextUnlocks) d.NextUnlocks.Add((_content.Text($"unlock.{u.Id}.name"), u.Progress));
+		foreach (var i in o.Investments)
+		{
+			d.Investments.Add(new InvestmentRow
+			{
+				Id = i.Id,
+				Name = _content.Text($"investment.{i.Id}.name"),
+				Description = _content.Text($"investment.{i.Id}.description"),
+				CostCents = i.CostCents,
+				UpkeepCents = i.UpkeepCents,
+				Months = i.Months,
+				Held = i.Held,
+				MonthsLeft = i.MonthsLeft,
+				CanBuy = i.CanBuy,
+				Refusal = Sentence(i.Refusal),
+				WalkInsPerMonth = i.WalkInsPerMonth,
+				HeatPerBoldness = i.HeatPerBoldness,
+				WholesaleBottles = i.WholesaleBottles,
+				WholesalePriceCents = i.WholesalePriceCents,
+				MishapChance = i.MishapChance,
+			});
+		}
 		return d;
 	}
 
@@ -265,6 +287,16 @@ public sealed class SimGame : IGame
 				f.CashLines.Add((_content.Text($"cause.{g.Key}"), (long)Math.Round(g.Sum(x => x.Amount))));
 			foreach (var g in report.Deltas.Where(x => x.Metric == "heat").GroupBy(x => x.Cause))
 				f.HeatLines.Add((_content.Text($"cause.{g.Key}"), g.Sum(x => x.Amount)));
+		}
+
+		foreach (var i in o.Investments.Where(i => i.Held))
+			f.Held.Add((i.Id, _content.Text($"investment.{i.Id}.name"), i.MonthsLeft));
+		if (report != null)
+		{
+			foreach (var kv in report.Callers) f.Callers.Add((kv.Key, kv.Value));
+			f.WholesaleOrdered = report.Wholesale.Ordered;
+			f.WholesaleDelivered = report.Wholesale.Delivered;
+			f.WholesaleRevenueCents = report.Wholesale.RevenueCents;
 		}
 
 		// what the trade says the shop is near to: the next things it can earn
@@ -342,6 +374,9 @@ public sealed class SimGame : IGame
 				case ShutdownWarningNews w:
 					f.ShutdownMonthsLeft = w.MonthsLeft;
 					break;
+				case InvestmentNews iv:
+					f.InvestmentNews.Add((iv.Id, _content.Text($"investment.{iv.Id}.name"), iv.Change));
+					break;
 			}
 		}
 		return f;
@@ -386,6 +421,8 @@ public sealed class SimGame : IGame
 		Segment = d.Segment,
 		Infant = d.Consumer == "infant",
 		Anonymous = d.Anonymous,
+		// the wholesale druggists' strangers die out of town, with no bottle of the shop's to name
+		OutOfTown = d.Anonymous && d.FormulaId == null,
 		Female = IsFemale(d.Name),
 	});
 

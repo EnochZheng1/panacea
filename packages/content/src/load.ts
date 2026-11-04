@@ -4,6 +4,7 @@ import claims from '../data/claims.json' with { type: 'json' };
 import config from '../data/config.json' with { type: 'json' };
 import events from '../data/events.json' with { type: 'json' };
 import ingredients from '../data/ingredients.json' with { type: 'json' };
+import investments from '../data/investments.json' with { type: 'json' };
 import names from '../data/names.json' with { type: 'json' };
 import processes from '../data/processes.json' with { type: 'json' };
 import regulars from '../data/regulars.json' with { type: 'json' };
@@ -23,6 +24,7 @@ export const rawContent: RawContent = {
   timeline,
   regulars,
   backgrounds,
+  investments,
   segments,
   ailments,
   claims,

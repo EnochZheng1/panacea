@@ -55,14 +55,16 @@ public class GameTests
     [Fact]
     public void EmbeddedContentLoads()
     {
-        Assert.Equal("0.3.0", C.Config.ContentVersion);
+        Assert.Equal("0.4.0", C.Config.ContentVersion);
         Assert.Equal(17, C.Ingredients.Count);
         Assert.Equal(3, C.Processes.Count);
         Assert.Equal(9, C.Unlocks.Count);
         Assert.Equal(12, C.Events.Count);
         Assert.Equal(8, C.Timeline.Count);
         Assert.Equal(12, C.Regulars.Count);
-        Assert.Equal(179, C.Strings.Count);
+        Assert.Equal(191, C.Strings.Count);
+        Assert.Equal(4, C.Investments.Count);
+        Assert.Equal("narcotic_discount_pct", C.ById.Investments["laboratory"].Effects.OfType<CapabilityEffect>().Single().Id);
         Assert.Equal("system", C.ById.Events["inquest"].Trigger);
         Assert.Equal("random", C.ById.Events["grateful_letter"].Trigger);
         Assert.Equal(1, C.ById.Processes["simple_mix"].Multiplier("kick"));
@@ -457,5 +459,111 @@ public class GameTests
         Assert.Equal(0, report.StockValueStartCents);
         Assert.Equal(Lab.StockValue(next, C).TotalCents, report.StockValueEndCents);
         Assert.Equal(report.StockValueEndCents, next.Month.StartStockValueCents);
+    }
+
+    // --- balance pass 4: investments, inquest replies, names, progress ------------------------
+
+    private static GameState RichShop(string seed = "inv")
+    {
+        var s = Start(seed);
+        s.Player.CashCents = 500_000;
+        s.Month.StartCashCents = s.Player.CashCents;
+        foreach (var id in new[] { "newspaper_ads", "larger_shop", "percolator" }) s.Unlocks.Unlocked[id] = 0;
+        s.Stats.BottlesSold = 5000;
+        return s;
+    }
+
+    [Fact]
+    public void InvestmentsAreOfferedWhenTheirRequirementHoldsAndOnlyOnceWhileHeld()
+    {
+        Assert.Equal("not yet offered", Game.ApplyAction(Start("inv0"), new Invest("branch_shop"), C).Result.Error);
+        var s = RichShop();
+        var spec = Assert.IsType<InvestSpec>(Machine.LegalActions(s, C).Single(x => x is InvestSpec));
+        Assert.Equal(new[] { "branch_shop", "almanac", "wholesale_contract", "laboratory" }, spec.InvestmentIds);
+        long before = s.Player.CashCents;
+        int capacity = Machine.Observe(s, C).CustomerCapacity;
+        s = Act(s, new Invest("branch_shop"));
+        Assert.Equal(C.ById.Investments["branch_shop"].CostCents, before - s.Player.CashCents);
+        Assert.Equal(capacity + 20, Machine.Observe(s, C).CustomerCapacity);
+        Assert.Equal("already held", Game.ApplyAction(s, new Invest("branch_shop"), C).Result.Error);
+        var report = Game.EndTurnInPlace(s, C);
+        Assert.Contains(report.Deltas, d => d.Cause == Causes.Upkeep && d.Detail == "branch_shop" &&
+            d.Amount == -C.ById.Investments["branch_shop"].UpkeepCents);
+    }
+
+    [Fact]
+    public void AnAlmanacRunsTwelveMonthsThenLapses()
+    {
+        var (s, formulaId) = SetUpTonic(RichShop("alm"), 400);
+        s = Act(s, new BrewBatch(formulaId, 400), new Invest("almanac"));
+        var first = Game.EndTurnInPlace(s, C);
+        Assert.Equal(10, first.Callers["almanac"]);
+        s = Months(s, 10);
+        Assert.Equal(1, Machine.Observe(s, C).Investments.Single(i => i.Id == "almanac").MonthsLeft);
+        var last = Game.EndTurnInPlace(s, C);
+        Assert.Contains(last.News, n => n is InvestmentNews { Id: "almanac", Change: InvestmentChanges.Lapsed });
+        Assert.False(s.Player.Investments.ContainsKey("almanac"));
+    }
+
+    [Fact]
+    public void DruggistsTakeTheirOrderAtTheWholesalePriceAndCancelWhenTheTalkTurns()
+    {
+        var (s, formulaId) = SetUpTonic(RichShop("whl"), 300);
+        s = Act(s, new SetPrice(formulaId, 100), new BrewBatch(formulaId, 300), new Invest("wholesale_contract"));
+        var w = C.ById.Investments["wholesale_contract"].Wholesale!;
+        int order = (int)Math.Floor(w.BottlesPerMonth * (1 + s.Player.Reputation * w.PerReputation));
+        int price = (int)Math.Min(w.MaxPriceCents, JsMath.Round(100 * w.PricePct / 100));
+        var report = Game.EndTurnInPlace(s, C);
+        Assert.Equal(order, report.Wholesale.Ordered);
+        Assert.Equal(order, report.Wholesale.Delivered);
+        Assert.Equal(order * price, report.Wholesale.RevenueCents);
+        s.Scrutiny.Heat = 80;
+        var hot = Game.EndTurnInPlace(s, C);
+        Assert.Contains(hot.News, n => n is InvestmentNews { Id: "wholesale_contract", Change: InvestmentChanges.Lost });
+    }
+
+    [Fact]
+    public void TestimonyAndSilenceDifferByAtLeastATenthInEveryState()
+    {
+        var s = Start("odds");
+        foreach (bool implicated in new[] { true, false })
+        for (double det = 0; det <= 20; det += 0.5)
+        foreach (double heat in new double[] { 0, 35, 75, 100 })
+        foreach (double rep in new double[] { 0, 15, 60 })
+        {
+            s.Scrutiny.Heat = heat;
+            s.Player.Reputation = rep;
+            var d = new DeathRecord
+            {
+                Id = "d", Date = s.Meta.Date, Name = "", Segment = "labourer", Consumer = Consumers.Self,
+                Cause = DeathCauses.Natural, Inquest = InquestStates.Pending, ProductImplicated = implicated,
+                Detectability = det, Boldness = 5,
+            };
+            double t = Scrutiny.ImplicationChance(s, d, "testify");
+            double q = Scrutiny.ImplicationChance(s, d, "silent");
+            Assert.True(Math.Abs(t - q) >= 0.1 - 1e-9, $"det {det} heat {heat}: {t} vs {q}");
+            Assert.True(det <= 5 ? t < q : q < t);
+        }
+    }
+
+    [Fact]
+    public void NoTwoCustomersShareANameAndTheOpeningCastVariesBySeed()
+    {
+        var (s, formulaId) = SetUpTonic(RichShop("names"), 2000);
+        s = Months(Act(s, new BrewBatch(formulaId, 2000)), 60);
+        Assert.Equal(s.Meta.UsedNames.Count, s.Meta.UsedNames.Distinct().Count());
+        Assert.NotEqual(Start("cast-a").Customers.Select(c => c.Name), Start("cast-b").Customers.Select(c => c.Name));
+    }
+
+    [Fact]
+    public void AnUnlockThatNeedsEverythingIsOnlyAsNearAsItsLeastMetPart()
+    {
+        var s = Start("progress");
+        s.Stats.BottlesSold = 547;
+        s.Unlocks.Unlocked["second_still"] = 0;
+        Assert.Equal(0.547, Requirements.Evaluate(C.ById.Unlocks["third_still"].Requirement, s, C).Progress, 9);
+        s.Stats.BatchesBrewed = 1;
+        s.Player.CashCents = 50_000;
+        Assert.Equal(1.0 / 40, Requirements.Evaluate(C.ById.Unlocks["quality_control"].Requirement, s, C).Progress, 9);
     }
 }

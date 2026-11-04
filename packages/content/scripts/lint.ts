@@ -20,6 +20,7 @@ if (parsed.ok) {
     `Content ${p.config.contentVersion}: ${p.ingredients.length} ingredients, ` +
       `${p.processes.length} processes, ${p.unlocks.length} unlocks, ${p.events.length} events, ` +
       `${p.timeline.length} timeline entries, ${p.regulars.length} regulars, ` +
+      `${p.investments.length} investments, ` +
       `${Object.keys(p.strings).length} strings.`,
   );
 }

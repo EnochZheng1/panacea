@@ -9,6 +9,7 @@ export const stringKeys = {
   event: (id: string) => [`event.${id}.title`, `event.${id}.body`],
   eventChoice: (eventId: string, choiceId: string) => [`event.${eventId}.choice.${choiceId}`],
   timeline: (id: string) => [`timeline.${id}.headline`, `timeline.${id}.body`],
+  investment: (id: string) => [`investment.${id}.name`, `investment.${id}.description`],
   background: (id: string) => [`background.${id}.name`, `background.${id}.description`],
   segment: (id: string) => [`segment.${id}.name`],
   ailment: (id: string) => [`ailment.${id}.name`],

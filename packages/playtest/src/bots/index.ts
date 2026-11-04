@@ -90,6 +90,9 @@ export const randomBot: Bot = {
             choiceId: t.rng.pick(spec.choiceIds),
           });
           break;
+        case 'Invest':
+          t.act({ type: 'Invest', investmentId: t.rng.pick(spec.investmentIds) });
+          break;
       }
     }
   },

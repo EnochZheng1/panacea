@@ -24,6 +24,7 @@ import {
   setPrice,
   stockValue,
 } from './systems/lab.ts';
+import { invest, investmentsPhase } from './systems/investments.ts';
 import { advertisingPhase, expensesPhase, salesPhase } from './systems/market.ts';
 import {
   autoResolveEvents,
@@ -59,6 +60,7 @@ export const PHASES: readonly Phase[] = [
   salesPhase,
   bodyPhase,
   expensesPhase,
+  investmentsPhase,
   timelinePhase,
   unlocksPhase,
   timersPhase,
@@ -82,6 +84,7 @@ export function newGame(content: ContentPack, options: NewGameOptions): GameStat
       status: 'running',
       endReason: null,
       nextId: 1,
+      usedNames: [],
     },
     player: {
       cashCents: background.startingCashCents,
@@ -91,10 +94,11 @@ export function newGame(content: ContentPack, options: NewGameOptions): GameStat
       timedCapabilities: [],
       flags: Object.fromEntries(background.flags.map((f) => [f, true])),
       monthsInsolvent: 0,
+      investments: {},
     },
     lab: { inventory: {}, formulas: [], batches: [], stock: [] },
     marketing: { adSpendCents: 0 },
-    customers: initialCustomers(content),
+    customers: [],
     deaths: [],
     scrutiny: {
       heat: 0,
@@ -126,12 +130,15 @@ export function newGame(content: ContentPack, options: NewGameOptions): GameStat
       sales: [],
       complaints: 0,
       turnedAwayByPrice: 0,
+      callers: {},
+      wholesale: { ordered: 0, delivered: 0, revenueCents: 0 },
     },
     ledger: [],
     log: [],
   };
 
   const rng = new Rng(state.meta.rng);
+  state.customers = initialCustomers(state, content, rng);
   drawEvents(state, content, rng);
   state.meta.rng = rng.state();
   return state;
@@ -194,6 +201,9 @@ export function applyActionInPlace(
       result = error ? { ok: false, error } : { ok: true };
       break;
     }
+    case 'Invest':
+      result = invest(draft, action, content);
+      break;
     default: {
       const unknown: { type?: unknown } = action;
       result = { ok: false, error: `unknown action type "${String(unknown.type)}"` };
@@ -243,6 +253,8 @@ export function canonicalAction(action: Action): Action {
       return { type: action.type, formulaId: action.formulaId, bottles: action.bottles };
     case 'ResolveEvent':
       return { type: action.type, instanceId: action.instanceId, choiceId: action.choiceId };
+    case 'Invest':
+      return { type: action.type, investmentId: action.investmentId };
   }
 }
 

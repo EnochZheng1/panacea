@@ -33,6 +33,7 @@ public static class StateJson
             ["SetAdSpend"] = typeof(SetAdSpend),
             ["BrewBatch"] = typeof(BrewBatch),
             ["ResolveEvent"] = typeof(ResolveEvent),
+            ["Invest"] = typeof(Invest),
         }));
         o.Converters.Add(new TaggedUnionConverter<NewsItem>("kind", new()
         {
@@ -48,6 +49,7 @@ public static class StateJson
             ["stock_seized"] = typeof(StockSeizedNews),
             ["ads_lapsed"] = typeof(AdsLapsedNews),
             ["shutdown_warning"] = typeof(ShutdownWarningNews),
+            ["investment"] = typeof(InvestmentNews),
         }));
         o.MakeReadOnly(populateMissingResolver: true);
         return o;

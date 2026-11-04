@@ -1,0 +1,51 @@
+[
+  {
+    "id": "branch_shop",
+    "costCents": 60000,
+    "upkeepCents": 500,
+    "requires": { "type": "unlocked", "id": "larger_shop" },
+    "walkInsPerMonth": 12,
+    "effects": [{ "type": "capability", "id": "shop_capacity", "delta": 20 }]
+  },
+  {
+    "id": "almanac",
+    "costCents": 4000,
+    "months": 12,
+    "requires": { "type": "unlocked", "id": "newspaper_ads" },
+    "walkInsPerMonth": 10,
+    "heatPerBoldness": 0.1
+  },
+  {
+    "id": "wholesale_contract",
+    "costCents": 30000,
+    "requires": {
+      "type": "all",
+      "of": [
+        { "type": "bottlesSold", "atLeast": 1500 },
+        { "type": "not", "requirement": { "type": "heat", "atLeast": 30 } }
+      ]
+    },
+    "lostWhen": { "type": "heat", "atLeast": 50 },
+    "wholesale": {
+      "bottlesPerMonth": 36,
+      "perReputation": 0.02,
+      "pricePct": 55,
+      "maxPriceCents": 60,
+      "strangerHealth": 75
+    }
+  },
+  {
+    "id": "laboratory",
+    "costCents": 40000,
+    "upkeepCents": 400,
+    "requires": { "type": "unlocked", "id": "percolator" },
+    "mishap": {
+      "chancePerMonth": 0.04,
+      "effects": [
+        { "type": "cash", "deltaCents": -2500 },
+        { "type": "heat", "delta": 10 }
+      ]
+    },
+    "effects": [{ "type": "capability", "id": "narcotic_discount_pct", "delta": 75 }]
+  }
+]

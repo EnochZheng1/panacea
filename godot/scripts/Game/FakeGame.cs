@@ -31,6 +31,9 @@ public sealed class FakeGame : IGame
 		f.Enthusiasts.Add(doyle);
 		f.Era.Add(("New Coal-Tar Remedy for Fever", "German chemists offer acetanilide, sold as Antifebrin, for headache and fever."));
 		f.Unlocks.Add(("newspaper_ads", "Newspaper Advertising", "With savings in hand and a testimonial to print, the papers will take your money."));
+		f.InvestmentNews.Add(("almanac", "The Proprietor's Almanac", "bought"));
+		f.Held.Add(("almanac", "The Proprietor's Almanac", 11));
+		f.Callers.AddRange(new[] { ("ward", 14), ("newspaper", 13), ("subscriptions", 0), ("almanac", 10) });
 		return f;
 	}
 
@@ -45,6 +48,13 @@ public sealed class FakeGame : IGame
 		d.Letters.Add(new Letter { InstanceId = "e1", Title = "A Grateful Letter", Body = "A customer writes that your tonic restored her to health after three doctors failed. She would be honoured to see her words in print.", Choices = { ("print_testimonial", "Print it as a testimonial."), ("file_away", "File it away.") } });
 		d.NextUnlocks.AddRange(new[] { ("A Second Still", 0.4), ("The Percolator", 0.2), ("\"Doctor\"", 0.1) });
 		d.ClaimBoldness = new() { ["soothes_nerves"] = 0.5, ["purifies_the_blood"] = 1, ["cures_consumption"] = 3 };
+		d.Investments.AddRange(new[]
+		{
+			new InvestmentRow { Id = "branch_shop", Name = "A Branch in Another Ward", Description = "A second counter across town.", CostCents = 60000, UpkeepCents = 500, CanBuy = false, Refusal = "Not yet offered.", WalkInsPerMonth = 12 },
+			new InvestmentRow { Id = "almanac", Name = "The Proprietor's Almanac", Description = "Ten thousand almanacs.", CostCents = 4000, Months = 12, Held = _turn > 0, MonthsLeft = _turn > 0 ? 7 : null, CanBuy = _turn == 0, Refusal = _turn > 0 ? "Already held." : null, WalkInsPerMonth = 10, HeatPerBoldness = 0.1 },
+			new InvestmentRow { Id = "wholesale_contract", Name = "A Wholesale Contract", Description = "Druggists out of town.", CostCents = 30000, CanBuy = false, Refusal = "Not enough cash.", WholesaleBottles = 43, WholesalePriceCents = 33 },
+			new InvestmentRow { Id = "laboratory", Name = "A Laboratory", Description = "A back room fitted with retorts.", CostCents = 40000, UpkeepCents = 400, CanBuy = false, Refusal = "Not yet offered.", MishapChance = 0.04 },
+		});
 		d.Regulars.AddRange(new[]
 		{
 			new Regular { Id = "r1", Name = "Mrs. Bridget Halloran", Segment = "mother", Ailment = "A teething infant", Infant = true, Looks = "peaky", Mood = "content", MonthsAsCustomer = 5 },
@@ -63,6 +73,7 @@ public sealed class FakeGame : IGame
 	public string? SetAdSpend(long cents) => null;
 	public string? Brew(string formulaId, int bottles) => null;
 	public string? Resolve(string instanceId, string choiceId) => null;
+	public string? Invest(string investmentId) => null;
 	public FormulaPreview Preview(IReadOnlyList<(string IngredientId, double Ounces)> components, string processId) =>
 		new() { UnitCostCents = 8, Properties = new() { ["kick"] = 5, ["calm"] = 2, ["habit"] = 1, ["bitterness"] = 1.5, ["acuteToxicity"] = 0.5, ["accumulation"] = 0, ["detectability"] = 1 } };
 

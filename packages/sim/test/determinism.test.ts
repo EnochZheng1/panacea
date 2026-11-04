@@ -66,6 +66,8 @@ function concretise(spec: ActionSpec, r: number[]): Action {
         instanceId: spec.instanceId,
         choiceId: pick(spec.choiceIds, a),
       };
+    case 'Invest':
+      return { type: 'Invest', investmentId: pick(spec.investmentIds, a) };
   }
 }
 

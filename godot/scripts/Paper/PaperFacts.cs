@@ -64,6 +64,20 @@ public sealed class PaperFacts
     public List<PersonFact> Exposed = new();
     public List<(string Label, long Cents)> CashLines = new();
     public List<(string Label, double Amount)> HeatLines = new();
+
+    /// <summary>Investments bought, run out, lost or burned this month: change is bought, lapsed, lost or mishap.</summary>
+    public List<(string Id, string Name, string Change)> InvestmentNews = new();
+    /// <summary>Investments held when the edition went to press, with month-ends left (null: for good).</summary>
+    public List<(string Id, string Name, int? MonthsLeft)> Held = new();
+    /// <summary>
+    /// Callers at the shop this month by where they came from: "ward", "newspaper", "subscriptions",
+    /// and an investment id ("branch_shop", "almanac") for those it brought.
+    /// </summary>
+    public List<(string Source, int Callers)> Callers = new();
+    /// <summary>Bottles the druggists out of town ordered, and got, this month, and what they paid.</summary>
+    public int WholesaleOrdered;
+    public int WholesaleDelivered;
+    public long WholesaleRevenueCents;
 }
 
 public sealed class ProductFact
@@ -88,6 +102,8 @@ public sealed class PersonFact
     public string Ailment = "";
     public bool Infant;
     public bool Anonymous;
+    /// <summary>A stranger out of town who drank a bottle sold by the wholesale druggists.</summary>
+    public bool OutOfTown;
     public bool Female;
     /// <summary>How long they had been a regular (-1: never known at the shop).</summary>
     public int Months = -1;

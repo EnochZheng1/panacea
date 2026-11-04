@@ -59,6 +59,12 @@ public sealed record ResolveEvent(string InstanceId, string ChoiceId) : GameActi
     public override string Type => "ResolveEvent";
 }
 
+/// <summary>Buy an investment (a branch, an almanac, a contract, a laboratory).</summary>
+public sealed record Invest(string InvestmentId) : GameAction
+{
+    public override string Type => "Invest";
+}
+
 /// <summary>The outcome of an action: ok (maybe with the id of what it created), or an error message.</summary>
 public sealed record ActionResult
 {
@@ -83,12 +89,16 @@ public static class Causes
 {
     public const string SalesShop = "sales.shop";
     public const string SalesWalkIn = "sales.walk_in";
+    public const string SalesWholesale = "sales.wholesale";
     public const string Rent = "expense.rent";
     public const string Ingredients = "expense.ingredients";
     public const string Bottling = "expense.bottling";
     public const string Advertising = "expense.advertising";
     public const string Bribe = "expense.bribe";
     public const string Retainer = "expense.retainer";
+    public const string Investment = "expense.investment";
+    public const string Upkeep = "expense.upkeep";
+    public const string Mishap = "investment.mishap";
     public const string WordOfMouth = "body.word_of_mouth";
     public const string ReputationDrift = "body.reputation_drift";
     public const string Complaints = "body.complaints";
@@ -102,8 +112,9 @@ public static class Causes
 
     public static readonly IReadOnlyList<string> All =
     [
-        SalesShop, SalesWalkIn, Rent, Ingredients, Bottling, Advertising, Bribe, Retainer, WordOfMouth,
-        ReputationDrift, Complaints, Death, Inquest, HeatDecay, Claims, Event, Timeline, Unlock,
+        SalesShop, SalesWalkIn, SalesWholesale, Rent, Ingredients, Bottling, Advertising, Bribe, Retainer,
+        Investment, Upkeep, Mishap, WordOfMouth, ReputationDrift, Complaints, Death, Inquest, HeatDecay,
+        Claims, Event, Timeline, Unlock,
     ];
 }
 

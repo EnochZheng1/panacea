@@ -106,30 +106,58 @@ public static class Scrutiny
             state.Scrutiny.BribesPaid * cfg.BribeExposurePerBribe + state.Player.Notoriety * cfg.BribeExposurePerNotoriety);
     }
 
-    /// <summary>Probability the jury blames your medicine. Approach: "testify" or "silent".</summary>
+    /// <summary>
+    /// The detectability at which the coroner's chemist neither helps nor hurts a proprietor who
+    /// testifies. At or below it a bottle is mild (testimony suits it); above it, strong (silence does).
+    /// </summary>
+    public const double ChemistNeutralDetectability = 5;
+    /// <summary>The reply that suits the bottle is always at least this much likelier to clear you.</summary>
+    public const double InquestReplyGap = 0.1;
+
+    /// <summary>
+    /// Probability the jury blames your medicine. Approach: "testify" or "silent". Testifying puts
+    /// the formula on the record: a proprietor who speaks for a mild bottle is believed, but the
+    /// coroner's chemist then knows what to look for, so testimony for a loaded one damns it — and
+    /// he finds a mis-measured batch. The reply that suits the bottle's strength is always at least
+    /// <see cref="InquestReplyGap"/> the better, and it alone is capped two gaps below the usual
+    /// cap, so the choice matters even when the talk is loudest.
+    /// </summary>
     public static double ImplicationChance(GameState state, DeathRecord record, string approach)
     {
         double heat = state.Scrutiny.Heat;
+        double gap = InquestReplyGap;
         bool testify = approach == "testify";
+        bool testimonySuits = record.Detectability <= ChemistNeutralDetectability;
+        double raw, lo, hi, chemist;
         if (!record.ProductImplicated)
         {
-            return Math.Min(0.3, Math.Max(0, 0.05 + heat / 300 + state.Scrutiny.TimesImplicated * 0.01 - (testify ? 0.04 : 0)));
+            raw = 0.05 + heat / 300 + state.Scrutiny.TimesImplicated * 0.01;
+            lo = 0;
+            hi = 0.3;
+            chemist = 0;
         }
-        // Testifying puts the formula on the record: a proprietor who speaks for a mild bottle is
-        // believed, but the coroner's chemist then knows what to look for, so testimony for a loaded
-        // one damns it — and he finds a mis-measured batch. Silence keeps the formula out of court.
-        double testimony = testify ? record.Detectability * 0.05 - 0.25 : 0;
-        double p =
-            0.25 +
-            record.Detectability / 25 +
-            heat / 200 -
-            state.Player.Reputation / 400 +
-            record.Boldness * 0.02 +
-            (record.BadBatch && testify ? 0.2 : 0) +
-            // the coroner remembers the label: every verdict against it makes the next one likelier
-            state.Scrutiny.TimesImplicated * 0.03 +
-            testimony;
-        return Math.Min(0.95, Math.Max(0.05, p));
+        else
+        {
+            raw =
+                0.25 +
+                record.Detectability / 25 +
+                heat / 200 -
+                state.Player.Reputation / 400 +
+                record.Boldness * 0.02 +
+                // the coroner remembers the label: every verdict against it makes the next one likelier
+                state.Scrutiny.TimesImplicated * 0.03;
+            lo = 0.05;
+            hi = 0.95;
+            chemist = record.Detectability * 0.05 - 0.25;
+        }
+        bool suits = testify == testimonySuits;
+        double p = raw;
+        if (testify) p += testimonySuits ? Math.Min(chemist, -gap) : Math.Max(chemist, gap);
+        // only testimony shows the chemist a mis-measured batch
+        if (testify && record.ProductImplicated && record.BadBatch) p += 0.2;
+        return suits
+            ? Math.Min(hi - 2 * gap, Math.Max(lo, p))
+            : Math.Min(hi, Math.Max(lo + gap, p));
     }
 
     /// <summary>Resolves an inquest. Returns an error message if the approach is not possible.</summary>

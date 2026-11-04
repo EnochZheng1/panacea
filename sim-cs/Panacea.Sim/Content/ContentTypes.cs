@@ -422,6 +422,54 @@ public sealed class Background
     public IReadOnlyList<string> Flags { get; init; } = [];
 }
 
+/// <summary>Druggists out of town under contract (schemas.ts InvestmentSchema.wholesale).</summary>
+public sealed class WholesaleSpec
+{
+    /// <summary>Bottles a month, × (1 + reputation × PerReputation).</summary>
+    public int BottlesPerMonth { get; init; }
+    public double PerReputation { get; init; }
+    /// <summary>They pay this share of the shelf price, in per cent…</summary>
+    public double PricePct { get; init; }
+    /// <summary>…but at most this much a bottle.</summary>
+    public int MaxPriceCents { get; init; }
+    /// <summary>Health of the strangers they sell to (no tolerance): a strong bottle kills some.</summary>
+    public double StrangerHealth { get; init; }
+}
+
+/// <summary>A monthly chance of an accident while an investment is held.</summary>
+public sealed class MishapSpec
+{
+    public double ChancePerMonth { get; init; }
+    public required IReadOnlyList<Effect> Effects { get; init; }
+}
+
+/// <summary>
+/// Something the proprietor buys that pays back over months or years (schemas.ts
+/// InvestmentSchema): a branch shop, an almanac, a wholesale contract, a laboratory.
+/// </summary>
+public sealed class Investment
+{
+    public required string Id { get; init; }
+    /// <summary>Paid once, when bought (and again when a lapsed one is renewed).</summary>
+    public long CostCents { get; init; }
+    /// <summary>Paid at every month-end while held.</summary>
+    public long UpkeepCents { get; init; }
+    /// <summary>Runs this many month-ends from the month bought, then lapses; null = for good.</summary>
+    public int? Months { get; init; }
+    /// <summary>Offered only while this holds.</summary>
+    public Requirement? Requires { get; init; }
+    /// <summary>Checked at every month-end: if it holds, the investment is lost.</summary>
+    public Requirement? LostWhen { get; init; }
+    /// <summary>Extra callers a month while held.</summary>
+    public int WalkInsPerMonth { get; init; }
+    /// <summary>Heat a month per point of label boldness while held.</summary>
+    public double HeatPerBoldness { get; init; }
+    public WholesaleSpec? Wholesale { get; init; }
+    public MishapSpec? Mishap { get; init; }
+    /// <summary>Applied when bought; capability changes are undone when it lapses or is lost.</summary>
+    public IReadOnlyList<Effect> Effects { get; init; } = [];
+}
+
 public sealed class WalkInsConfig
 {
     public int Base { get; init; }

@@ -26,6 +26,11 @@ export interface Policy {
   escalate?: { stepOz: number; maxOz: number };
   /** Lower it when the heat is up. */
   deescalate?: { heatAbove: number; stepOz: number; minOz: number };
+  /**
+   * Investments to buy, in order of preference, whenever one is offered and the cash left after
+   * it would still cover half a year of rent, advertising and its own upkeep.
+   */
+  invest?: string[];
 }
 
 const FLAVOUR: FormulaComponent[] = [
@@ -93,6 +98,16 @@ export function policyBot(policy: Policy): Bot {
           choiceId = ev.choiceIds[0];
         }
         if (choiceId) t.act({ type: 'ResolveEvent', instanceId: ev.instanceId, choiceId });
+      }
+
+      // Investments.
+      for (const id of policy.invest ?? []) {
+        const inv = obs.investments.find((i) => i.id === id);
+        if (!inv?.canBuy) continue;
+        const reserve =
+          6 * (t.content.config.rentCents + policy.adSpendCents + inv.upkeepCents) + 3000;
+        if (obs.cashCents - inv.costCents < reserve) continue;
+        if (t.act({ type: 'Invest', investmentId: id }).ok) obs = t.observe();
       }
 
       // Adjust the dose.
@@ -184,6 +199,7 @@ export const PRESETS: Record<string, Policy> = {
     adSpendCents: 0,
     inquest: 'silent',
     events: 'default',
+    invest: ['branch_shop', 'wholesale_contract', 'almanac'],
   },
   cautious: {
     id: 'cautious',
@@ -202,16 +218,18 @@ export const PRESETS: Record<string, Policy> = {
     adSpendCents: 0,
     inquest: 'testify',
     events: 'default',
+    invest: ['branch_shop', 'wholesale_contract', 'almanac'],
   },
   greedy: {
     id: 'greedy',
-    description: 'Morphine and cocaine, escalating doses, wild claims, heavy advertising, bribes.',
+    description:
+      'Morphine and cocaine at a price for the hooked, escalating doses, wild claims, heavy advertising, bribes; its own laboratory.',
     // Doses in content 0.3.0 morphine (4× the strength per ounce of 0.2.0's): the same
     // 0.4 → 1.5 old ounces, escalating by 0.1.
     narcotic: { ingredientId: 'morphine', oz: 0.1 },
     alcoholOz: 2,
     extras: [{ ingredientId: 'coca_extract', amount: 0.3 }],
-    priceCents: 120,
+    priceCents: 150,
     stockCover: 1.5,
     minStock: 20,
     claims: ['cures_everything', 'cures_consumption', 'teething_comfort', 'endorsed_by_physicians'],
@@ -219,6 +237,7 @@ export const PRESETS: Record<string, Policy> = {
     inquest: 'bribe',
     events: 'first',
     escalate: { stepOz: 0.025, maxOz: 0.375 },
+    invest: ['laboratory', 'branch_shop'],
   },
   briber: {
     id: 'briber',
@@ -233,6 +252,7 @@ export const PRESETS: Record<string, Policy> = {
     adSpendCents: 1000,
     inquest: 'bribe',
     events: 'default',
+    invest: ['branch_shop', 'wholesale_contract', 'almanac'],
   },
   adaptive: {
     id: 'adaptive',
@@ -249,6 +269,7 @@ export const PRESETS: Record<string, Policy> = {
     events: 'default',
     escalate: { stepOz: 0.05, maxOz: 0.8 },
     deescalate: { heatAbove: 35, stepOz: 0.1, minOz: 0.15 },
+    invest: ['branch_shop', 'wholesale_contract', 'almanac'],
   },
   mercurial: {
     id: 'mercurial',
@@ -266,5 +287,6 @@ export const PRESETS: Record<string, Policy> = {
     adSpendCents: 300,
     inquest: 'silent',
     events: 'default',
+    invest: ['branch_shop', 'wholesale_contract', 'almanac'],
   },
 };

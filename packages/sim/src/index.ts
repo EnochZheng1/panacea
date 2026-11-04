@@ -22,6 +22,7 @@ export {
   type Mood,
   type Observation,
   type ObservedCustomer,
+  type ObservedInvestment,
   type ObservedDeath,
 } from './api/machine.ts';
 export {
@@ -34,6 +35,7 @@ export {
 } from './systems/formula.ts';
 export { maxBrewable, stockOf, stockValue, totalStock, type StockValue } from './systems/lab.ts';
 export { acuteDanger, feltEffect, overdoseChance, reliefScore } from './systems/pharmacology.ts';
+export { investRefusal, isHeld, wholesaleOrder, wholesalePrice } from './systems/investments.ts';
 export { availableChoices, nextUnlocks, type UnlockProgress } from './systems/progression.ts';
 export {
   bribeCostCents,

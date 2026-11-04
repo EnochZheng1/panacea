@@ -47,10 +47,11 @@ public static class Requirements
                 return Binary(state.Unlocks.Unlocked.ContainsKey(u.Id));
             case AllRequirement all:
             {
+                // as far along as its least-met part, so a progress bar never reads nearer than it is
                 var parts = all.Of.Select(r => Evaluate(r, state, content)).ToList();
-                double sum = 0;
-                foreach (var p in parts) sum = sum + p.Progress;
-                return new RequirementStatus(parts.All(p => p.Met), sum / parts.Count);
+                double min = double.PositiveInfinity;
+                foreach (var p in parts) min = Math.Min(min, p.Progress);
+                return new RequirementStatus(parts.All(p => p.Met), min);
             }
             case AnyRequirement any:
             {

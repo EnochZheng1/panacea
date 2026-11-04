@@ -74,5 +74,15 @@ export function newsText(content: ContentPack, state: GameState, n: NewsItem): s
       return '📉 You could not pay for this month’s advertising; it has stopped.';
     case 'shutdown_warning':
       return `🚨 The authorities are preparing to close you down. Bring the heat below 100 within ${n.monthsLeft} month(s)!`;
+    case 'investment': {
+      const name = t(content, `investment.${n.id}.name`);
+      return n.change === 'bought'
+        ? `🏛 Bought: ${name}.`
+        : n.change === 'lapsed'
+          ? `⌛ ${name} has run its course.`
+          : n.change === 'lost'
+            ? `✂ Lost: ${name}.`
+            : `🔥 An accident: ${name}.`;
+    }
   }
 }

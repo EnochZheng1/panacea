@@ -43,7 +43,12 @@ export function ingredientUnitCost(state: GameState, ingredientId: string, conte
   const discount = Math.min(90, state.player.capabilities['ingredient_discount_pct'] ?? 0);
   // a supplier's rise (a shortage, a trust) for one ingredient
   const surcharge = Math.max(0, state.player.capabilities[`surcharge_pct_${ing.id}`] ?? 0);
-  return ing.costPerUnitCents * (1 - discount / 100) * (1 + surcharge / 100);
+  // a laboratory works up opium, morphine and coca from the crude drug
+  const narcotic =
+    ing.drugClass === 'opiate' || ing.drugClass === 'cocaine'
+      ? Math.min(90, Math.max(0, state.player.capabilities['narcotic_discount_pct'] ?? 0))
+      : 0;
+  return ing.costPerUnitCents * (1 - discount / 100) * (1 + surcharge / 100) * (1 - narcotic / 100);
 }
 
 export interface StockValue {

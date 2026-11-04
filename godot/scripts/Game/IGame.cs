@@ -25,6 +25,8 @@ public interface IGame
 	string? SetAdSpend(long cents);
 	string? Brew(string formulaId, int bottles);
 	string? Resolve(string instanceId, string choiceId);
+	/// <summary>Buys an investment (a branch, an almanac, a wholesale contract, a laboratory).</summary>
+	string? Invest(string investmentId);
 
 	/// <summary>Analyses a draft recipe without changing the game.</summary>
 	FormulaPreview Preview(IReadOnlyList<(string IngredientId, double Ounces)> components, string processId);
@@ -58,6 +60,38 @@ public sealed class DeskModel
 	public List<Regular> Regulars = new();
 	public long BottleCostCents;
 	public Dictionary<string, double> ClaimBoldness = new();
+	/// <summary>Every investment in the content, held or not, in content order.</summary>
+	public List<InvestmentRow> Investments = new();
+}
+
+/// <summary>Something the proprietor can buy that pays back over months or years.</summary>
+public sealed class InvestmentRow
+{
+	public string Id = "";
+	public string Name = "";
+	public string Description = "";
+	/// <summary>Paid once, when bought (and again to renew one that has run out).</summary>
+	public long CostCents;
+	/// <summary>Paid every month-end while held (branch rent, the chemist's wages).</summary>
+	public long UpkeepCents;
+	/// <summary>How long it runs once bought, or null for good.</summary>
+	public int? Months;
+	public bool Held;
+	/// <summary>Held, with a term: month-ends left, this one included.</summary>
+	public int? MonthsLeft;
+	public bool CanBuy;
+	/// <summary>Why it cannot be bought now, as a sentence ("Not yet offered."), or null.</summary>
+	public string? Refusal;
+	/// <summary>Extra callers a month while held.</summary>
+	public int WalkInsPerMonth;
+	/// <summary>Suspicion a month per point of label boldness while held (the almanac prints the claims).</summary>
+	public double HeatPerBoldness;
+	/// <summary>Wholesale: bottles the druggists would order this month, at the shop's present name.</summary>
+	public int? WholesaleBottles;
+	/// <summary>Wholesale: what they would pay a bottle, for the bottle the shop has most of.</summary>
+	public long? WholesalePriceCents;
+	/// <summary>Chance of an accident each month while held (a laboratory fire).</summary>
+	public double? MishapChance;
 }
 
 /// <summary>A regular as the proprietor sees them across the counter (never their true health).</summary>

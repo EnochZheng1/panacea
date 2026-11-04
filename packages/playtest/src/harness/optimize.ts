@@ -30,6 +30,13 @@ const EXTRAS: Policy['extras'][] = [
   ],
 ];
 
+const INVEST_SETS: string[][] = [
+  [],
+  ['branch_shop', 'wholesale_contract', 'almanac'],
+  ['laboratory', 'branch_shop', 'almanac', 'wholesale_contract'],
+  ['branch_shop', 'almanac'],
+];
+
 export function randomPolicy(rng: Rng, id: string): Policy {
   const narcotic = rng.pick(NARCOTICS);
   const maxOz = narcotic === 'laudanum' ? 1.2 : narcotic === 'morphine' ? 0.15 : 0.8;
@@ -49,6 +56,7 @@ export function randomPolicy(rng: Rng, id: string): Policy {
     adSpendCents: rng.pick([0, 0, 300, 800, 1500, 3000]),
     inquest: rng.pick(['silent', 'testify', 'bribe'] as const),
     events: rng.pick(['default', 'first'] as const),
+    invest: rng.pick(INVEST_SETS),
     ...(escalate ? { escalate: { stepOz: 0.05, maxOz: Math.max(oz, maxOz) } } : {}),
     ...(deescalate
       ? {
@@ -139,7 +147,8 @@ export function describePolicy(p: Policy): string {
   return (
     `${narcotic}, alcohol ${p.alcoholOz}oz, extras ${extras}, ${p.priceCents}¢, ` +
     `ads ${usd(p.adSpendCents)}/mo, claims [${p.claims.join(', ')}], inquests: ${p.inquest}` +
-    (adapt ? `, ${adapt}` : '')
+    (adapt ? `, ${adapt}` : '') +
+    (p.invest?.length ? `, invests [${p.invest.join(', ')}]` : '')
   );
 }
 

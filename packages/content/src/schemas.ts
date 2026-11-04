@@ -308,6 +308,57 @@ export const BackgroundSchema = z.strictObject({
 });
 export type Background = z.infer<typeof BackgroundSchema>;
 
+/**
+ * Something the proprietor can buy that pays back over months or years: a branch shop, an
+ * almanac, a wholesale contract, a laboratory. Bought with the `Invest` action; held until it
+ * runs out (`months`), is lost (`lostWhen`), or for good.
+ */
+export const InvestmentSchema = z.strictObject({
+  id: IdSchema,
+  /** Paid once, when bought (and again each time a lapsed one is renewed). */
+  costCents: z.number().int().min(0),
+  /** Paid at every month-end while it is held (rent, wages). */
+  upkeepCents: z.number().int().min(0).default(0),
+  /** Runs this many month-ends from the month it is bought, then lapses and may be bought again. */
+  months: z.number().int().min(1).optional(),
+  /** Offered only while this holds. */
+  requires: RequirementSchema.optional(),
+  /** Checked at every month-end: if it holds, the investment is lost (and may be bought again). */
+  lostWhen: RequirementSchema.optional(),
+  /** Extra callers at the shop every month while it is held. */
+  walkInsPerMonth: z.number().int().min(0).default(0),
+  /** Heat each month per point of label boldness, while held (claims printed where all can read). */
+  heatPerBoldness: z.number().min(0).default(0),
+  /**
+   * Druggists out of town who take bottles every month at a wholesale price: `bottlesPerMonth`
+   * × (1 + reputation × `perReputation`), at `pricePct`% of the shelf price but at most
+   * `maxPriceCents` a bottle. They sell to strangers of `strangerHealth` with no tolerance, and
+   * a strong enough bottle kills some of them.
+   */
+  wholesale: z
+    .strictObject({
+      bottlesPerMonth: z.number().int().min(0),
+      perReputation: z.number().min(0),
+      pricePct: z.number().min(0).max(100),
+      maxPriceCents: z.number().int().min(0),
+      strangerHealth: z.number().min(1).max(100),
+    })
+    .optional(),
+  /** A monthly chance of an accident while held (a laboratory fire), with its effects. */
+  mishap: z
+    .strictObject({
+      chancePerMonth: z.number().min(0).max(1),
+      effects: z.array(EffectSchema).min(1),
+    })
+    .optional(),
+  /**
+   * Applied when bought. Capability changes (which must not be timed) are undone when the
+   * investment lapses or is lost.
+   */
+  effects: z.array(EffectSchema).default([]),
+});
+export type Investment = z.infer<typeof InvestmentSchema>;
+
 export const ConfigSchema = z.strictObject({
   contentVersion: z.string().min(1),
   startDate: GameDateSchema,

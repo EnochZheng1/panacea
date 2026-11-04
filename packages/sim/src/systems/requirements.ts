@@ -4,7 +4,10 @@ import type { GameState } from '../core/state.ts';
 
 export interface RequirementStatus {
   met: boolean;
-  /** 0..1, for progress bars. Composite requirements average ("all") or max ("any") children. */
+  /**
+   * 0..1, for progress bars: the share of a numeric threshold reached. "All" is as far along as
+   * its least-met part, "any" as its most-met part, so a bar never reads nearer than it is.
+   */
   progress: number;
 }
 
@@ -52,7 +55,7 @@ export function evaluateRequirement(
       const parts = req.of.map((r) => evaluateRequirement(r, state, content));
       return {
         met: parts.every((p) => p.met),
-        progress: parts.reduce((s, p) => s + p.progress, 0) / parts.length,
+        progress: Math.min(...parts.map((p) => p.progress)),
       };
     }
     case 'any': {

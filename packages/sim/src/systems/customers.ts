@@ -3,14 +3,39 @@ import type { Rng } from '../core/rng.ts';
 import type { Customer, GameState } from '../core/state.ts';
 import { newBody } from './pharmacology.ts';
 
-/** Builds the shop's starting regulars from content. */
-export function initialCustomers(content: ContentPack): Customer[] {
+/** Tries before a name drawn for a new customer is allowed to repeat one (a pool all but used up). */
+const NAME_TRIES = 40;
+
+/**
+ * Draws a given name and a surname that nobody in this game has had yet, living, dead or gone,
+ * and records it as used. Returns "Given Surname".
+ */
+function drawName(state: GameState, content: ContentPack, rng: Rng, female: boolean): string {
+  const used = state.meta.usedNames;
+  let name = '';
+  for (let i = 0; i < NAME_TRIES; i++) {
+    const given = rng.pick(female ? content.names.female : content.names.male);
+    name = `${given} ${rng.pick(content.names.surnames)}`;
+    if (!used.includes(name)) break;
+  }
+  used.push(name);
+  return name;
+}
+
+/**
+ * Builds the shop's starting regulars from content. Each keeps the form of address the content
+ * gives them ("Mrs.", "Widow"), but the name is drawn for this game, so every seed opens with a
+ * different cast at the counter.
+ */
+export function initialCustomers(state: GameState, content: ContentPack, rng: Rng): Customer[] {
   return content.regulars.map((r: Regular) => {
     const seg = content.byId.segments.get(r.segment);
     const ailment = content.byId.ailments.get(r.ailment);
+    const title = r.displayName.split(' ')[0] ?? '';
+    const name = `${title} ${drawName(state, content, rng, title !== 'Mr.')}`;
     return {
       id: r.id,
-      name: r.displayName,
+      name,
       segment: r.segment,
       ailment: r.ailment,
       consumer: ailment?.consumer ?? 'self',
@@ -53,13 +78,13 @@ export function generateCustomer(
   ailmentId: string,
 ): Customer {
   const female = segment.gender === 'female' || (segment.gender === 'any' && rng.chance(0.5));
-  const given = rng.pick(female ? content.names.female : content.names.male);
   let titles = segment.titles;
   if (segment.gender === 'any') {
     const gendered = titles.filter((t) => (female ? t !== 'Mr.' : t === 'Mr.'));
     if (gendered.length > 0) titles = gendered;
   }
-  const name = `${rng.pick(titles)} ${given} ${rng.pick(content.names.surnames)}`;
+  const title = rng.pick(titles);
+  const name = `${title} ${drawName(state, content, rng, female)}`;
   const ailment = content.byId.ailments.get(ailmentId);
   const resolves = ailment?.resolvesAfterMonths;
   return {

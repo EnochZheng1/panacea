@@ -42,7 +42,11 @@ public static class Lab
         double discount = Math.Min(90, state.Player.Capabilities.GetOr("ingredient_discount_pct", 0));
         // a supplier's rise (a shortage, a trust) for one ingredient
         double surcharge = Math.Max(0, state.Player.Capabilities.GetOr($"surcharge_pct_{ing.Id}", 0));
-        return ing.CostPerUnitCents * (1 - discount / 100) * (1 + surcharge / 100);
+        // a laboratory works up opium, morphine and coca from the crude drug
+        double narcotic = ing.DrugClass is DrugClasses.Opiate or DrugClasses.Cocaine
+            ? Math.Min(90, Math.Max(0, state.Player.Capabilities.GetOr("narcotic_discount_pct", 0)))
+            : 0;
+        return ing.CostPerUnitCents * (1 - discount / 100) * (1 + surcharge / 100) * (1 - narcotic / 100);
     }
 
     /// <summary>

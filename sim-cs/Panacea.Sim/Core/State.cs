@@ -141,6 +141,36 @@ public sealed record ShutdownWarningNews(int MonthsLeft) : NewsItem
     public override string Kind => "shutdown_warning";
 }
 
+/// <summary>An investment bought, run out, lost, or a mishap (<see cref="InvestmentChanges"/>).</summary>
+public sealed record InvestmentNews(string Id, string Change) : NewsItem
+{
+    public override string Kind => "investment";
+}
+
+public static class InvestmentChanges
+{
+    public const string Bought = "bought";
+    public const string Lapsed = "lapsed";
+    public const string Lost = "lost";
+    public const string Mishap = "mishap";
+}
+
+/// <summary>What the druggists out of town ordered this month, what they got, and what they paid.</summary>
+public sealed class WholesaleMonth
+{
+    public int Ordered { get; set; }
+    public int Delivered { get; set; }
+    public long RevenueCents { get; set; }
+}
+
+/// <summary>An investment the shop holds.</summary>
+public sealed class InvestmentHolding
+{
+    public int BoughtTurn { get; set; }
+    /// <summary>It runs through the month before this one, then lapses; null if held for good.</summary>
+    public int? EndsTurn { get; set; }
+}
+
 public sealed class SaleRecord
 {
     public required string FormulaId { get; set; }
@@ -167,6 +197,12 @@ public sealed class MonthInProgress
     /// bottle, for whom some bottle on the shelf appealed but every one cost more than they would pay.
     /// </summary>
     public int TurnedAwayByPrice { get; set; }
+    /// <summary>
+    /// Callers at the shop this month by where they came from: ward, newspaper, subscriptions, and
+    /// each investment id.
+    /// </summary>
+    public OrderedMap<int> Callers { get; set; } = new();
+    public WholesaleMonth Wholesale { get; set; } = new();
 }
 
 /// <summary>A closed month, as shown in the Ledger.</summary>
@@ -195,6 +231,9 @@ public sealed class LedgerEntry
     public int Complaints { get; set; }
     /// <summary>Callers who asked the price and left (see <see cref="MonthInProgress.TurnedAwayByPrice"/>).</summary>
     public int TurnedAwayByPrice { get; set; }
+    /// <summary>Callers by source (see <see cref="MonthInProgress.Callers"/>).</summary>
+    public OrderedMap<int> Callers { get; set; } = new();
+    public WholesaleMonth Wholesale { get; set; } = new();
 }
 
 public sealed record FormulaComponent(string IngredientId, double Amount);
@@ -367,6 +406,8 @@ public sealed class MetaState
     public string? EndReason { get; set; }
     /// <summary>Counter for generated ids.</summary>
     public int NextId { get; set; }
+    /// <summary>Every "Given Surname" a customer has had in this game, so no two people share one.</summary>
+    public List<string> UsedNames { get; set; } = new();
 }
 
 /// <summary>A capability change that holds until month <see cref="ExpiresTurn"/> begins.</summary>
@@ -387,6 +428,8 @@ public sealed class PlayerState
     public List<TimedCapability> TimedCapabilities { get; set; } = new();
     public OrderedMap<bool> Flags { get; set; } = new();
     public int MonthsInsolvent { get; set; }
+    /// <summary>Investment id → the holding, for investments the shop holds now.</summary>
+    public OrderedMap<InvestmentHolding> Investments { get; set; } = new();
 }
 
 public sealed class LabState

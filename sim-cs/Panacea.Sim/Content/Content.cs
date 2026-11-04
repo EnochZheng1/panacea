@@ -11,6 +11,7 @@ public sealed class ContentById
     public required IReadOnlyDictionary<string, Unlock> Unlocks { get; init; }
     public required IReadOnlyDictionary<string, GameEvent> Events { get; init; }
     public required IReadOnlyDictionary<string, Background> Backgrounds { get; init; }
+    public required IReadOnlyDictionary<string, Investment> Investments { get; init; }
     public required IReadOnlyDictionary<string, Segment> Segments { get; init; }
     public required IReadOnlyDictionary<string, Ailment> Ailments { get; init; }
     public required IReadOnlyDictionary<string, Claim> Claims { get; init; }
@@ -27,6 +28,7 @@ public sealed class ContentPack
     public required IReadOnlyList<TimelineEntry> Timeline { get; init; }
     public required IReadOnlyList<Regular> Regulars { get; init; }
     public required IReadOnlyList<Background> Backgrounds { get; init; }
+    public required IReadOnlyList<Investment> Investments { get; init; }
     public required IReadOnlyList<Segment> Segments { get; init; }
     public required IReadOnlyList<Ailment> Ailments { get; init; }
     public required IReadOnlyList<Claim> Claims { get; init; }
@@ -65,6 +67,7 @@ public static class Content
         var timeline = Parse<List<TimelineEntry>>("data/timeline.json");
         var regulars = Parse<List<Regular>>("data/regulars.json");
         var backgrounds = Parse<List<Background>>("data/backgrounds.json");
+        var investments = Parse<List<Investment>>("data/investments.json");
         var segments = Parse<List<Segment>>("data/segments.json");
         var ailments = Parse<List<Ailment>>("data/ailments.json");
         var claims = Parse<List<Claim>>("data/claims.json");
@@ -88,6 +91,7 @@ public static class Content
             Timeline = timeline,
             Regulars = regulars,
             Backgrounds = backgrounds,
+            Investments = investments,
             Segments = segments,
             Ailments = ailments,
             Claims = claims,
@@ -100,6 +104,7 @@ public static class Content
                 Unlocks = ById(unlocks, x => x.Id),
                 Events = ById(events, x => x.Id),
                 Backgrounds = ById(backgrounds, x => x.Id),
+                Investments = ById(investments, x => x.Id),
                 Segments = ById(segments, x => x.Id),
                 Ailments = ById(ailments, x => x.Id),
                 Claims = ById(claims, x => x.Id),

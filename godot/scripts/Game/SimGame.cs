@@ -256,7 +256,7 @@ public sealed class SimGame : IGame
 
 		// what the trade says the shop is near to: the next things it can earn
 		foreach (var u in o.NextUnlocks.OrderByDescending(u => u.Progress).Take(2))
-			f.Prospects.Add((_content.Text($"unlock.{u.Id}.name"), u.Progress));
+			f.Prospects.Add((u.Id, _content.Text($"unlock.{u.Id}.name"), u.Progress));
 
 		// a printed testimonial appears in the next edition, once
 		if (!_testimonialPrinted && _state.Player.Flags.TryGetValue("testimonial_received", out var printed) && printed && report != null)

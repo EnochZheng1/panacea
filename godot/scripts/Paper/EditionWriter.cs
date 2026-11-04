@@ -46,8 +46,16 @@ public sealed class EditionWriter
         // ---- the lead: your advertisement dressed as news, or the news itself ----
         e.Lead = WriteLead(f, product);
         // standing matter, shuffled by the edition, for the make-up to balance the columns with
-        var standing = _copy.GetProperty("standing").EnumerateArray().Select(x => x.GetString() ?? "").ToList();
-        e.Standing = standing.OrderBy(x => Hash(f.Seed, f.Turn, x)).ToList();
+        // the pool is shuffled once per game and read on, twelve items an edition, so nothing is
+        // reprinted for several weeks; items of the day (the Statue, the General's funeral) come first
+        var pool = _copy.GetProperty("standing").EnumerateArray().Select(x => x.GetString() ?? "").OrderBy(x => Hash(f.Seed, 0, x)).ToList();
+        var today = f.Year * 100 + f.Month;
+        static int Ym(string t) => int.Parse(t[..4]) * 100 + int.Parse(t[5..7]);
+        var dated = _copy.GetProperty("standingDated").EnumerateArray()
+            .Where(x => Ym(x.GetProperty("from").GetString() ?? "0000-00") <= today && today <= Ym(x.GetProperty("to").GetString() ?? "9999-99"))
+            .Select(x => x.GetProperty("text").GetString() ?? "").ToList();
+        var from = (f.Turn * 12) % Math.Max(1, pool.Count);
+        e.Standing = dated.Concat(Enumerable.Range(0, Math.Min(12, pool.Count)).Select(k => pool[(from + k) % pool.Count])).ToList();
 
         // ---- left column: the consequences ----
         if (f.Deaths.Count > 0)
@@ -191,9 +199,12 @@ public sealed class EditionWriter
         }
         if (f.Prospects.Count > 0 && !f.FirstEdition)
         {
+            // gossip that says what the next thing is and what it takes, as the trade would put it
             string Near(double p) => p >= 0.75 ? "very near to" : p >= 0.4 ? "halfway to" : "some way yet from";
-            var talk = string.Join(", and ", f.Prospects.Select(x => $"{Near(x.Progress)} {x.Name.Trim('"').ToLowerInvariant()}"));
-            trade.Blocks.Add(new Block { Text = $"TRADE TALK.—The proprietor is said to be {talk}." });
+            var hints = _copy.GetProperty("prospectHints");
+            var x = f.Prospects[0];
+            var what = hints.TryGetProperty(x.Id, out var h) ? h.GetString() ?? "" : x.Name.Trim('"').ToLowerInvariant();
+            trade.Blocks.Add(new Block { Text = $"TRADE TALK.—The proprietor is said to be {Near(x.Progress)} {what}." });
         }
         var stockDelta = f.StockValueCents - f.StockValueStartCents;
         if (!f.FirstEdition && f.StockValueCents > 0)
@@ -330,7 +341,7 @@ public sealed class EditionWriter
                 Decks = new List<string> { "A Verdict Against the Bottle.", $"THE JURY FINDS THAT {Who(f, named.Person).ToUpperInvariant()}: \u201c{named.Verdict.ToUpperInvariant()}.\u201d", "The Board of Health Is Informed." },
                 Cut = "wc_death",
                 Cutline = "A GENTLEMAN SEEN AT THE INQUEST.",
-                Body = $"The bottle found at the bedside bore the label of {named.Product ?? product?.Name ?? "a proprietary medicine"}. Whatever its proprietor had to say for the purity of his preparations did not detain the jury long. Physicians observe that the remedy is purely vegetable, and that so is hemlock.",
+                Body = Pick(f, "verdictLead" + named.Person.Id, _copy.GetProperty("verdictLead")).Replace("{label}", named.Product ?? product?.Name ?? "a proprietary medicine"),
                 Clip = PersonClip(f, named.Person, "THE INQUEST", $"Verdict: \u201c{named.Verdict}.\u201d", "Your product is named in the findings. The Board of Health will take an interest, and the ward will talk."),
             };
         }
@@ -377,7 +388,7 @@ public sealed class EditionWriter
             var street = Home(f, d);
             return new Story
             {
-                Headline = d.Anonymous ? $"FOUND DEAD IN {street.ToUpperInvariant().Replace("THE ", "")}"
+                Headline = d.Anonymous ? $"FOUND DEAD IN {street.ToUpperInvariant()}"
                     : d.Infant ? $"THE {SplitName(d.Name).Surname.ToUpperInvariant()} INFANT"
                     : $"DEATH OF {ShortName(d).ToUpperInvariant()}",
                 Decks = new List<string>
@@ -444,8 +455,10 @@ public sealed class EditionWriter
         // never the same lead two editions running if the month offers another; the pressing
         // ones (a bought verdict, arrears, an idle shop, a bare shelf) follow up instead
         _leadKinds.TryGetValue(f.Turn - 1, out var last);
+        _leadKinds.TryGetValue(f.Turn - 2, out var before);
         var kind = options[0];
-        if (kind == last && kind is not ("bribed" or "arrears" or "nothing" or "shortage"))
+        var third = kind == last && kind == before;
+        if (kind == last && (third || kind is not ("bribed" or "arrears" or "nothing" or "shortage")))
             kind = options.FirstOrDefault(o => o != last) ?? kind;
         var again = kind == last;
         _leadKinds[f.Turn] = kind;

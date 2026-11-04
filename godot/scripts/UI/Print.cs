@@ -54,7 +54,7 @@ public static class Print
 		{
 			var w = word.ToString();
 			word.Clear();
-			if (w.Length < 8) { sb.Append(w); return; }
+			if (w.Length < 6) { sb.Append(w); return; }
 			sb.Append(Breaks(w));
 		}
 		foreach (var ch in text)
@@ -69,39 +69,10 @@ public static class Print
 		return sb.ToString();
 	}
 
-	/// <summary>
-	/// Where a compositor would break a word: between the consonants of a two- or three-letter
-	/// cluster that sits between vowels (um-brel-la, drug-gist, neigh-bor-hood), never inside a
-	/// pair that makes one sound (th, ch, sh, ph, gh, ck, wh, qu, ng), and never leaving fewer than
-	/// three letters on either side.
-	/// </summary>
+	/// <summary>Soft hyphens wherever the American hyphenation patterns allow (see <see cref="Hyphenator"/>).</summary>
 	private static string Breaks(string w)
 	{
-		static bool V(char c) => "aeiouyAEIOUY".IndexOf(c) >= 0;
-		static bool Pair(char a, char b) => (char.ToLowerInvariant(a), char.ToLowerInvariant(b)) is
-			('t', 'h') or ('c', 'h') or ('s', 'h') or ('p', 'h') or ('g', 'h') or ('c', 'k') or ('w', 'h') or ('q', 'u') or ('n', 'g');
-		static bool Onset(char a, char b) => (char.ToLowerInvariant(a), char.ToLowerInvariant(b)) is
-			('b', 'r') or ('c', 'r') or ('d', 'r') or ('f', 'r') or ('g', 'r') or ('p', 'r') or ('t', 'r') or
-			('b', 'l') or ('c', 'l') or ('f', 'l') or ('g', 'l') or ('p', 'l') or ('s', 'l') or ('s', 't') or ('s', 'p') or ('s', 'c');
-		var cuts = new List<int>();
-		var i = 0;
-		while (i < w.Length)
-		{
-			if (!V(w[i])) { i++; continue; }
-			var j = i + 1;
-			while (j < w.Length && !V(w[j]) && char.IsLetter(w[j])) j++;
-			var run = j - i - 1;
-			if (j < w.Length && V(w[j]))
-			{
-				var at = -1;
-				if (run == 2 && !Pair(w[i + 1], w[i + 2])) at = i + 2;
-				else if (run == 3)
-					// split before a pair that can begin a syllable (um-brel, ex-tra), else after two (respect-ful)
-					at = Pair(w[i + 1], w[i + 2]) ? i + 3 : Onset(w[i + 2], w[i + 3]) || Pair(w[i + 2], w[i + 3]) ? i + 2 : i + 3;
-				if (at >= 3 && w.Length - at >= 3) cuts.Add(at);
-			}
-			i = j;
-		}
+		var cuts = Hyphenator.Points(w);
 		if (cuts.Count == 0) return w;
 		var o = new System.Text.StringBuilder(w.Length + cuts.Count);
 		for (var k = 0; k < w.Length; k++)

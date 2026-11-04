@@ -563,13 +563,86 @@
     "SPORTING.—At Harry Hill's on Saturday, a sparring exhibition, four rounds, for a purse of ten dollars. The loser was revived with a remedy and is said to be doing well.",
     "LOST.—On the Bowery, a gentleman's umbrella with a horn handle. Also his health, which he believes he left at a druggist's. Reward for the umbrella.",
     "THE WEATHER.—The Signal Service predicts fair and colder. Druggists report the colder part already selling well.",
-    "POLICE COURT.—A woman giving the name of Bridget Smith was charged with stealing a bottle of soothing syrup from a counter in Hester street. She said it was for the baby. The baby was not produced.",
     "BOARDING.—A quiet front room for a single gentleman of regular habits. No cooking, no dogs, no remedies in the room.",
     "THE ELEVATED.—The Third Avenue line reports eleven passengers asleep at the terminus on Sunday, a record. All were roused but two, who were thought to be resting.",
     "SPORTING.—The pedestrian match at the Garden enters its fifth day. The leader attributes his endurance to cold water and a clear conscience, and is not expected to win.",
     "A CARD.—Mrs. E. Dooley wishes to thank the neighbors for their kindness during her late husband's illness, and the druggist on the corner for his.",
     "WANTED.—A strong boy to carry bottles. Must not drink from them. Apply at the back.",
     "AMUSEMENTS.—At the Bowery Theatre, \"The Poisoned Chalice,\" a drama in five acts. The management guarantees every death in it is a stage death.",
-    "FOUND.—In Chatham square, a purse containing forty cents and a recipe. The finder has kept the forty cents."
+    "FOUND.—In Chatham square, a purse containing forty cents and a recipe. The finder has kept the forty cents.",
+    "POLICE COURT.—A woman was charged with taking a bottle of soothing syrup from a counter in Hester street. The Justice, on learning the make of the syrup, discharged her and sent an officer for the proprietor.",
+    "THE HARBOR.—Two schooners in from Savannah with turpentine and rosin. The rosin is for the trade; the turpentine, it is said, is for the remedies.",
+    "CITY HALL.—The Aldermen met for eleven minutes and voted themselves a dinner. The question of the street-cleaning contract was referred to the dinner.",
+    "A CARD.—Prof. Lacour, the celebrated mesmerist, is obliged to postpone his lectures at Cooper Union, having been unable to wake his assistant.",
+    "THE SEASON.—Oysters are in, and so are the complaints. Physicians report a brisk trade in stomachs; druggists report the same.",
+    "SPORTING.—The Metropolitans beat the Brooklyns by eleven runs to four. The Atlantics' pitcher had taken a tonic for his arm.",
+    "LOST.—A pocketbook, in a Third Avenue car, containing a pawn ticket and a prescription. The prescription is of no value to the finder.",
+    "WANTED.—A lady of refinement to sign letters of thanks for a remedy. No experience of the remedy required.",
+    "TO LET.—Two rooms over a druggist's. The smell, the landlord says, is wholesome.",
+    "POLICE COURT.—A peddler of 'Vital Bitters' was fined for obstructing the sidewalk with a crowd. The Justice did not inquire into the bitters, and bought a bottle.",
+    "FIRE.—A blaze in a tenement in Baxter street was put out by the engine company before the third floor caught. A quantity of patent medicine in a rear room burned with a blue flame for an hour.",
+    "THE WEATHER.—Hot and close. The Health Department urges the poor to keep out of the sun, and the rich to keep out of the city, which they have.",
+    "AMUSEMENTS.—At the Bowery dime museum, the Living Skeleton is to wed the Fat Lady on Thursday. The bride attributes her figure to a remedy; the groom attributes his to another.",
+    "SHIPPING.—Cleared, the steamer Germanic for Liverpool, with grain, cotton and forty cases of an American remedy for the English market, which is said to be in need of it.",
+    "A CARD.—The undersigned has not been cured by any remedy whatever, and wishes it known, having been asked eleven times this week.",
+    "WANTED.—A man with a good beard to stand in a window and be pointed at. Apply to the proprietor of a hair restorer.",
+    "THE COURTS.—A suit by a customer against a proprietor of bitters, on the ground that they contained no bitters, was dismissed. The Judge found that nobody had expected them to.",
+    "FOUND.—On the steps of a church in Mott street, a basket containing a bottle of soothing syrup and nothing else. The police are inquiring for the rest.",
+    "STREET SCENE.—A sandwich man advertising a cure for consumption was taken ill at the corner of Canal street and carried home coughing, still advertising.",
+    "MARKETS.—Butter firm, eggs easier, coal dear. Patent medicines, as always, cheaper to make than to buy.",
+    "SPORTING.—At this office, a challenge: any man in the Sixth Ward may try the dumb-bells for a purse of five dollars. The purse has not been touched since Easter.",
+    "THE ELEVATED.—A gentleman fell asleep on the Second Avenue line and rode it six times. He is said to have been taking something for his nerves.",
+    "BOARDING.—Table board for gentlemen, two dollars a week. Medicines not provided at table.",
+    "CHARITY.—The ladies of St. Bartholomew's held a fair for the poor of the Sixth Ward. The poor were not admitted, but are said to have done well out of it.",
+    "WANTED.—Bottles, half-pint, round, green, by the gross. A good price for any that have been washed.",
+    "THE COURTS.—A druggist sued by a widow was found not liable, the jury holding that her husband had read the label and should have known better. The label said 'harmless.'"
+  ],
+  "prospectHints": {
+    "second_still": "a second copper, which the coppersmith will let him have once two hundred bottles have gone over the counter",
+    "percolator": "a glass percolator, which the instrument maker keeps for a man who has run ten batches",
+    "newspaper_ads": "space in these columns, which the Gazette sells to a man with a hundred dollars put by and a testimonial in print",
+    "doctor_title": "the title of Doctor, which the ward allows a man in good standing, and Cincinnati allows anyone with fifty dollars",
+    "third_still": "a third copper, which the coppersmith keeps for a house that has sold a thousand bottles",
+    "coroner_fees": "an understanding with the coroner, which every proprietor comes to after his first inquest",
+    "quality_control": "a chemist of his own, to be engaged after forty batches with a hundred dollars put by, or at once if a bad batch ever comes to light",
+    "larger_shop": "the cobbler's shop next door, which the landlord will let to a proprietor with twenty-five regulars and two hundred dollars",
+    "bulk_supplier": "terms from an importer on Pearl street, who gives them to a house that has brewed twenty-five batches"
+  },
+  "standingDated": [
+    {
+      "text": "THE PEDESTAL FUND.—The World's subscription for the Statue's pedestal passes ninety thousand dollars. A proprietor of bitters has offered a hundred if the lady may hold one of his bottles instead of the torch.",
+      "from": "1885-03",
+      "to": "1886-09"
+    },
+    {
+      "text": "GENERAL GRANT.—The ward is draped in black for the General's funeral. The druggists report that the General was a martyr to his throat, and that their throat lozenges are now for sale at a reduction.",
+      "from": "1885-08",
+      "to": "1885-09"
+    },
+    {
+      "text": "THE STATUE.—Liberty is unveiled in the harbor in a fog so thick that the guns could not find her. The ward celebrated with fireworks and a remedy, and some will feel both for a week.",
+      "from": "1886-10",
+      "to": "1886-11"
+    },
+    {
+      "text": "THE BLIZZARD.—Snow to the second story in Mulberry street; no cars, no coal, no milk. The druggists alone kept their doors open, and their prices.",
+      "from": "1888-03",
+      "to": "1888-04"
+    },
+    {
+      "text": "THE BRIDGE.—Twenty thousand crossed the Brooklyn Bridge on Sunday. A hawker of a cure for vertigo did a good trade at the middle.",
+      "from": "1885-01",
+      "to": "1890-12"
+    },
+    {
+      "text": "THE ELECTION.—The ward voted early and often. A remedy for hoarseness was given away at the polling place, by a candidate who had several.",
+      "from": "1888-11",
+      "to": "1888-11"
+    }
+  ],
+  "verdictLead": [
+    "The bottle found at the bedside bore the label of {label}. Whether its proprietor spoke for his preparations or kept away, it did not detain the jury long. Physicians observe that the remedy is purely vegetable, and that so is hemlock.",
+    "A chemist from the College of Pharmacy gave evidence that the bottle of {label} contained, besides syrup and spirit, enough of a certain drug to quiet a dray-horse. The proprietor's advertisements describe it as gentle.",
+    "The jury retired for twenty minutes and returned with the label of {label} written into its verdict. The foreman remarked that he had a bottle of it at home, and would be pouring it away."
   ]
 }

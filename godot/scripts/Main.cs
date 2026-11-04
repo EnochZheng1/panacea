@@ -450,7 +450,7 @@ public partial class Main : Control
 		text.AddChild(Print.Rule(3, 1, 2));
 		foreach (var line in c.Lines) text.AddChild(Print.Body(Print.Escape(line), 17, justify: false));
 		text.AddChild(new Control { CustomMinimumSize = new Vector2(0, 8) });
-		text.AddChild(Print.Label("Click anywhere, or press Escape, to put it down.", Print.FellIt, 14, color: Print.Faint));
+		text.AddChild(Print.Label("Put it down. (Click, or Escape.)", Print.FellIt, 14, color: Print.Faint));
 		row.AddChild(text);
 		var card = Print.Slip(row, 20);
 		card.RotationDegrees = -1.2f;

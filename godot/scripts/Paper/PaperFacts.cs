@@ -49,7 +49,7 @@ public sealed class PaperFacts
     public long StockValueCents;
     public long StockValueStartCents;
     /// <summary>The nearest things the shop can earn, with how far along it is (0..1).</summary>
-    public List<(string Name, double Progress)> Prospects = new();
+    public List<(string Id, string Name, double Progress)> Prospects = new();
     /// <summary>The customer whose grateful letter was printed, if it was printed this month.</summary>
     public PersonFact? Testimonial;
     /// <summary>Bottles sold the month before, so the paper can tell a slump from a steady trade.</summary>

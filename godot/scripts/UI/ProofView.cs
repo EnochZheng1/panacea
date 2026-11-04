@@ -103,6 +103,8 @@ public partial class ProofView : Control
 
 	public void OpenDrawer(string which)
 	{
+		// a game that has ended has no proof to open a drawer on
+		if (_game == null) return;
 		_drawerOpened = true;
 		_drawer = which;
 		Rebuild();
@@ -217,7 +219,7 @@ public partial class ProofView : Control
 		Struck(lc, last.Deaths.Select(d => d.Anonymous ? "UNKNOWN.—A body, unclaimed." : d.Infant ? $"{SurnameOf(d.Name)}.—The infant of {d.Name}." : $"{SurnameOf(d.Name)}.—{d.Name}."), "No deaths last month.");
 		lc.AddChild(Head("CORONER'S COURT."));
 		var inquests = m.Letters.Where(l => l.Title.StartsWith("Inquest", StringComparison.Ordinal)).ToList();
-		if (inquests.Count == 0) foreach (var w in new[] { 1f, 0.7f }) lc.AddChild(Ghost(w));
+		if (inquests.Count == 0) lc.AddChild(Print.Label("set after press", Print.FellIt, 12, HorizontalAlignment.Center));
 		foreach (var q in inquests.Take(2))
 			lc.AddChild(Print.Body($"{Print.Escape(q.Title)} sits this month. [i]See your letters.[/i]", 12));
 		if (inquests.Count > 2) lc.AddChild(Print.Body($"[i]And {inquests.Count - 2} more: see your letters.[/i]", 12));
@@ -275,7 +277,7 @@ public partial class ProofView : Control
 
 	private Control YourSpace(DeskModel m, int tier, FormulaRow? product)
 	{
-		var box = new Dashed(8) { Accent = tier > 0 && product != null ? Print.Green : null };
+		var box = new Dashed(8) { Accent = tier > 0 && product != null ? Print.Ink : null };
 		if (_punch) { _punch = false; Anim.Punch(box, 1.07f); }
 		var v = new VBoxContainer();
 		v.AddThemeConstantOverride("separation", 3);

@@ -137,7 +137,7 @@ public partial class LettersDesk : VBoxContainer
 		{
 			var h = 0u;
 			foreach (var ch in d.Letters[i].InstanceId) h = (h ^ ch) * 16777619u;
-			AddChild(Sheet(d.Letters[i], press.AddDays(-2 - (int)(h % 12)), i));
+			AddChild(Sheet(d.Letters[i], press.AddDays(-2 - (int)(h % 12)), i, d.Letters.Take(i + 1).Count(x => x.EventId == "inquest")));
 		}
 	}
 
@@ -153,13 +153,16 @@ public partial class LettersDesk : VBoxContainer
 		return s;
 	}
 
-	private Control Sheet(Letter l, DateTime date, int index)
+	private Control Sheet(Letter l, DateTime date, int index, int inquestNo = 0)
 	{
 		var head = Heads.GetValueOrDefault(l.EventId) ?? new Head("", "", "Yours, &c.", "", "", "Sir,—", "");
 		var at = l.Title.IndexOf("Death of ", StringComparison.Ordinal);
 		var concerns = at >= 0 ? l.Title[(at + 9)..].Replace("the Infant of", "the infant child of").Replace("an Unknown", "an unknown") : "";
 		if (concerns.StartsWith("an unknown", StringComparison.Ordinal)) concerns = concerns.ToLowerInvariant();
 		var body = head.Voice.Length > 0 ? head.Voice.Replace("{name}", concerns.Length > 0 ? concerns : "a person") : l.Body;
+		// the Clerk keeps count: a busy month's summonses say so
+		if (l.EventId == "inquest" && inquestNo >= 2)
+			body += $" This is the {Nth(inquestNo)} such notice the Clerk has had the honour to serve on you this month.";
 		var v = new VBoxContainer();
 		v.AddThemeConstantOverride("separation", 6);
 
@@ -215,15 +218,23 @@ public partial class LettersDesk : VBoxContainer
 			}).CallDeferred();
 			if (Risks.TryGetValue($"{l.EventId}.{id}", out var risk))
 			{
+				string? pencil = null;
 				// the verdict is given as soon as the reply goes: say what the odds are now
 				if (l.Odds.TryGetValue(id, out var p))
-					risk += id == "bribe_coroner"
-						? $" As things stand, about {Chance(p)} would come out."
-						: $" The jury sits at once; as things stand, about {Chance(p)} would name your bottle" +
-							(l.Odds.TryGetValue(id == "testify" ? "stay_silent" : "testify", out var q) && Chance(q) == Chance(p) ? ", whether you speak or not." : ".");
+					pencil = id == "bribe_coroner"
+						? $"Pencilled in the margin: {Chance(p)} that it comes out. —J.D."
+						: $"Pencilled in the margin: {Chance(p)} for naming" +
+							(l.Odds.TryGetValue(id == "testify" ? "stay_silent" : "testify", out var q) && Chance(q) == Chance(p) ? ", speak or not" : "") + ". The jury sits at once. —J.D.";
 				var line = Print.Label(risk, Print.FellIt, 13, color: new Color(Print.Ink, 0.85f));
 				riskLine = line;
 				v.AddChild(line);
+				if (pencil != null)
+				{
+					var margin = Print.Label(pencil, Print.FellIt, 13, HorizontalAlignment.Right, new Color(Print.Ink, 0.85f));
+					margin.RotationDegrees = -0.8f;
+					riskLine = margin;
+					v.AddChild(margin);
+				}
 			}
 		}
 		var s = Print.Slip(v, 18);
@@ -303,6 +314,8 @@ public partial class LettersDesk : VBoxContainer
 		};
 		return r;
 	}
+
+	private static string Nth(int n) => n switch { 2 => "second", 3 => "third", 4 => "fourth", 5 => "fifth", 6 => "sixth", 7 => "seventh", 8 => "eighth", _ => $"{n}th" };
 
 	private static string Ordinal(int d) => (d % 100) is 11 or 12 or 13 ? "th" : (d % 10) switch { 1 => "st", 2 => "nd", 3 => "rd", _ => "th" };
 }

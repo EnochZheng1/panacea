@@ -269,8 +269,9 @@ public partial class EditionView : ScrollContainer
 			if (tallest - Foot(shortest) < 70) return;
 			if (headed.Add(shortest))
 			{
+				// one head of each kind on a page: the first column filled is BRIEFLY., the next CITY ITEMS.
 				shortest.AddChild(Print.Rule(1.2f, 0.5f, 2));
-				shortest.AddChild(Print.Label("BRIEFLY.", Print.Rye, 15, HorizontalAlignment.Center));
+				shortest.AddChild(Print.Label(headed.Count == 1 ? "BRIEFLY." : headed.Count == 2 ? "CITY ITEMS." : "SUNDRY MATTERS.", Print.Rye, 15, HorizontalAlignment.Center));
 			}
 			var t = standing[next++];
 			var dash = t.IndexOf(".—", StringComparison.Ordinal);

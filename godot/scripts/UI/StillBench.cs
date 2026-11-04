@@ -354,7 +354,7 @@ public partial class StillDrawing : Control
 					var q = k / 8f;
 					wisp[k] = Joint + new Vector2(-6 - 10 * w + Mathf.Sin(q * 5f + _t * 1.5f + w) * (3 + 6 * q), -p * 38 - q * 22);
 				}
-				DrawPolyline(wisp, new Color(ink, 0.55f * (1 - p)), 1.4f);
+				DrawPolyline(wisp, new Color(ink, Mathf.Clamp(1.4f * (1 - p), 0, 1)), 1.8f);
 			}
 		}
 		if (_flare > 0) DrawCircle(FireDoor.GetCenter(), 30 * _flare, new Color(paper, 0.35f * _flare));

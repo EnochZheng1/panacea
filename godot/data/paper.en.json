@@ -644,5 +644,27 @@
     "The bottle found at the bedside bore the label of {label}. Whether its proprietor spoke for his preparations or kept away, it did not detain the jury long. Physicians observe that the remedy is purely vegetable, and that so is hemlock.",
     "A chemist from the College of Pharmacy gave evidence that the bottle of {label} contained, besides syrup and spirit, enough of a certain drug to quiet a dray-horse. The proprietor's advertisements describe it as gentle.",
     "The jury retired for twenty minutes and returned with the label of {label} written into its verdict. The foreman remarked that he had a bottle of it at home, and would be pouring it away."
-  ]
+  ],
+  "investmentNotices": {
+    "branch_shop.bought": "IN THE TRADE.—The proprietor of {product} has taken a corner shop in the Ninth Ward, fitted with counter and gas, and put a clerk in it. The Ninth Ward is said to be delighted, and has not yet been asked.",
+    "almanac.bought": "IN THE TRADE.—Ten thousand copies of the proprietor's almanac are going about the city, with the moon's phases, a recipe for pickles and every claim on his label. The pickles are said to be reliable.",
+    "wholesale_contract.bought": "IN THE TRADE.—Messrs. Hegeman & Co. of Paterson will take the goods of {product} by the dozen, for druggists in Paterson, Newark and Yonkers. New Jersey is to be cured wholesale.",
+    "laboratory.bought": "IN THE TRADE.—A back room on Mulberry street has been fitted with retorts, and a German chemist installed who asks no questions. The neighbors have begun to ask some.",
+    "almanac.lapsed": "IN THE TRADE.—The proprietor's almanac for the year is out of date, and is now chiefly used for lighting fires. It may be had again on application.",
+    "branch_shop.lost": "IN THE TRADE.—The branch in the Ninth Ward has put up its shutters. The clerk is said to have taken the till, and the ward to have taken the clerk's side.",
+    "wholesale_contract.lost": "IN THE TRADE.—Messrs. Hegeman & Co. of Paterson have cancelled their order for {product}, having read the papers. New Jersey will have to find its own remedies.",
+    "laboratory.mishap": "FIRE.—A blaze in a back room on Mulberry street brought out Engine No. 9 on {weekday}. A quantity of ether was found to be the cause, and a German chemist the excuse. The proprietor's loss is put at twenty-five dollars, and the talk at a good deal more."
+  },
+  "outOfTown": [
+    "OUT OF TOWN.—A death at Paterson is laid by the family to a remedy bought from a druggist there. The druggist says he had it by the dozen from New-York, and is sorry.",
+    "OUT OF TOWN.—The Newark papers report a death from a patent medicine sold over a counter in Market street. The bottle came from New-York, by the gross.",
+    "OUT OF TOWN.—At Yonkers, a coroner's jury has found that a laborer died of a remedy he did not know the name of. Nor, it is said, did the druggist who sold it."
+  ],
+  "callerSources": {
+    "ward": "from the ward",
+    "newspaper": "by the Gazette",
+    "subscriptions": "by the society",
+    "branch_shop": "at the branch",
+    "almanac": "by the almanac"
+  }
 }

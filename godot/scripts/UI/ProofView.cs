@@ -35,7 +35,7 @@ public partial class ProofView : Control
 		DropBench();
 		Rebuild();
 		// the keyboard goes back to the button that opened the drawer, never to the press
-		var opener = was switch { "still" => "THE STILL", "formula" => "FORMULA BOOK", "supplies" => "SUPPLIES", "letters" => "OPEN THE LETTERS", _ => "" };
+		var opener = was switch { "still" => "THE STILL", "formula" => "FORMULA", "supplies" => "SUPPLIES", "ventures" => "VENTURES", "letters" => "OPEN THE LETTERS", _ => "" };
 		Callable.From(() =>
 		{
 			var b = Print.Focusables(this).OfType<Button>().FirstOrDefault(x => x.Text == opener && !x.Disabled);
@@ -576,9 +576,10 @@ public partial class ProofView : Control
 		v.AddChild(grid);
 		var row = new HBoxContainer();
 		row.AddThemeConstantOverride("separation", 4);
-		foreach (var (key, label) in new[] { ("still", "THE STILL"), ("formula", "FORMULA BOOK"), ("supplies", "SUPPLIES") })
+		// the house's long game sits beside the works: the prospectus of improvements
+		foreach (var (key, label) in new[] { ("still", "THE STILL"), ("formula", "FORMULA"), ("supplies", "SUPPLIES"), ("ventures", "VENTURES") })
 		{
-			var b = Print.Button(label, 12);
+			var b = Print.Button(label, 11);
 			b.SizeFlagsHorizontal = SizeFlags.ExpandFill;
 			var k = key;
 			b.Pressed += () => OpenDrawer(k);
@@ -665,6 +666,7 @@ public partial class ProofView : Control
 				{
 					case "letters": { var t = new LettersDesk(_game); t.Changed += Rebuild; _tool = t; break; }
 					case "still": { var t = new StillBench(_game); t.Changed += Rebuild; _tool = t; break; }
+					case "ventures": { var t = new Prospectus(_game); t.Changed += Rebuild; _tool = t; break; }
 					default: { var t = new OrderForm(_game); t.Changed += Rebuild; _tool = t; break; }
 				}
 				_toolKind = which;

@@ -63,7 +63,7 @@ public sealed class EditionWriter
             var deaths = new Section { Title = S(sec, "deaths") };
             foreach (var d in f.Deaths)
             {
-                var key = d.Anonymous ? "deathAnonymous" : d.Infant ? "deathInfant" : "deathSelf";
+                var key = d.OutOfTown ? "outOfTown" : d.Anonymous ? "deathAnonymous" : d.Infant ? "deathInfant" : "deathSelf";
                 var text = Fill(Pick(f, key + d.Id, _copy.GetProperty(key)), f, d, productName);
                 SplitLead(text, out var lead, out var rest);
                 var q = f.Inquests.FirstOrDefault(x => x.Person.Id == d.Id);
@@ -150,6 +150,12 @@ public sealed class EditionWriter
                 Clip = PersonClip(f, tw, "YOUR TESTIMONIAL", "Printed as she asked, very nearly.", "Standing in the ward rose, and the Gazette will sell you space once you have $100 put by."),
             });
         }
+        foreach (var (id, name, change) in f.InvestmentNews)
+        {
+            var key = $"{id}.{change}";
+            if (_copy.GetProperty("investmentNotices").TryGetProperty(key, out var said))
+                notices.Blocks.Add(new Block { Text = Fill(said.GetString() ?? "", f, null, productName), Clip = new Clipping { Kicker = "YOUR VENTURES", Title = name, Cut = "wc_proprietor", Lines = { change switch { "bought" => "Taken up this month.", "lapsed" => "Run out: it may be taken up again in the prospectus.", "lost" => "Lost: it is no longer yours.", _ => "An accident on the premises." } } } });
+        }
         if (f.AdsLapsed)
             notices.Blocks.Add(new Block { Text = Fill(Pick(f, "lapsed", _copy.GetProperty("adsLapsed")), f, null, productName) });
         foreach (var (id, title, description) in f.Unlocks)
@@ -209,6 +215,12 @@ public sealed class EditionWriter
         var stockDelta = f.StockValueCents - f.StockValueStartCents;
         if (!f.FirstEdition && f.StockValueCents > 0)
             trade.Blocks.Add(new Block { Text = $"Stock on the shelf and in the jars, at cost: {Money(f.StockValueCents)}" + (Math.Abs(stockDelta) >= 100 ? $" ({(stockDelta > 0 ? "up" : "down")} {Money(Math.Abs(stockDelta))} on the month)." : "."), Clip = books });
+        var sources = _copy.GetProperty("callerSources");
+        var callers = f.Callers.Where(c => c.Callers > 0).ToList();
+        if (callers.Count > 1)
+            trade.Blocks.Add(new Block { Text = "Callers at the counter: " + string.Join(", ", callers.Select(c => $"{Words(c.Callers)} {(sources.TryGetProperty(c.Source, out var w) ? w.GetString() : c.Source)}")) + ".", Clip = books });
+        if (f.WholesaleOrdered > 0)
+            trade.Blocks.Add(new Block { Text = $"Wholesale: the druggists out of town ordered {Words(f.WholesaleOrdered)} bottles and had {Words(f.WholesaleDelivered)}, paying {Money(f.WholesaleRevenueCents)}." + (f.WholesaleDelivered < f.WholesaleOrdered ? " The rest went short." : ""), Clip = books });
         if (f.TurnedAwayByPrice > 0)
             trade.Blocks.Add(new Block { Text = $"Callers who asked the price and went away: {Words(f.TurnedAwayByPrice)}.", Clip = books });
         if (!f.FirstEdition && f.CashLines.Count > 0)
@@ -345,12 +357,14 @@ public sealed class EditionWriter
                 Clip = PersonClip(f, named.Person, "THE INQUEST", $"Verdict: \u201c{named.Verdict}.\u201d", "Your product is named in the findings. The Board of Health will take an interest, and the ward will talk."),
             };
         }
-        if (f.Deaths.Count >= 3)
+        // deaths out of town are the druggists' strangers: the ward leads with its own
+        var local = f.Deaths.Where(x => !x.OutOfTown).ToList();
+        if (local.Count >= 3)
         {
             return new Story
             {
                 Headline = "A SICKLY SEASON",
-                Decks = new List<string> { "The Ward Mourns.", $"{Words(f.Deaths.Count).ToUpperInvariant()} DEATHS IN THE WARD THIS MONTH; UNDERTAKERS REPORT A BRISK TRADE." },
+                Decks = new List<string> { "The Ward Mourns.", $"{Words(local.Count).ToUpperInvariant()} DEATHS IN THE WARD THIS MONTH; UNDERTAKERS REPORT A BRISK TRADE." },
                 Cut = "wc_death",
                 Cutline = "A GENTLEMAN SEEN IN THE NEIGHBORHOOD.",
                 Body = "The deaths column runs long this month. Physicians attribute the trouble to the weather, the water and the foreign element, in that order. Nobody has thought to look at the bottles.",
@@ -382,9 +396,9 @@ public sealed class EditionWriter
                 Clip = subject == null ? null : PersonClip(f, subject, "QUOTED IN YOUR NOTICE", "The Gazette set your advertisement as news, and found this customer to quote. Nobody asked them."),
             };
         }
-        if (f.Deaths.Count > 0)
+        if (local.Count > 0)
         {
-            var d = f.Deaths[0];
+            var d = local[0];
             var street = Home(f, d);
             return new Story
             {

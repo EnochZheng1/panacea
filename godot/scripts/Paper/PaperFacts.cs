@@ -71,6 +71,8 @@ public sealed class ProductFact
     public string Id = "";
     public string Name = "";
     public long PriceCents;
+    /// <summary>The price last month, when it was different (the markets report the change).</summary>
+    public long? PrevPriceCents;
     public List<string> ClaimNames = new();
     public int Stock;
 }

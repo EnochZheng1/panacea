@@ -85,7 +85,7 @@ public partial class StillBench : HBoxContainer
 			_right.AddChild(Print.Body($"[i]Every still is on the fire ({Print.Escape(lit)}). The bottles will be on the shelf by press time; send the paper to press when you are ready.[/i]", 15, justify: false));
 			return;
 		}
-		var stills = d.StillsFree == 1 ? "One still is free" : $"{d.StillsFree} stills are free";
+		var stills = d.StillsFree == 1 ? "One still is free" : d.StillsFree == 2 ? "Two stills are free" : $"{d.StillsFree} stills are free";
 		_right.AddChild(Print.Body($"[i]{stills} this month. A batch is bottled by the time the paper goes to press.[/i]", 14, justify: false));
 		foreach (var (name, onFire) in d.Brewing)
 			_right.AddChild(Print.Label($"On the fire: {onFire} bottles of {name}", Print.FellIt, 15));

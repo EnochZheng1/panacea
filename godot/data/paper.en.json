@@ -133,7 +133,7 @@
     "AT THE LABORATORY.—{bottles} bottles of {product} came out wrong this month and were poured away. The gutter in {street} is said to be unusually cheerful."
   ],
   "stockSeized": [
-    "SEIZED.—Officers of the Board of Health carried away {bottles} bottles of a proprietary medicine from premises in {street}."
+    "SEIZED.—Officers of the Board of Health carried away {bottles} bottles of {product} from the shop on Mulberry street."
   ],
   "adsLapsed": [
     "TO ADVERTISERS.—The notice of the proprietor of {product} could not be paid for at press, and does not appear in this edition. The Gazette prints on cash terms, like the coroner."
@@ -323,13 +323,13 @@
       "cutline": "A GENTLEMAN LEAVING THE CORONER'S OFFICE.",
       "decks": [
         "A Short Inquest.",
-        "THE JURY RETURNS ITS VERDICT IN TIME FOR LUNCHEON; NO BOTTLE IS EXAMINED.",
+        "THE CORONER RETURNS HIS VERDICT IN TIME FOR LUNCHEON; NO BOTTLE IS EXAMINED.",
         "The Ward Is Reassured."
       ],
       "bodies": [
         "The inquest upon the body of {name} was over before the jury had taken their coats off. Coroner {coroner} pronounced himself satisfied, and was seen afterward at Delmonico's, satisfied again.",
         "Asked why no bottle was examined at the inquest upon {name}, Coroner {coroner} replied that he did not hold with chemistry, and that his new overcoat was none of our business.",
-        "The jury in the matter of {name} returned their verdict without retiring. One juror, asked what he made of the evidence, said that there had not been any, and that this had been explained to him."
+        "The Coroner settled the matter of {name} himself, the jury being told that their views were not required. One juror, asked what he made of the evidence, said that there had not been any, and that this had been explained to him."
       ]
     },
     "arrears": {

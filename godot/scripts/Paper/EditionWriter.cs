@@ -608,7 +608,11 @@ public sealed class EditionWriter
     {
         var m = _copy.GetProperty("markets");
         var parts = new List<string> { S(m, "lead") };
-        if (product != null) parts.Add($"{product.Name}, steady at {Money(product.PriceCents)}".TrimEnd('.') + ".");
+        // the remedy's own quotation, with the change if the proprietor moved his price
+        if (product != null)
+            parts.Add(product.PrevPriceCents is long was && was != product.PriceCents
+                ? $"{product.Name}, {(product.PriceCents > was ? "up" : "down")} to {Money(product.PriceCents)} from {Money(was)}".TrimEnd('.') + "."
+                : $"{product.Name}, steady at {Money(product.PriceCents)}".TrimEnd('.') + ".");
         foreach (var (name, cost) in f.Markets.Take(4))
             parts.Add($"{name}, {Money(cost)} the ounce.");
         var coffins = m.GetProperty("coffinsBase").GetInt32() + f.Deaths.Count * m.GetProperty("coffinsPerDeath").GetInt32();
@@ -685,14 +689,22 @@ public sealed class EditionWriter
             else if (p.Infant) c.Lines.Add(Cap(Occupation(p)) + (ailment.Length == 0 ? ", who buys at the shop for her infant." : ailment.StartsWith("a ") ? $", who buys at the shop for {ailment}." : $", who buys at the shop for her infant's {ailment}."));
             else if (p.Name.StartsWith("Widow ", StringComparison.Ordinal) && Occupation(p) == "widow") c.Lines.Add(ailment.Length > 0 ? $"Came to the shop for {ailment}." : "A customer of the shop.");
             else c.Lines.Add(Cap(Occupation(p)) + (ailment.Length > 0 ? $", who came to the shop for {ailment}." : "."));
-            c.Lines.Add(kicker == "A NEW CUSTOMER" ? "New to the shop this month." : p.Months switch
+            if (child)
             {
-                < 0 => "Not one of your regulars, so far as the books show.",
-                0 => "New to the shop this month.",
-                1 => "A regular for a month.",
-                _ => $"A regular for {p.Months} months.",
-            });
-            if (!string.IsNullOrEmpty(p.LastSeen)) c.Lines.Add($"Last seen at the counter: {p.LastSeen}.");
+                // the infant was no customer: its mother bought for it
+                if (p.Months > 0) c.Lines.Add($"Its mother bought the remedy for it for {p.Months} month{(p.Months == 1 ? "" : "s")}.");
+            }
+            else
+            {
+                c.Lines.Add(kicker == "A NEW CUSTOMER" ? "New to the shop this month." : p.Months switch
+                {
+                    < 0 => "Not one of your regulars, so far as the books show.",
+                    0 => "New to the shop this month.",
+                    1 => "A regular for a month.",
+                    _ => $"A regular for {p.Months} months.",
+                });
+                if (!string.IsNullOrEmpty(p.LastSeen)) c.Lines.Add($"Last seen at the counter: {p.LastSeen}.");
+            }
         }
         c.Lines.AddRange(extra);
         return c;

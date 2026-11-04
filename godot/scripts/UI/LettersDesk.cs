@@ -69,9 +69,9 @@ public partial class LettersDesk : VBoxContainer
 	/// <summary>What each answer to the coroner risks, said plainly under the slip.</summary>
 	private static readonly Dictionary<string, string> Risks = new()
 	{
-		["inquest.testify"] = "Your word helps a mild bottle, and hurts a strong one: the jury's chemist tests whatever you bring. If they name your bottle, suspicion rises 24.",
-		["inquest.stay_silent"] = "No chemistry is heard, which suits a strong bottle. If the jury names your bottle anyway, suspicion rises 24.",
-		["inquest.bribe_coroner"] = "The verdict you pay for. His fee rises every time, and an envelope can come to light: a bought verdict found out is worse than a jury's.",
+		["inquest.testify"] = "Your word helps a mild bottle, and hurts a strong one: the jury's chemist tests whatever you bring. If they name your bottle, suspicion rises 24 and your standing falls.",
+		["inquest.stay_silent"] = "No chemistry is heard, which suits a strong bottle. If the jury names your bottle anyway, suspicion rises 24 and your standing falls.",
+		["inquest.bribe_coroner"] = "The verdict you pay for. His fee rises with every envelope and with the talk in the ward, and an envelope can come to light: a bought verdict found out is worse than a jury's.",
 		["grateful_letter.print_testimonial"] = "Standing in the ward +3, and the Gazette will sell you space once you have $100 put by.",
 		["grateful_letter.file_away"] = "Nothing gained, nothing risked.",
 		["diploma_mill.buy_diploma"] = "$50, and you may style yourself Doctor: a new claim for the type case. You become better known, for better or worse.",
@@ -100,7 +100,7 @@ public partial class LettersDesk : VBoxContainer
 
 	/// <summary>"one in 20", "three in 10": odds a reader can feel.</summary>
 	private static string Chance(double p) =>
-		p < 0.08 ? $"one in {Math.Max(2, (int)Math.Round(1 / Math.Max(p, 0.01)))}" : $"{Math.Clamp((int)Math.Round(p * 10), 1, 9)} in 10";
+		p < 0.05 ? "fewer than one in 20" : p < 0.1 ? "about one in 10" : $"about {Math.Clamp((int)Math.Round(p * 10), 1, 9)} in 10";
 
 	public LettersDesk(IGame game)
 	{
@@ -189,7 +189,7 @@ public partial class LettersDesk : VBoxContainer
 		v.AddChild(Print.Label(note ? date.DayOfWeek + "." : $"{(l.EventId == "diploma_mill" ? "Cincinnati" : "New-York")}, {date.ToString("MMMM d", CultureInfo.InvariantCulture)}{Ordinal(date.Day)}, {date.Year}.", Print.FellIt, 14, HorizontalAlignment.Right));
 		v.AddChild(Print.Label("Re: " + EditionWriter.Set(l.Title), Print.Rye, 15));
 		v.AddChild(Print.Body(note ? $"[i]{Print.Escape(EditionWriter.Set(head.Salute + body))}[/i]" : Print.Escape(EditionWriter.Set(head.Salute + body)), note ? 17 : 16, justify: false));
-		v.AddChild(Print.Label(head.Sign, Print.FellIt, 14, HorizontalAlignment.Right));
+		v.AddChild(Print.Label(l.From != null ? $"Your grateful servant, {l.From}" : head.Sign, Print.FellIt, 14, HorizontalAlignment.Right));
 
 		// the replies, each a slip to send back
 		v.AddChild(Print.Label("YOUR REPLY", Print.Fell, 12));
@@ -255,8 +255,15 @@ public partial class LettersDesk : VBoxContainer
 		var d1 = _game.Desk();
 		var after = d1.CashCents;
 		var money = after == before ? "" : after < before ? $" It cost {EditionWriter.Money(before - after)}." : $" It brought in {EditionWriter.Money(after - before)}.";
-		// an inquest sits the moment it is answered: say what the jury did, not "next edition"
-		var outcome = !inquest ? " The outcome, if any, will be in the next edition."
+		// say what happened at once; only what has not happened yet is left to the paper
+		var stockGone = d0.Formulas.Sum(f => f.Stock) - d1.Formulas.Sum(f => f.Stock);
+		var talk = d1.Heat - heat0;
+		var standing = d1.Reputation - d0.Reputation;
+		var now = new List<string>();
+		if (stockGone > 0) now.Add($"{stockGone} bottles are gone from the shelf");
+		if (Math.Abs(talk) >= 1) now.Add($"suspicion {(talk > 0 ? "rises" : "falls")} {Math.Abs(talk):0}");
+		if (Math.Abs(standing) >= 1) now.Add($"your standing {(standing > 0 ? "rises" : "falls")} {Math.Abs(standing):0}");
+		var outcome = !inquest ? (now.Count > 0 ? " At once: " + string.Join("; ", now) + "." : "") + " Anything further will be in the next edition."
 			: choice == "bribe_coroner" ? " The coroner has your envelope; the verdict will be the one you paid for."
 			: d1.Heat > heat0 + 10 ? $" The jury sat at once and named your bottle. Suspicion is now {d1.Heat:0} of 100. The paper will have the rest."
 			: " The jury sat at once and found nothing against you. The paper will have the verdict.";

@@ -114,6 +114,8 @@ public sealed class Letter
 	public string EventId = "";
 	public string Title = "";
 	public string Body = "";
+	/// <summary>Who wrote it, when the paper knows (a grateful customer signs her own name).</summary>
+	public string? From;
 	/// <summary>For an inquest: the chance the jury names your bottle, by reply id.</summary>
 	public Dictionary<string, double> Odds = new();
 	public List<(string Id, string Text)> Choices = new();

@@ -71,11 +71,15 @@ public sealed class SimGame : IGame
 	/// <summary>Everyone ever seen at the counter, as last seen (the paper remembers them).</summary>
 	private readonly Dictionary<string, Regular> _known = new();
 	private bool _testimonialPrinted;
+	private string? _gratefulWriter;
+	/// <summary>Each remedy's price when the last edition went to press.</summary>
+	private readonly Dictionary<string, long> _lastPrice = new();
 
 	public void GoToPress()
 	{
 		if (Ended) return;
 		foreach (var r in Desk().Regulars) _known[r.Name] = r;
+		foreach (var p in Facts.Products) _lastPrice[p.Id] = p.PriceCents;
 		var before = Facts.Sales.Sum(x => x.Bottles);
 		var report = Sim.Game.EndTurnInPlace(_state, _content);
 		Facts = BuildFacts(report);
@@ -175,6 +179,14 @@ public sealed class SimGame : IGame
 				Body = Sub(_content.Text($"event.{e.EventId}.body")),
 			};
 			foreach (var c in e.ChoiceIds) letter.Choices.Add((c, Sub(_content.Text($"event.{e.EventId}.choice.{c}"))));
+			// a grateful letter is written by a married customer of the shop, chosen once, who will
+			// also be the name on the testimonial if it is printed
+			if (e.EventId == "grateful_letter")
+			{
+				_gratefulWriter ??= o.Customers.FirstOrDefault(c => c.Name.StartsWith("Mrs.", StringComparison.Ordinal) && c.Mood == "delighted")?.Id
+					?? o.Customers.FirstOrDefault(c => c.Name.StartsWith("Mrs.", StringComparison.Ordinal))?.Id;
+				letter.From = o.Customers.FirstOrDefault(c => c.Id == _gratefulWriter)?.Name;
+			}
 			// the jury's odds, as the sim will roll them the moment the reply is sent
 			var record = e.DeathId == null ? null : _state.Deaths.Find(x => x.Id == e.DeathId);
 			if (record != null && e.EventId == "inquest")
@@ -235,6 +247,7 @@ public sealed class SimGame : IGame
 				Id = p.Id,
 				Name = p.Name,
 				PriceCents = p.PriceCents,
+				PrevPriceCents = _lastPrice.TryGetValue(p.Id, out var lp) ? lp : null,
 				Stock = p.Stock,
 				ClaimNames = p.Claims.Select(c => _content.Text($"claim.{c}.name")).ToList(),
 			});
@@ -262,7 +275,9 @@ public sealed class SimGame : IGame
 		if (!_testimonialPrinted && _state.Player.Flags.TryGetValue("testimonial_received", out var printed) && printed && report != null)
 		{
 			_testimonialPrinted = true;
-			var writer = o.Customers.FirstOrDefault(c => c.Mood == "delighted" && IsFemale(c.Name)) ?? o.Customers.FirstOrDefault(c => IsFemale(c.Name)) ?? o.Customers.FirstOrDefault();
+			var writer = o.Customers.FirstOrDefault(c => c.Id == _gratefulWriter)
+				?? o.Customers.FirstOrDefault(c => c.Mood == "delighted" && c.Name.StartsWith("Mrs.", StringComparison.Ordinal))
+				?? o.Customers.FirstOrDefault(c => IsFemale(c.Name)) ?? o.Customers.FirstOrDefault();
 			if (writer != null) f.Testimonial = Person(writer);
 		}
 

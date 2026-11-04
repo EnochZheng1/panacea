@@ -166,7 +166,7 @@ public partial class ProofView : Control
 		var warn = new List<string>();
 		var unansweredInquests = m.Letters.Count(l => l.Title.StartsWith("Inquest", StringComparison.Ordinal));
 		if (unansweredInquests > 0) warn.Add($"{Spell(unansweredInquests)} inquest{(unansweredInquests == 1 ? "" : "s")} unanswered: the coroner will proceed without you.");
-		else if (m.Letters.Count > 0) warn.Add($"{m.Letters.Count} letter{(m.Letters.Count == 1 ? "" : "s")} unanswered: the usual reply will go out for you.");
+		else if (m.Letters.Count > 0) warn.Add($"{Spell(m.Letters.Count)} letter{(m.Letters.Count == 1 ? "" : "s")} unanswered: the usual reply will go out for you.");
 		var waiting = m.Regulars.FirstOrDefault(r => r.Looks is "gravely_ill");
 		if (waiting != null) warn.Add($"Death waits at the counter beside {waiting.Name}.");
 		var nothing = m.Formulas.Sum(f => f.Stock) == 0 && m.Brewing.Count == 0;
@@ -313,7 +313,8 @@ public partial class ProofView : Control
 	// ---------- the counter ----------
 
 	/// <summary>A compositor spells out small numbers (IM Fell's old-style figures misread small).</summary>
-	private static string Spell(int n) => n is >= 0 and <= 12 ? new[] { "no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve" }[n] : n.ToString(CultureInfo.InvariantCulture);
+	// numbers under a hundred are words on the bench, as in the paper
+	private static string Spell(int n) => EditionWriter.Words(n);
 
 	private static int Risk(Regular r) =>
 		(r.Looks switch { "gravely_ill" => 30, "poorly" => 20, "peaky" => 8, _ => 0 }) + (r.Withdrawal ? 6 : 0) + (r.Craving ? 3 : 0) + (r.Infant ? 4 : 0);

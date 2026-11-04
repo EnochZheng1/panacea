@@ -458,9 +458,13 @@ public partial class ProofView : Control
 			var on = product.ClaimIds.Contains(id);
 			var bold = m.ClaimBoldness.GetValueOrDefault(id);
 			var weight = bold >= 3 ? " !!!" : bold >= 1.5 ? " !!" : bold >= 1 ? " !" : "";
-			// long claims are set short on the slug; the full wording is in the tooltip
-			var slug = name.Length > 26 ? name[..24].TrimEnd(' ', ',') + "…" : name;
-			var b = Print.Button(slug.ToUpperInvariant() + weight, 11, solid: on, sound: "slug");
+			// long claims wrap onto a second line of the slug rather than being cut short
+			var b = Print.Button(name.ToUpperInvariant() + weight, 11, solid: on, sound: "slug");
+			if (name.Length > 26)
+			{
+				b.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+				b.CustomMinimumSize = new Vector2(200, 0);
+			}
 			b.TooltipText = name + (on ? "\nClick to strike it out." : "\nClick to set it in type.");
 			var claim = id;
 			b.Pressed += () =>
@@ -491,7 +495,13 @@ public partial class ProofView : Control
 		if (!m.CanAdvertise) v.AddChild(Print.Body(adsNext.Name != null && adsNext.Progress >= 0.999
 			? "[i]Both conditions are met: space can be bought from next month.[/i]"
 			: "[i]Not yet: the Gazette wants $100 in savings and a printed testimonial first.[/i]", 12, justify: false));
-		if (_note != null) v.AddChild(Print.Body($"[b]Refused.[/b] [i]{Print.Escape(_note)}[/i]", 12, justify: false));
+		if (_note != null)
+		{
+			var why = _note.Contains("At most", StringComparison.Ordinal) ? _note + " Strike one out to make room." : _note;
+			v.AddChild(Print.Body($"[b]Refused.[/b] [i]{Print.Escape(why)}[/i]", 12, justify: false));
+			// said once: the next change to the bench clears it
+			_note = null;
+		}
 		return Print.Slip(v, 10);
 	}
 

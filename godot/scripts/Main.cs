@@ -530,9 +530,16 @@ public partial class Main : Control
 	{
 		var d = _game.Desk();
 		var when = new System.DateTime(d.Year, d.Month, 1).ToString("MMMM yyyy", System.Globalization.CultureInfo.InvariantCulture);
+		// reading the paper, say which edition it is, so its date and the month in hand never seem to disagree
+		if (!_onDesk && !_game.Ended)
+		{
+			var f = _game.Facts;
+			var printed = f.FirstEdition ? EditionWriter.FirstSaturday(f.Year, f.Month) : EditionWriter.PublicationDate(f.Year, f.Month);
+			when = $"The Gazette of {printed.ToString("MMMM d", System.Globalization.CultureInfo.InvariantCulture)} · now {when}";
+		}
 		_status.Text = _pressing ? "☞ Click, or press any key, to see the edition." : _game.Ended
 			? "The business is closed. The paper has the last word."
-			: $"{when} · cash in hand {EditionWriter.Money(cash ?? d.CashCents)}{(_monthDelta is long dm && !_onDesk ? (dm == 0 ? " (the books even)" : $" (the books {(dm > 0 ? "up" : "down")} {EditionWriter.Money(Math.Abs(dm))})") : "")} · {d.Customers} regulars · {d.Letters.Count} letter{(d.Letters.Count == 1 ? "" : "s")} waiting";
+			: $"{when} · cash in hand {EditionWriter.Money(cash ?? d.CashCents)}{(_monthDelta is long dm && !_onDesk ? (dm == 0 ? " (the books even)" : $" (the books {(dm > 0 ? "up" : "down")} {EditionWriter.Money(Math.Abs(dm))})") : "")} · {d.Customers} regulars{(d.Letters.Count == 0 ? "" : $" · {d.Letters.Count} letter{(d.Letters.Count == 1 ? "" : "s")} waiting")}";
 	}
 }
 

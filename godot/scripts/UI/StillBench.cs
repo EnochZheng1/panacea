@@ -105,7 +105,7 @@ public partial class StillBench : HBoxContainer
 		// the ingredients were paid for when they were ordered: lighting the fire costs only the glass
 		var stuff = Math.Max(0, n * f.UnitCostCents - bottles);
 		_right.AddChild(Print.Label(want > max
-			? $"You have marked {want}; the stock on the shelf makes {(max == 0 ? "none" : max.ToString(CultureInfo.InvariantCulture))}. {(max == 0 ? "Order the rest to light the fire." : $"Order the rest, or light the fire for {max}.")}"
+			? $"You have marked {want}; the ingredients on hand make {(max == 0 ? "none" : max.ToString(CultureInfo.InvariantCulture))}. {(max == 0 ? "Order the rest to light the fire." : $"Order the rest, or light the fire for {max}.")}"
 			: $"{n} bottle{(n == 1 ? "" : "s")} · {EditionWriter.Money(bottles)} for bottles and corks when lit · {(stuff > 0 ? $"takes {EditionWriter.Money(stuff)} of stock off the shelf · " : "")}most the stock allows: {max}", Print.Fell, 15));
 
 		// what limits the batch, and the remedy for it

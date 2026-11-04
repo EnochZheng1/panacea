@@ -69,9 +69,33 @@ public partial class LettersDesk : VBoxContainer
 	/// <summary>What each answer to the coroner risks, said plainly under the slip.</summary>
 	private static readonly Dictionary<string, string> Risks = new()
 	{
-		["testify"] = "The best odds with the jury. If they name your bottle anyway, suspicion rises 20.",
-		["stay_silent"] = "Costs nothing. If the jury names your bottle, suspicion rises 28: your absence is noticed.",
-		["bribe_coroner"] = "The verdict you pay for. His fee rises every time, and an envelope can come to light: a bought verdict found out is worse than a jury's.",
+		["inquest.testify"] = "The best odds with the jury. If they name your bottle anyway, suspicion rises 20.",
+		["inquest.stay_silent"] = "Costs nothing. If the jury names your bottle, suspicion rises 28: your absence is noticed.",
+		["inquest.bribe_coroner"] = "The verdict you pay for. His fee rises every time, and an envelope can come to light: a bought verdict found out is worse than a jury's.",
+		["grateful_letter.print_testimonial"] = "Standing in the ward +3, and the Gazette will sell you space once you have $100 put by.",
+		["grateful_letter.file_away"] = "Nothing gained, nothing risked.",
+		["diploma_mill.buy_diploma"] = "$50, and you may style yourself Doctor: a new claim for the type case. You become better known, for better or worse.",
+		["diploma_mill.decline"] = "Costs nothing.",
+		["sanitary_inspector.pay_fee"] = "$3, and he is gone by dinner. You become a little better known at the Department.",
+		["sanitary_inspector.let_him_look"] = "Free, but the ward sees him at it: standing −2.",
+		["rival_shop_opens.spread_rumour"] = "Standing +1 for now, and you become better known, which the coroner may notice too.",
+		["rival_shop_opens.ignore"] = "Standing −3: the ward takes his side.",
+		["temperance_picket.donate"] = "$5, and the ladies move on: suspicion −5.",
+		["temperance_picket.ignore_them"] = "Free, but the hymns cost you standing −2.",
+		["board_of_health.pay_fine"] = "$30, and the complaint is answered: suspicion −10.",
+		["board_of_health.surrender_stock"] = "Every bottle on the shelf is taken away; suspicion −20.",
+		["customer_wants_stronger.promise_stronger"] = "Standing +1 with the regular. Keeping the promise is up to the formula book.",
+		["customer_wants_stronger.recommend_rest"] = "Good advice, and nothing changes.",
+		["rival_price_war.handbills"] = "$10, and Feeney takes nothing from you.",
+		["rival_price_war.cry_him_down"] = "Free, and Feeney takes nothing, but suspicion +4 and standing −2.",
+		["rival_price_war.let_him_try"] = "For four months he takes two callers in five from any bottle dearer than 65c.",
+		["landlord_rent.buy_the_lease"] = "$60 now, and the rent falls a dollar a month, for good.",
+		["landlord_rent.smaller_premises"] = "The old rent, but room for eight fewer regulars.",
+		["landlord_rent.pay_the_rise"] = "Rent up a dollar a month, for good.",
+		["spirits_dearer.outside_distiller"] = "$6 now, and spirit stays at the old price.",
+		["spirits_dearer.pay_the_new_price"] = "Grain spirit costs double for six months.",
+		["benefit_society.subscribe"] = "$1.50 a month for a year, and about five more callers a month.",
+		["benefit_society.decline_politely"] = "Nothing changes.",
 	};
 
 	/// <summary>"one in 20", "three in 10": odds a reader can feel.</summary>
@@ -175,7 +199,7 @@ public partial class LettersDesk : VBoxContainer
 			var said = text;
 			b.Pressed += () => Answer(sheet!, l.InstanceId, choice, said);
 			v.AddChild(b);
-			if (Risks.TryGetValue(id, out var risk))
+			if (Risks.TryGetValue($"{l.EventId}.{id}", out var risk))
 			{
 				// the verdict is given as soon as the reply goes: say what the odds are now
 				if (l.Odds.TryGetValue(id, out var p))

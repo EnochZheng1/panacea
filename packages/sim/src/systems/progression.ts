@@ -20,6 +20,25 @@ export const timelinePhase: Phase = {
   },
 };
 
+/**
+ * Turn phase, last: capability changes that were only for a while run out at the end of their
+ * last month, so a change made in month t for n months holds through months t … t+n−1.
+ */
+export const timersPhase: Phase = {
+  id: 'timers',
+  run({ state }) {
+    const live = [];
+    for (const t of state.player.timedCapabilities) {
+      if (t.expiresTurn > state.meta.turn + 1) {
+        live.push(t);
+        continue;
+      }
+      state.player.capabilities[t.id] = (state.player.capabilities[t.id] ?? 0) - t.delta;
+    }
+    state.player.timedCapabilities = live;
+  },
+};
+
 /** Turn phase: grant any unlock whose requirement is now met. */
 export const unlocksPhase: Phase = {
   id: 'unlocks',

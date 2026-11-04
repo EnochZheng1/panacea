@@ -106,7 +106,13 @@ export const EffectSchema = z.discriminatedUnion('type', [
   z.strictObject({ type: z.literal('heat'), delta: z.number() }),
   z.strictObject({ type: z.literal('setFlag'), id: IdSchema }),
   z.strictObject({ type: z.literal('clearFlag'), id: IdSchema }),
-  z.strictObject({ type: z.literal('capability'), id: IdSchema, delta: z.number().int() }),
+  /** Adds to a capability; with `months`, only for that many month-ends, then it reverts. */
+  z.strictObject({
+    type: z.literal('capability'),
+    id: IdSchema,
+    delta: z.number().int(),
+    months: z.number().int().min(1).optional(),
+  }),
   /** Authorities confiscate every bottle on the shelf. */
   z.strictObject({ type: z.literal('seizeStock') }),
   /** Resolves the coroner's inquest attached to a system event (see the sim's scrutiny system). */
@@ -344,6 +350,12 @@ export const ConfigSchema = z.strictObject({
     bottlesPerAttachment: z.number().min(0),
     budgetBase: z.number().min(0),
     budgetPerAttachment: z.number().min(0),
+    /**
+     * A regular can afford usual price × meansPerMonth a month. Spending more runs up a debt,
+     * paid down in leaner months; while a regular owes more than a month's means they are
+     * ruined: they buy one bottle at most, and their family complains.
+     */
+    meansPerMonth: z.number().positive(),
   }),
   advertising: z.strictObject({
     /** Extra walk-ins ≈ visitorsPerSqrtCent × √(monthly spend in cents). */
@@ -393,6 +405,13 @@ export const ConfigSchema = z.strictObject({
     shutdownGraceMonths: z.number().int().min(1),
     inquestBaseChance: z.number().min(0).max(1),
     bribeBaseCents: z.number().int().min(0),
+    /**
+     * Chance a bribe comes out (the coroner's clerk talks): per bribe already paid, plus per
+     * point of notoriety, up to the max. An exposed bribe is a verdict against you, and worse.
+     */
+    bribeExposurePerBribe: z.number().min(0),
+    bribeExposurePerNotoriety: z.number().min(0),
+    bribeExposureMax: z.number().min(0).max(1),
     benignVerdicts: z.array(IdSchema).min(1),
   }),
 });

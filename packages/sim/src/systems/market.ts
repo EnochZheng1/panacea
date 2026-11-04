@@ -83,6 +83,39 @@ export function chooseOffer(
   return best;
 }
 
+/**
+ * Whether a buyer who left empty-handed was put off by the price: some bottle on the shelf
+ * appealed to them, but every one that did cost more than they would pay. (Call it only when
+ * `chooseOffer` with no price cap found nothing.)
+ */
+export function turnedAwayByPrice(
+  state: GameState,
+  offers: readonly Offer[],
+  buyer: Buyer,
+  content: ContentPack,
+): boolean {
+  for (const o of offers) {
+    if (stockOf(state, o.formula.id) <= 0) continue;
+    const a = appeal(
+      o.analysis,
+      buyer.tolerance,
+      buyer.profile,
+      buyer.dependency,
+      claimAppeal(o.formula.claims, buyer.ailment, content),
+    );
+    if (a > 0) return true;
+  }
+  return false;
+}
+
+/** What a regular can afford to spend in a month, in cents. */
+export const meansCents = (c: Customer, content: ContentPack): number =>
+  c.profile.baseWillingnessCents * content.config.market.meansPerMonth;
+
+/** A regular who owes more than a month's means: one bottle at most, and a family that complains. */
+export const isRuined = (c: Customer, content: ContentPack): boolean =>
+  c.debtCents > meansCents(c, content);
+
 const customerAsBuyer = (c: Customer): Buyer => ({
   profile: c.profile,
   ailment: c.ailment,
@@ -158,7 +191,8 @@ export const salesPhase: Phase = {
     // stronger of habit and plain satisfaction: a delighted customer buys a second bottle for the
     // cupboard just as a dependent one does, though only the dependent pays beyond their means.
     // Every regular who comes in will buy one bottle they think worth its price; the budget
-    // limits the extra ones.
+    // limits the extra ones. A habit pays what it is asked until the money runs out: spending
+    // beyond their means runs up a debt, and a regular who is ruined buys one bottle at most.
     const market = content.config.market;
     for (const c of state.customers) {
       const bought: ReturnType<typeof sell>[] = [];
@@ -167,9 +201,12 @@ export const salesPhase: Phase = {
         0.98,
         Math.max(0.05, c.profile.buyChance + 0.3 * c.satisfaction + 0.5 * dep),
       );
+      let spent = 0;
       if (offers.length > 0 && rng.chance(pBuy)) {
         const attachment = Math.max(dep, c.satisfaction);
-        const desired = 1 + Math.floor(attachment * market.bottlesPerAttachment);
+        const desired = isRuined(c, content)
+          ? 1
+          : 1 + Math.floor(attachment * market.bottlesPerAttachment);
         let budget =
           c.profile.baseWillingnessCents *
           (market.budgetBase + market.budgetPerAttachment * attachment) *
@@ -182,13 +219,20 @@ export const salesPhase: Phase = {
             content,
             k === 0 ? Number.POSITIVE_INFINITY : budget,
           );
-          if (!offer) break;
+          if (!offer) {
+            if (k === 0 && turnedAwayByPrice(state, offers, customerAsBuyer(c), content)) {
+              state.month.turnedAwayByPrice += 1;
+            }
+            break;
+          }
           const b = sell(offer, CAUSES.salesShop);
           if (!b) break;
           bought.push(b);
           budget -= offer.formula.priceCents;
+          spent += offer.formula.priceCents;
         }
       }
+      c.debtCents = Math.max(0, c.debtCents + spent - meansCents(c, content));
       const valid = bought.filter((b) => b !== undefined);
       scratch.purchases.set(c.id, valid);
       c.bottlesLastMonth = valid.length;
@@ -213,8 +257,14 @@ function walkIns(
 ) {
   if (offers.length === 0) return;
   const { base, perReputation, conversionChance } = content.config.walkIns;
+  const caps = state.player.capabilities;
   const visitors =
-    rng.int(0, base + Math.floor(state.player.reputation * perReputation)) + scratch.adVisitors;
+    rng.int(0, base + Math.floor(state.player.reputation * perReputation)) +
+    scratch.adVisitors +
+    Math.max(0, caps['walk_in_bonus'] ?? 0);
+  // A rival's sale: a share of the callers whose bottle costs more than his go to him instead.
+  const rivalShare = Math.min(100, caps['rival_share_pct'] ?? 0) / 100;
+  const rivalPrice = caps['rival_price_cents'] ?? 0;
   const capacity = customerCapacity(state, content);
   for (let i = 0; i < visitors; i++) {
     const segment = pickSegment(content, rng);
@@ -226,7 +276,14 @@ function walkIns(
       dependency: 0,
     };
     const offer = chooseOffer(state, offers, buyer, content);
-    if (!offer) continue;
+    if (!offer) {
+      if (turnedAwayByPrice(state, offers, buyer, content)) state.month.turnedAwayByPrice += 1;
+      continue;
+    }
+    if (rivalShare > 0 && offer.formula.priceCents > rivalPrice && rng.chance(rivalShare)) {
+      state.month.turnedAwayByPrice += 1;
+      continue;
+    }
     const claims = claimAppeal(offer.formula.claims, ailmentId, content);
     if (!rng.chance(Math.min(0.95, segment.profile.buyChance * (1 + 0.1 * claims)))) continue;
     const bought = sell(offer, CAUSES.salesWalkIn);
@@ -254,11 +311,13 @@ function walkIns(
   }
 }
 
-/** Turn phase: rent. */
+/** Turn phase: rent, and any retainers the shop has agreed to pay. */
 export const expensesPhase: Phase = {
   id: 'expenses',
   run({ state, content }) {
     const rent = content.config.rentCents + (state.player.capabilities['rent_extra_cents'] ?? 0);
     adjust(state, 'cash', -rent, CAUSES.rent);
+    const retainer = state.player.capabilities['retainer_cents'] ?? 0;
+    if (retainer > 0) adjust(state, 'cash', -retainer, CAUSES.retainer);
   },
 };

@@ -59,10 +59,10 @@ public class GameTests
         Assert.Equal(17, C.Ingredients.Count);
         Assert.Equal(3, C.Processes.Count);
         Assert.Equal(9, C.Unlocks.Count);
-        Assert.Equal(8, C.Events.Count);
+        Assert.Equal(12, C.Events.Count);
         Assert.Equal(8, C.Timeline.Count);
         Assert.Equal(12, C.Regulars.Count);
-        Assert.Equal(160, C.Strings.Count);
+        Assert.Equal(179, C.Strings.Count);
         Assert.Equal("system", C.ById.Events["inquest"].Trigger);
         Assert.Equal("random", C.ById.Events["grateful_letter"].Trigger);
         Assert.Equal(1, C.ById.Processes["simple_mix"].Multiplier("kick"));

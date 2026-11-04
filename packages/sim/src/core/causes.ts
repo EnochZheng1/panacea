@@ -10,6 +10,7 @@ export const CAUSES = {
   bottling: 'expense.bottling',
   advertising: 'expense.advertising',
   bribe: 'expense.bribe',
+  retainer: 'expense.retainer',
   wordOfMouth: 'body.word_of_mouth',
   reputationDrift: 'body.reputation_drift',
   complaints: 'body.complaints',

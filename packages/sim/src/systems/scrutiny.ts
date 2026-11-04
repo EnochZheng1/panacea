@@ -100,6 +100,19 @@ export function bribeCostCents(state: GameState, content: ContentPack): number {
   return Math.max(500, Math.round(raw / 500) * 500);
 }
 
+/**
+ * Chance that a bribe offered now comes out: the coroner's clerk talks. Every fee already paid is
+ * one more that someone knows about, and a notorious name is worth more to a talker.
+ */
+export function bribeExposureChance(state: GameState, content: ContentPack): number {
+  const cfg = content.config.scrutiny;
+  return Math.min(
+    cfg.bribeExposureMax,
+    state.scrutiny.bribesPaid * cfg.bribeExposurePerBribe +
+      state.player.notoriety * cfg.bribeExposurePerNotoriety,
+  );
+}
+
 /** Probability the jury blames your medicine. */
 export function implicationChance(
   state: GameState,
@@ -145,22 +158,34 @@ export function resolveInquest(
   const cfg = content.config.scrutiny;
   let outcome: InquestOutcome;
 
-  if (approach === 'bribe') {
-    const cost = bribeCostCents(state, content);
-    if (cost > state.player.cashCents) return 'not enough cash for the coroner';
-    adjust(state, 'cash', -cost, CAUSES.bribe, record.id);
-    adjust(state, 'notoriety', 2, CAUSES.inquest, record.id);
-    adjust(state, 'heat', -2, CAUSES.inquest, record.id);
-    state.scrutiny.bribesPaid += 1;
-    outcome = 'bribed';
-  } else if (rng.chance(implicationChance(state, record, approach))) {
-    // a proprietor who would not come and speak for his bottle looks the guiltier for it
-    adjust(state, 'reputation', -12, CAUSES.inquest, record.id);
-    adjust(state, 'heat', approach === 'silent' ? 28 : 20, CAUSES.inquest, record.id);
-    adjust(state, 'notoriety', 8, CAUSES.inquest, record.id);
+  const implicate = (heat: number, reputation: number, notoriety: number) => {
+    adjust(state, 'reputation', -reputation, CAUSES.inquest, record.id);
+    adjust(state, 'heat', heat, CAUSES.inquest, record.id);
+    adjust(state, 'notoriety', notoriety, CAUSES.inquest, record.id);
     state.scrutiny.timesImplicated += 1;
     state.player.flags['implicated_at_inquest'] = true;
     for (const c of state.customers) c.satisfaction = Math.max(-1, c.satisfaction - 0.3);
+  };
+
+  if (approach === 'bribe') {
+    const cost = bribeCostCents(state, content);
+    if (cost > state.player.cashCents) return 'not enough cash for the coroner';
+    const exposure = bribeExposureChance(state, content);
+    adjust(state, 'cash', -cost, CAUSES.bribe, record.id);
+    state.scrutiny.bribesPaid += 1;
+    if (rng.chance(exposure)) {
+      // the money is gone, and the jury hears where it went: worse than any verdict
+      implicate(30, 15, 10);
+      state.month.news.push({ kind: 'bribe_exposed', deathId: record.id });
+      outcome = 'implicated';
+    } else {
+      adjust(state, 'notoriety', 2, CAUSES.inquest, record.id);
+      adjust(state, 'heat', -2, CAUSES.inquest, record.id);
+      outcome = 'bribed';
+    }
+  } else if (rng.chance(implicationChance(state, record, approach))) {
+    // a proprietor who would not come and speak for his bottle looks the guiltier for it
+    implicate(approach === 'silent' ? 28 : 20, 12, 8);
     outcome = 'implicated';
   } else {
     adjust(state, 'heat', -3, CAUSES.inquest, record.id);

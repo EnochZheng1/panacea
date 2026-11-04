@@ -21,6 +21,7 @@ public static class Game
         Market.ExpensesPhase,
         Progression.TimelinePhase,
         Progression.UnlocksPhase,
+        Progression.TimersPhase,
     ];
 
     public static GameState NewGame(ContentPack content, NewGameOptions options)

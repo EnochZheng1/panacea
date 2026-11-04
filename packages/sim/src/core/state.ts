@@ -33,6 +33,8 @@ export type NewsItem =
   | { kind: 'event_resolved'; eventId: string; choiceId: string; auto: boolean }
   | { kind: 'death'; deathId: string }
   | { kind: 'inquest'; deathId: string; outcome: InquestOutcome; verdict: string }
+  /** The coroner took the fee, and his clerk talked: the verdict went against you anyway. */
+  | { kind: 'bribe_exposed'; deathId: string }
   | { kind: 'customer_joined'; customerId: string }
   | { kind: 'customer_left'; customerId: string; name: string; reason: LeaveReason }
   | { kind: 'bad_batch_caught'; formulaId: string; bottles: number }
@@ -55,8 +57,13 @@ export interface MonthInProgress {
   deltas: CausalDelta[];
   news: NewsItem[];
   sales: SaleRecord[];
-  /** Grumbles this month (withdrawal, disappointment). */
+  /** Grumbles this month (withdrawal, disappointment, families of regulars who are ruined). */
   complaints: number;
+  /**
+   * Callers who asked the price and left: walk-ins, and regulars who came in for their first
+   * bottle, for whom some bottle on the shelf appealed but every one cost more than they would pay.
+   */
+  turnedAwayByPrice: number;
 }
 
 /** A closed month, as shown in the Ledger. */
@@ -76,6 +83,8 @@ export interface LedgerEntry {
   sales: SaleRecord[];
   customers: number;
   complaints: number;
+  /** Callers who asked the price and left (see `MonthInProgress.turnedAwayByPrice`). */
+  turnedAwayByPrice: number;
 }
 
 export interface FormulaComponent {
@@ -147,6 +156,11 @@ export interface Customer {
   lastFormulaId: string | null;
   bottlesLastMonth: number;
   inWithdrawal: boolean;
+  /**
+   * What the customer owes for spending beyond their means (the pawnshop, the grocer's slate), in
+   * cents. Paid down in months they spend less than they can afford.
+   */
+  debtCents: number;
 }
 
 export type DeathCause = 'overdose' | 'poisoning' | 'disease' | 'natural';
@@ -183,6 +197,13 @@ export interface PendingEvent {
   deathId?: string;
 }
 
+/** A capability change that holds until month `expiresTurn` begins. */
+export interface TimedCapability {
+  id: string;
+  delta: number;
+  expiresTurn: number;
+}
+
 export type EndReason = 'timeline_end' | 'bankrupt' | 'shut_down';
 
 export type LogEntry = { turn: number; action: Action } | { turn: number; endTurn: true };
@@ -208,6 +229,8 @@ export interface GameState {
     reputation: number;
     notoriety: number;
     capabilities: Record<string, number>;
+    /** Capability changes that last a while (a rival's sale, a dearer supplier), oldest first. */
+    timedCapabilities: TimedCapability[];
     flags: Record<string, boolean>;
     monthsInsolvent: number;
   };

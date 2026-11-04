@@ -74,6 +74,8 @@ public sealed class Regular
 	public string Mood = "content";
 	public bool Craving;
 	public bool Withdrawal;
+	/// <summary>Has spent beyond their means on the bottle: one bottle at most, and the family complains.</summary>
+	public bool Ruined;
 	public int MonthsAsCustomer;
 	public int BottlesLastMonth;
 }

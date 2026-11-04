@@ -11,7 +11,8 @@ public sealed record ObservedCustomer(
     string Looks, // hale, peaky, poorly or gravely_ill
     string Mood, // delighted, content, grumbling or unhappy
     bool Craving, // asks for the medicine by name and won't take substitutes
-    bool Withdrawal); // shaking, sweating, irritable: missed their dose
+    bool Withdrawal, // shaking, sweating, irritable: missed their dose
+    bool Ruined); // spent beyond their means on the bottle and can no longer pay: one bottle at most
 
 public sealed record ObservedDeath(
     string Id,
@@ -44,7 +45,8 @@ public sealed record ObservedPendingEvent(
     IReadOnlyList<string> ChoiceIds,
     string? DeathId,
     string? SubjectName,
-    long? BribeCostCents);
+    long? BribeCostCents,
+    double? BribeExposureChance); // inquests: the chance a bribe paid now would come out
 
 /// <summary>What a player could know (api/machine.ts Observation).</summary>
 public sealed class Observation
@@ -188,7 +190,8 @@ public static class Machine
                 LooksFor(c.Body.Health),
                 MoodFor(c.Satisfaction),
                 c.Body.Dependency > threshold,
-                c.InWithdrawal)).ToList(),
+                c.InWithdrawal,
+                Market.IsRuined(c, content))).ToList(),
             CustomerCapacity = CustomersSystem.CustomerCapacity(state, content),
             Deaths = state.Deaths.Select(d => new ObservedDeath(
                 d.Id, d.Turn, d.Date, d.Name, d.Segment, d.Consumer, d.Anonymous, d.FormulaId, d.Inquest, d.Verdict)).ToList(),
@@ -201,7 +204,8 @@ public static class Machine
                     Progression.AvailableChoices(state, content, p).Select(c => c.Id).ToList(),
                     string.IsNullOrEmpty(p.DeathId) ? null : p.DeathId,
                     death?.Name,
-                    p.EventId == Scrutiny.InquestEventId ? Scrutiny.BribeCostCents(state, content) : null);
+                    p.EventId == Scrutiny.InquestEventId ? Scrutiny.BribeCostCents(state, content) : null,
+                    p.EventId == Scrutiny.InquestEventId ? Scrutiny.BribeExposureChance(state, content) : null);
             }).ToList(),
             Unlocked = state.Unlocks.Unlocked.Keys.ToList(),
             NextUnlocks = Progression.NextUnlocks(state, content),

@@ -29,7 +29,8 @@
     "willingnessMax": 2.5,
     "bottlesPerAttachment": 2.25,
     "budgetBase": 1.5,
-    "budgetPerAttachment": 2
+    "budgetPerAttachment": 2,
+    "meansPerMonth": 3.5
   },
   "advertising": {
     "visitorsPerSqrtCent": 0.8,
@@ -68,6 +69,9 @@
     "shutdownHeat": 100,
     "inquestBaseChance": 0.25,
     "bribeBaseCents": 2000,
+    "bribeExposurePerBribe": 0.03,
+    "bribeExposurePerNotoriety": 0.0025,
+    "bribeExposureMax": 0.5,
     "benignVerdicts": [
       "visitation_of_god",
       "excess_of_spite",

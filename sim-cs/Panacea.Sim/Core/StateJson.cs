@@ -41,6 +41,7 @@ public static class StateJson
             ["event_resolved"] = typeof(EventResolvedNews),
             ["death"] = typeof(DeathNews),
             ["inquest"] = typeof(InquestNews),
+            ["bribe_exposed"] = typeof(BribeExposedNews),
             ["customer_joined"] = typeof(CustomerJoinedNews),
             ["customer_left"] = typeof(CustomerLeftNews),
             ["bad_batch_caught"] = typeof(BadBatchCaughtNews),

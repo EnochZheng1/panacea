@@ -333,7 +333,8 @@ public partial class ProofView : Control
 			{
 				var no = Print.Label($"Cut No. {3 + StableHash(cut) % 37u}, again.", Print.FellIt, 12, HorizontalAlignment.Center, wrap: false);
 				// over the figure's head, where the printer's own number would be
-				no.Position = new Vector2(x, Math.Max(4, CounterTop - h - 20));
+				// clear of the AT THE COUNTER heading in the right-hand slots
+				no.Position = new Vector2(x, Math.Max(x + slot > width - 300 ? 46 : 4, CounterTop - h - 20));
 				no.CustomMinimumSize = new Vector2(slot - 10, 0);
 				no.MouseFilter = MouseFilterEnum.Ignore;
 				strip.AddChild(no);
@@ -407,7 +408,8 @@ public partial class ProofView : Control
 		{
 			r.Looks switch { "gravely_ill" => "gravely ill", "poorly" => "poorly", "peaky" => "peaky", _ => "hale" },
 		};
-		if (r.Withdrawal) status.Add("shaking");
+		if (r.Ruined) status.Add("ruined by it");
+		else if (r.Withdrawal) status.Add("shaking");
 		else if (r.Craving) status.Add("asks for it by name");
 		else if (r.MonthsAsCustomer == 0) status.Add("new");
 		else status.Add(r.Mood);

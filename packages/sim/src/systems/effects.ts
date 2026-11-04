@@ -41,6 +41,13 @@ export function applyEffects(
         break;
       case 'capability':
         state.player.capabilities[e.id] = (state.player.capabilities[e.id] ?? 0) + e.delta;
+        if (e.months !== undefined) {
+          state.player.timedCapabilities.push({
+            id: e.id,
+            delta: e.delta,
+            expiresTurn: state.meta.turn + e.months,
+          });
+        }
         break;
     }
   }

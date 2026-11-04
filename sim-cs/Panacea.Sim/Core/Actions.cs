@@ -88,6 +88,7 @@ public static class Causes
     public const string Bottling = "expense.bottling";
     public const string Advertising = "expense.advertising";
     public const string Bribe = "expense.bribe";
+    public const string Retainer = "expense.retainer";
     public const string WordOfMouth = "body.word_of_mouth";
     public const string ReputationDrift = "body.reputation_drift";
     public const string Complaints = "body.complaints";
@@ -101,7 +102,7 @@ public static class Causes
 
     public static readonly IReadOnlyList<string> All =
     [
-        SalesShop, SalesWalkIn, Rent, Ingredients, Bottling, Advertising, Bribe, WordOfMouth,
+        SalesShop, SalesWalkIn, Rent, Ingredients, Bottling, Advertising, Bribe, Retainer, WordOfMouth,
         ReputationDrift, Complaints, Death, Inquest, HeatDecay, Claims, Event, Timeline, Unlock,
     ];
 }

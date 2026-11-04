@@ -49,6 +49,18 @@ public partial class LettersDesk : VBoxContainer
 		["board_of_health"] = new("THE BOARD OF HEALTH OF THE CITY OF NEW-YORK", "Order of the Board", "By order, T. R. KEMBLE, Assistant Sanitary Superintendent", "seal_health",
 			"Served with a warrant, by two inspectors and a wagon.", "Sir,—",
 			"Complaint having been made of your preparations, the Board directs that the whole of your stock be removed for analysis. The Board will, in the alternative, accept a fine of thirty dollars, and consider the complaint answered."),
+		["rival_price_war"] = new("", "A handbill, pushed under the door", "J. FEENEY, Druggist, two doors down", "",
+			"Found on the mat, with three more like it in the street.", "",
+			"FEENEY'S TONIC, SIXTY-FIVE CENTS THE BOTTLE. Why pay more on Mulberry street? For the next four months, two callers in five whose bottle costs more than mine will try mine instead. Ask anyone. — J. Feeney"),
+		["landlord_rent"] = new("", "Upstairs, the front room", "Your obedient servant, M. O'ROURKE, Landlord", "",
+			"Brought down by the landlord's boy, who waited for an answer.", "Sir,—",
+			"I see the trade is good, and I am glad of it. From this month the rent is a dollar more, and it will stay so. I would sell you the lease outright for sixty dollars, which would bring it a dollar under the old rent for good. The shop across the street is to let at the old rent, if you can do with room for eight fewer regulars."),
+		["spirits_dearer"] = new("J. & W. HOBART & CO.", "Wholesale Druggists & Importers of Drugs · 81 Pearl Street", "J. & W. HOBART & CO., per T. Hobart", "seal_hobart",
+			"A printed circular from Pearl street, with a note in the margin.", "Sir,—",
+			"We regret that the distillers have combined, and that grain spirit will be charged at double the old price for six months from your acknowledgment. Should you prefer it, a Jersey distiller outside the ring will supply at the old price for six dollars down; we are not to be named in the matter."),
+		["benefit_society"] = new("ST. BRIDGET'S MUTUAL AID SOCIETY", "Meetings Tuesdays · over the bakery, Mott Street", "Your servant, the Secretary (a regular of the shop)", "",
+			"Handed across the counter by one of your regulars, in her Sunday hat.", "Dear Doctor,—",
+			"The Society would recommend your remedy to its members in return for a subscription of a dollar and a half a month for the year. We think you may count on five more callers a month. The Society asks only that the remedy do its members no harm, which we are sure it will not."),
 		["customer_wants_stronger"] = new("", "In pencil, on the back of a handbill", "One of your regulars", "",
 			"Left on the counter, folded small.", "",
 			"Doc, the tonic dont do what it did. I take two spoons and then four and its like water. You must have something stronger in the back. I can pay. I have to have it."),
@@ -59,8 +71,12 @@ public partial class LettersDesk : VBoxContainer
 	{
 		["testify"] = "The best odds with the jury. If they name your bottle anyway, suspicion rises 20.",
 		["stay_silent"] = "Costs nothing. If the jury names your bottle, suspicion rises 28: your absence is noticed.",
-		["bribe_coroner"] = "The verdict you pay for. His fee rises every time, and with the talk in the ward.",
+		["bribe_coroner"] = "The verdict you pay for. His fee rises every time, and an envelope can come to light: a bought verdict found out is worse than a jury's.",
 	};
+
+	/// <summary>"one in 20", "three in 10": odds a reader can feel.</summary>
+	private static string Chance(double p) =>
+		p < 0.08 ? $"one in {Math.Max(2, (int)Math.Round(1 / Math.Max(p, 0.01)))}" : $"{Math.Clamp((int)Math.Round(p * 10), 1, 9)} in 10";
 
 	public LettersDesk(IGame game)
 	{
@@ -162,7 +178,10 @@ public partial class LettersDesk : VBoxContainer
 			if (Risks.TryGetValue(id, out var risk))
 			{
 				// the verdict is given as soon as the reply goes: say what the odds are now
-				if (l.Odds.TryGetValue(id, out var p)) risk += $" The jury sits at once; as things stand, about {Math.Clamp((int)Math.Round(p * 10), 1, 9)} juries in 10 would name your bottle.";
+				if (l.Odds.TryGetValue(id, out var p))
+					risk += id == "bribe_coroner"
+						? $" As things stand, about {Chance(p)} would come out."
+						: $" The jury sits at once; as things stand, about {Chance(p)} would name your bottle.";
 				v.AddChild(Print.Label(risk, Print.FellIt, 13, color: new Color(Print.Ink, 0.85f)));
 			}
 		}

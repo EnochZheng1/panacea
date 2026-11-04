@@ -85,6 +85,7 @@ public static class Ledger
             Sales = m.Sales,
             Customers = state.Customers.Count,
             Complaints = m.Complaints,
+            TurnedAwayByPrice = m.TurnedAwayByPrice,
         };
     }
 

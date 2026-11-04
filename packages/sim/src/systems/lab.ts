@@ -41,7 +41,9 @@ export function ingredientUnitCost(state: GameState, ingredientId: string, conte
   const ing = content.byId.ingredients.get(ingredientId);
   if (!ing) return Number.POSITIVE_INFINITY;
   const discount = Math.min(90, state.player.capabilities['ingredient_discount_pct'] ?? 0);
-  return ing.costPerUnitCents * (1 - discount / 100);
+  // a supplier's rise (a shortage, a trust) for one ingredient
+  const surcharge = Math.max(0, state.player.capabilities[`surcharge_pct_${ing.id}`] ?? 0);
+  return ing.costPerUnitCents * (1 - discount / 100) * (1 + surcharge / 100);
 }
 
 export function buyIngredient(

@@ -54,6 +54,30 @@ public static class Market
         return best;
     }
 
+    /// <summary>
+    /// Whether a buyer who left empty-handed was put off by the price: some bottle on the shelf
+    /// appealed to them, but every one that did cost more than they would pay. (Call it only when
+    /// ChooseOffer with no price cap found nothing.)
+    /// </summary>
+    public static bool TurnedAwayByPrice(GameState state, IReadOnlyList<Offer> offers, Buyer buyer, ContentPack content)
+    {
+        foreach (var o in offers)
+        {
+            if (Lab.StockOf(state, o.Formula.Id) <= 0) continue;
+            double a = Pharmacology.Appeal(o.Analysis, buyer.Tolerance, buyer.Profile, buyer.Dependency,
+                Formulas.ClaimAppeal(o.Formula.Claims, buyer.Ailment, content));
+            if (a > 0) return true;
+        }
+        return false;
+    }
+
+    /// <summary>What a regular can afford to spend in a month, in cents.</summary>
+    public static double MeansCents(Customer c, ContentPack content) =>
+        c.Profile.BaseWillingnessCents * content.Config.Market.MeansPerMonth;
+
+    /// <summary>A regular who owes more than a month's means: one bottle at most, and a family that complains.</summary>
+    public static bool IsRuined(Customer c, ContentPack content) => c.DebtCents > MeansCents(c, content);
+
     private static Buyer CustomerAsBuyer(Customer c) => new(c.Profile, c.Ailment, c.Body.Tolerance, c.Body.Dependency);
 
     private static double MaxBoldness(IEnumerable<Formula> formulas, ContentPack content)
@@ -132,17 +156,20 @@ public static class Market
 
         // Regulars, in a fixed order for determinism. A regular's attachment to the shop is the
         // stronger of habit and plain satisfaction; every regular who comes in buys one bottle they
-        // think worth its price, and the budget limits the extra ones.
+        // think worth its price, and the budget limits the extra ones. A habit pays what it is asked
+        // until the money runs out: spending beyond their means runs up a debt, and a regular who
+        // is ruined buys one bottle at most.
         var market = content.Config.Market;
         foreach (var c in state.Customers)
         {
             var bought = new List<Bought>();
             double dep = c.Body.Dependency;
             double pBuy = Math.Min(0.98, Math.Max(0.05, c.Profile.BuyChance + 0.3 * c.Satisfaction + 0.5 * dep));
+            double spent = 0;
             if (offers.Count > 0 && rng.Chance(pBuy))
             {
                 double attachment = Math.Max(dep, c.Satisfaction);
-                int desired = 1 + (int)Math.Floor(attachment * market.BottlesPerAttachment);
+                int desired = IsRuined(c, content) ? 1 : 1 + (int)Math.Floor(attachment * market.BottlesPerAttachment);
                 double budget = c.Profile.BaseWillingnessCents *
                     (market.BudgetBase + market.BudgetPerAttachment * attachment) *
                     (1 + dep);
@@ -150,13 +177,20 @@ public static class Market
                 {
                     var offer = ChooseOffer(state, offers, CustomerAsBuyer(c), content,
                         k == 0 ? double.PositiveInfinity : budget);
-                    if (offer is null) break;
+                    if (offer is null)
+                    {
+                        if (k == 0 && TurnedAwayByPrice(state, offers, CustomerAsBuyer(c), content))
+                            state.Month.TurnedAwayByPrice += 1;
+                        break;
+                    }
                     var b = Sell(offer, Causes.SalesShop);
                     if (b is null) break;
                     bought.Add(b);
                     budget -= offer.Formula.PriceCents;
+                    spent += offer.Formula.PriceCents;
                 }
             }
+            c.DebtCents = Math.Max(0, c.DebtCents + spent - MeansCents(c, content));
             scratch.Purchases[c.Id] = bought;
             c.BottlesLastMonth = bought.Count;
             if (bought.Count > 0)
@@ -181,7 +215,13 @@ public static class Market
         var scratch = ctx.Scratch;
         if (offers.Count == 0) return;
         var cfg = content.Config.WalkIns;
-        int visitors = rng.Int(0, cfg.Base + (int)Math.Floor(state.Player.Reputation * cfg.PerReputation)) + scratch.AdVisitors;
+        var caps = state.Player.Capabilities;
+        int visitors = rng.Int(0, cfg.Base + (int)Math.Floor(state.Player.Reputation * cfg.PerReputation)) +
+            scratch.AdVisitors +
+            Math.Max(0, caps.GetOr("walk_in_bonus", 0));
+        // A rival's sale: a share of the callers whose bottle costs more than his go to him instead.
+        double rivalShare = (double)Math.Min(100, caps.GetOr("rival_share_pct", 0)) / 100;
+        int rivalPrice = caps.GetOr("rival_price_cents", 0);
         int capacity = CustomersSystem.CustomerCapacity(state, content);
         for (int i = 0; i < visitors; i++)
         {
@@ -189,7 +229,16 @@ public static class Market
             string ailmentId = CustomersSystem.PickAilment(segment, rng);
             var buyer = new Buyer(segment.Profile, ailmentId, Pharmacology.ZeroTolerance(), 0);
             var offer = ChooseOffer(state, offers, buyer, content);
-            if (offer is null) continue;
+            if (offer is null)
+            {
+                if (TurnedAwayByPrice(state, offers, buyer, content)) state.Month.TurnedAwayByPrice += 1;
+                continue;
+            }
+            if (rivalShare > 0 && offer.Formula.PriceCents > rivalPrice && rng.Chance(rivalShare))
+            {
+                state.Month.TurnedAwayByPrice += 1;
+                continue;
+            }
             double claims = Formulas.ClaimAppeal(offer.Formula.Claims, ailmentId, content);
             if (!rng.Chance(Math.Min(0.95, segment.Profile.BuyChance * (1 + 0.1 * claims)))) continue;
             var bought = sell(offer, Causes.SalesWalkIn);
@@ -219,10 +268,12 @@ public static class Market
         }
     }
 
-    /// <summary>Turn phase: rent.</summary>
+    /// <summary>Turn phase: rent, and any retainers the shop has agreed to pay.</summary>
     public static readonly Phase ExpensesPhase = new("expenses", ctx =>
     {
         long rent = ctx.Content.Config.RentCents + ctx.State.Player.Capabilities.GetOr("rent_extra_cents", 0);
         Ledger.Adjust(ctx.State, Metrics.Cash, -rent, Causes.Rent);
+        int retainer = ctx.State.Player.Capabilities.GetOr("retainer_cents", 0);
+        if (retainer > 0) Ledger.Adjust(ctx.State, Metrics.Cash, -retainer, Causes.Retainer);
     });
 }

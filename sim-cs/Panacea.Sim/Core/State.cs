@@ -105,6 +105,12 @@ public sealed record InquestNews(string DeathId, string Outcome, string Verdict)
     public override string Kind => "inquest";
 }
 
+/// <summary>The coroner took the fee, and his clerk talked: the verdict went against you anyway.</summary>
+public sealed record BribeExposedNews(string DeathId) : NewsItem
+{
+    public override string Kind => "bribe_exposed";
+}
+
 public sealed record CustomerJoinedNews(string CustomerId) : NewsItem
 {
     public override string Kind => "customer_joined";
@@ -152,8 +158,13 @@ public sealed class MonthInProgress
     public List<CausalDelta> Deltas { get; set; } = new();
     public List<NewsItem> News { get; set; } = new();
     public List<SaleRecord> Sales { get; set; } = new();
-    /// <summary>Grumbles this month (withdrawal, disappointment).</summary>
+    /// <summary>Grumbles this month (withdrawal, disappointment, families of regulars who are ruined).</summary>
     public int Complaints { get; set; }
+    /// <summary>
+    /// Callers who asked the price and left: walk-ins, and regulars who came in for their first
+    /// bottle, for whom some bottle on the shelf appealed but every one cost more than they would pay.
+    /// </summary>
+    public int TurnedAwayByPrice { get; set; }
 }
 
 /// <summary>A closed month, as shown in the Ledger.</summary>
@@ -174,6 +185,8 @@ public sealed class LedgerEntry
     public List<SaleRecord> Sales { get; set; } = new();
     public int Customers { get; set; }
     public int Complaints { get; set; }
+    /// <summary>Callers who asked the price and left (see <see cref="MonthInProgress.TurnedAwayByPrice"/>).</summary>
+    public int TurnedAwayByPrice { get; set; }
 }
 
 public sealed record FormulaComponent(string IngredientId, double Amount);
@@ -277,6 +290,8 @@ public sealed class Customer
     public string? LastFormulaId { get; set; }
     public int BottlesLastMonth { get; set; }
     public bool InWithdrawal { get; set; }
+    /// <summary>What the customer owes for spending beyond their means, in cents.</summary>
+    public double DebtCents { get; set; }
 }
 
 /// <summary>The human ledger. Truth fields are hidden from the player.</summary>
@@ -346,12 +361,22 @@ public sealed class MetaState
     public int NextId { get; set; }
 }
 
+/// <summary>A capability change that holds until month <see cref="ExpiresTurn"/> begins.</summary>
+public sealed class TimedCapability
+{
+    public required string Id { get; set; }
+    public int Delta { get; set; }
+    public int ExpiresTurn { get; set; }
+}
+
 public sealed class PlayerState
 {
     public long CashCents { get; set; }
     public double Reputation { get; set; }
     public double Notoriety { get; set; }
     public OrderedMap<int> Capabilities { get; set; } = new();
+    /// <summary>Capability changes that last a while (a rival's sale, a dearer supplier), oldest first.</summary>
+    public List<TimedCapability> TimedCapabilities { get; set; } = new();
     public OrderedMap<bool> Flags { get; set; } = new();
     public int MonthsInsolvent { get; set; }
 }

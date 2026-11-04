@@ -101,6 +101,15 @@ public static class Effects
                     break;
                 case CapabilityEffect c:
                     state.Player.Capabilities[c.Id] = state.Player.Capabilities.GetOr(c.Id, 0) + c.Delta;
+                    if (c.Months is int months)
+                    {
+                        state.Player.TimedCapabilities.Add(new TimedCapability
+                        {
+                            Id = c.Id,
+                            Delta = c.Delta,
+                            ExpiresTurn = state.Meta.Turn + months,
+                        });
+                    }
                     break;
             }
         }
@@ -122,6 +131,26 @@ public static class Progression
             Effects.Apply(state, entry.Effects, Causes.Timeline, entry.Id);
             state.Month.News.Add(new TimelineNews(entry.Id));
         }
+    });
+
+    /// <summary>
+    /// Turn phase, last: capability changes that were only for a while run out at the end of their
+    /// last month, so a change made in month t for n months holds through months t … t+n−1.
+    /// </summary>
+    public static readonly Phase TimersPhase = new("timers", ctx =>
+    {
+        var state = ctx.State;
+        var live = new List<TimedCapability>();
+        foreach (var t in state.Player.TimedCapabilities)
+        {
+            if (t.ExpiresTurn > state.Meta.Turn + 1)
+            {
+                live.Add(t);
+                continue;
+            }
+            state.Player.Capabilities[t.Id] = state.Player.Capabilities.GetOr(t.Id, 0) - t.Delta;
+        }
+        state.Player.TimedCapabilities = live;
     });
 
     /// <summary>Turn phase: grant any unlock whose requirement is now met.</summary>

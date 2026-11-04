@@ -9,7 +9,8 @@ import {
 } from '../systems/formula.ts';
 import { ingredientUnitCost, maxBrewable, stillsFree, stockOf } from '../systems/lab.ts';
 import { availableChoices, nextUnlocks, type UnlockProgress } from '../systems/progression.ts';
-import { bribeCostCents, INQUEST_EVENT_ID } from '../systems/scrutiny.ts';
+import { isRuined } from '../systems/market.ts';
+import { bribeCostCents, bribeExposureChance, INQUEST_EVENT_ID } from '../systems/scrutiny.ts';
 
 /**
  * The machine API: what scripted bots and AI playtesters see and can do. `observe` returns only
@@ -40,6 +41,8 @@ export interface ObservedCustomer {
   craving: boolean;
   /** Shaking, sweating, irritable: missed their dose. */
   withdrawal: boolean;
+  /** Spent beyond their means on the bottle and can no longer pay: one bottle at most. */
+  ruined: boolean;
 }
 
 export interface ObservedDeath {
@@ -93,6 +96,8 @@ export interface Observation {
     deathId?: string;
     subjectName?: string;
     bribeCostCents?: number;
+    /** Inquests: the chance a bribe paid now would come out. */
+    bribeExposureChance?: number;
   }[];
   unlocked: string[];
   nextUnlocks: UnlockProgress[];
@@ -153,6 +158,7 @@ export function observe(state: GameState, content: ContentPack): Observation {
       mood: moodFor(c.satisfaction),
       craving: c.body.dependency > threshold,
       withdrawal: c.inWithdrawal,
+      ruined: isRuined(c, content),
     })),
     customerCapacity: customerCapacity(state, content),
     deaths: state.deaths.map((d) => ({
@@ -176,7 +182,10 @@ export function observe(state: GameState, content: ContentPack): Observation {
         ...(p.deathId ? { deathId: p.deathId } : {}),
         ...(death ? { subjectName: death.name } : {}),
         ...(p.eventId === INQUEST_EVENT_ID
-          ? { bribeCostCents: bribeCostCents(state, content) }
+          ? {
+              bribeCostCents: bribeCostCents(state, content),
+              bribeExposureChance: bribeExposureChance(state, content),
+            }
           : {}),
       };
     }),

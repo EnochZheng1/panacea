@@ -192,7 +192,8 @@ public static class BodySystem
         }
         if (withdrawal) c.Satisfaction -= 0.4;
         c.Satisfaction = Math.Max(-1, Math.Min(1, c.Satisfaction));
-        bool complaint = withdrawal || (bought.Count > 0 && c.Satisfaction < -0.3);
+        // A regular ruined by the habit has a family, and the family complains.
+        bool complaint = withdrawal || (bought.Count > 0 && c.Satisfaction < -0.3) || Market.IsRuined(c, content);
 
         // 6. Does the customer keep coming?
         string? reason = null;

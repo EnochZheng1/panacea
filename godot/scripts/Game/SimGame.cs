@@ -136,7 +136,7 @@ public sealed class SimGame : IGame
 			d.Regulars.Add(new Regular
 			{
 				Id = c.Id, Name = c.Name, Segment = c.Segment, Ailment = _content.Text($"ailment.{c.Ailment}.name"),
-				Infant = c.Consumer == "infant", Looks = c.Looks, Mood = c.Mood, Craving = c.Craving, Withdrawal = c.Withdrawal,
+				Infant = c.Consumer == "infant", Looks = c.Looks, Mood = c.Mood, Craving = c.Craving, Withdrawal = c.Withdrawal, Ruined = c.Ruined,
 				MonthsAsCustomer = c.MonthsAsCustomer, BottlesLastMonth = c.BottlesLastMonth,
 			});
 		}
@@ -179,6 +179,8 @@ public sealed class SimGame : IGame
 			if (record != null && e.EventId == "inquest")
 				foreach (var (c, approach) in new[] { ("testify", "testify"), ("stay_silent", "silent") })
 					letter.Odds[c] = Scrutiny.ImplicationChance(_state, record, approach);
+			if (record != null && e.EventId == "inquest")
+				letter.Odds["bribe_coroner"] = Scrutiny.BribeExposureChance(_state, _content);
 			d.Letters.Add(letter);
 		}
 		foreach (var u in o.NextUnlocks) d.NextUnlocks.Add((_content.Text($"unlock.{u.Id}.name"), u.Progress));
@@ -242,6 +244,7 @@ public sealed class SimGame : IGame
 		if (report != null)
 		{
 			f.CashStartCents = report.CashStartCents;
+			f.TurnedAwayByPrice = report.TurnedAwayByPrice;
 			foreach (var g in report.Deltas.Where(x => x.Metric == "cash").GroupBy(x => x.Cause))
 				f.CashLines.Add((_content.Text($"cause.{g.Key}"), (long)Math.Round(g.Sum(x => x.Amount))));
 			foreach (var g in report.Deltas.Where(x => x.Metric == "heat").GroupBy(x => x.Cause))
@@ -266,6 +269,12 @@ public sealed class SimGame : IGame
 				{
 					var d = o.Deaths.FirstOrDefault(x => x.Id == dn.DeathId);
 					if (d != null) f.Deaths.Add(Person(d));
+					break;
+				}
+				case BribeExposedNews bx:
+				{
+					var d = o.Deaths.FirstOrDefault(x => x.Id == bx.DeathId);
+					if (d != null) f.Exposed.Add(Person(d));
 					break;
 				}
 				case InquestNews q:

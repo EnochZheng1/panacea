@@ -175,6 +175,8 @@ public sealed class EditionWriter
                 Clip = books,
             });
         }
+        if (f.TurnedAwayByPrice > 0)
+            trade.Blocks.Add(new Block { Text = $"Callers who asked the price and went away: {Words(f.TurnedAwayByPrice)}.", Clip = books });
         if (!f.FirstEdition && f.CashLines.Count > 0)
         {
             var takings = f.CashLines.Where(x => x.Cents > 0).Sum(x => x.Cents);
@@ -280,6 +282,22 @@ public sealed class EditionWriter
         }
         // the lead is the month's biggest fact: the coroner naming you, then the dead, then the
         // news of the age, then trade; a quiet month only when nothing happened at all
+        // a bought verdict found out outranks everything but the end
+        if (f.Exposed.Count > 0)
+        {
+            var x = _copy.GetProperty("exposedLead");
+            var who = f.Exposed[0];
+            string Sub(string t) => Fill(t.Replace("{who_upper}", Who(f, who).ToUpperInvariant()), f, who, product?.Name ?? "the remedy");
+            return new Story
+            {
+                Headline = S(x, "headline"),
+                Decks = x.GetProperty("decks").EnumerateArray().Select(d => Sub(d.GetString() ?? "")).ToList(),
+                Cut = S(x, "cut"),
+                Cutline = S(x, "cutline"),
+                Body = Sub(S(x, "body")),
+                Clip = PersonClip(f, who, "THE INQUEST", "Your envelope to the coroner has come out. A bought verdict found out costs more than a jury's: suspicion and standing both.", "The coroner's fee rises with every envelope, and so does the chance of this."),
+            };
+        }
         var named = f.Inquests.FirstOrDefault(q => q.Outcome == "implicated");
         if (named != null)
         {
@@ -391,6 +409,8 @@ public sealed class EditionWriter
         if (f.CashCents < 0) options.Add("arrears");
         if (sold == 0) options.Add("nothing");
         if (soldOut) options.Add("shortage");
+        // the price drove callers off: say so, rather than blame the weather
+        if (f.TurnedAwayByPrice >= 5 && f.TurnedAwayByPrice * 4 >= sold) options.Add("dear");
         if (record) options.Add("record");
         if (slump && !soldOut) options.Add("dull");
         if (f.Joined.Count >= 3 || (f.Joined.Count >= 2 && f.Joined.Count > lost.Count)) options.Add("growing");
@@ -428,7 +448,9 @@ public sealed class EditionWriter
                 .Replace("{product_upper}", product.Name.ToUpperInvariant())
                 .Replace("{sold_upper}", Words(sold).ToUpperInvariant())
                 .Replace("{joined_upper}", Words(f.Joined.Count).ToUpperInvariant())
-                .Replace("{left_upper}", Words(lost.Count).ToUpperInvariant());
+                .Replace("{left_upper}", Words(lost.Count).ToUpperInvariant())
+                .Replace("{turned_upper}", Words(f.TurnedAwayByPrice).ToUpperInvariant())
+                .Replace("{price}", Money(product.PriceCents));
         }
         return new Story
         {

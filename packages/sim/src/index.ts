@@ -35,5 +35,10 @@ export {
 export { maxBrewable, stockOf, totalStock } from './systems/lab.ts';
 export { acuteDanger, feltEffect, overdoseChance, reliefScore } from './systems/pharmacology.ts';
 export { availableChoices, nextUnlocks, type UnlockProgress } from './systems/progression.ts';
-export { bribeCostCents, implicationChance, INQUEST_EVENT_ID } from './systems/scrutiny.ts';
+export {
+  bribeCostCents,
+  bribeExposureChance,
+  implicationChance,
+  INQUEST_EVENT_ID,
+} from './systems/scrutiny.ts';
 export { evaluateRequirement, type RequirementStatus } from './systems/requirements.ts';

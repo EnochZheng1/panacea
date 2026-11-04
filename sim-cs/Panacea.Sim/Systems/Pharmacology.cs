@@ -106,6 +106,7 @@ public static class CustomersSystem
                 LastFormulaId = null,
                 BottlesLastMonth = 0,
                 InWithdrawal = false,
+                DebtCents = 0,
             };
         }).ToList();
 
@@ -153,6 +154,7 @@ public static class CustomersSystem
             LastFormulaId = null,
             BottlesLastMonth = 0,
             InWithdrawal = false,
+            DebtCents = 0,
         };
     }
 }

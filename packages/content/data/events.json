@@ -277,5 +277,219 @@
         "default": true
       }
     ]
+  },
+  {
+    "id": "rival_price_war",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 6
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 150
+        }
+      ]
+    },
+    "chance": 0.12,
+    "cooldownMonths": 18,
+    "choices": [
+      {
+        "id": "handbills",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -1000
+          }
+        ]
+      },
+      {
+        "id": "cry_him_down",
+        "effects": [
+          {
+            "type": "notoriety",
+            "delta": 2
+          },
+          {
+            "type": "heat",
+            "delta": 4
+          },
+          {
+            "type": "reputation",
+            "delta": -2
+          }
+        ]
+      },
+      {
+        "id": "let_him_try",
+        "effects": [
+          {
+            "type": "capability",
+            "id": "rival_share_pct",
+            "delta": 40,
+            "months": 4
+          },
+          {
+            "type": "capability",
+            "id": "rival_price_cents",
+            "delta": 65,
+            "months": 4
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "landlord_rent",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 9
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 300
+        }
+      ]
+    },
+    "chance": 0.12,
+    "once": true,
+    "choices": [
+      {
+        "id": "buy_the_lease",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -6000
+          },
+          {
+            "type": "capability",
+            "id": "rent_extra_cents",
+            "delta": -100
+          }
+        ]
+      },
+      {
+        "id": "smaller_premises",
+        "effects": [
+          {
+            "type": "capability",
+            "id": "shop_capacity",
+            "delta": -8
+          }
+        ]
+      },
+      {
+        "id": "pay_the_rise",
+        "effects": [
+          {
+            "type": "capability",
+            "id": "rent_extra_cents",
+            "delta": 100
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "spirits_dearer",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 7
+          }
+        },
+        {
+          "type": "batchesBrewed",
+          "atLeast": 6
+        }
+      ]
+    },
+    "chance": 0.1,
+    "cooldownMonths": 24,
+    "choices": [
+      {
+        "id": "outside_distiller",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -600
+          }
+        ]
+      },
+      {
+        "id": "pay_the_new_price",
+        "effects": [
+          {
+            "type": "capability",
+            "id": "surcharge_pct_grain_alcohol",
+            "delta": 100,
+            "months": 6
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "benefit_society",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 5
+          }
+        },
+        {
+          "type": "regulars",
+          "atLeast": 8
+        }
+      ]
+    },
+    "chance": 0.12,
+    "once": true,
+    "choices": [
+      {
+        "id": "subscribe",
+        "effects": [
+          {
+            "type": "capability",
+            "id": "walk_in_bonus",
+            "delta": 5,
+            "months": 12
+          },
+          {
+            "type": "capability",
+            "id": "retainer_cents",
+            "delta": 150,
+            "months": 12
+          }
+        ]
+      },
+      {
+        "id": "decline_politely",
+        "effects": [],
+        "default": true
+      }
+    ]
   }
 ]

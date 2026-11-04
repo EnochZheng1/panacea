@@ -5,6 +5,7 @@ import {
   analyzeFormula,
   applyAction,
   bribeCostCents,
+  bribeExposureChance,
   checkInvariants,
   endTurn,
   newScratch,
@@ -12,6 +13,7 @@ import {
   overdoseChance,
   reliefScore,
   Rng,
+  seedRng,
   stockOf,
   type Bought,
   type Customer,
@@ -404,5 +406,147 @@ describe('what the player can see', () => {
     const { state, formulaId } = stocked(LAUDANUM_TONIC, 12);
     expect(stockOf(state, formulaId)).toBe(12);
     expect(observe(state, content).formulas[0]!.stock).toBe(12);
+  });
+});
+
+describe('the habit, the coroner and the post (balance pass 2)', () => {
+  const sellTo = (state: GameState, seed: string) => {
+    const ctx: TurnContext = { state, content, rng: Rng.fromSeed(seed), scratch: newScratch() };
+    salesPhase.run(ctx);
+    return ctx;
+  };
+
+  it('a hooked regular who spends beyond their means runs up a debt, and once ruined buys one bottle', () => {
+    let ruinedBottles = 0;
+    let solventBottles = 0;
+    for (let i = 0; i < 20; i++) {
+      const { state, formulaId } = stocked(LAUDANUM_TONIC, 300, `ruin${i}`);
+      state.lab.formulas.find((f) => f.id === formulaId)!.priceCents = 150;
+      const [a, b] = state.customers;
+      for (const c of [a!, b!]) {
+        c.body.dependency = 0.95;
+        c.satisfaction = 0.5;
+      }
+      const means = a!.profile.baseWillingnessCents * content.config.market.meansPerMonth;
+      a!.debtCents = means + 1;
+      expect(observe(state, content).customers.find((c) => c.id === a!.id)!.ruined).toBe(true);
+      const ctx = sellTo(state, `r${i}`);
+      const boughtA = ctx.scratch.purchases.get(a!.id) ?? [];
+      const boughtB = ctx.scratch.purchases.get(b!.id) ?? [];
+      expect(boughtA.length).toBeLessThanOrEqual(1);
+      ruinedBottles += boughtA.length;
+      solventBottles += boughtB.length;
+      const spentB = boughtB.length * 150;
+      const meansB = b!.profile.baseWillingnessCents * content.config.market.meansPerMonth;
+      expect(b!.debtCents).toBe(Math.max(0, spentB - meansB));
+    }
+    expect(solventBottles).toBeGreaterThan(ruinedBottles * 1.5);
+  });
+
+  it('a ruined regular’s family complains', () => {
+    const { state, customer } = oneCustomer('family');
+    customer.debtCents = 1_000_000;
+    runBody(state, { [customer.id]: [] });
+    expect(state.month.complaints).toBe(1);
+  });
+
+  it('counts the callers who asked the price and left', () => {
+    const { state, formulaId } = stocked(LAUDANUM_TONIC, 100, 'dear');
+    state.lab.formulas.find((f) => f.id === formulaId)!.priceCents = 5000;
+    const ctx = sellTo(state, 'dear');
+    expect(state.month.sales).toEqual([]);
+    expect(state.month.turnedAwayByPrice).toBeGreaterThan(0);
+    const report = endTurn(ctx.state, content).report;
+    expect(report.turnedAwayByPrice).toBeGreaterThanOrEqual(state.month.turnedAwayByPrice);
+  });
+
+  it('a bribe can come out: the fee is gone and the verdict goes against you', () => {
+    const base = withInquest(true);
+    base.unlocks.unlocked['coroner_fees'] = 0;
+    expect(bribeExposureChance(base, content)).toBe(0);
+    base.scrutiny.bribesPaid = 10;
+    base.player.notoriety = 40;
+    base.month.startNotoriety = 40;
+    const chance = bribeExposureChance(base, content);
+    expect(chance).toBeCloseTo(0.4);
+    expect(observe(base, content).pendingEvents[0]!.bribeExposureChance).toBeCloseTo(chance);
+    let exposed = 0;
+    for (let i = 0; i < 60; i++) {
+      const s = structuredClone(base);
+      s.meta.rng = seedRng(`expose${i}`);
+      const cost = bribeCostCents(s, content);
+      const after = act(s, {
+        type: 'ResolveEvent',
+        instanceId: 'inq_1',
+        choiceId: 'bribe_coroner',
+      });
+      expect(after.player.cashCents).toBeLessThanOrEqual(s.player.cashCents - cost);
+      if (after.month.news.some((n) => n.kind === 'bribe_exposed')) {
+        exposed += 1;
+        expect(after.deaths[0]).toMatchObject({ inquest: 'implicated' });
+        expect(after.scrutiny.heat).toBeGreaterThan(s.scrutiny.heat + 20);
+      } else {
+        expect(after.deaths[0]).toMatchObject({ inquest: 'bribed' });
+      }
+    }
+    expect(exposed).toBeGreaterThan(10);
+    expect(exposed).toBeLessThan(40);
+  });
+
+  it('a rival’s sale lasts four months, and only takes trade dearer than his', () => {
+    let s = start('rival');
+    s.player.cashCents = 1_000_000;
+    s.month.startCashCents = s.player.cashCents;
+    s.events.pending = [{ instanceId: 'r1', eventId: 'rival_price_war', drawnTurn: 0 }];
+    s = act(s, { type: 'ResolveEvent', instanceId: 'r1', choiceId: 'let_him_try' });
+    expect(s.player.capabilities['rival_share_pct']).toBe(40);
+    expect(s.player.capabilities['rival_price_cents']).toBe(65);
+    s = months(s, 3);
+    expect(s.player.capabilities['rival_share_pct']).toBe(40);
+    s = months(s, 1);
+    expect(s.player.capabilities['rival_share_pct']).toBe(0);
+    expect(s.player.capabilities['rival_price_cents']).toBe(0);
+    expect(s.player.timedCapabilities).toEqual([]);
+
+    // with the rival at full strength, a bottle dearer than his loses walk-ins; a cheaper one does not
+    const sold = (price: number) => {
+      let n = 0;
+      for (let i = 0; i < 10; i++) {
+        const { state, formulaId } = stocked(LAUDANUM_TONIC, 300, `rv${i}`);
+        state.customers = [];
+        state.lab.formulas.find((f) => f.id === formulaId)!.priceCents = price;
+        state.player.capabilities['rival_share_pct'] = 100;
+        state.player.capabilities['rival_price_cents'] = 65;
+        sellTo(state, `rs${i}`);
+        n += state.month.sales.reduce((t, x) => t + x.bottles, 0);
+      }
+      return n;
+    };
+    expect(sold(70)).toBe(0);
+    expect(sold(60)).toBeGreaterThan(0);
+  });
+
+  it('a supplier’s rise makes one ingredient dearer until it runs out', () => {
+    let s = start('spirits');
+    const before = observe(s, content).ingredients.find((i) => i.id === 'grain_alcohol')!;
+    s.events.pending = [{ instanceId: 'sp', eventId: 'spirits_dearer', drawnTurn: 0 }];
+    s = act(s, { type: 'ResolveEvent', instanceId: 'sp', choiceId: 'pay_the_new_price' });
+    const during = observe(s, content).ingredients.find((i) => i.id === 'grain_alcohol')!;
+    expect(during.costPerUnitCents).toBe(before.costPerUnitCents * 2);
+    s = months(s, 6);
+    const after = observe(s, content).ingredients.find((i) => i.id === 'grain_alcohol')!;
+    expect(after.costPerUnitCents).toBe(before.costPerUnitCents);
+  });
+
+  it('a subscription is booked as its own expense for as long as it runs', () => {
+    let s = start('society');
+    s.player.cashCents = 1_000_000;
+    s.month.startCashCents = s.player.cashCents;
+    s.events.pending = [{ instanceId: 'bs', eventId: 'benefit_society', drawnTurn: 0 }];
+    s = act(s, { type: 'ResolveEvent', instanceId: 'bs', choiceId: 'subscribe' });
+    s = months(s, 12);
+    const paid = s.ledger.filter((e) => e.deltas.some((d) => d.cause === 'expense.retainer'));
+    expect(paid).toHaveLength(12);
+    expect(s.player.capabilities['walk_in_bonus']).toBe(0);
   });
 });

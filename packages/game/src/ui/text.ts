@@ -55,6 +55,11 @@ export function newsText(content: ContentPack, state: GameState, n: NewsItem): s
             : ''
       }`;
     }
+    case 'bribe_exposed': {
+      const d = state.deaths.find((x) => x.id === n.deathId);
+      const who = d ? deathName(content, d) : 'the deceased';
+      return `⚖ The coroner's clerk talked: the fee you paid over ${who} is common knowledge.`;
+    }
     case 'customer_joined': {
       const c = state.customers.find((x) => x.id === n.customerId);
       return `☞ New regular: ${c?.name ?? 'a new customer'}.`;

@@ -44,6 +44,14 @@ public sealed class PaperFacts
     public long CashStartCents;
     /// <summary>Bottles sold the month before, so the paper can tell a slump from a steady trade.</summary>
     public int SoldLastMonth;
+    /// <summary>
+    /// Callers who asked the price and left this month: walk-ins, and regulars come for their
+    /// first bottle, who liked something on the shelf but would not pay what it cost (or went to a
+    /// rival's cheaper bottle).
+    /// </summary>
+    public int TurnedAwayByPrice;
+    /// <summary>Inquests whose bought verdict came out this month.</summary>
+    public List<PersonFact> Exposed = new();
     public List<(string Label, long Cents)> CashLines = new();
     public List<(string Label, double Amount)> HeatLines = new();
 }

@@ -25,6 +25,7 @@ export function initialCustomers(content: ContentPack): Customer[] {
       lastFormulaId: null,
       bottlesLastMonth: 0,
       inWithdrawal: false,
+      debtCents: 0,
     };
   });
 }
@@ -77,5 +78,6 @@ export function generateCustomer(
     lastFormulaId: null,
     bottlesLastMonth: 0,
     inWithdrawal: false,
+    debtCents: 0,
   };
 }

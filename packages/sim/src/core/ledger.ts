@@ -66,6 +66,7 @@ export function openMonth(state: GameState): MonthInProgress {
     news: [],
     sales: [],
     complaints: 0,
+    turnedAwayByPrice: 0,
   };
 }
 
@@ -87,6 +88,7 @@ export function closeMonth(state: GameState): LedgerEntry {
     sales: m.sales,
     customers: state.customers.length,
     complaints: m.complaints,
+    turnedAwayByPrice: m.turnedAwayByPrice,
   };
 }
 

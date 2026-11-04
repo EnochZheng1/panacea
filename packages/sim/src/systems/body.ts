@@ -5,6 +5,7 @@ import { adjust } from '../core/ledger.ts';
 import type { Rng } from '../core/rng.ts';
 import type { Bought, Customer, DeathCause, GameState, LeaveReason, Phase } from '../core/index.ts';
 import { analyzeFormula, type FormulaAnalysis } from './formula.ts';
+import { isRuined } from './market.ts';
 import {
   acuteDanger,
   dangerThreshold,
@@ -229,7 +230,9 @@ function monthForCustomer(
   }
   if (withdrawal) c.satisfaction -= 0.4;
   c.satisfaction = Math.max(-1, Math.min(1, c.satisfaction));
-  const complaint = withdrawal || (bought.length > 0 && c.satisfaction < -0.3);
+  // A regular ruined by the habit has a family, and the family complains.
+  const complaint =
+    withdrawal || (bought.length > 0 && c.satisfaction < -0.3) || isRuined(c, content);
 
   // 6. Does the customer keep coming?
   let reason: LeaveReason | null = null;

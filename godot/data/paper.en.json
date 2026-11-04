@@ -496,6 +496,28 @@
         "The shop on Mulberry street has had its best month yet, and the proprietor his best hat. Asked the secret of his success, he said it was the purity of his preparations, and laughed for some time.",
         "Trade in {product} has never been brisker. Our reporter counted the callers on a single afternoon and lost count at forty; the proprietor did not, and will not say what it came to."
       ]
+    },
+    "dear": {
+      "headline": "TOO DEAR FOR THE WARD",
+      "cut": "wc_clerk",
+      "cutline": "A CALLER WHO ASKED THE PRICE.",
+      "decks": [
+        "Callers Balk at the Price.",
+        "{turned_upper} CALLERS ASKED WHAT THE REMEDY COST AND WENT AWAY; THE PROPRIETOR CALLS IT QUALITY.",
+        "The Ward Counts Its Pennies."
+      ],
+      "bodies": [
+        "At {price} the bottle, the remedy of Mulberry street is beyond a good part of the ward. Our reporter watched a laborer read the card in the window, count his change, and go home to his cough.",
+        "The proprietor of {product} has put up his price to {price}, and his callers have put down their hats and left. He informs our reporter that a remedy cheaply sold is cheaply regarded, and that he would rather sell one bottle to a gentleman than three to the ward.",
+        "Several callers at the shop this month asked the price of {product} and were told {price}. Most of them are said to have found that they felt better already."
+      ],
+      "again": {
+        "headline": "STILL TOO DEAR",
+        "decks": [
+          "The Price Holds, and So Do the Pennies.",
+          "{turned_upper} MORE CALLERS TURNED AWAY BY THE PRICE; THE PROPRIETOR HOLDS FIRM."
+        ]
+      }
     }
   },
   "infantLead": [
@@ -522,5 +544,16 @@
     "Friends describe the deceased as a regular and devoted customer of a certain remedy, which had lately become indispensable to {object}. The proprietor sends his condolences, and reminds the ward that the remedy is purely vegetable.",
     "The deceased had been taking a remedy of the neighborhood for some months, and was heard to say that {pronoun} had never felt better. The physician who signed the certificate did not ask what it was.",
     "{pronounCap} was a familiar figure at the shop on Mulberry street, where {pronoun} was known as a customer who never missed a month. The proprietor speaks of {object} warmly, and in the past tense."
-  ]
+  ],
+  "exposedLead": {
+    "headline": "THE CORONER'S ENVELOPE",
+    "cut": "wc_death",
+    "cutline": "A GENTLEMAN WHO PAID THE CORONER'S FEE.",
+    "decks": [
+      "A Bought Verdict Comes to Light.",
+      "IT IS SAID THAT THE INQUEST UPON {who_upper} WAS SETTLED BEFORE THE JURY SAT.",
+      "The District Attorney Is Asked to Look Into It."
+    ],
+    "body": "An envelope that passed between the shop on Mulberry street and Centre street has been talked of in the ward, and now in the papers. Coroner {coroner} declines to discuss it, and is understood to have spent it. The verdict stands; the proprietor's name, which the envelope was meant to keep out of it, does not."
+  }
 }

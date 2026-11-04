@@ -94,6 +94,17 @@ public static class Scrutiny
         return Math.Max(500, (long)JsMath.Round(raw / 500) * 500);
     }
 
+    /// <summary>
+    /// Chance that a bribe offered now comes out: the coroner's clerk talks. Every fee already paid
+    /// is one more that someone knows about, and a notorious name is worth more to a talker.
+    /// </summary>
+    public static double BribeExposureChance(GameState state, ContentPack content)
+    {
+        var cfg = content.Config.Scrutiny;
+        return Math.Min(cfg.BribeExposureMax,
+            state.Scrutiny.BribesPaid * cfg.BribeExposurePerBribe + state.Player.Notoriety * cfg.BribeExposurePerNotoriety);
+    }
+
     /// <summary>Probability the jury blames your medicine. Approach: "testify" or "silent".</summary>
     public static double ImplicationChance(GameState state, DeathRecord record, string approach)
     {
@@ -124,25 +135,41 @@ public static class Scrutiny
         var cfg = content.Config.Scrutiny;
         string outcome;
 
+        void Implicate(double heat, double reputation, double notoriety)
+        {
+            Ledger.Adjust(state, Metrics.Reputation, -reputation, Causes.Inquest, record.Id);
+            Ledger.Adjust(state, Metrics.Heat, heat, Causes.Inquest, record.Id);
+            Ledger.Adjust(state, Metrics.Notoriety, notoriety, Causes.Inquest, record.Id);
+            state.Scrutiny.TimesImplicated += 1;
+            state.Player.Flags["implicated_at_inquest"] = true;
+            foreach (var c in state.Customers) c.Satisfaction = Math.Max(-1, c.Satisfaction - 0.3);
+        }
+
         if (approach == "bribe")
         {
             long cost = BribeCostCents(state, content);
             if (cost > state.Player.CashCents) return "not enough cash for the coroner";
+            double exposure = BribeExposureChance(state, content);
             Ledger.Adjust(state, Metrics.Cash, -cost, Causes.Bribe, record.Id);
-            Ledger.Adjust(state, Metrics.Notoriety, 2, Causes.Inquest, record.Id);
-            Ledger.Adjust(state, Metrics.Heat, -2, Causes.Inquest, record.Id);
             state.Scrutiny.BribesPaid += 1;
-            outcome = InquestStates.Bribed;
+            if (rng.Chance(exposure))
+            {
+                // the money is gone, and the jury hears where it went: worse than any verdict
+                Implicate(30, 15, 10);
+                state.Month.News.Add(new BribeExposedNews(record.Id));
+                outcome = InquestStates.Implicated;
+            }
+            else
+            {
+                Ledger.Adjust(state, Metrics.Notoriety, 2, Causes.Inquest, record.Id);
+                Ledger.Adjust(state, Metrics.Heat, -2, Causes.Inquest, record.Id);
+                outcome = InquestStates.Bribed;
+            }
         }
         else if (rng.Chance(ImplicationChance(state, record, approach)))
         {
             // a proprietor who would not come and speak for his bottle looks the guiltier for it
-            Ledger.Adjust(state, Metrics.Reputation, -12, Causes.Inquest, record.Id);
-            Ledger.Adjust(state, Metrics.Heat, approach == "silent" ? 28 : 20, Causes.Inquest, record.Id);
-            Ledger.Adjust(state, Metrics.Notoriety, 8, Causes.Inquest, record.Id);
-            state.Scrutiny.TimesImplicated += 1;
-            state.Player.Flags["implicated_at_inquest"] = true;
-            foreach (var c in state.Customers) c.Satisfaction = Math.Max(-1, c.Satisfaction - 0.3);
+            Implicate(approach == "silent" ? 28 : 20, 12, 8);
             outcome = InquestStates.Implicated;
         }
         else

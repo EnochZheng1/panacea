@@ -29,6 +29,7 @@ import {
   drawEvents,
   resolveEvent,
   timelinePhase,
+  timersPhase,
   unlocksPhase,
 } from './systems/progression.ts';
 import { heatDecayPhase } from './systems/scrutiny.ts';
@@ -59,6 +60,7 @@ export const PHASES: readonly Phase[] = [
   expensesPhase,
   timelinePhase,
   unlocksPhase,
+  timersPhase,
 ];
 
 export function newGame(content: ContentPack, options: NewGameOptions): GameState {
@@ -85,6 +87,7 @@ export function newGame(content: ContentPack, options: NewGameOptions): GameStat
       reputation: content.config.startingReputation,
       notoriety: 0,
       capabilities: { ...background.capabilities },
+      timedCapabilities: [],
       flags: Object.fromEntries(background.flags.map((f) => [f, true])),
       monthsInsolvent: 0,
     },
@@ -120,6 +123,7 @@ export function newGame(content: ContentPack, options: NewGameOptions): GameStat
       news: [],
       sales: [],
       complaints: 0,
+      turnedAwayByPrice: 0,
     },
     ledger: [],
     log: [],

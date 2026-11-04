@@ -203,7 +203,8 @@ public sealed record ClearFlagEffect(string Id) : Effect
     public override string Type => "clearFlag";
 }
 
-public sealed record CapabilityEffect(string Id, int Delta) : Effect
+/// <summary>Adds to a capability; with <see cref="Months"/>, only for that many month-ends, then it reverts.</summary>
+public sealed record CapabilityEffect(string Id, int Delta, int? Months = null) : Effect
 {
     public override string Type => "capability";
 }
@@ -232,7 +233,8 @@ internal sealed class EffectConverter : JsonConverter<Effect>
             "reputation" or "notoriety" or "heat" => new MetricEffect(type, e.GetProperty("delta").GetDouble()),
             "setFlag" => new SetFlagEffect(e.GetProperty("id").GetString()!),
             "clearFlag" => new ClearFlagEffect(e.GetProperty("id").GetString()!),
-            "capability" => new CapabilityEffect(e.GetProperty("id").GetString()!, e.GetProperty("delta").GetInt32()),
+            "capability" => new CapabilityEffect(e.GetProperty("id").GetString()!, e.GetProperty("delta").GetInt32(),
+                e.TryGetProperty("months", out var months) ? months.GetInt32() : null),
             "seizeStock" => new SeizeStockEffect(),
             "inquest" => new InquestEffect(e.GetProperty("approach").GetString()!),
             _ => throw new JsonException($"unknown effect type \"{type}\""),
@@ -252,6 +254,7 @@ internal sealed class EffectConverter : JsonConverter<Effect>
             case CapabilityEffect c:
                 writer.WriteString("id", c.Id);
                 writer.WriteNumber("delta", c.Delta);
+                if (c.Months is int months) writer.WriteNumber("months", months);
                 break;
             case InquestEffect i: writer.WriteString("approach", i.Approach); break;
         }
@@ -434,6 +437,11 @@ public sealed class MarketConfig
     public double BottlesPerAttachment { get; init; }
     public double BudgetBase { get; init; }
     public double BudgetPerAttachment { get; init; }
+    /// <summary>
+    /// A regular can afford usual price × MeansPerMonth a month; spending more runs up a debt, and
+    /// a regular who owes more than a month's means is ruined.
+    /// </summary>
+    public double MeansPerMonth { get; init; }
 }
 
 public sealed class AdvertisingConfig
@@ -481,6 +489,10 @@ public sealed class ScrutinyConfig
     public int ShutdownGraceMonths { get; init; }
     public double InquestBaseChance { get; init; }
     public long BribeBaseCents { get; init; }
+    /// <summary>Chance a bribe comes out: per bribe already paid, plus per point of notoriety, up to the max.</summary>
+    public double BribeExposurePerBribe { get; init; }
+    public double BribeExposurePerNotoriety { get; init; }
+    public double BribeExposureMax { get; init; }
     public required IReadOnlyList<string> BenignVerdicts { get; init; }
 }
 

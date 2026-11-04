@@ -426,6 +426,16 @@ public sealed class WalkInsConfig
     public double ConversionChance { get; init; }
 }
 
+public sealed class MarketConfig
+{
+    public double WillingnessBase { get; init; }
+    public double AppealPerWillingness { get; init; }
+    public double WillingnessMax { get; init; }
+    public double BottlesPerAttachment { get; init; }
+    public double BudgetBase { get; init; }
+    public double BudgetPerAttachment { get; init; }
+}
+
 public sealed class AdvertisingConfig
 {
     public double VisitorsPerSqrtCent { get; init; }
@@ -492,6 +502,7 @@ public sealed class Config
     public int MaxRegulars { get; init; }
     public int MaxClaimsPerFormula { get; init; }
     public required WalkInsConfig WalkIns { get; init; }
+    public required MarketConfig Market { get; init; }
     public required AdvertisingConfig Advertising { get; init; }
     public required BatchesConfig Batches { get; init; }
     public required BodyConfig Body { get; init; }

@@ -25,6 +25,12 @@ export interface BotSummary {
   medianMonths: number;
   medianFinalCashCents: number;
   meanFinalCashCents: number;
+  /** 10th and 90th percentiles of final cash: the spread of outcomes. */
+  p10FinalCashCents: number;
+  p90FinalCashCents: number;
+  /** Median cash at the end of months 6 and 12 (a game that ended sooner counts its final cash). */
+  medianCashMonth6Cents: number;
+  medianCashMonth12Cents: number;
   medianBottlesSold: number;
   medianPeakCustomers: number;
   medianDeaths: number;
@@ -56,6 +62,16 @@ export const median = (xs: number[]): number => {
   const mid = Math.floor(s.length / 2);
   return s.length % 2 ? (s[mid] as number) : ((s[mid - 1] as number) + (s[mid] as number)) / 2;
 };
+/** Nearest-rank percentile (p in 0..100). */
+export const percentile = (xs: number[], p: number): number => {
+  if (xs.length === 0) return 0;
+  const s = [...xs].sort((a, b) => a - b);
+  const rank = Math.min(s.length, Math.max(1, Math.ceil((p / 100) * s.length)));
+  return s[rank - 1] as number;
+};
+/** Cash at the end of the given month, or the final cash if the game ended sooner. */
+export const cashAtMonth = (r: RunResult, month: number): number =>
+  r.finalState.ledger[month - 1]?.cashEndCents ?? r.finalCashCents;
 const mean = (xs: number[]) => (xs.length === 0 ? 0 : xs.reduce((a, b) => a + b, 0) / xs.length);
 
 export function runBatch(options: BatchOptions): BatchReport {
@@ -119,6 +135,16 @@ export function summarise(botId: string, results: RunResult[], content: ContentP
     medianMonths: median(pick((r) => r.months)),
     medianFinalCashCents: median(pick((r) => r.finalCashCents)),
     meanFinalCashCents: mean(pick((r) => r.finalCashCents)),
+    p10FinalCashCents: percentile(
+      pick((r) => r.finalCashCents),
+      10,
+    ),
+    p90FinalCashCents: percentile(
+      pick((r) => r.finalCashCents),
+      90,
+    ),
+    medianCashMonth6Cents: median(pick((r) => cashAtMonth(r, 6))),
+    medianCashMonth12Cents: median(pick((r) => cashAtMonth(r, 12))),
     medianBottlesSold: median(pick((r) => r.bottlesSold)),
     medianPeakCustomers: median(pick((r) => r.peakCustomers)),
     medianDeaths: median(pick((r) => r.deaths)),
@@ -164,6 +190,10 @@ export function formatReport(report: BatchReport): string {
     'Median end month (early endings)',
     'Median final cash',
     'Mean final cash',
+    'p10 final cash',
+    'p90 final cash',
+    'Cash m6 (median)',
+    'Cash m12 (median)',
     'Median bottles sold',
     'Median peak customers',
     'ms/run',
@@ -176,6 +206,10 @@ export function formatReport(report: BatchReport): string {
       s.medianEndMonth ?? '—',
       dollars(s.medianFinalCashCents),
       dollars(s.meanFinalCashCents),
+      dollars(s.p10FinalCashCents),
+      dollars(s.p90FinalCashCents),
+      dollars(s.medianCashMonth6Cents),
+      dollars(s.medianCashMonth12Cents),
       s.medianBottlesSold,
       s.medianPeakCustomers,
       s.avgMsPerRun.toFixed(0),

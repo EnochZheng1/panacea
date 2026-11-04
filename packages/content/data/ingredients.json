@@ -186,12 +186,12 @@
       "kick": 3,
       "calm": 20,
       "habit": 15,
-      "acuteToxicity": 9,
+      "acuteToxicity": 4,
       "accumulation": 0,
       "bitterness": 6,
       "detectability": 6
     },
-    "costPerUnitCents": 60,
+    "costPerUnitCents": 40,
     "tags": ["opiate"],
     "appearance": {
       "color": "#cdb8ff",
@@ -212,7 +212,7 @@
       "bitterness": 3,
       "detectability": 4
     },
-    "costPerUnitCents": 40,
+    "costPerUnitCents": 25,
     "tags": ["cocaine"],
     "appearance": {
       "color": "#2fa65a",

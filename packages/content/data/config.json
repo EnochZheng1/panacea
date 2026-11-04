@@ -10,7 +10,7 @@
   },
   "defaultBackground": "druggist",
   "startingReputation": 10,
-  "rentCents": 500,
+  "rentCents": 300,
   "bottleCostCents": 3,
   "bottleCapacity": 8,
   "maxFormulas": 6,
@@ -19,14 +19,22 @@
   "walkIns": {
     "base": 20,
     "perReputation": 0.2,
-    "conversionChance": 0.08
+    "conversionChance": 0.14
   },
   "maxRegulars": 30,
   "maxClaimsPerFormula": 4,
+  "market": {
+    "willingnessBase": 0.5,
+    "appealPerWillingness": 7,
+    "willingnessMax": 2.5,
+    "bottlesPerAttachment": 2.25,
+    "budgetBase": 1.5,
+    "budgetPerAttachment": 2
+  },
   "advertising": {
     "visitorsPerSqrtCent": 0.8,
-    "heatPerBoldness": 0.2,
-    "labelHeatPerBoldness": 0.3
+    "heatPerBoldness": 0.1,
+    "labelHeatPerBoldness": 0.15
   },
   "batches": {
     "potencySpread": 0.08,

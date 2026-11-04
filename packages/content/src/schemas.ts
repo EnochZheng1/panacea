@@ -328,6 +328,23 @@ export const ConfigSchema = z.strictObject({
     /** Chance a satisfied walk-in becomes a regular. */
     conversionChance: z.number().min(0).max(1),
   }),
+  market: z.strictObject({
+    /**
+     * Willingness to pay = usual price × clamp(willingnessBase + appeal / appealPerWillingness,
+     * 0, willingnessMax) × (1 + dependency).
+     */
+    willingnessBase: z.number().min(0),
+    appealPerWillingness: z.number().positive(),
+    willingnessMax: z.number().min(0),
+    /**
+     * A regular's attachment is max(dependency, satisfaction). They want
+     * 1 + ⌊attachment × bottlesPerAttachment⌋ bottles, and will spend up to usual price ×
+     * (budgetBase + budgetPerAttachment × attachment) × (1 + dependency) on the extra ones.
+     */
+    bottlesPerAttachment: z.number().min(0),
+    budgetBase: z.number().min(0),
+    budgetPerAttachment: z.number().min(0),
+  }),
   advertising: z.strictObject({
     /** Extra walk-ins ≈ visitorsPerSqrtCent × √(monthly spend in cents). */
     visitorsPerSqrtCent: z.number().min(0),

@@ -37,8 +37,8 @@ const MERCURY_PILL: FormulaComponent[] = [
   { ingredientId: 'water', amount: 5 },
 ];
 const DEATH_IN_A_BOTTLE: FormulaComponent[] = [
-  { ingredientId: 'morphine', amount: 3 },
-  { ingredientId: 'water', amount: 5 },
+  { ingredientId: 'morphine', amount: 5 },
+  { ingredientId: 'water', amount: 3 },
 ];
 
 const bottle = (components: FormulaComponent[], potency = 1, formulaId = 'f'): Bought => ({
@@ -104,7 +104,7 @@ describe('body model', () => {
   });
 
   it('tolerance protects against a drug class, and losing it makes the same dose dangerous', () => {
-    const a = analyzeFormula([{ ingredientId: 'morphine', amount: 0.7 }], 'simple_mix', content);
+    const a = analyzeFormula([{ ingredientId: 'morphine', amount: 2 }], 'simple_mix', content);
     const dose = { potency: 1, doseScale: 1, vulnerability: 1 };
     const naive = acuteDanger(a, zeroTolerance(), dose, content);
     const tolerant = acuteDanger(a, { ...zeroTolerance(), opiate: 2 }, dose, content);

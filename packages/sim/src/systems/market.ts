@@ -38,10 +38,18 @@ export interface Buyer {
   dependency: number;
 }
 
-export function willingnessToPay(buyer: Buyer, appealScore: number): number {
+/**
+ * The most a buyer would pay for a bottle of this appeal. A stronger-feeling bottle commands a
+ * premium (up to `willingnessMax` × their usual price), and dependency raises it further.
+ */
+export function willingnessToPay(buyer: Buyer, appealScore: number, content: ContentPack): number {
+  const m = content.config.market;
   return (
     buyer.profile.baseWillingnessCents *
-    Math.min(2, Math.max(0, 0.5 + appealScore / 10)) *
+    Math.min(
+      m.willingnessMax,
+      Math.max(0, m.willingnessBase + appealScore / m.appealPerWillingness),
+    ) *
     (1 + buyer.dependency)
   );
 }
@@ -65,7 +73,7 @@ export function chooseOffer(
       buyer.dependency,
       claimAppeal(o.formula.claims, buyer.ailment, content),
     );
-    if (a <= 0 || o.formula.priceCents > willingnessToPay(buyer, a)) continue;
+    if (a <= 0 || o.formula.priceCents > willingnessToPay(buyer, a, content)) continue;
     const score = a / Math.max(1, o.formula.priceCents);
     if (score > bestScore) {
       best = o;
@@ -146,7 +154,12 @@ export const salesPhase: Phase = {
       return bought;
     };
 
-    // Regulars, in a fixed order for determinism.
+    // Regulars, in a fixed order for determinism. A regular's attachment to the shop is the
+    // stronger of habit and plain satisfaction: a delighted customer buys a second bottle for the
+    // cupboard just as a dependent one does, though only the dependent pays beyond their means.
+    // Every regular who comes in will buy one bottle they think worth its price; the budget
+    // limits the extra ones.
+    const market = content.config.market;
     for (const c of state.customers) {
       const bought: ReturnType<typeof sell>[] = [];
       const dep = c.body.dependency;
@@ -155,10 +168,20 @@ export const salesPhase: Phase = {
         Math.max(0.05, c.profile.buyChance + 0.3 * c.satisfaction + 0.5 * dep),
       );
       if (offers.length > 0 && rng.chance(pBuy)) {
-        const desired = 1 + Math.floor(dep * 2.5);
-        let budget = c.profile.baseWillingnessCents * (1.5 + 2 * dep);
+        const attachment = Math.max(dep, c.satisfaction);
+        const desired = 1 + Math.floor(attachment * market.bottlesPerAttachment);
+        let budget =
+          c.profile.baseWillingnessCents *
+          (market.budgetBase + market.budgetPerAttachment * attachment) *
+          (1 + dep);
         for (let k = 0; k < desired; k++) {
-          const offer = chooseOffer(state, offers, customerAsBuyer(c), content, budget);
+          const offer = chooseOffer(
+            state,
+            offers,
+            customerAsBuyer(c),
+            content,
+            k === 0 ? Number.POSITIVE_INFINITY : budget,
+          );
           if (!offer) break;
           const b = sell(offer, CAUSES.salesShop);
           if (!b) break;

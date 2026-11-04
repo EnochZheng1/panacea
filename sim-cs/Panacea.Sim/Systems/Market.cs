@@ -20,10 +20,17 @@ public static class Market
         return offers;
     }
 
-    public static double WillingnessToPay(Buyer buyer, double appealScore) =>
-        buyer.Profile.BaseWillingnessCents *
-        Math.Min(2, Math.Max(0, 0.5 + appealScore / 10)) *
-        (1 + buyer.Dependency);
+    /// <summary>
+    /// The most a buyer would pay for a bottle of this appeal. A stronger-feeling bottle commands a
+    /// premium (up to WillingnessMax × their usual price), and dependency raises it further.
+    /// </summary>
+    public static double WillingnessToPay(Buyer buyer, double appealScore, ContentPack content)
+    {
+        var m = content.Config.Market;
+        return buyer.Profile.BaseWillingnessCents *
+            Math.Min(m.WillingnessMax, Math.Max(0, m.WillingnessBase + appealScore / m.AppealPerWillingness)) *
+            (1 + buyer.Dependency);
+    }
 
     /// <summary>The best value-for-money bottle this buyer would accept, if any.</summary>
     public static Offer? ChooseOffer(GameState state, IReadOnlyList<Offer> offers, Buyer buyer, ContentPack content,
@@ -36,7 +43,7 @@ public static class Market
             if (o.Formula.PriceCents > maxPriceCents || Lab.StockOf(state, o.Formula.Id) <= 0) continue;
             double a = Pharmacology.Appeal(o.Analysis, buyer.Tolerance, buyer.Profile, buyer.Dependency,
                 Formulas.ClaimAppeal(o.Formula.Claims, buyer.Ailment, content));
-            if (a <= 0 || o.Formula.PriceCents > WillingnessToPay(buyer, a)) continue;
+            if (a <= 0 || o.Formula.PriceCents > WillingnessToPay(buyer, a, content)) continue;
             double score = a / Math.Max(1, o.Formula.PriceCents);
             if (score > bestScore)
             {
@@ -123,7 +130,10 @@ public static class Market
             return new Bought(offer.Formula.Id, lot.Id, lot.Components, lot.ProcessId, lot.Potency, lot.BadBatch);
         }
 
-        // Regulars, in a fixed order for determinism.
+        // Regulars, in a fixed order for determinism. A regular's attachment to the shop is the
+        // stronger of habit and plain satisfaction; every regular who comes in buys one bottle they
+        // think worth its price, and the budget limits the extra ones.
+        var market = content.Config.Market;
         foreach (var c in state.Customers)
         {
             var bought = new List<Bought>();
@@ -131,11 +141,15 @@ public static class Market
             double pBuy = Math.Min(0.98, Math.Max(0.05, c.Profile.BuyChance + 0.3 * c.Satisfaction + 0.5 * dep));
             if (offers.Count > 0 && rng.Chance(pBuy))
             {
-                int desired = 1 + (int)Math.Floor(dep * 2.5);
-                double budget = c.Profile.BaseWillingnessCents * (1.5 + 2 * dep);
+                double attachment = Math.Max(dep, c.Satisfaction);
+                int desired = 1 + (int)Math.Floor(attachment * market.BottlesPerAttachment);
+                double budget = c.Profile.BaseWillingnessCents *
+                    (market.BudgetBase + market.BudgetPerAttachment * attachment) *
+                    (1 + dep);
                 for (int k = 0; k < desired; k++)
                 {
-                    var offer = ChooseOffer(state, offers, CustomerAsBuyer(c), content, budget);
+                    var offer = ChooseOffer(state, offers, CustomerAsBuyer(c), content,
+                        k == 0 ? double.PositiveInfinity : budget);
                     if (offer is null) break;
                     var b = Sell(offer, Causes.SalesShop);
                     if (b is null) break;

@@ -584,7 +584,7 @@ public sealed class EditionWriter
 
     // ---------- helpers ----------
 
-    private static string CutFor(PersonFact p) => Panacea.UI.ProofView.CutFor(p.Segment, p.Female);
+    private static string CutFor(PersonFact p) => Panacea.UI.Cuts.For(p.Segment, p.Female, p.Name);
 
     private string Fill(string template, PaperFacts f, PersonFact? p, string product)
     {

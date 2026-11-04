@@ -1,0 +1,67 @@
+  <style>.bld path, .bld circle, .bld ellipse, .bld rect { vector-effect: non-scaling-stroke; }</style>
+  <g id="figure" filter="url(#carve)">
+  <g class="bld" transform="matrix(0.9,0,0,1.03,30.0,-26.0)">
+    <ellipse cx="300" cy="866" rx="170" ry="11" class="g"/>
+    <!-- trousers, patched; heavy boots -->
+    <path class="k" d="M220,636 L298,640 L290,850 L232,850 Z M302,640 L380,636 L368,850 L310,850 Z"/>
+    <path class="p" d="M244,720 L276,716 L278,752 L246,756 Z"/>
+    <path class="ln" d="M244,720 L276,716 L278,752 L246,756 Z" stroke-width="2" stroke-dasharray="4 3"/>
+    <path class="cut" d="M262,660 L256,830 M340,660 L346,830"/>
+    <path class="k" d="M226,842 L292,842 L296,868 L206,868 Q206,850 226,842 Z M308,842 L372,842 Q396,850 396,868 L304,868 Z"/>
+    <!-- barrel chest, braces -->
+    <path class="p" d="M206,400 C194,480 200,560 216,644 L384,644 C400,560 406,480 394,400 C360,378 240,378 206,400 Z"/>
+    <path class="g" d="M356,396 C380,404 394,420 396,460 C400,540 396,600 384,644 L356,644 C368,580 370,480 356,396 Z"/>
+    <path class="ln" d="M206,400 C194,480 200,560 216,644 L384,644 C400,560 406,480 394,400 C360,378 240,378 206,400 Z" stroke-width="3"/>
+    <path class="ln" d="M240,430 C260,450 270,460 272,470 M260,500 C270,510 280,516 290,518" stroke-width="1.6"/>
+    <path class="k" d="M244,392 L262,390 L276,644 L256,644 Z M338,390 L356,392 L344,644 L324,644 Z"/>
+    <path class="k" d="M212,620 L388,620 L388,646 L212,646 Z"/>
+    <path class="p" d="M286,622 L314,622 L314,644 L286,644 Z"/>
+    <path class="ln" d="M286,622 L314,622 L314,644 L286,644 Z" stroke-width="2"/>
+    <!-- neckerchief, bull neck -->
+    <path class="p" d="M262,340 L338,340 L346,392 L254,392 Z"/>
+    <path class="ln" d="M262,340 L254,392 M338,340 L346,392" stroke-width="2.6"/>
+    <path class="k" d="M252,370 L348,370 L340,392 L300,404 L260,392 Z"/>
+    <path class="k" d="M296,396 L282,430 L300,422 L318,430 L304,396 Z"/>
+    <!-- head: square jaw, stubble, a drinker's nose -->
+    <path class="p" d="M244,250 C244,212 268,196 300,196 C332,196 356,212 356,250 L356,300 C356,332 334,352 300,352 C266,352 244,332 244,300 Z"/>
+    <path class="g" d="M338,210 C352,224 356,240 356,256 L356,300 C356,326 342,344 322,350 C336,330 340,310 340,290 L340,250 C340,234 340,222 338,210 Z"/>
+    <path class="ln" d="M244,250 C244,212 268,196 300,196 C332,196 356,212 356,250 L356,300 C356,332 334,352 300,352 C266,352 244,332 244,300 Z" stroke-width="3.2"/>
+    <path class="p" d="M240,268 C226,262 224,290 236,298 L246,292 Z M360,268 C374,262 376,290 364,298 L354,292 Z"/>
+    <path class="ln" d="M240,268 C226,262 224,290 236,298 M360,268 C374,262 376,290 364,298" stroke-width="2.4"/>
+    <path class="k" d="M240,252 C236,208 264,182 300,182 C336,182 364,208 360,252 Z"/>
+    <path class="cut" d="M262,202 L258,234 M280,190 L278,234 M300,186 L300,234 M320,190 L322,234 M338,202 L342,234" stroke-width="1.6"/>
+    <path class="g2" d="M236,234 C270,226 330,226 364,234 L366,258 C330,250 270,250 234,258 Z"/>
+    <path class="ln" d="M236,234 C270,226 330,226 364,234 L366,258 C330,250 270,250 234,258 Z" stroke-width="2.4"/>
+    <path class="k" d="M262,268 L290,264 L290,272 L262,276 Z M310,264 L338,268 L338,276 L310,272 Z"/>
+    <path class="ln" d="M264,284 C270,278 282,278 288,284 M312,284 C318,278 330,278 336,284" stroke-width="3"/>
+    <!-- a broken, hatched nose rather than a ball, and a heavy moustache over a set mouth -->
+    <path class="p" d="M296,272 C295,288 289,300 290,308 C293,314 307,314 310,308 C311,300 305,288 304,272 Z"/>
+    <path class="ln" d="M296,272 C295,288 289,300 290,308 C293,314 307,314 310,308 C311,300 305,288 304,272" stroke-width="2.4"/>
+    <path class="ln" d="M291,309 C293,312 296,312 297,310 M303,310 C305,312 308,312 310,309" stroke-width="1.6"/>
+    <path class="k" d="M244,288 C244,334 262,374 300,382 C338,374 356,334 356,288 C350,304 342,314 330,318 C320,312 310,312 300,316 C290,312 280,312 270,318 C258,314 250,304 244,288 Z"/>
+    <path class="cut" d="M258,320 L262,340 M268,334 L272,356 M284,344 L286,368 M300,346 L300,374 M316,344 L314,368 M332,334 L328,356 M342,320 L338,340" stroke-width="1.4"/>
+    <path class="cut" d="M288,332 C294,335 306,335 312,332" stroke-width="2.4"/>
+    <!-- fist on the hip -->
+    <path class="ln" d="M212,412 C170,450 176,532 222,552" stroke-width="44"/>
+    <path d="M212,412 C170,450 176,532 222,552" fill="none" stroke="#efece4" stroke-width="36" stroke-linecap="round"/>
+    <path class="p" d="M196,420 L232,404 L240,428 L204,444 Z"/>
+    <path class="ln" d="M196,420 L232,404 L240,428 L204,444 Z" stroke-width="2.2"/>
+    <path class="ln" d="M186,480 C190,500 198,520 210,532" stroke-width="1.6"/>
+    <!-- the other arm raises a toast: anchor tattoo on the forearm -->
+    <path class="ln" d="M388,412 C440,420 462,380 450,312" stroke-width="44"/>
+    <path d="M388,412 C440,420 462,380 450,312" fill="none" stroke="#efece4" stroke-width="36" stroke-linecap="round"/>
+    <path class="p" d="M372,400 L410,394 L414,420 L378,428 Z"/>
+    <path class="ln" d="M372,400 L410,394 L414,420 L378,428 Z" stroke-width="2.2"/>
+    <path class="ln" d="M452,352 L452,384 M444,360 L460,360 M442,378 C446,388 458,388 462,378" stroke-width="2.2"/>
+    <!-- Temperance Bitters, square-shouldered -->
+    <path class="k" d="M428,214 L470,214 L470,300 L428,300 Z M436,200 L462,214 L436,214 Z M442,180 L456,180 L456,202 L442,202 Z"/>
+    <path class="gr" d="M433,222 L465,222 L465,294 L433,294 Z"/>
+    <path class="p" d="M432,238 L466,238 L466,270 L432,270 Z"/>
+    <path class="p" d="M430,290 C432,276 466,274 470,290 C472,306 456,316 444,314 C434,312 428,302 430,290 Z"/>
+    <path class="ln" d="M430,290 C432,276 466,274 470,290 C472,306 456,316 444,314 C434,312 428,302 430,290 Z" stroke-width="2"/>
+  </g>
+  </g>
+  <g class="bld" transform="matrix(0.9,0,0,1.03,30.0,-26.0)">
+  <g filter="url(#soft)"><text x="449" y="253" font-family="Fell" font-size="7" text-anchor="middle" fill="#141212">TEMPERANCE</text><text x="449" y="263" font-family="Fell" font-size="7" text-anchor="middle" fill="#141212">BITTERS</text></g>
+  <g class="grl" stroke-width="3.5"><path d="M449,170 L449,154 M426,184 L414,172 M472,184 L484,172"/></g>
+  </g>

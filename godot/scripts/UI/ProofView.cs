@@ -350,12 +350,13 @@ public partial class ProofView : Control
 				if (r.Withdrawal) Anim.Shake(fig);
 			}
 			// the printer owns one engraving per trade: a repeat is labelled as what it is
-			if (shown.Take(i).Any(o => CutFor(o) == cut))
+			// (never in the right-hand slots, where it would sit on the AT THE COUNTER heading)
+			if (shown.Take(i).Any(o => CutFor(o) == cut) && x + slot <= width - 300)
 			{
 				var no = Print.Label($"Cut No. {3 + StableHash(cut) % 37u}, again.", Print.FellIt, 12, HorizontalAlignment.Center, wrap: false);
 				// over the figure's head, where the printer's own number would be
 				// clear of the AT THE COUNTER heading in the right-hand slots
-				no.Position = new Vector2(x, Math.Max(x + slot > width - 300 ? 46 : 4, CounterTop - h - 20));
+				no.Position = new Vector2(x, Math.Max(4, CounterTop - h - 20));
 				no.CustomMinimumSize = new Vector2(slot - 10, 0);
 				no.MouseFilter = MouseFilterEnum.Ignore;
 				strip.AddChild(no);
@@ -402,7 +403,8 @@ public partial class ProofView : Control
 		return rect;
 	}
 
-	private static string CutFor(Regular r) => CutFor(r.Segment, !r.Name.StartsWith("Mr."));
+	// the variant is fixed by the person's name, which the paper's death and inquest records share
+	private static string CutFor(Regular r) => Cuts.For(r.Segment, !r.Name.StartsWith("Mr."), r.Name);
 
 	/// <summary>Which stock cut the composing room uses for a customer.</summary>
 	public static string CutFor(string segment, bool female) => segment switch

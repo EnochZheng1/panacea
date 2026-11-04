@@ -10,6 +10,9 @@ ART = os.path.join(ROOT, 'assets', 'art')
 OUT = os.path.join(ART, 'cuts')
 SPRITES = ['wc_proprietor', 'wc_death', 'wc_clerk', 'wc_mother', 'wc_longshoreman', 'wc_lady',
            'wc_seamstress', 'wc_widow', 'wc_oldman',
+           # customer variants, two per trade (see scripts/UI/Cuts.cs)
+           'wc_longshoreman_b', 'wc_longshoreman_c', 'wc_clerk_b', 'wc_clerk_c', 'wc_seamstress_b', 'wc_seamstress_c',
+           'wc_widow_b', 'wc_widow_c', 'wc_oldman_b', 'wc_oldman_c', 'wc_mother_b', 'wc_mother_c', 'wc_lady_b', 'wc_lady_c',
            'wc_bottle_panacea', 'wc_bottle_syrup', 'wc_bottle_bitters', 'wc_pills',
            'seal_coroner', 'seal_health', 'seal_sanitary', 'seal_college', 'seal_league', 'seal_hobart']
 # named sub-crops in sprite pixels (2x): name -> (sprite, box)

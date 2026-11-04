@@ -56,6 +56,7 @@ public sealed class DeskModel
 	public List<Letter> Letters = new();
 	public List<(string Name, double Progress)> NextUnlocks = new();
 	public List<Regular> Regulars = new();
+	public long BottleCostCents;
 	public Dictionary<string, double> ClaimBoldness = new();
 }
 
@@ -107,6 +108,8 @@ public sealed class FormulaRow
 public sealed class Letter
 {
 	public string InstanceId = "";
+	/// <summary>The kind of letter (content event id): decides the letterhead.</summary>
+	public string EventId = "";
 	public string Title = "";
 	public string Body = "";
 	public List<(string Id, string Text)> Choices = new();

@@ -102,6 +102,7 @@ public sealed class SimGame : IGame
 			Heat = o.Heat,
 			StillsFree = o.StillsFree,
 			BottleCapacityOunces = _content.Config.BottleCapacity,
+			BottleCostCents = _content.Config.BottleCostCents,
 			CanAdvertise = o.CanAdvertise,
 			AdSpendCents = o.AdSpendCents,
 			Customers = o.Customers.Count,
@@ -166,6 +167,7 @@ public sealed class SimGame : IGame
 			var letter = new Letter
 			{
 				InstanceId = e.InstanceId,
+				EventId = e.EventId,
 				Title = Sub(_content.Text($"event.{e.EventId}.title")),
 				Body = Sub(_content.Text($"event.{e.EventId}.body")),
 			};

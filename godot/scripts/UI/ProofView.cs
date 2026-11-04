@@ -55,11 +55,12 @@ public partial class ProofView : Control
 	/// <summary>Opens a tool over the proof: letters, still, formula or supplies.</summary>
 	private bool _drawerOpened;
 	private FormulaBench? _bench;
-	private DeskView? _tool;
+	private Control? _tool;
+	private string? _toolKind;
 
 	private void DropBench()
 	{
-		if (_tool != null) { _tool.GetParent()?.RemoveChild(_tool); _tool.QueueFree(); _tool = null; }
+		if (_tool != null) { _tool.GetParent()?.RemoveChild(_tool); _tool.QueueFree(); _tool = null; _toolKind = null; }
 		if (_bench == null) return;
 		_bench.GetParent()?.RemoveChild(_bench);
 		_bench.QueueFree();
@@ -545,16 +546,24 @@ public partial class ProofView : Control
 		}
 		else
 		{
-			if (_tool == null || _tool.Only != which)
+			// each tool is printed matter of its own: the post, the wholesaler's order form, the still
+			if (_tool == null || _toolKind != which)
 			{
 				_tool?.QueueFree();
-				_tool = new DeskView { Only = which, SizeFlagsVertical = SizeFlags.ExpandFill };
-				_tool.SetAnchorsPreset(LayoutPreset.TopLeft);
-				_tool.Changed += Rebuild;
+				switch (which)
+				{
+					case "letters": { var t = new LettersDesk(_game); t.Changed += Rebuild; _tool = t; break; }
+					case "still": { var t = new StillBench(_game); t.Changed += Rebuild; _tool = t; break; }
+					default: { var t = new OrderForm(_game); t.Changed += Rebuild; _tool = t; break; }
+				}
+				_toolKind = which;
+				_tool.SizeFlagsHorizontal = SizeFlags.ExpandFill;
 			}
 			_tool.GetParent()?.RemoveChild(_tool);
-			holder.AddChild(_tool);
-			_tool.Bind(_game);
+			var frame = new ScrollContainer { SizeFlagsVertical = SizeFlags.ExpandFill, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
+			Print.QuietScrollbar(frame);
+			frame.AddChild(_tool);
+			holder.AddChild(frame);
 		}
 		shade.AddChild(holder);
 		Anim.SlideIn(holder, new Vector2(0, 60), 0.24f);

@@ -37,6 +37,13 @@ public partial class StillBench : HBoxContainer
 
 	public void Refresh()
 	{
+		var keep = Print.FocusIndex(this);
+		RefreshBody();
+		Print.RestoreFocus(this, keep);
+	}
+
+	private void RefreshBody()
+	{
 		foreach (var c in _right.GetChildren()) { _right.RemoveChild(c); c.QueueFree(); }
 		var d = _game.Desk();
 		_still.Lit = d.Brewing.Count > 0;
@@ -71,6 +78,13 @@ public partial class StillBench : HBoxContainer
 		foreach (var (name, onFire) in d.Brewing)
 			_right.AddChild(Print.Label($"On the fire: {onFire} bottles of {name}", Print.FellIt, 15));
 
+		// every still on the fire: nothing to choose until next month
+		if (d.StillsFree <= 0)
+		{
+			_right.AddChild(Print.Body("[i]Every still is on the fire. The batch will be bottled by press time; come back next month for another.[/i]", 15, justify: false));
+			if (_note != null) _right.AddChild(Print.Body($"[i]{Print.Escape(_note)}[/i]", 15, justify: false));
+			return;
+		}
 		var max = Math.Max(0, f.MaxBrewable);
 		// the batch you want may be more than the shelf allows: the order button makes up the rest
 		var want = Math.Clamp(_counts.GetValueOrDefault(f.Id, max > 0 ? Math.Min(24, max) : 24), 0, 96);
@@ -173,7 +187,7 @@ public partial class StillBench : HBoxContainer
 		public override void _GuiInput(InputEvent e)
 		{
 			if (e is InputEventMouseMotion m) { var h = At(m.Position); if (h != _hover) { _hover = h; QueueRedraw(); } }
-			if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } b && At(b.Position) is var k and > 0) { Picked?.Invoke(k); AcceptEvent(); }
+			if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } b && At(b.Position) is var k and > 0) { GrabFocus(); Picked?.Invoke(k); AcceptEvent(); }
 			if (e is InputEventKey { Pressed: true } key)
 			{
 				var step = key.Keycode switch { Key.Right => 1, Key.Left => -1, Key.Up => -12, Key.Down => 12, _ => 0 };
@@ -200,7 +214,7 @@ public partial class StillBench : HBoxContainer
 				var body = new Rect2(x, y + 12, W, H - 12);
 				// beyond what the stock allows, a wanted bottle is only pencilled in
 				if (filled) DrawRect(body, !possible ? new Color(Print.Green, 0.2f) : _hover > 0 && i >= Count ? new Color(Print.Green, 0.45f) : Print.Green);
-				var c = possible ? ink : new Color(ink, 0.22f);
+				var c = possible ? ink : new Color(ink, 0.5f);
 				DrawRect(body, c, false, 1.6f);
 				DrawLine(new Vector2(x, y + 12), new Vector2(x + W * 0.35f, y + 5), c, 1.6f);
 				DrawLine(new Vector2(x + W, y + 12), new Vector2(x + W * 0.65f, y + 5), c, 1.6f);

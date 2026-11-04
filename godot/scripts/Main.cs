@@ -93,6 +93,7 @@ public partial class Main : Control
 		_nav.Pressed += Navigate;
 		var sound = InvertedButton("SOUND: ON");
 		_sound = sound;
+		_edition.ChainFocus(_sound, _nav);
 		sound.CustomMinimumSize = new Vector2(118, 0);
 		sound.SizeFlagsVertical = SizeFlags.ShrinkCenter;
 		sound.AddThemeFontSizeOverride("font_size", 13);
@@ -164,7 +165,13 @@ public partial class Main : Control
 		b.AddThemeStyleboxOverride("normal", Print.Box(Print.Table, Print.Paper, 2, 8));
 		b.AddThemeStyleboxOverride("hover", Print.Box(Print.Paper, Print.Paper, 2, 8));
 		b.AddThemeStyleboxOverride("pressed", Print.Box(Print.Paper, Print.Paper, 3, 8));
-		b.AddThemeStyleboxOverride("focus", Print.Box(new Color(0, 0, 0, 0), Print.Paper, 1, 8));
+		// focus: a second paper rule inside the first, so the keyboard's place is plain on black
+		var ring = Print.Box(new Color(0, 0, 0, 0), Print.Paper, 2, 6);
+		ring.ExpandMarginLeft = ring.ExpandMarginRight = ring.ExpandMarginTop = ring.ExpandMarginBottom = -5;
+		b.AddThemeStyleboxOverride("focus", ring);
+		// locked (during the press): a dim outline on black, never lit
+		b.AddThemeStyleboxOverride("disabled", Print.Box(Print.Table, new Color(Print.Paper, 0.3f), 1, 8));
+		b.AddThemeColorOverride("font_disabled_color", new Color(Print.Paper, 0.4f));
 		return b;
 	}
 
@@ -281,6 +288,16 @@ public partial class Main : Control
 		SetDesk(false, slide: false);
 		_edition.FinishReveal();
 		EndPress();
+		// a second, impatient key must not fly straight past the edition just revealed
+		_guardUntil = Time.GetTicksMsec() + 1200;
+	}
+
+	private ulong _guardUntil;
+
+	public override void _Input(InputEvent e)
+	{
+		if (Time.GetTicksMsec() < _guardUntil && (e is InputEventKey { Pressed: true } || e is InputEventMouseButton { Pressed: true }))
+			GetViewport().SetInputAsHandled();
 	}
 
 	private Control BuildPressRun(Edition e, out List<Control> sheets, out Label copies, out Label title)
@@ -299,6 +316,8 @@ public partial class Main : Control
 		copies.AnchorRight = 1; copies.OffsetTop = 160;
 		var skip = Print.Label("click, or press any key, to see the edition", Print.FellIt, 15, HorizontalAlignment.Center, new Color(Print.Paper, 0.75f));
 		skip.AnchorTop = skip.AnchorBottom = 1; skip.AnchorRight = 1; skip.OffsetTop = -40; skip.OffsetBottom = -14;
+		// the hint stays above the sheets as they land, for the whole run
+		skip.ZIndex = 20;
 		run.AddChild(skip);
 		sheets = new List<Control>();
 		var rng = new RandomNumberGenerator { Seed = (ulong)(e.DatelineCentre.GetHashCode() & 0x7fffffff) };
@@ -450,6 +469,9 @@ public partial class Main : Control
 		if (_onDesk) _desk.Bind(_game);
 		_desk.Visible = _onDesk;
 		_wood.Visible = _onDesk;
+		// Tab from the footer reaches into the paper only while the paper is up
+		if (_onDesk) { _sound.FocusNext = new NodePath(); _nav.FocusPrevious = new NodePath(); }
+		else Callable.From(_edition.WireFocus).CallDeferred();
 		_edition.Visible = !_onDesk;
 		if (_onDesk && _desk.DeathPresent) Sfx.Loop("death", -14f, 2.0f);
 		else Sfx.StopLoop("death", 0.8f);

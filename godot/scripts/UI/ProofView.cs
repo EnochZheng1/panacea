@@ -91,6 +91,8 @@ public partial class ProofView : Control
 
 	public void Rebuild()
 	{
+		// a keyboard player keeps their place on the bench when it is reset after a click
+		var keep = Print.FocusIndex(this);
 		_bench?.GetParent()?.RemoveChild(_bench);
 		_tool?.GetParent()?.RemoveChild(_tool);
 		foreach (var c in GetChildren()) { RemoveChild(c); c.QueueFree(); }
@@ -123,8 +125,8 @@ public partial class ProofView : Control
 		slips.AddThemeConstantOverride("separation", 10);
 		slipsFrame.AddChild(slips);
 		slips.AddChild(TypeCase(m));
-		slips.AddChild(LettersSlip(m));
-		// the works hold the drawers' buttons: always in view, never scrolled away
+		// the post and the works hold the drawers' buttons: always in view, never scrolled away
+		bench.AddChild(LettersSlip(m));
 		bench.AddChild(WorksSlip(m));
 		var warn = new List<string>();
 		var unansweredInquests = m.Letters.Count(l => l.Title.StartsWith("Inquest", StringComparison.Ordinal));
@@ -136,6 +138,7 @@ public partial class ProofView : Control
 		bench.AddChild(Lever(nothing || unansweredInquests > 0));
 
 		if (_drawer != null) leftStack.AddChild(Drawer(_drawer));
+		Print.RestoreFocus(this, keep);
 		Changed?.Invoke();
 	}
 
@@ -454,7 +457,16 @@ public partial class ProofView : Control
 	{
 		var v = SlipBody(m.Letters.Count == 0 ? "NO LETTERS" : m.Letters.Count == 1 ? "1 LETTER" : $"{m.Letters.Count} LETTERS");
 		if (m.Letters.Count == 0) v.AddChild(Print.Body("[i]Nothing in the post but a circular for galvanic belts.[/i]", 13, justify: false));
-		foreach (var l in m.Letters.Take(1)) v.AddChild(Print.Body($"[b]{Print.Escape(EditionWriter.Set(l.Title))}.[/b]" + (m.Letters.Count > 1 ? $" [i]And {Spell(m.Letters.Count - 1)} more.[/i]" : ""), 13, justify: false));
+		foreach (var l in m.Letters.Take(1))
+		{
+			// one line, cut short if need be: the whole post is in the drawer
+			var title = EditionWriter.Set(l.Title);
+			if (title.Length > 40) title = title[..38].TrimEnd(' ', ',') + "…";
+			var line = Print.Label(title + (m.Letters.Count > 1 ? $" And {Spell(m.Letters.Count - 1)} more." : ""), Print.Fell, 13);
+			line.TooltipText = string.Join("\n", m.Letters.Select(x => x.Title));
+			line.MouseFilter = MouseFilterEnum.Pass;
+			v.AddChild(line);
+		}
 		if (m.Letters.Count > 0)
 		{
 			var open = Print.Button("OPEN THE LETTERS", 13, solid: true);
@@ -509,6 +521,10 @@ public partial class ProofView : Control
 		b.AddThemeStyleboxOverride("normal", Print.Box(Print.Ink, Print.Paper, 3, 10));
 		b.AddThemeStyleboxOverride("hover", Print.Box(Print.Paper, Print.Paper, 3, 10));
 		b.AddThemeColorOverride("font_hover_color", Print.Ink);
+		// focus: a paper rule set inside the border, plainly visible on the black lever
+		var ring = Print.Box(new Color(0, 0, 0, 0), Print.Paper, 3, 10);
+		ring.ExpandMarginLeft = ring.ExpandMarginRight = ring.ExpandMarginTop = ring.ExpandMarginBottom = -7;
+		b.AddThemeStyleboxOverride("focus", ring);
 		b.Pressed += () =>
 		{
 			// an empty month, or an unanswered coroner, asks once: press again to send anyway
@@ -524,7 +540,7 @@ public partial class ProofView : Control
 
 	private Control Drawer(string which)
 	{
-		var shade = new ColorRect { Color = new Color(0, 0, 0, 0.42f) };
+		var shade = new ColorRect { Color = new Color(0, 0, 0, 0.3f) };
 		shade.SetAnchorsPreset(LayoutPreset.FullRect);
 		var holder = new VBoxContainer();
 		holder.SetAnchorsPreset(LayoutPreset.FullRect);

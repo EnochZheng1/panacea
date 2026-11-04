@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Godot;
 
 namespace Panacea.UI;
@@ -145,6 +147,59 @@ public static class Print
 	}
 
 	/// <summary>A thin paper-white scrollbar that suits the black table.</summary>
+	/// <summary>
+	/// Where keyboard focus sits inside a panel that is about to be rebuilt: its place in the
+	/// panel's tab order, or -1. Pair with <see cref="RestoreFocus"/> so a keyboard player does
+	/// not start again from the top after every action.
+	/// </summary>
+	public static int FocusIndex(Control root)
+	{
+		if (!root.IsInsideTree()) return -1;
+		var f = root.GetViewport().GuiGetFocusOwner();
+		return f != null && root.IsAncestorOf(f) ? Focusables(root).IndexOf(f) : -1;
+	}
+
+	/// <summary>Gives focus back to the same place in the rebuilt panel (or the nearest left).</summary>
+	public static void RestoreFocus(Control root, int index)
+	{
+		if (index < 0) return;
+		Callable.From(() =>
+		{
+			if (!GodotObject.IsInstanceValid(root) || !root.IsInsideTree()) return;
+			var list = Focusables(root);
+			if (list.Count == 0) return;
+			// the same place in the order; if that control is now disabled, the next live one
+			var i = Math.Min(index, list.Count - 1);
+			for (var k = 0; k < list.Count; k++)
+			{
+				var c = list[(i + k) % list.Count];
+				if (c is BaseButton { Disabled: true }) continue;
+				c.GrabFocus();
+				return;
+			}
+		}).CallDeferred();
+	}
+
+	public static List<Control> Focusables(Control root)
+	{
+		var list = new List<Control>();
+		void Walk(Node n)
+		{
+			foreach (var k in n.GetChildren())
+			{
+				if (k is Control c && !c.IsQueuedForDeletion())
+				{
+					if (!c.Visible) continue;
+					// disabled buttons count, so a button coming alive does not shift everyone's place
+					if (c.FocusMode == Control.FocusModeEnum.All) list.Add(c);
+				}
+				Walk(k);
+			}
+		}
+		Walk(root);
+		return list;
+	}
+
 	public static void QuietScrollbar(ScrollContainer sc)
 	{
 		var bar = sc.GetVScrollBar();

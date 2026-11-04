@@ -15,6 +15,43 @@ public partial class EditionView : ScrollContainer
 		HorizontalScrollMode = ScrollMode.Disabled;
 		SetAnchorsPreset(LayoutPreset.FullRect);
 		Print.QuietScrollbar(this);
+		// the page scrolls to whatever the keyboard has taken up
+		FollowFocus = true;
+	}
+
+	private Control? _enter, _leave;
+
+	/// <summary>
+	/// The footer lives on its own layer, so Tab never finds the paper by itself: chain it in.
+	/// Tab from <paramref name="enter"/> goes to the first item on the page; Tab past the last item
+	/// goes to <paramref name="leave"/>.
+	/// </summary>
+	public void ChainFocus(Control enter, Control leave) { _enter = enter; _leave = leave; }
+
+	public void WireFocus()
+	{
+		if (_enter == null || _leave == null || !IsInsideTree()) return;
+		var items = Print.Focusables(this);
+		if (items.Count == 0) { _enter.FocusNext = new NodePath(); _leave.FocusPrevious = new NodePath(); return; }
+		_enter.FocusNext = items[0].GetPath();
+		items[0].FocusPrevious = _enter.GetPath();
+		for (var i = 0; i + 1 < items.Count; i++)
+		{
+			items[i].FocusNext = items[i + 1].GetPath();
+			items[i + 1].FocusPrevious = items[i].GetPath();
+		}
+		items[^1].FocusNext = _leave.GetPath();
+		_leave.FocusPrevious = items[^1].GetPath();
+	}
+
+	/// <summary>Reading by keyboard: the arrow and page keys turn the paper up and down.</summary>
+	public override void _UnhandledInput(InputEvent e)
+	{
+		if (!IsVisibleInTree() || e is not InputEventKey { Pressed: true } k) return;
+		var step = k.Keycode switch { Key.Down => 60, Key.Up => -60, Key.Pagedown => 520, Key.Pageup => -520, Key.End => 100000, Key.Home => -100000, _ => 0 };
+		if (step == 0) return;
+		ScrollVertical = Math.Max(0, ScrollVertical + step);
+		GetViewport().SetInputAsHandled();
 	}
 
 	/// <summary>Raised when the reader clicks an item that has a cause behind it.</summary>
@@ -25,7 +62,7 @@ public partial class EditionView : ScrollContainer
 	{
 		// a fine rule in the margin marks every item with a cutting behind it; it thickens under the hand
 		var st = new StyleBoxFlat { BgColor = on ? new Color(Print.Ink, 0.07f) : new Color(0, 0, 0, 0) };
-		st.BorderColor = on ? Print.Ink : new Color(Print.Ink, 0.4f);
+		st.BorderColor = on ? Print.Ink : new Color(Print.Ink, 0.62f);
 		st.BorderWidthLeft = on ? 3 : 1;
 		st.ContentMarginLeft = 6; st.ContentMarginRight = 4; st.ContentMarginTop = 2; st.ContentMarginBottom = 2;
 		return st;
@@ -158,7 +195,7 @@ public partial class EditionView : ScrollContainer
 		if (!string.IsNullOrEmpty(e.Brief))
 		{
 			// the month at a glance, above the fold
-			var brief = Print.Body($"[center][b]THE MONTH IN BRIEF.[/b]  {Print.Escape(e.Brief)}[/center]", 16, justify: false);
+			var brief = Print.Body($"[center][b]THE MONTH IN BRIEF.[/b]  {Print.Escape(e.Brief)}  [i]☞ the books[/i][/center]", 16, justify: false);
 			page.AddChild(Clickable(brief, e.BriefClip));
 			page.AddChild(Print.Rule(1.6f, 0));
 		}
@@ -185,6 +222,7 @@ public partial class EditionView : ScrollContainer
 		page.AddChild(Print.Rule());
 		page.AddChild(Print.Body($"[center][b]THE MARKETS.[/b]  {Print.Escape(e.Markets)}[/center]", 15, justify: false));
 		page.AddChild(Print.Rule(1.6f, 0));
+		Callable.From(WireFocus).CallDeferred();
 	}
 
 	private static Control Ear(string head, string text)

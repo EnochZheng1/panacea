@@ -29,6 +29,13 @@ public partial class OrderForm : VBoxContainer
 
 	public void Refresh()
 	{
+		var keep = Print.FocusIndex(this);
+		RefreshBody();
+		Print.RestoreFocus(this, keep);
+	}
+
+	private void RefreshBody()
+	{
 		foreach (var c in GetChildren()) { RemoveChild(c); c.QueueFree(); }
 		var d = _game.Desk();
 		var v = new VBoxContainer();
@@ -70,7 +77,7 @@ public partial class OrderForm : VBoxContainer
 			name.TooltipText = i.Description;
 			name.MouseFilter = MouseFilterEnum.Pass;
 			grid.AddChild(name);
-			grid.AddChild(Print.Label(i.CostPerOunceCents == 0 ? "—" : EditionWriter.Money(i.CostPerOunceCents), Print.Fell, 14, HorizontalAlignment.Right, wrap: false));
+			grid.AddChild(Print.Label(i.CostPerOunceCents == 0 ? "free" : EditionWriter.Money(i.CostPerOunceCents), Print.Fell, 14, HorizontalAlignment.Right, wrap: false));
 			grid.AddChild(Print.Label($"{i.OnHand:0.#} oz", Print.Fell, 14, HorizontalAlignment.Right, wrap: false));
 			var q = new HBoxContainer();
 			q.AddThemeConstantOverride("separation", 3);

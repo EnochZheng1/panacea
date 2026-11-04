@@ -571,7 +571,7 @@ public sealed class EditionWriter
             if (child) c.Lines.Add($"Infant child of {ShortName(p)}, {Occupation(p)}" + (ailment.Length > 0 ? $"; given the remedy for {ailment}." : "."));
             else if (p.Infant) c.Lines.Add(Cap(Occupation(p)) + (ailment.Length > 0 ? $", who buys at the shop for her infant's {ailment}." : ", who buys at the shop for her infant."));
             else c.Lines.Add(Cap(Occupation(p)) + (ailment.Length > 0 ? $", who came to the shop for {ailment}." : "."));
-            c.Lines.Add(p.Months switch
+            c.Lines.Add(kicker == "A NEW CUSTOMER" ? "New to the shop this month." : p.Months switch
             {
                 < 0 => "Not one of your regulars, so far as the books show.",
                 0 => "New to the shop this month.",

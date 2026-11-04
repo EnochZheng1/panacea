@@ -18,6 +18,7 @@ namespace Panacea;
 ///
 /// Actions: {"click":[x,y]} {"rclick":[x,y]} {"move":[x,y]} {"scroll":[x,y,steps]} (negative = up)
 /// {"key":"Escape"} {"type":"some text"} {"wait":ms} {"shot":"/abs/path.png"}
+/// {"focus":true} where the keyboard focus is.
 /// {"targets":true} clickable things on screen: buttons, paper items, jars (text, tooltip, rect)
 /// {"read":true} visible text on screen with positions; {"state":true} the game as the player sees it.
 /// </summary>
@@ -131,6 +132,14 @@ public partial class Driver : Node
 					Input.ParseInputEvent(new InputEventMouseButton { ButtonIndex = btn, Pressed = false, Position = at, GlobalPosition = at, Factor = 1 });
 				}
 				Reply(Ok());
+			}
+			else if (a["focus"] is not null)
+			{
+				// where the keyboard is: the focused control's kind, text and rectangle
+				var f = GetViewport().GuiGetFocusOwner();
+				var text = f switch { Button bt => bt.Text, Label lb => lb.Text, _ => f?.Name.ToString() ?? "" };
+				var r = f?.GetGlobalRect() ?? new Rect2();
+				Reply(new JsonObject { ["ok"] = true, ["focus"] = f?.GetClass() ?? "none", ["text"] = text, ["rect"] = new JsonArray((int)r.Position.X, (int)r.Position.Y, (int)r.Size.X, (int)r.Size.Y) });
 			}
 			else if (a["key"] is JsonNode k)
 			{

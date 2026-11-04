@@ -71,6 +71,13 @@ public partial class LettersDesk : VBoxContainer
 
 	public void Refresh()
 	{
+		var keep = Print.FocusIndex(this);
+		RefreshBody();
+		Print.RestoreFocus(this, keep);
+	}
+
+	private void RefreshBody()
+	{
 		foreach (var c in GetChildren()) { RemoveChild(c); c.QueueFree(); }
 		var d = _game.Desk();
 		var top = new HBoxContainer();
@@ -188,12 +195,12 @@ public partial class LettersDesk : VBoxContainer
 	/// <summary>A wax seal, inked: a solid disc with the sender's word reversed out.</summary>
 	private static Control Seal(string word)
 	{
-		var size = word.Length > 8 ? 84 : 72;
+		var size = word.Length > 8 ? 92 : 78;
 		var p = new PanelContainer { CustomMinimumSize = new Vector2(size, size), SizeFlagsVertical = SizeFlags.ShrinkBegin };
 		var st = Print.Box(Print.Ink, Print.Ink, 0, 4);
 		st.SetCornerRadiusAll(size / 2);
 		p.AddThemeStyleboxOverride("panel", st);
-		var l = Print.Label(word, Print.Rye, word.Length > 8 ? 9 : 11, HorizontalAlignment.Center, Print.Paper, wrap: word.Contains(' '));
+		var l = Print.Label(word, Print.Rye, word.Length > 8 ? 12 : 13, HorizontalAlignment.Center, Print.Paper, wrap: word.Contains(' '));
 		l.VerticalAlignment = VerticalAlignment.Center;
 		p.AddChild(l);
 		p.RotationDegrees = -10;

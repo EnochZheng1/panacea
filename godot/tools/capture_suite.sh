@@ -20,6 +20,7 @@ DESC="the still drawer in month 1" shot 05_still_month1 --screen proof --drawer 
 DESC="the supplies drawer in month 1" shot 06_supplies_month1 --screen proof --drawer supplies
 DESC="an edition after 5 months of a heavy-laudanum scripted proprietor (deaths, inquests)" H=1600 shot 07_edition_month5_heavy --play 5 --dose 1.5
 DESC="the proof after 5 heavy months (Death at a customer's shoulder)" shot 08_proof_month5_heavy --play 5 --dose 1.5 --screen proof
+DESC="the busiest proof: many claims, several inquest letters and two bench warnings (layout worst case)" SEED=careful-3 shot 08b_proof_busiest --play 7 --dose 1.0 --screen proof
 DESC="the letters drawer with an inquest letter" shot 09_letters_inquest --play 5 --dose 1.5 --screen proof --drawer letters
 DESC="a death-notice cutting opened from the paper" F=20 shot 10_clip_death --play 5 --dose 1.5 --clip death
 DESC="the month's books cutting opened from the paper" F=20 shot 11_clip_books --play 5 --dose 1.5 --clip books

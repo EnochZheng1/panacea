@@ -91,13 +91,14 @@ public partial class Main : Control
 		_nav.SizeFlagsVertical = SizeFlags.ShrinkCenter;
 		_nav.CustomMinimumSize = new Vector2(230, 0);
 		_nav.Pressed += Navigate;
-		var sound = InvertedButton("SOUND: ON");
+		var sound = InvertedButton(Band(true));
 		_sound = sound;
 		_edition.ChainFocus(_sound, _nav);
-		sound.CustomMinimumSize = new Vector2(118, 0);
+		sound.CustomMinimumSize = new Vector2(176, 0);
+		sound.TooltipText = "Sound is on. Press to silence it.";
 		sound.SizeFlagsVertical = SizeFlags.ShrinkCenter;
 		sound.AddThemeFontSizeOverride("font_size", 13);
-		sound.Pressed += () => { Sfx.SetEnabled(!Sfx.Enabled); sound.Text = Sfx.Enabled ? "SOUND: ON" : "SOUND: OFF"; };
+		sound.Pressed += () => { Sfx.SetEnabled(!Sfx.Enabled); sound.Text = Band(Sfx.Enabled); sound.TooltipText = Sfx.Enabled ? "Sound is on. Press to silence it." : "Sound is off. Press to have it back."; };
 		row.AddChild(sound);
 		row.AddChild(_nav);
 		footer.AddChild(row);
@@ -171,6 +172,9 @@ public partial class Main : Control
 	private int _restarts;
 
 	/// <summary>On the black footer the ticket is printed white-on-black, inking white on hover.</summary>
+	/// <summary>The sound toggle, in the shop's words: the press, the till and the paper heard, or hushed.</summary>
+	private static string Band(bool on) => on ? "THE SHOP: HEARD" : "THE SHOP: HUSHED";
+
 	private static Button InvertedButton(string text)
 	{
 		var b = Print.Button(text, 18, sound: null);

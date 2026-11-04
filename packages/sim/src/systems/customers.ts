@@ -7,15 +7,17 @@ import { newBody } from './pharmacology.ts';
 const NAME_TRIES = 40;
 
 /**
- * Draws a given name and a surname that nobody in this game has had yet, living, dead or gone,
+ * Draws a stock of names, then a given name and a surname of that stock, that nobody in this game has had yet, living, dead or gone,
  * and records it as used. Returns "Given Surname".
  */
 function drawName(state: GameState, content: ContentPack, rng: Rng, female: boolean): string {
   const used = state.meta.usedNames;
   let name = '';
   for (let i = 0; i < NAME_TRIES; i++) {
-    const given = rng.pick(female ? content.names.female : content.names.male);
-    name = `${given} ${rng.pick(content.names.surnames)}`;
+    const origin = rng.weighted(content.names.origins.map((o) => ({ item: o, weight: o.weight })));
+    if (!origin) break;
+    const given = rng.pick(female ? origin.female : origin.male);
+    name = `${given} ${rng.pick(origin.surnames)}`;
     if (!used.includes(name)) break;
   }
   used.push(name);

@@ -391,6 +391,14 @@ public sealed class Segment
 
 public sealed class Names
 {
+    public required IReadOnlyList<NameOrigin> Origins { get; init; }
+}
+
+/// <summary>One stock of names: given names are only paired with its own surnames.</summary>
+public sealed class NameOrigin
+{
+    public required string Id { get; init; }
+    public required double Weight { get; init; }
     public required IReadOnlyList<string> Female { get; init; }
     public required IReadOnlyList<string> Male { get; init; }
     public required IReadOnlyList<string> Surnames { get; init; }

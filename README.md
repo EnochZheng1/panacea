@@ -34,6 +34,18 @@ pnpm check
 | `pnpm game:dev`                                              | The game: the 3D shop in the browser                            |
 | `pnpm client:dev`                                            | Debug client in the browser: play the sim by hand               |
 
+### Exporting the Godot game
+
+`godot/export_presets.cfg` has Linux, Windows and macOS presets. Builds go to `build/`, which is
+ignored by git. The presets ship `data/*.json` and the hyphenation patterns (`data/hyph/*.dic`),
+which Godot doesn't import on its own. Install the Godot 4.7.2 .NET export templates first, then:
+
+```bash
+cd godot && godot --headless --export-release Linux ../build/linux/Panacea.x86_64
+```
+
+The macOS preset is unsigned and untested.
+
 ### Layout
 
 | Package             | Role                                                                                       |

@@ -95,8 +95,10 @@ public static class CustomersSystem
         string name = "";
         for (int i = 0; i < NameTries; i++)
         {
-            string given = rng.Pick(female ? content.Names.Female : content.Names.Male);
-            name = $"{given} {rng.Pick(content.Names.Surnames)}";
+            var origin = rng.Weighted(content.Names.Origins.Select(o => (o, o.Weight)).ToList());
+            if (origin == null) break;
+            string given = rng.Pick(female ? origin.Female : origin.Male);
+            name = $"{given} {rng.Pick(origin.Surnames)}";
             if (!used.Contains(name)) break;
         }
         used.Add(name);

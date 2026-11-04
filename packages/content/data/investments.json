@@ -17,7 +17,7 @@
   },
   {
     "id": "wholesale_contract",
-    "costCents": 30000,
+    "costCents": 36000,
     "requires": {
       "type": "all",
       "of": [
@@ -30,7 +30,7 @@
       "bottlesPerMonth": 36,
       "perReputation": 0.02,
       "pricePct": 55,
-      "maxPriceCents": 60,
+      "maxPriceCents": 50,
       "strangerHealth": 75
     }
   },

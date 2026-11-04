@@ -342,10 +342,11 @@ public partial class ProofView : Control
 		var atRisk = shown.FirstOrDefault(r => r.Looks is "gravely_ill" or "poorly");
 		DeathPresent = atRisk != null;
 		var others = m.Regulars.Count - shown.Count;
-		var more = Print.Label(others > 0 ? $"and {Spell(others)} more regular{(others == 1 ? "" : "s")}" : m.Regulars.Count == 0 ? "No one has come in yet." : "", Print.FellIt, 13, wrap: false);
+		var more = Print.Label(others > 0 ? $"and {Spell(others)} more regular{(others == 1 ? "" : "s")}" : m.Regulars.Count == 0 ? "No one has come in yet." : "", Print.FellIt, 13);
 		more.HorizontalAlignment = HorizontalAlignment.Right;
 		more.AnchorLeft = more.AnchorRight = 1;
 		more.OffsetLeft = -300; more.OffsetRight = -14; more.OffsetTop = 28;
+		more.MouseFilter = MouseFilterEnum.Ignore;
 		strip.AddChild(more);
 
 		// the strip is as wide as the proof column; share it out between the figures
@@ -389,6 +390,23 @@ public partial class ProofView : Control
 			var tag = Print.Slip(Tag(r), 5);
 			tag.Position = new Vector2(x, CounterTop + 2);
 			tag.CustomMinimumSize = new Vector2(slot - 10, 0);
+			// the tags are in the Tab order: a focused tag is ruled heavier, and what the mouse
+			// would show on hover is set in the line under AT THE COUNTER
+			var about = $"{r.Name}: a regular for {Spell(r.MonthsAsCustomer)} month{(r.MonthsAsCustomer == 1 ? "" : "s")}; {Panacea.Game.SimGame.Describe(r)}.";
+			tag.TooltipText = fig?.TooltipText ?? about;
+			tag.FocusMode = FocusModeEnum.All;
+			var plain = tag.GetThemeStylebox("panel");
+			var moreText = more.Text;
+			tag.FocusEntered += () =>
+			{
+				tag.AddThemeStyleboxOverride("panel", Print.Box(Print.Paper, Print.Ink, 6, 4));
+				more.Text = about;
+			};
+			tag.FocusExited += () =>
+			{
+				tag.AddThemeStyleboxOverride("panel", plain);
+				more.Text = moreText;
+			};
 			strip.AddChild(tag);
 		}
 		// nobody close to the end yet: he waits at the far end of the counter, faintly

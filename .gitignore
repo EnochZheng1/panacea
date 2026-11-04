@@ -16,3 +16,4 @@ godot/obj/
 sim-cs/**/bin/
 sim-cs/**/obj/
 sim-cs/**/TestResults/
+build/

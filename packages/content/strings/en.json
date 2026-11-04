@@ -162,7 +162,7 @@
   "event.rival_price_war.title": "A Price War",
   "event.rival_price_war.body": "A rival druggist two doors down has put his tonic in the window at 65 cents a bottle, with a card saying so. For four months he will take two in five of the passing trade whose bottle costs more than his, unless you answer him.",
   "event.rival_price_war.choice.handbills": "Answer him with handbills of your own, for $10.",
-  "event.rival_price_war.choice.cry_him_down": "Let it be known his stock is chalk and creek water. (Suspicion +4, reputation −2.)",
+  "event.rival_price_war.choice.cry_him_down": "Let it be known his stock is chalk and creek water.",
   "event.rival_price_war.choice.let_him_try": "Let him try. At 65 cents or under, he takes nothing from you.",
   "event.landlord_rent.title": "The Landlord Calls",
   "event.landlord_rent.body": "Your landlord has noticed the trade. The rent goes up by a dollar a month, starting with this month's, and it stays up. He would sell you the lease outright for sixty dollars, and there is a narrower shop across the street at a dollar under the old rent.",

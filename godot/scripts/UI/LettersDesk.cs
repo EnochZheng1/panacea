@@ -39,7 +39,7 @@ public partial class LettersDesk : VBoxContainer
 			"The Faculty have heard of your work with great interest, and are pleased to offer you the degree of Doctor of Medicine on receipt of fifty dollars. Attendance is not required; examination is waived in cases of evident merit, and all cases are evident. The diploma is suitable for framing."),
 		["sanitary_inspector"] = new("DEPARTMENT OF HEALTH · SANITARY BUREAU", "301 Mott Street", "P. QUINLAN, Inspector of Nuisances", "seal_sanitary",
 			"Left on the counter by a man in a hard hat, who is still in the back room.", "Sir,—",
-			"I am directed to make an inspection of your back premises. Inspections of this kind are thorough, and can run on for weeks, during which the shop cannot well be used. A small consideration for my trouble has been known to shorten them."),
+			"I am directed to make an inspection of your back premises. Inspections of this kind are thorough, and can run on for weeks, during which the ward will see a Board of Health man in your back room, and talk of it. A small consideration for my trouble has been known to shorten them."),
 		["rival_shop_opens"] = new("", "A note pushed under the door", "A friend of the shop", "",
 			"Unsigned, in pencil, with a thumbprint.", "",
 			"Thought you ought to know. Feeney has opened two doors down and his window is full of bottles the very spit of yours, at a penny less. People will say anything about a man's stock, if they are given a start."),

@@ -77,7 +77,10 @@ public partial class OrderForm : VBoxContainer
 			var oz = _order.GetValueOrDefault(i.Id);
 			var amount = oz * i.CostPerOunceCents;
 			total += amount;
-			var name = Print.Label(i.Name, Print.Fell, 15, wrap: false);
+			var name = new Leader { Text = i.Name };
+			name.AddThemeFontOverride("font", Print.Fell);
+			name.AddThemeFontSizeOverride("font_size", 15);
+			name.AddThemeColorOverride("font_color", Print.Ink);
 			name.SizeFlagsHorizontal = SizeFlags.ExpandFill;
 			name.TooltipText = i.Description;
 			name.MouseFilter = MouseFilterEnum.Pass;

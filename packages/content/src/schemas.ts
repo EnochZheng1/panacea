@@ -271,10 +271,19 @@ export const SegmentSchema = z.strictObject({
 });
 export type Segment = z.infer<typeof SegmentSchema>;
 
-export const NamesSchema = z.strictObject({
+/** One stock of names (Irish, German, Yankee…): given names are only paired with its own surnames. */
+export const NameOriginSchema = z.strictObject({
+  id: IdSchema,
+  /** How common the stock is in the ward. */
+  weight: z.number().positive(),
   female: z.array(z.string().min(1)).min(1),
   male: z.array(z.string().min(1)).min(1),
   surnames: z.array(z.string().min(1)).min(1),
+});
+export type NameOrigin = z.infer<typeof NameOriginSchema>;
+
+export const NamesSchema = z.strictObject({
+  origins: z.array(NameOriginSchema).min(1),
 });
 export type Names = z.infer<typeof NamesSchema>;
 

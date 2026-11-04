@@ -1,0 +1,177 @@
+  <!-- The still, engraved. Drawn at twice the game's StillDrawing coordinates (310 x 360): the
+       fire door, the head, the spout and the receiver's belly are left for the game to animate
+       (flames, steam, the drip, and the green rising in the receiver). -->
+  <g id="still" filter="url(#carve)">
+    <!-- the floor -->
+    <ellipse cx="320" cy="648" rx="292" ry="16" class="g"/>
+    <path class="k" d="M24,636 L604,632 L606,648 L22,652 Z"/>
+
+    <!-- the trestle the worm tub stands on -->
+    <path class="ln" d="M446,462 L428,636 M564,462 L584,636 M436,560 L576,560" stroke-width="10"/>
+    <path class="cut" d="M440,500 L432,600 M572,500 L580,600" stroke-width="2"/>
+
+    <!-- the furnace: brick, with the mortar cut out of the ink -->
+    <path class="k" d="M48,494 L372,494 L376,636 L44,636 Z"/>
+    <g class="cut" stroke-width="2.6">
+      <path d="M50,524 L372,524 M48,556 L374,556 M48,588 L374,588 M46,618 L376,618"/>
+      <path d="M96,494 L96,524 M160,494 L160,524 M224,494 L224,524 M288,494 L288,524 M352,494 L352,524"/>
+      <path d="M64,524 L64,556 M128,524 L128,556 M300,524 L300,556 M352,524 L352,556"/>
+      <path d="M96,556 L96,588 M324,556 L324,588"/>
+      <path d="M64,588 L64,618 M128,588 L128,618 M300,588 L300,618 M352,588 L352,618"/>
+      <path d="M96,618 L96,636 M160,618 L160,636 M224,618 L224,636 M288,618 L288,636 M340,618 L340,636"/>
+    </g>
+    <!-- chisel nicks in the brick faces -->
+    <g class="cut" stroke-width="1.4">
+      <path d="M70,506 L84,512 M180,502 L198,508 M250,536 L266,540 M70,568 L80,576 M330,600 L346,606 M180,626 L196,630"/>
+    </g>
+    <!-- the fire door: an arched opening, dark until the game lights it -->
+    <path class="p" d="M126,612 L126,566 C126,536 150,526 210,526 C270,526 294,536 294,566 L294,612 Z"/>
+    <path class="g2" d="M134,608 L134,568 C134,544 154,534 210,534 C266,534 286,544 286,568 L286,608 Z"/>
+    <path class="k" d="M130,604 L290,604 L290,614 L130,614 Z"/>
+    <path class="cut" d="M150,604 L150,614 M170,604 L170,614 M190,604 L190,614 M210,604 L210,614 M230,604 L230,614 M250,604 L250,614 M270,604 L270,614" stroke-width="3"/>
+    <!-- the iron slab the pot sits on -->
+    <path class="k" d="M34,478 L388,476 L390,498 L32,500 Z"/>
+    <path class="cut" d="M44,484 L378,482" stroke-width="1.6"/>
+
+    <!-- the pot: a copper belly, lit from the left, gouged into shadow on the right -->
+    <ellipse cx="210" cy="372" rx="150" ry="130" class="p"/>
+    <path class="g" d="M262,250 C330,276 366,330 360,384 C354,444 300,494 216,502 C292,474 330,428 332,374 C334,322 306,280 262,250 Z"/>
+    <path class="g2" d="M120,466 C160,494 214,504 262,494 C226,512 160,508 120,466 Z"/>
+    <!-- engraver's hatching on the copper: thin in the light, swelling into the shadow -->
+    <g class="ln">
+      <path d="M189,252 Q206,253.5 222,252" stroke-width="1.1" opacity="0.7"/>
+      <path d="M222,252 Q242,253.5 262,252" stroke-width="2.6"/>
+      <path d="M182,260 Q204,262.6 227,260" stroke-width="1.1" opacity="0.7"/>
+      <path d="M227,260 Q253,262.6 280,260" stroke-width="2.6"/>
+      <path d="M176,268 Q203,271.6 230,268" stroke-width="1.1" opacity="0.7"/>
+      <path d="M230,268 Q262,271.6 294,268" stroke-width="2.6"/>
+      <path d="M172,276 Q202,280.5 233,276" stroke-width="1.1" opacity="0.7"/>
+      <path d="M233,276 Q269,280.5 305,276" stroke-width="2.6"/>
+      <path d="M168,284 Q202,289.4 235,284" stroke-width="1.1" opacity="0.7"/>
+      <path d="M235,284 Q275,289.4 314,284" stroke-width="2.6"/>
+      <path d="M165,292 Q201,298.2 237,292" stroke-width="1.1" opacity="0.7"/>
+      <path d="M237,292 Q280,298.2 322,292" stroke-width="2.6"/>
+      <path d="M162,300 Q200,306.9 239,300" stroke-width="1.1" opacity="0.7"/>
+      <path d="M239,300 Q284,306.9 329,300" stroke-width="2.6"/>
+      <path d="M160,308 Q200,315.6 240,308" stroke-width="1.1" opacity="0.7"/>
+      <path d="M240,308 Q287,315.6 335,308" stroke-width="2.6"/>
+      <path d="M158,316 Q200,324.1 241,316" stroke-width="1.1" opacity="0.7"/>
+      <path d="M241,316 Q290,324.1 339,316" stroke-width="2.6"/>
+      <path d="M157,324 Q199,332.6 242,324" stroke-width="1.1" opacity="0.7"/>
+      <path d="M242,324 Q293,332.6 343,324" stroke-width="2.6"/>
+      <path d="M155,332 Q199,341.1 243,332" stroke-width="1.1" opacity="0.7"/>
+      <path d="M243,332 Q295,341.1 347,332" stroke-width="2.6"/>
+      <path d="M154,340 Q199,349.4 243,340" stroke-width="1.1" opacity="0.7"/>
+      <path d="M243,340 Q296,349.4 349,340" stroke-width="2.6"/>
+      <path d="M153,348 Q199,357.7 244,348" stroke-width="1.1" opacity="0.7"/>
+      <path d="M244,348 Q298,357.7 351,348" stroke-width="2.6"/>
+      <path d="M153,356 Q199,365.8 244,356" stroke-width="1.1" opacity="0.7"/>
+      <path d="M244,356 Q299,365.8 353,356" stroke-width="2.6"/>
+      <path d="M153,364 Q199,374.0 244,364" stroke-width="1.1" opacity="0.7"/>
+      <path d="M244,364 Q299,374.0 354,364" stroke-width="2.6"/>
+      <path d="M152,372 Q198,382.0 245,372" stroke-width="1.1" opacity="0.7"/>
+      <path d="M245,372 Q299,382.0 354,372" stroke-width="2.6"/>
+      <path d="M153,380 Q199,390.0 244,380" stroke-width="1.1" opacity="0.7"/>
+      <path d="M244,380 Q299,390.0 354,380" stroke-width="2.6"/>
+      <path d="M153,388 Q199,397.8 244,388" stroke-width="1.1" opacity="0.7"/>
+      <path d="M244,388 Q299,397.8 353,388" stroke-width="2.6"/>
+      <path d="M153,396 Q199,405.7 244,396" stroke-width="1.1" opacity="0.7"/>
+      <path d="M244,396 Q298,405.7 351,396" stroke-width="2.6"/>
+      <path d="M154,404 Q199,413.4 243,404" stroke-width="1.1" opacity="0.7"/>
+      <path d="M243,404 Q296,413.4 349,404" stroke-width="2.6"/>
+      <path d="M155,412 Q199,421.1 243,412" stroke-width="1.1" opacity="0.7"/>
+      <path d="M243,412 Q295,421.1 347,412" stroke-width="2.6"/>
+      <path d="M157,420 Q199,428.6 242,420" stroke-width="1.1" opacity="0.7"/>
+      <path d="M242,420 Q293,428.6 343,420" stroke-width="2.6"/>
+      <path d="M158,428 Q200,436.1 241,428" stroke-width="1.1" opacity="0.7"/>
+      <path d="M241,428 Q290,436.1 339,428" stroke-width="2.6"/>
+      <path d="M160,436 Q200,443.6 240,436" stroke-width="1.1" opacity="0.7"/>
+      <path d="M240,436 Q287,443.6 335,436" stroke-width="2.6"/>
+      <path d="M162,444 Q200,450.9 239,444" stroke-width="1.1" opacity="0.7"/>
+      <path d="M239,444 Q284,450.9 329,444" stroke-width="2.6"/>
+      <path d="M165,452 Q201,458.2 237,452" stroke-width="1.1" opacity="0.7"/>
+      <path d="M237,452 Q280,458.2 322,452" stroke-width="2.6"/>
+      <path d="M168,460 Q202,465.4 235,460" stroke-width="1.1" opacity="0.7"/>
+      <path d="M235,460 Q275,465.4 314,460" stroke-width="2.6"/>
+      <path d="M172,468 Q202,472.5 233,468" stroke-width="1.1" opacity="0.7"/>
+      <path d="M233,468 Q269,472.5 305,468" stroke-width="2.6"/>
+      <path d="M176,476 Q203,479.6 230,476" stroke-width="1.1" opacity="0.7"/>
+      <path d="M230,476 Q262,479.6 294,476" stroke-width="2.6"/>
+      <path d="M182,484 Q204,486.6 227,484" stroke-width="1.1" opacity="0.7"/>
+      <path d="M227,484 Q253,486.6 280,484" stroke-width="2.6"/>
+      <path d="M189,492 Q206,493.5 222,492" stroke-width="1.1" opacity="0.7"/>
+      <path d="M222,492 Q242,493.5 262,492" stroke-width="2.6"/>
+    </g>
+    <ellipse cx="210" cy="372" rx="150" ry="130" class="ln" stroke-width="7"/>
+    <!-- the engraver's lines following the belly -->
+    <g class="ln" stroke-width="2">
+      <path d="M96,300 C80,330 74,370 82,410 M120,272 C98,306 90,350 96,398 M240,250 C266,270 284,300 292,336"/>
+      <path d="M300,300 C318,330 324,370 316,410 M286,280 C306,310 312,352 306,396"/>
+    </g>
+    <path class="ln" d="M76,330 C150,312 270,312 344,330" stroke-width="5"/>
+    <g class="k">
+      <circle cx="92" cy="326" r="4"/><circle cx="122" cy="320" r="4"/><circle cx="152" cy="316" r="4"/><circle cx="182" cy="314" r="4"/>
+      <circle cx="212" cy="314" r="4"/><circle cx="242" cy="315" r="4"/><circle cx="272" cy="318" r="4"/><circle cx="302" cy="322" r="4"/>
+      <circle cx="330" cy="327" r="4"/>
+    </g>
+    <!-- a highlight caught on the copper -->
+    <path class="ln" d="M120,360 C116,392 124,420 138,440" stroke-width="2.4" opacity="0.6"/>
+    <!-- the maker's plate, riveted on -->
+    <path class="k" d="M166,392 L254,392 L254,428 L166,428 Z"/>
+    <path class="cut" d="M172,398 L248,398 L248,422 L172,422 Z" stroke-width="1.6"/>
+
+    <!-- the collar and the head -->
+    <path class="k" d="M172,236 L248,236 L252,256 L168,256 Z"/>
+    <path class="p" d="M160,238 C160,196 182,176 210,176 C238,176 260,196 260,238 Z"/>
+    <path class="g" d="M228,182 C248,192 258,212 260,238 L236,238 C236,214 234,196 228,182 Z"/>
+    <g class="ln"><path d="M214,186 L240,186" stroke-width="1.6"/><path d="M214,193 L240,193" stroke-width="1.6"/><path d="M214,200 L240,200" stroke-width="1.6"/><path d="M200,207 L254,207" stroke-width="1.6"/><path d="M200,214 L254,214" stroke-width="1.6"/><path d="M200,221 L254,221" stroke-width="1.6"/><path d="M200,228 L254,228" stroke-width="1.6"/><path d="M200,235 L254,235" stroke-width="1.6"/></g>
+    <path class="ln" d="M160,238 C160,196 182,176 210,176 C238,176 260,196 260,238 Z" stroke-width="6"/>
+    <path class="k" d="M198,162 L222,162 L222,178 L198,178 Z"/>
+
+    <!-- the swan neck, down to the worm tub -->
+    <path class="ln" d="M246,206 C292,138 364,112 432,122 C482,128 504,160 504,212" stroke-width="28"/>
+    <path class="cut" d="M252,192 C296,132 362,110 428,116" stroke-width="4"/>
+    <path class="p" d="M494,208 L514,208 L514,224 L494,224 Z"/>
+    <path class="ln" d="M494,208 L514,208 L514,224 L494,224 Z" stroke-width="4"/>
+
+    <!-- the worm tub: a barrel of cold water with the coil inside -->
+    <path class="g2" d="M440,222 L570,222 C584,290 584,394 570,462 L440,462 C426,394 426,290 440,222 Z"/>
+    <g class="cut" stroke-width="2.2">
+      <path d="M462,224 C456,300 456,384 462,460 M486,224 C482,300 482,384 486,460 M512,224 L512,460"/>
+      <path d="M538,224 C542,300 542,384 538,460 M560,226 C566,300 566,384 560,458"/>
+    </g>
+    <path class="ln" d="M440,222 L570,222 C584,290 584,394 570,462 L440,462 C426,394 426,290 440,222 Z" stroke-width="6"/>
+    <g class="k">
+      <path d="M436,246 L574,246 L576,262 L434,262 Z"/>
+      <path d="M430,330 L580,330 L580,346 L430,346 Z"/>
+      <path d="M434,422 L576,422 L574,438 L436,438 Z"/>
+    </g>
+    <ellipse cx="505" cy="222" rx="66" ry="10" class="p"/>
+    <ellipse cx="505" cy="222" rx="66" ry="10" class="ln" stroke-width="5"/>
+
+    <!-- the spout from the worm -->
+    <path class="ln" d="M505,462 L505,504" stroke-width="12"/>
+    <path class="cut" d="M501,466 L501,500" stroke-width="2"/>
+
+    <!-- the receiver: a round-bellied glass; the game fills it -->
+    <path class="k" d="M490,508 L520,508 L520,534 L490,534 Z"/>
+    <circle cx="505" cy="582" r="52" class="p"/>
+    <circle cx="505" cy="582" r="52" class="ln" stroke-width="7"/>
+    <path class="ln" d="M472,556 C466,570 466,590 472,604" stroke-width="2.4"/>
+    <!-- a paper label on the glass, so it is plainly the product -->
+    <path class="p" d="M482,600 L528,600 L528,622 L482,622 Z"/>
+    <path class="ln" d="M482,600 L528,600 L528,622 L482,622 Z" stroke-width="2"/>
+
+    <!-- a coal scuttle and a shovel by the furnace, and empty bottles waiting -->
+    <path class="k" d="M386,636 L398,596 L440,596 L430,636 Z"/>
+    <path class="cut" d="M398,604 L434,604" stroke-width="2"/>
+    <path class="ln" d="M380,584 L404,620" stroke-width="5"/>
+    <g class="k">
+      <path d="M560,636 L560,612 L564,604 L564,596 L572,596 L572,604 L576,612 L576,636 Z"/>
+      <path d="M582,636 L582,614 L585,607 L585,600 L591,600 L591,607 L594,614 L594,636 Z"/>
+    </g>
+  </g>
+  <g filter="url(#soft)">
+    <text x="210" y="416" font-family="Rye" font-size="15" text-anchor="middle" fill="#efece4" textLength="70" lengthAdjust="spacingAndGlyphs">No. 1</text>
+    <text x="505" y="616" font-family="Rye" font-size="11" text-anchor="middle" fill="#141212" textLength="40" lengthAdjust="spacingAndGlyphs">DR. ——</text>
+  </g>

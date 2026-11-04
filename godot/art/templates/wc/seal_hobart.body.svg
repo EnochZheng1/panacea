@@ -1,0 +1,17 @@
+  <defs><path id="rim-hobart" d="M120,120 m-92,0 a92,92 0 1,1 184,0 a92,92 0 1,1 -184,0"/></defs>
+  <g id="seal" filter="url(#soft)">
+    <circle cx="120" cy="120" r="114" class="ln" stroke-width="7"/>
+    <circle cx="120" cy="120" r="106" class="ln" stroke-width="1.8"/>
+    <circle cx="120" cy="120" r="82" class="ln" stroke-width="3.4"/>
+    <text font-family="Rye" font-size="15.5" class="k" letter-spacing="0.5">
+      <textPath href="#rim-hobart" textLength="566" lengthAdjust="spacing">J. &amp; W. HOBART &amp; CO. ★ 81 PEARL STREET ★ ESTD. 1852 ★</textPath>
+    </text>
+  </g>
+  <g id="emblem" filter="url(#carve)">
+    <path class="ln" d="M128,58 L104,130" stroke-width="12"/>
+    <path class="cut" d="M126,64 L106,124" stroke-width="2.4"/>
+    <path class="k" d="M64,114 L176,114 L170,124 C166,156 146,174 120,176 C94,174 74,156 70,124 Z"/>
+    <path class="cut" d="M80,130 C86,150 100,162 118,166" stroke-width="2.6"/>
+    <path class="k" d="M100,176 L140,176 L148,194 L92,194 Z"/>
+    <path class="cut" d="M76,120 L164,120" stroke-width="2"/>
+  </g>

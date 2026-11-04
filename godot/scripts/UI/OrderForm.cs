@@ -47,6 +47,11 @@ public partial class OrderForm : VBoxContainer
 		names.AddThemeConstantOverride("separation", -2);
 		names.AddChild(Print.Label("J. & W. HOBART & CO.", Print.Rye, 26));
 		names.AddChild(Print.Label("Wholesale Druggists & Importers of Drugs · 81 Pearl Street, New-York", Print.FellIt, 14));
+		// the house's seal, a mortar and pestle, beside its name
+		var seal = LettersDesk.Seal("seal_hobart", 76);
+		seal.RotationDegrees = 0;
+		head.AddChild(seal);
+		head.AddThemeConstantOverride("separation", 12);
 		head.AddChild(names);
 		var no = new VBoxContainer();
 		no.AddChild(Print.Label("PRICE CURRENT", Print.Rye, 15, HorizontalAlignment.Right, wrap: false));

@@ -10,7 +10,8 @@ ART = os.path.join(ROOT, 'assets', 'art')
 OUT = os.path.join(ART, 'cuts')
 SPRITES = ['wc_proprietor', 'wc_death', 'wc_clerk', 'wc_mother', 'wc_longshoreman', 'wc_lady',
            'wc_seamstress', 'wc_widow', 'wc_oldman',
-           'wc_bottle_panacea', 'wc_bottle_syrup', 'wc_bottle_bitters', 'wc_pills']
+           'wc_bottle_panacea', 'wc_bottle_syrup', 'wc_bottle_bitters', 'wc_pills',
+           'seal_coroner', 'seal_health', 'seal_sanitary', 'seal_college', 'seal_league', 'seal_hobart']
 # named sub-crops in sprite pixels (2x): name -> (sprite, box)
 BUSTS = {'wc_clerk_bust': ('wc_clerk', (380, 300, 820, 840))}
 

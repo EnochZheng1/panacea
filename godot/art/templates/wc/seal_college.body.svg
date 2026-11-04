@@ -1,0 +1,22 @@
+  <defs><path id="rim-college" d="M120,120 m-92,0 a92,92 0 1,1 184,0 a92,92 0 1,1 -184,0"/></defs>
+  <g id="seal" filter="url(#soft)">
+    <circle cx="120" cy="120" r="114" class="ln" stroke-width="7"/>
+    <circle cx="120" cy="120" r="106" class="ln" stroke-width="1.8"/>
+    <circle cx="120" cy="120" r="82" class="ln" stroke-width="3.4"/>
+    <text font-family="Rye" font-size="15.5" class="k" letter-spacing="0.5">
+      <textPath href="#rim-college" textLength="566" lengthAdjust="spacing">ECLECTIC MEDICAL COLLEGE ★ CINCINNATI ★ DIPLOMAS BY POST ★</textPath>
+    </text>
+  </g>
+  <g id="emblem" filter="url(#carve)">
+    <path class="p" d="M70,92 L170,92 L170,144 L70,144 Z"/>
+    <path class="ln" d="M70,92 L170,92 L170,144 L70,144 Z" stroke-width="3.4"/>
+    <ellipse cx="70" cy="118" rx="9" ry="27" class="k"/>
+    <ellipse cx="170" cy="118" rx="9" ry="27" class="p"/>
+    <ellipse cx="170" cy="118" rx="9" ry="27" class="ln" stroke-width="3"/>
+    <path class="ln" d="M86,106 L154,106 M86,116 L154,116 M86,126 L140,126" stroke-width="1.6"/>
+    <path class="k" d="M112,138 L128,138 L134,170 L120,162 L106,170 Z"/>
+    <circle cx="120" cy="140" r="11" class="k"/>
+    <path class="ln" d="M64,184 C90,174 150,174 176,184" stroke-width="16"/>
+    <path class="cut" d="M66,184 C92,175 148,175 174,184" stroke-width="12"/>
+    <text x="120" y="186" font-family="Rye" font-size="11" text-anchor="middle" class="k" textLength="92" lengthAdjust="spacingAndGlyphs">PECUNIA DOCET</text>
+  </g>

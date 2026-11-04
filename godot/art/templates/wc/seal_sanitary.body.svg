@@ -1,0 +1,18 @@
+  <defs><path id="rim-sanitary" d="M120,120 m-92,0 a92,92 0 1,1 184,0 a92,92 0 1,1 -184,0"/></defs>
+  <g id="seal" filter="url(#soft)">
+    <circle cx="120" cy="120" r="114" class="ln" stroke-width="7"/>
+    <circle cx="120" cy="120" r="106" class="ln" stroke-width="1.8"/>
+    <circle cx="120" cy="120" r="82" class="ln" stroke-width="3.4"/>
+    <text font-family="Rye" font-size="15.5" class="k" letter-spacing="0.5">
+      <textPath href="#rim-sanitary" textLength="566" lengthAdjust="spacing">SANITARY BUREAU ★ INSPECTOR OF NUISANCES ★ SIXTH WARD ★</textPath>
+    </text>
+  </g>
+  <g id="emblem" filter="url(#carve)">
+    <path class="ln" d="M78,70 L160,164 M162,70 L84,164" stroke-width="6"/>
+    <path class="k" d="M150,152 L176,182 L160,190 L142,164 Z"/>
+    <path class="cut" d="M152,164 L166,180 M146,170 L158,184" stroke-width="1.6"/>
+    <path class="k" d="M74,158 C66,170 70,186 84,188 C98,190 100,176 94,166 Z"/>
+    <path class="k" d="M100,178 L140,178 L136,204 L104,204 Z"/>
+    <path class="cut" d="M104,186 L136,186" stroke-width="1.6"/>
+    <path class="ln" d="M100,178 C104,166 136,166 140,178" stroke-width="2.4"/>
+  </g>

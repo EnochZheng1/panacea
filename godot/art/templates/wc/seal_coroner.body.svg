@@ -1,0 +1,19 @@
+  <defs><path id="rim-coroner" d="M120,120 m-92,0 a92,92 0 1,1 184,0 a92,92 0 1,1 -184,0"/></defs>
+  <g id="seal" filter="url(#soft)">
+    <circle cx="120" cy="120" r="114" class="ln" stroke-width="7"/>
+    <circle cx="120" cy="120" r="106" class="ln" stroke-width="1.8"/>
+    <circle cx="120" cy="120" r="82" class="ln" stroke-width="3.4"/>
+    <text font-family="Rye" font-size="15.5" class="k" letter-spacing="0.5">
+      <textPath href="#rim-coroner" textLength="566" lengthAdjust="spacing">OFFICE OF THE CORONER ★ CITY AND COUNTY OF NEW-YORK ★</textPath>
+    </text>
+  </g>
+  <g id="emblem" filter="url(#carve)">
+    <path class="k" d="M84,64 L156,64 L156,74 L84,74 Z M84,166 L156,166 L156,176 L84,176 Z"/>
+    <path class="ln" d="M92,74 L92,166 M148,74 L148,166" stroke-width="5"/>
+    <path class="p" d="M98,76 C98,104 116,112 118,120 C116,128 98,136 98,164 L142,164 C142,136 124,128 122,120 C124,112 142,104 142,76 Z"/>
+    <path class="ln" d="M98,76 C98,104 116,112 118,120 C116,128 98,136 98,164 L142,164 C142,136 124,128 122,120 C124,112 142,104 142,76 Z" stroke-width="3.4"/>
+    <path class="k" d="M104,92 C110,104 130,104 136,92 Z M101,162 C104,146 114,138 120,136 C126,138 136,146 139,162 Z"/>
+    <path class="ln" d="M120,104 L120,138" stroke-width="1.6"/>
+    <path class="ln" d="M72,182 C90,196 108,198 118,192 M168,182 C150,196 132,198 122,192" stroke-width="3"/>
+    <path class="k" d="M80,184 l-8,-6 l10,-1 Z M92,190 l-7,-7 l10,0 Z M160,184 l8,-6 l-10,-1 Z M148,190 l7,-7 l-10,0 Z"/>
+  </g>

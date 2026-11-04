@@ -28,25 +28,25 @@ public partial class LettersDesk : VBoxContainer
 
 	private static readonly Dictionary<string, Head> Heads = new()
 	{
-		["inquest"] = new("OFFICE OF THE CORONER", "City and County of New-York · Centre Street", "By order of the Coroner, J. DUFFY, Clerk", "CORONER",
+		["inquest"] = new("OFFICE OF THE CORONER", "City and County of New-York · Centre Street", "By order of the Coroner, J. DUFFY, Clerk", "seal_coroner",
 			"Served at the shop by a boy from Centre street.", "Sir,—",
 			"You are hereby notified that a jury will sit this month upon the death of {name}, who is said to have been a customer of yours. The Coroner will hear any evidence you may wish to give as to the composition of your preparations. The Coroner's time is valuable, as is his good opinion."),
 		["grateful_letter"] = new("", "Mulberry Street, top floor, rear", "Your grateful servant, a customer", "",
 			"In a careful hand, on good paper bought for the purpose.", "Dear Doctor,—",
 			"Three physicians gave me up, and your tonic gave me back. I am a new woman and my husband says he hardly knows me. If my words would be of use to other sufferers, you have my leave to put them in the papers, with my name, which I should like spelled correctly."),
-		["diploma_mill"] = new("THE ECLECTIC MEDICAL COLLEGE OF OHIO", "Diplomas Conferred by Post · Cincinnati", "J. T. MARSH, M.D. (Hon.), Registrar", "COLLEGE",
+		["diploma_mill"] = new("THE ECLECTIC MEDICAL COLLEGE OF OHIO", "Diplomas Conferred by Post · Cincinnati", "J. T. MARSH, M.D. (Hon.), Registrar", "seal_college",
 			"A printed circular, with the blanks filled in by hand.", "Dear Doctor,—",
 			"The Faculty have heard of your work with great interest, and are pleased to offer you the degree of Doctor of Medicine on receipt of fifty dollars. Attendance is not required; examination is waived in cases of evident merit, and all cases are evident. The diploma is suitable for framing."),
-		["sanitary_inspector"] = new("DEPARTMENT OF HEALTH · SANITARY BUREAU", "301 Mott Street", "P. QUINLAN, Inspector of Nuisances", "HEALTH",
+		["sanitary_inspector"] = new("DEPARTMENT OF HEALTH · SANITARY BUREAU", "301 Mott Street", "P. QUINLAN, Inspector of Nuisances", "seal_sanitary",
 			"Left on the counter by a man in a hard hat, who is still in the back room.", "Sir,—",
 			"I am directed to make an inspection of your back premises. Inspections of this kind are thorough, and can run on for weeks, during which the shop cannot well be used. A small consideration for my trouble has been known to shorten them."),
 		["rival_shop_opens"] = new("", "A note pushed under the door", "A friend of the shop", "",
 			"Unsigned, in pencil, with a thumbprint.", "",
 			"Thought you ought to know. Feeney has opened two doors down and his window is full of bottles the very spit of yours, at a penny less. People will say anything about a man's stock, if they are given a start."),
-		["temperance_picket"] = new("THE LADIES' TEMPERANCE LEAGUE", "Sixth Ward Branch · Meetings Thursdays", "Mrs. ABIGAIL STOWE, Secretary", "LEAGUE",
+		["temperance_picket"] = new("THE LADIES' TEMPERANCE LEAGUE", "Sixth Ward Branch · Meetings Thursdays", "Mrs. ABIGAIL STOWE, Secretary", "seal_league",
 			"Handed in by a lady, while a dozen more sing hymns on the step.", "Sir,—",
 			"The League has caused your remedy to be tasted by a member, who has not been well since. We shall sing outside your door each day until you see the error of your trade, or contribute to the cause of temperance, which we should accept as a first step."),
-		["board_of_health"] = new("THE BOARD OF HEALTH OF THE CITY OF NEW-YORK", "Order of the Board", "By order, T. R. KEMBLE, Assistant Sanitary Superintendent", "BOARD OF HEALTH",
+		["board_of_health"] = new("THE BOARD OF HEALTH OF THE CITY OF NEW-YORK", "Order of the Board", "By order, T. R. KEMBLE, Assistant Sanitary Superintendent", "seal_health",
 			"Served with a warrant, by two inspectors and a wagon.", "Sir,—",
 			"Complaint having been made of your preparations, the Board directs that the whole of your stock be removed for analysis. The Board will, in the alternative, accept a fine of thirty dollars, and consider the complaint answered."),
 		["customer_wants_stronger"] = new("", "In pencil, on the back of a handbill", "One of your regulars", "",
@@ -192,19 +192,24 @@ public partial class LettersDesk : VBoxContainer
 		t.TweenCallback(Callable.From(() => { Refresh(); Changed?.Invoke(); }));
 	}
 
-	/// <summary>A wax seal, inked: a solid disc with the sender's word reversed out.</summary>
-	private static Control Seal(string word)
+	/// <summary>
+	/// The sender's engraved seal (tools/make_seals.py): a roundel with its legend round the rim,
+	/// printed in the letterhead's corner.
+	/// </summary>
+	public static Control Seal(string cut, int size = 104)
 	{
-		var size = word.Length > 8 ? 92 : 78;
-		var p = new PanelContainer { CustomMinimumSize = new Vector2(size, size), SizeFlagsVertical = SizeFlags.ShrinkBegin };
-		var st = Print.Box(Print.Ink, Print.Ink, 0, 4);
-		st.SetCornerRadiusAll(size / 2);
-		p.AddThemeStyleboxOverride("panel", st);
-		var l = Print.Label(word, Print.Rye, word.Length > 8 ? 12 : 13, HorizontalAlignment.Center, Print.Paper, wrap: word.Contains(' '));
-		l.VerticalAlignment = VerticalAlignment.Center;
-		p.AddChild(l);
-		p.RotationDegrees = -10;
-		return p;
+		var tex = Print.Cut(cut);
+		var r = new TextureRect
+		{
+			Texture = tex,
+			ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+			StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+			CustomMinimumSize = new Vector2(size, size),
+			SizeFlagsVertical = SizeFlags.ShrinkBegin,
+			PivotOffset = new Vector2(size / 2f, size / 2f),
+			RotationDegrees = -8,
+		};
+		return r;
 	}
 
 	private static string Ordinal(int d) => (d % 100) is 11 or 12 or 13 ? "th" : (d % 10) switch { 1 => "st", 2 => "nd", 3 => "rd", _ => "th" };

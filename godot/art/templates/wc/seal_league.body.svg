@@ -1,0 +1,20 @@
+  <defs><path id="rim-league" d="M120,120 m-92,0 a92,92 0 1,1 184,0 a92,92 0 1,1 -184,0"/></defs>
+  <g id="seal" filter="url(#soft)">
+    <circle cx="120" cy="120" r="114" class="ln" stroke-width="7"/>
+    <circle cx="120" cy="120" r="106" class="ln" stroke-width="1.8"/>
+    <circle cx="120" cy="120" r="82" class="ln" stroke-width="3.4"/>
+    <text font-family="Rye" font-size="15.5" class="k" letter-spacing="0.5">
+      <textPath href="#rim-league" textLength="566" lengthAdjust="spacing">LADIES' TEMPERANCE LEAGUE ★ SIXTH WARD ★ TOUCH NOT ★</textPath>
+    </text>
+  </g>
+  <g id="emblem" filter="url(#carve)">
+    <path class="k" d="M100,82 L136,82 L136,184 L100,184 Z"/>
+    <path class="cut" d="M106,96 L106,176 M130,96 L130,176" stroke-width="1.8"/>
+    <path class="k" d="M94,72 L142,72 L146,84 L90,84 Z"/>
+    <path class="k" d="M96,184 L140,184 L146,196 L90,196 Z"/>
+    <path class="ln" d="M136,100 C152,92 168,80 178,62" stroke-width="6"/>
+    <path class="ln" d="M100,118 L74,118 L74,128" stroke-width="7"/>
+    <path class="grl" d="M74,134 L74,160" stroke="#141212" stroke-width="3" stroke-dasharray="5 6"/>
+    <path class="k" d="M62,164 L86,164 L84,184 L64,184 Z"/>
+    <path class="ln" d="M86,168 C94,170 94,180 86,180" stroke-width="2.4"/>
+  </g>

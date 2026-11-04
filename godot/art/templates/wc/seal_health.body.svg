@@ -1,0 +1,17 @@
+  <defs><path id="rim-health" d="M120,120 m-92,0 a92,92 0 1,1 184,0 a92,92 0 1,1 -184,0"/></defs>
+  <g id="seal" filter="url(#soft)">
+    <circle cx="120" cy="120" r="114" class="ln" stroke-width="7"/>
+    <circle cx="120" cy="120" r="106" class="ln" stroke-width="1.8"/>
+    <circle cx="120" cy="120" r="82" class="ln" stroke-width="3.4"/>
+    <text font-family="Rye" font-size="15.5" class="k" letter-spacing="0.5">
+      <textPath href="#rim-health" textLength="566" lengthAdjust="spacing">BOARD OF HEALTH ★ CITY OF NEW-YORK ★ SALUS POPULI ★</textPath>
+    </text>
+  </g>
+  <g id="emblem" filter="url(#carve)">
+    <path class="ln" d="M120,56 L120,184" stroke-width="8"/>
+    <path class="k" d="M112,52 C112,44 128,44 128,52 L124,60 L116,60 Z"/>
+    <path class="ln" d="M120,176 C96,166 96,148 120,140 C144,132 144,114 120,106 C100,99 100,84 116,76" stroke-width="7"/>
+    <path class="cut" d="M120,176 C96,166 96,148 120,140 C144,132 144,114 120,106 C100,99 100,84 116,76" stroke-width="2"/>
+    <path class="k" d="M112,68 C118,60 132,64 130,74 C128,80 118,80 114,76 Z"/>
+    <path class="ln" d="M84,188 L156,188" stroke-width="4"/>
+  </g>

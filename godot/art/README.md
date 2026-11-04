@@ -25,11 +25,13 @@ Earlier explorations are kept for reference: grim ink (`silent_partner`, `satisf
 
 ## The woodcut set
 
-| Group      | Assets                                                                                      |
-| ---------- | ------------------------------------------------------------------------------------------- |
-| Characters | `wc_proprietor`, `wc_death`, `wc_clerk`, `wc_mother`, `wc_longshoreman`, `wc_lady`          |
-| Products   | `wc_bottle_panacea`, `wc_bottle_syrup`, `wc_bottle_bitters`, `wc_pills`                     |
-| Ad formats | `wcad_reading_notice`, `wcad_display`, `wcad_testimonial`, `wcad_almanac`, `wcad_tradecard` |
+| Group      | Assets                                                                                                                          |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Characters | `wc_proprietor`, `wc_death`, `wc_clerk`, `wc_mother`, `wc_longshoreman`, `wc_lady`, `wc_seamstress`, `wc_widow`, `wc_oldman`    |
+| Products   | `wc_bottle_panacea`, `wc_bottle_syrup`, `wc_bottle_bitters`, `wc_pills`                                                         |
+| Ad formats | `wcad_reading_notice`, `wcad_display`, `wcad_testimonial`, `wcad_almanac`, `wcad_tradecard`                                     |
+| Apparatus  | `wc_still` (the game animates the fire, steam, drip and receiver over it)                                                       |
+| Seals      | `seal_coroner`, `seal_health`, `seal_sanitary`, `seal_college`, `seal_league`, `seal_hobart` (written by `tools/make_seals.py`) |
 
 To rebuild the set:
 

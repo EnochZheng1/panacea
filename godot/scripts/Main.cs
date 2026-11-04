@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -106,6 +107,11 @@ public partial class Main : Control
 		ShowEdition();
 		if (Arg("--screen", "edition") is "desk" or "proof") SetDesk(true);
 		if (Arg("--drawer", "") is { Length: > 0 } drawer) _desk.OpenDrawer(drawer);
+		if (int.TryParse(Arg("--driver", ""), out var port))
+		{
+			Engine.MaxFps = 12; // reviewers share the machine
+			Driver.Start(this, port, DriverState);
+		}
 		if (Arg("--pour", "") is { Length: > 0 } pour) _desk.DemoPour(pour.Split(','));
 		if (Arg("--hover", "") is { Length: > 0 } hover)
 		{
@@ -289,6 +295,37 @@ public partial class Main : Control
 		run.AddChild(copies); // above the pile
 		AddChild(run);
 		return run;
+	}
+
+	/// <summary>What the scripted reviewer may know: the screen and the game as the player sees it.</summary>
+	private System.Text.Json.Nodes.JsonObject DriverState()
+	{
+		var d = _game.Desk();
+		var f = _game.Facts;
+		var o = new System.Text.Json.Nodes.JsonObject
+		{
+			["screen"] = _pressing ? "press" : _clipping != null ? "clipping" : _onDesk ? "proof" : "edition",
+			["ended"] = _game.Ended,
+			["date"] = $"{d.Year}-{d.Month:00}",
+			["cashCents"] = d.CashCents,
+			["reputation"] = Math.Round(d.Reputation, 1),
+			["heat"] = Math.Round(d.Heat, 1),
+			["regulars"] = d.Customers,
+			["stillsFree"] = d.StillsFree,
+			["canAdvertise"] = d.CanAdvertise,
+			["adSpendCents"] = d.AdSpendCents,
+			["letters"] = d.Letters.Count,
+			["formulas"] = new System.Text.Json.Nodes.JsonArray(d.Formulas.Select(x => (System.Text.Json.Nodes.JsonNode)new System.Text.Json.Nodes.JsonObject
+			{
+				["name"] = x.Name, ["priceCents"] = x.PriceCents, ["unitCostCents"] = x.UnitCostCents, ["stock"] = x.Stock, ["claims"] = string.Join(",", x.ClaimIds),
+			}).ToArray()),
+			["lastEdition"] = new System.Text.Json.Nodes.JsonObject
+			{
+				["deaths"] = f.Deaths.Count, ["inquests"] = f.Inquests.Count, ["joined"] = f.Joined.Count, ["left"] = f.Left.Count,
+				["bottlesSold"] = f.Sales.Sum(x => x.Bottles),
+			},
+		};
+		return o;
 	}
 
 	private Control? _clipping;

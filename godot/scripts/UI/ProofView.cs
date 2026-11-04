@@ -30,10 +30,17 @@ public partial class ProofView : Control
 	{
 		if (_drawer == null) return false;
 		Sfx.Play("slip", -4f, 0.04f, 0.85f);
+		var was = _drawer;
 		_drawer = null;
 		DropBench();
 		Rebuild();
-		FocusLever();
+		// the keyboard goes back to the button that opened the drawer, never to the press
+		var opener = was switch { "still" => "THE STILL", "formula" => "FORMULA BOOK", "supplies" => "SUPPLIES", "letters" => "OPEN THE LETTERS", _ => "" };
+		Callable.From(() =>
+		{
+			var b = Print.Focusables(this).OfType<Button>().FirstOrDefault(x => x.Text == opener && !x.Disabled);
+			if (b != null) b.GrabFocus(); else FocusLever();
+		}).CallDeferred();
 		return true;
 	}
 
@@ -44,6 +51,7 @@ public partial class ProofView : Control
 
 	public void Bind(IGame game)
 	{
+		_note = null;
 		_game = game;
 		_drawer = null;
 		DropBench();
@@ -56,6 +64,7 @@ public partial class ProofView : Control
 	private bool _drawerOpened;
 	private bool _skipRestore;
 	private Control? _holder;
+	private int _slipsScroll;
 
 	/// <summary>
 	/// While a drawer is open, Tab and Shift+Tab go round the drawer's own controls only: the bench
@@ -139,6 +148,10 @@ public partial class ProofView : Control
 		root.AddChild(bench);
 		// the slips scroll if the type case runs long; the warnings and the lever never move
 		var slipsFrame = new ScrollContainer { SizeFlagsVertical = SizeFlags.ExpandFill, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
+		// the case keeps its place when the bench is reset under the hand
+		var keepScroll = _slipsScroll;
+		slipsFrame.Ready += () => Callable.From(() => { if (IsInstanceValid(slipsFrame)) slipsFrame.ScrollVertical = keepScroll; }).CallDeferred();
+		slipsFrame.GetVScrollBar().ValueChanged += v => _slipsScroll = (int)v;
 		Print.QuietScrollbar(slipsFrame);
 		bench.AddChild(slipsFrame);
 		var slips = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
@@ -152,6 +165,8 @@ public partial class ProofView : Control
 		var unansweredInquests = m.Letters.Count(l => l.Title.StartsWith("Inquest", StringComparison.Ordinal));
 		if (unansweredInquests > 0) warn.Add($"{Spell(unansweredInquests)} inquest{(unansweredInquests == 1 ? "" : "s")} unanswered: the coroner will proceed without you.");
 		else if (m.Letters.Count > 0) warn.Add($"{m.Letters.Count} letter{(m.Letters.Count == 1 ? "" : "s")} unanswered: the usual reply will go out for you.");
+		var waiting = m.Regulars.FirstOrDefault(r => r.Looks is "gravely_ill");
+		if (waiting != null) warn.Add($"Death waits at the counter beside {waiting.Name}.");
 		var nothing = m.Formulas.Sum(f => f.Stock) == 0 && m.Brewing.Count == 0;
 		if (nothing) warn.Add("Nothing on the shelf and nothing on the still: the shop will sell nothing this month.");
 		// space the shop cannot pay for is not printed: say so before the press, not after
@@ -160,7 +175,14 @@ public partial class ProofView : Control
 		foreach (var w in warn) bench.AddChild(Print.Label("☞ " + w, Print.FellIt, 13, color: Print.Paper));
 		bench.AddChild(Lever(nothing || unansweredInquests > 0));
 
-		if (_drawer != null) leftStack.AddChild(Drawer(_drawer));
+		if (_drawer != null)
+		{
+			leftStack.AddChild(Drawer(_drawer));
+			// while a drawer is open the bench is out of reach of the mouse as well as the keyboard
+			bench.Modulate = new Color(1, 1, 1, 0.6f);
+			void Lock(Node n) { foreach (var k in n.GetChildren()) { if (k is Control c) c.MouseFilter = MouseFilterEnum.Ignore; Lock(k); } }
+			Lock(bench);
+		}
 		if (!_skipRestore) Print.RestoreFocus(this, keep);
 		_skipRestore = false;
 		Changed?.Invoke();
@@ -192,7 +214,7 @@ public partial class ProofView : Control
 		lc.AddChild(Print.Label("set after press", Print.FellIt, 12, HorizontalAlignment.Center));
 		// last month's matter, struck out in proof marks, waits for this month's type
 		var last = _game.Facts;
-		Struck(lc, last.Deaths.Select(d => d.Anonymous ? "UNKNOWN.—A body, unclaimed." : $"{SurnameOf(d.Name)}.—{d.Name}."), "No deaths last month.");
+		Struck(lc, last.Deaths.Select(d => d.Anonymous ? "UNKNOWN.—A body, unclaimed." : d.Infant ? $"{SurnameOf(d.Name)}.—The infant of {d.Name}." : $"{SurnameOf(d.Name)}.—{d.Name}."), "No deaths last month.");
 		lc.AddChild(Head("CORONER'S COURT."));
 		var inquests = m.Letters.Where(l => l.Title.StartsWith("Inquest", StringComparison.Ordinal)).ToList();
 		if (inquests.Count == 0) foreach (var w in new[] { 1f, 0.7f }) lc.AddChild(Ghost(w));
@@ -200,7 +222,7 @@ public partial class ProofView : Control
 			lc.AddChild(Print.Body($"{Print.Escape(q.Title)} sits this month. [i]See your letters.[/i]", 12));
 		if (inquests.Count > 2) lc.AddChild(Print.Body($"[i]And {inquests.Count - 2} more: see your letters.[/i]", 12));
 		lc.AddChild(Head("PERSONAL."));
-		Struck(lc, last.Joined.Select(p => $"A NEW PATRON.—{p.Name}.").Concat(last.Left.Select(l => $"{l.Person.Name} has not called.")), "Nothing personal last month.");
+		Struck(lc, last.Joined.Select(p => $"{p.Name}, a new customer.").Concat(last.Left.Select(l => $"{l.Person.Name}, gone from the shop.")), "Nothing personal last month.");
 		cols.AddChild(lc);
 		cols.AddChild(VRule());
 
@@ -451,7 +473,7 @@ public partial class ProofView : Control
 			v.AddChild(Print.Body("[i]No remedy yet: open the formula book.[/i]", 13, justify: false));
 			return Print.Slip(v, 10);
 		}
-		v.AddChild(Print.Body($"[i]Claims for {Print.Escape(product.Name)}. Bolder type sells more, and the coroner reads it too.[/i]", 12, justify: false));
+		v.AddChild(Print.Body($"[i]Claims for {Print.Escape(product.Name)}, up to four. Bolder type sells more, and the coroner reads it too.[/i]", 12, justify: false));
 		var flow = new HFlowContainer();
 		flow.AddThemeConstantOverride("h_separation", 4);
 		flow.AddThemeConstantOverride("v_separation", 4);
@@ -501,8 +523,6 @@ public partial class ProofView : Control
 		{
 			var why = _note.Contains("At most", StringComparison.Ordinal) ? _note + " Strike one out to make room." : _note;
 			v.AddChild(Print.Body($"[b]Refused.[/b] [i]{Print.Escape(why)}[/i]", 12, justify: false));
-			// said once: the next change to the bench clears it
-			_note = null;
 		}
 		return Print.Slip(v, 10);
 	}
@@ -713,10 +733,12 @@ public partial class ProofView : Control
 	/// <summary>Last month's lines, struck through, with the proofreader's "dele" in the margin.</summary>
 	private static void Struck(VBoxContainer col, IEnumerable<string> lines, string none)
 	{
-		var list = lines.Take(3).ToList();
+		var all = lines.ToList();
+		var list = all.Take(3).ToList();
 		if (list.Count == 0) { col.AddChild(Print.Label(none, Print.FellIt, 12, HorizontalAlignment.Center, new Color(Print.Ink, 0.75f))); return; }
+		if (all.Count > 3) list[^1] += $" And {Spell(all.Count - 3)} more.";
 		foreach (var l in list)
-			col.AddChild(Print.Body($"[s]{Print.Escape(EditionWriter.Set(l))}[/s] [i]dele[/i]", 12, new Color(Print.Ink, 0.7f), justify: false));
+			col.AddChild(Print.Body($"[s]{Print.Escape(EditionWriter.Set(l))}[/s] [i]dele (strike out)[/i]", 12, new Color(Print.Ink, 0.82f), justify: false));
 	}
 
 	private static string SurnameOf(string name)

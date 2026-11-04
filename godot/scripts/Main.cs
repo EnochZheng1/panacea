@@ -220,6 +220,8 @@ public partial class Main : Control
 		_pressing = true;
 		_nav.Disabled = true;
 		_sound.Disabled = true;
+		// the skip hint is in the footer for the whole run of the presses
+		UpdateStatus(null);
 		var cashBefore = _game.Desk().CashCents;
 		Sfx.Play("lever", 0f, 0.02f);
 		Sfx.StopLoop("death", 0.3f);

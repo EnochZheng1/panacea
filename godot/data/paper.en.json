@@ -41,7 +41,7 @@
       "female": "wife of a working man"
     },
     "labourer": {
-      "male": "labourer",
+      "male": "laborer",
       "female": "washerwoman"
     },
     "seamstress": {
@@ -288,7 +288,7 @@
       "female": "a young mother"
     },
     "labourer": {
-      "male": "a labouring man",
+      "male": "a laboring man",
       "female": "a washerwoman"
     },
     "seamstress": {

@@ -97,7 +97,19 @@ public partial class EditionView : ScrollContainer
 			Sfx.Play("tick", -12f, 0.2f);
 		};
 		p.MouseExited += () => { if (!p.HasFocus()) p.AddThemeStyleboxOverride("panel", Wash(false)); };
-		p.FocusEntered += () => p.AddThemeStyleboxOverride("panel", Wash(true));
+		p.FocusEntered += () =>
+		{
+			p.AddThemeStyleboxOverride("panel", Wash(true));
+			// bring the item into view with a margin, not flush against the edge or the footer
+			Callable.From(() =>
+			{
+				if (!IsInstanceValid(p)) return;
+				var r = p.GetGlobalRect();
+				var view = GetGlobalRect();
+				if (r.Position.Y < view.Position.Y + 40) ScrollVertical -= (int)(view.Position.Y + 40 - r.Position.Y);
+				else if (r.End.Y > view.End.Y - 40) ScrollVertical += (int)(r.End.Y - (view.End.Y - 40));
+			}).CallDeferred();
+		};
 		p.FocusExited += () => p.AddThemeStyleboxOverride("panel", Wash(false));
 		p.GuiInput += e =>
 		{
@@ -254,7 +266,7 @@ public partial class EditionView : ScrollContainer
 			static float Foot(VBoxContainer c) => c.GetChildren().OfType<Control>().Where(k => k.Visible).Select(k => k.Position.Y + k.Size.Y).DefaultIfEmpty(0).Max();
 			var tallest = cols.Max(Foot);
 			var shortest = cols.OrderBy(Foot).First();
-			if (tallest - Foot(shortest) < 110) return;
+			if (tallest - Foot(shortest) < 70) return;
 			if (headed.Add(shortest))
 			{
 				shortest.AddChild(Print.Rule(1.2f, 0.5f, 2));

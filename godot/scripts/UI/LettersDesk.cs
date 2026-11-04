@@ -158,6 +158,7 @@ public partial class LettersDesk : VBoxContainer
 		var head = Heads.GetValueOrDefault(l.EventId) ?? new Head("", "", "Yours, &c.", "", "", "Sir,—", "");
 		var at = l.Title.IndexOf("Death of ", StringComparison.Ordinal);
 		var concerns = at >= 0 ? l.Title[(at + 9)..].Replace("the Infant of", "the infant child of").Replace("an Unknown", "an unknown") : "";
+		if (concerns.StartsWith("an unknown", StringComparison.Ordinal)) concerns = concerns.ToLowerInvariant();
 		var body = head.Voice.Length > 0 ? head.Voice.Replace("{name}", concerns.Length > 0 ? concerns : "a person") : l.Body;
 		var v = new VBoxContainer();
 		v.AddThemeConstantOverride("separation", 6);
@@ -199,14 +200,30 @@ public partial class LettersDesk : VBoxContainer
 			var said = text;
 			b.Pressed += () => Answer(sheet!, l.InstanceId, choice, said);
 			v.AddChild(b);
+			// the reply and the line under it come into view together, with room to spare
+			Control? riskLine = null;
+			b.FocusEntered += () => Callable.From(() =>
+			{
+				for (Node? n = b; n != null; n = n.GetParent())
+					if (n is ScrollContainer sc)
+					{
+						sc.EnsureControlVisible(riskLine ?? b);
+						var bottom = (riskLine ?? b).GetGlobalRect().End.Y - sc.GetGlobalRect().End.Y;
+						if (bottom > -30) sc.ScrollVertical += (int)(bottom + 30);
+						break;
+					}
+			}).CallDeferred();
 			if (Risks.TryGetValue($"{l.EventId}.{id}", out var risk))
 			{
 				// the verdict is given as soon as the reply goes: say what the odds are now
 				if (l.Odds.TryGetValue(id, out var p))
 					risk += id == "bribe_coroner"
 						? $" As things stand, about {Chance(p)} would come out."
-						: $" The jury sits at once; as things stand, about {Chance(p)} would name your bottle.";
-				v.AddChild(Print.Label(risk, Print.FellIt, 13, color: new Color(Print.Ink, 0.85f)));
+						: $" The jury sits at once; as things stand, about {Chance(p)} would name your bottle" +
+							(l.Odds.TryGetValue(id == "testify" ? "stay_silent" : "testify", out var q) && Chance(q) == Chance(p) ? ", whether you speak or not." : ".");
+				var line = Print.Label(risk, Print.FellIt, 13, color: new Color(Print.Ink, 0.85f));
+				riskLine = line;
+				v.AddChild(line);
 			}
 		}
 		var s = Print.Slip(v, 18);
@@ -250,7 +267,21 @@ public partial class LettersDesk : VBoxContainer
 		t.TweenCallback(Callable.From(() => { sheet.PivotOffset = new Vector2(sheet.Size.X / 2, 0); Sfx.Play("slip", -4f); }));
 		t.TweenProperty(sheet, "scale:y", 0.05f, 0.25f).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.In);
 		t.Parallel().TweenProperty(sheet, "modulate:a", 0f, 0.25f);
-		t.TweenCallback(Callable.From(() => { Refresh(); Changed?.Invoke(); }));
+		t.TweenCallback(Callable.From(() =>
+		{
+			Refresh();
+			Changed?.Invoke();
+			// the next letter's first reply takes the keyboard, scrolled into view
+			Callable.From(() =>
+			{
+				if (!IsInsideTree()) return;
+				var first = Print.Focusables(this).OfType<Button>().FirstOrDefault(x => !x.Disabled);
+				if (first == null) return;
+				first.GrabFocus();
+				for (Node? n = this; n != null; n = n.GetParent())
+					if (n is ScrollContainer sc) { sc.EnsureControlVisible(first); break; }
+			}).CallDeferred();
+		}));
 	}
 
 	/// <summary>

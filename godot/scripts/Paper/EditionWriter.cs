@@ -334,6 +334,18 @@ public sealed class EditionWriter
                 Clip = PersonClip(f, named.Person, "THE INQUEST", $"Verdict: \u201c{named.Verdict}.\u201d", "Your product is named in the findings. The Board of Health will take an interest, and the ward will talk."),
             };
         }
+        if (f.Deaths.Count >= 3)
+        {
+            return new Story
+            {
+                Headline = "A SICKLY SEASON",
+                Decks = new List<string> { "The Ward Mourns.", $"{Words(f.Deaths.Count).ToUpperInvariant()} DEATHS IN THE WARD THIS MONTH; UNDERTAKERS REPORT A BRISK TRADE." },
+                Cut = "wc_death",
+                Cutline = "A GENTLEMAN SEEN IN THE NEIGHBORHOOD.",
+                Body = "The deaths column runs long this month. Physicians attribute the trouble to the weather, the water and the foreign element, in that order. Nobody has thought to look at the bottles.",
+                Clip = BooksClip(f),
+            };
+        }
         // An advertisement dressed as news, when the player is paying for space.
         if (product != null && f.CanAdvertise && AdSpace.TierFor(f.AdSpendCents) == AdSpace.Front)
         {
@@ -357,18 +369,6 @@ public sealed class EditionWriter
                 Body = Sub(body),
                 IsAdvertisement = true,
                 Clip = subject == null ? null : PersonClip(f, subject, "QUOTED IN YOUR NOTICE", "The Gazette set your advertisement as news, and found this customer to quote. Nobody asked them."),
-            };
-        }
-        if (f.Deaths.Count >= 3)
-        {
-            return new Story
-            {
-                Headline = "A SICKLY SEASON",
-                Decks = new List<string> { "The Ward Mourns.", $"{Words(f.Deaths.Count).ToUpperInvariant()} DEATHS IN THE WARD THIS MONTH; UNDERTAKERS REPORT A BRISK TRADE." },
-                Cut = "wc_death",
-                Cutline = "A GENTLEMAN SEEN IN THE NEIGHBORHOOD.",
-                Body = "The deaths column runs long this month. Physicians attribute the trouble to the weather, the water and the foreign element, in that order. Nobody has thought to look at the bottles.",
-                Clip = BooksClip(f),
             };
         }
         if (f.Deaths.Count > 0)

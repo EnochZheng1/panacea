@@ -191,7 +191,7 @@ public sealed class SimGame : IGame
 	/// <summary>An unknown dead customer, described as the deaths column describes them.</summary>
 	private static string Unknown(string? segment) => segment switch
 	{
-		"labourer" => "an Unknown Labouring Man",
+		"labourer" => "an Unknown Laboring Man",
 		"dockworker" => "an Unknown Longshoreman",
 		"mother" => "an Unknown Young Mother",
 		"elderly" => "an Unknown Elderly Person",

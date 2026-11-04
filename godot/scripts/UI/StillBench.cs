@@ -78,18 +78,18 @@ public partial class StillBench : HBoxContainer
 		}
 
 		_right.AddChild(Print.Label(f.Name, Print.Rye, 20));
-		var stills = d.StillsFree == 1 ? "One still is free" : d.StillsFree == 0 ? "No still is free" : $"{d.StillsFree} stills are free";
+		if (d.StillsFree <= 0)
+		{
+			// every still is lit: one line, and what comes next
+			var lit = string.Join("; ", d.Brewing.Select(x => $"{x.Item2} bottles of {x.Item1}"));
+			_right.AddChild(Print.Body($"[i]Every still is on the fire ({Print.Escape(lit)}). The bottles will be on the shelf by press time; send the paper to press when you are ready.[/i]", 15, justify: false));
+			return;
+		}
+		var stills = d.StillsFree == 1 ? "One still is free" : $"{d.StillsFree} stills are free";
 		_right.AddChild(Print.Body($"[i]{stills} this month. A batch is bottled by the time the paper goes to press.[/i]", 14, justify: false));
 		foreach (var (name, onFire) in d.Brewing)
 			_right.AddChild(Print.Label($"On the fire: {onFire} bottles of {name}", Print.FellIt, 15));
 
-		// every still on the fire: nothing to choose until next month
-		if (d.StillsFree <= 0)
-		{
-			_right.AddChild(Print.Body("[i]Every still is on the fire. The batch will be bottled by press time; come back next month for another.[/i]", 15, justify: false));
-			if (_note != null) _right.AddChild(Print.Body($"[i]{Print.Escape(_note)}[/i]", 15, justify: false));
-			return;
-		}
 		var max = Math.Max(0, f.MaxBrewable);
 		// the batch you want may be more than the shelf allows: the order button makes up the rest
 		var want = Math.Clamp(_counts.GetValueOrDefault(f.Id, max > 0 ? Math.Min(24, max) : 24), 0, 96);
@@ -156,6 +156,8 @@ public partial class StillBench : HBoxContainer
 			var err = _game.Brew(fid, count);
 			_note = err ?? $"The fire is lit: {count} bottles of {fname} will be ready by press time.";
 			if (err == null) { _still.Lit = true; _still.Flare(); Sfx.Play("pour", -2f, 0.05f, 0.6f); }
+			// the fire button is gone: give the keyboard somewhere to stand
+			Callable.From(() => { if (IsInsideTree()) Print.Focusables(this).FirstOrDefault()?.GrabFocus(); }).CallDeferred();
 			Refresh();
 			Changed?.Invoke();
 		};

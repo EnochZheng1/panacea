@@ -1,0 +1,142 @@
+# Panacea · round 5 · playtest by "Management-sim veteran"
+
+A tycoon and management-sim veteran (returning tester, slug `tycoon-veteran`). I look for the dominant strategy, test whether decisions are real trade-offs, and judge the long game.
+
+**Verdict:** The ventures are the second act I asked for in round 4. They raise every line's ceiling, and they are real decisions in the paper's own terms: the wholesale contract quotes its price per bottle, the laboratory gives its fire odds, and the paper reports every sale. They are not equally real, though. **The wholesale contract is a must-buy for every line that can get it**, the almanac is a $40 near-nothing, and the laboratory is a trap unless you sell narcotics. The best decision in the set is the heavy route's: a branch doubles its shut-down risk. By hand, the honest second act still starts in year three or four. Wholesale's 50c cap makes about 90c the right shelf price, and that is now the strongest line I found.
+
+**Setup:**
+
+- Build: frozen copy at commit `ea3dd20`, port **47013**. Bots were run from the main repo, also at `ea3dd20` with clean packages, because the frozen copy has no `node_modules`.
+- Game H (honest, by hand): seed `tv5-honest`, from the January 1885 first edition to the October 1885 edition (**9 sends to press**). No jump-ahead.
+- Game J: seed `tv5-jump`, **`--play 24 --dose 0.25`**. I played 1 month by hand (month 25).
+- Game L: seed `tv5-late`, **`--play 60 --dose 0.5`**. I played months 61–64 by hand. Then **the machine restarted and stopped the game**.
+- Game W: seed `tv5-late`, **`--play 64 --dose 0.5`**, a fresh game started after the restart to get back to the same point. The scripted months match L's to month 60 but not my hand months 61–64. I played months 65–67 by hand and took up the wholesale contract.
+- Bots: two variant scripts in my scratch folder. One is a venture ablation: each preset with no ventures, with each venture alone, and with all four. The other tests order and price. 60 runs each, seed prefix `r5tv`. Outputs: `/tmp/claude-0/-home-user-panacea/5950a741-0a66-5ec4-aee9-4515d76a27d7/scratchpad/r5/tycoon-veteran/ventures.md` and `/tmp/claude-0/-home-user-panacea/5950a741-0a66-5ec4-aee9-4515d76a27d7/scratchpad/r5/tycoon-veteran/ventures2.md`. Scripts: `/tmp/claude-0/-home-user-panacea/5950a741-0a66-5ec4-aee9-4515d76a27d7/scratchpad/r5/tycoon-veteran/tools/ventures.ts` and `ventures2.ts`. The second batch was lost in the restart and re-run.
+- Tooling: my round-4 driver helpers (click by text, brew, press, dump edition, answer letters), repointed to the round-5 build. About 45 minutes of active play, plus the bot runs.
+- Screenshots: `/tmp/claude-0/-home-user-panacea/5950a741-0a66-5ec4-aee9-4515d76a27d7/scratchpad/r5/tycoon-veteran/`. Names: `h*` honest, `j*` jump 24, `l*` late, `w*` after the restart.
+
+## Run log
+
+| Game | Months | What I tried | Result |
+| --- | --- | --- | --- |
+| H `tv5-honest` | 0–9 by hand | Ward Tonic (water 3, spirit 3, syrup 1, peppermint ½, valerian ½; 17c), "Soothes the Nerves", 80c then 85c. Printed the testimonial (month 3). **Took up the almanac at month 3**. ¼ COL from month 5. Bought the diploma at month 6. | $150 → $159.56. Sales 6, 12, 19, 22, 24, 31, 32, 38, 32. +$13 to $20 a month from month 5. 15 regulars. One death (a regular aged 81) and one inquest, not named. |
+| J `tv5-jump` | 24 jumped, +1 by hand | Opened the full prospectus. Took up the almanac with "Cures Consumption !!!" on the label. Price 60c → 90c. | Heat stayed at 6. 40 sold, shelf bare. The scripted proprietor had sold under 1,000 bottles by month 25. |
+| L `tv5-late` | 60 jumped, +4 by hand | Wholesale offered but **$3.75 short** ($356.25 against $360). Brewed 48 a month. Misclicked the almanac (finding 7). | $356 → $377. 47–49 sold a month, regulars 15 → 24. Then the machine restarted. |
+| W `tv5-late` | 64 jumped, +3 by hand | **Took up the wholesale contract** ($386.77 → $26.77). Month 65 at 60c, then 90c. Two to three batches a month. | Month 65: wholesale "had thirty-five, paying $11.55", +$4.92 a month net of the outlay. Months 66–67 at 90c: **+$44.24 and +$44.69 a month** (before: +$15). Wholesale 50 and 57 bottles at 50c. Only 3 callers balked. |
+
+**Timeline:**
+
+- **H month 0:** VENTURES is in the Works from the first proof. It shows all four ventures with terms, payoff and what each waits for ("Offered after fifteen hundred bottles sold, while the talk in the ward is low.", `h02.png`, `h03.png`). I could plan from month 0, and I liked that.
+- **H month 3:** the testimonial unlocks the Gazette and the almanac in the same month. "TAKE IT UP · $40.00" (`h10.png`). The $40 is a real cost at that point: TRADE TALK says the cobbler's shop wants $200 and 25 regulars, and I had $162.
+- **H month 4:** "Callers at the counter: fifteen from the ward, ten by the almanac." and an IN THE TRADE item about the almanac ("The pickles are said to be reliable."). The payoff is in print, exactly as promised.
+- **H month 5:** "fifteen from the ward, thirteen by the Gazette, ten by the almanac." A $3 quarter column brings 13 callers a month and the $3.33-a-month almanac brings 10, so the almanac is a prepaid quarter column.
+- **L month 60:** wholesale is offered at "fifty-four bottles a month at 33c. each" (`l01.png`). At a 60c shelf price and 24c a bottle all in, that is about $5 a month on $360: a payback of six years.
+- **W month 65:** "Wholesale: the druggists out of town ordered fifty-six bottles and had thirty-five, paying $11.55. The rest went short." This line is what makes the contract legible, and I like it.
+- **W month 66:** I raised the shelf price to 90c, so the druggists pay 50c. "ordered fifty-seven bottles and had fifty, paying $25.00." The month made +$44.24, three times the shop's best before. Only three callers balked.
+- **W month 67:** "102 BOTTLES SOLD AT THE SHOP THIS MONTH". 57 of them went to Paterson (finding 9).
+
+## Metrics
+
+**Venture ablation (60 runs each, seed `r5tv`, median final cash; shut down = closed by the authorities):**
+
+| Line | No ventures | Almanac only | Branch only | Wholesale only | Laboratory only | Stock (branch, wholesale, almanac) | All four |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| adaptive (laudanum 0.25 oz, 70c) | $10,258 | $10,187 (**−$71**) | $13,847 (+$3.6k) | **$14,731 (+$4.5k)** | $9,407 (**−$0.9k**) | $17,890 | $17,290 |
+| shopkeeper (laudanum 0.25 oz, 60c) | $7,329 | $8,246 (+$0.9k) | $9,106 (+$1.8k) | **$11,321 (+$4.0k)** | $6,188 (−$1.1k) | $13,127 | $11,854 |
+| cautious (no narcotic, 50c) | $2,534 | $2,945 (+$0.4k) | $2,531 (**±0**) | **$5,120 (+$2.6k, 2×)** | **$212, 47% bankrupt** | $5,714 | $4,345 |
+| greedy (morphine and coca, $1.50) | $14,069 · 28% shut | – | $13,491 · **53% shut** | (never offered) | **$17,831 · 32% shut** | lab and branch: $18,694 · 57% shut · p90 $27.9k | **$7,471 · 85% shut** |
+
+**Order and price (60 runs, same seeds):**
+
+| Variant | Median | p10–p90 | Early endings |
+| --- | --- | --- | --- |
+| adaptive, wholesale first (instead of branch first) | $17,890 | 12.8k–20.6k | 2%: the same runs as stock, so **order does not matter** |
+| adaptive, branch and wholesale, no almanac | $17,906 | 12.9k–20.1k | 0% |
+| **adaptive at 90c, stock ventures** | **$22,053** | 15.5k–25.8k | 2% |
+| adaptive at 90c, no ventures | $12,328 | 7.0k–14.2k | 15% |
+| cautious at 70c, stock ventures | **$9,110** | 5.4k–10.6k | 0% |
+| cautious at 70c, no ventures | $2,184 | 1.5k–2.9k | 0% |
+| cautious at 90c, stock ventures | $3,355 | 0.3k–4.7k | 7% bankrupt |
+| greedy, lab and wholesale | $17,831 | 3.7k–19.8k | the same runs as lab only: heat keeps wholesale shut |
+| greedy, lab and almanac | $15,988 | 4.8k–20.1k | 49% (lab alone: 39%) |
+
+What the numbers say:
+
+- **Wholesale is the dominant buy.** It is the best single venture for every line that can reach it, worth +45% to +100%, and it never hurts. Its heat condition shuts the heavy route out of it, so in practice "can reach it" means "isn't selling poison". Nobody who is offered it should refuse it.
+- **The almanac is worth nothing to a shop at its cap of regulars**: adaptive −$71, and "branch and wholesale, no almanac" equals stock. It is worth $0.4–0.9k to small honest shops, and it hurts only a bold-claim heavy shop (greedy: 39% → 49% early endings). At $40 it is an obvious buy for an honest shop and an obvious skip for a heavy one. That is a choice, but a shallow one.
+- **The branch is the interesting one.** It adds +$3.6k for adaptive and nothing for cautious, whose bottle doesn't fill the counter it has. For greedy it adds +$0.4k to the median but takes shut-downs from 32% to 57%. That is a real risk-for-reward decision, the best in the set.
+- **The laboratory is narcotics-only, and the prospectus says so.** It adds +$3.8k for greedy, costs a mild laudanum shop $0.9–1.1k, and bankrupts the honest bot in 47% of runs. A human reading "Opium, morphine and coca" won't fall for it.
+- **Price × wholesale:** the druggists pay 55% of the shelf price, capped at 50c, so the cap is reached at about 91c. Adaptive at 90c with the ventures is **$22.1k, 1.23× stock adaptive**. The honest bottle at 70c with the ventures is $9.1k, 4.2× the same line without them. By hand, moving from 60c to 90c tripled my monthly profit. This is the strongest line I found.
+- **Heavy route shape:** greedy (stock) has a median of $18.7k, a mean of $17.3k and a p90 of $27.9k (1.56× adaptive's median), with 64% ending early (57% shut down, 7% bankrupt). That is a jackpot for survivors and a coin you mostly lose. Its mean is about adaptive's, with far more variance: the shape the summary promised.
+- **Counter-intuitive:** the wholesale contract makes shops safer in the bot data. Shopkeeper with wholesale has 5 product-caused deaths against 10 without, and a peak heat of 32 against 52. Adaptive: 7 against 12. The design says volume means more harm. Either Paterson's deaths don't carry heat home, or something else is going on. Worth a look.
+
+**By hand:**
+
+| Month (H) | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Cash | 147.72 | 152.28 | 162.10 | 133.30 | 147.12 | 160.82 | 124.30 | 144.48 | 159.56 |
+| Sold | 6 | 12 | 19 | 22 | 24 | 31 | 32 | 38 | 32 |
+| Ward / Gazette / almanac callers | – | – | – | 15/–/10 | 21/–/10 | 15/13/10 | 0/13/10 | 9/13/10 | 3/13/10 |
+
+- Month 4 lost $40 on the almanac and month 7 lost $50 on the diploma. Excluding those, the shop made +$13 to $20 a month: the same level as round 4.
+- **Time to each venture by hand:** almanac at month 3. Wholesale needs 1,500 bottles, and my shop sold 216 in 9 months; at 35–50 a month it would come at month 35–45. The bots buy it at m27–56. The branch needs the cobbler's shop first (25 regulars and $200), then $600. The scripted proprietor in J and L was still "halfway to the cobbler's shop" at month 60 with 15 regulars.
+- **Wholesale payback by hand:** at 60c, about $5 a month on $360, about 70 months. At 90c, about $14–15 a month net, **about 25 months**. This matches "two to three years" only at the right price.
+
+## Findings
+
+| # | Severity | What I saw | Where | How to reproduce | Suggested fix |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Major | **For a hand player, the second act still starts late.** In my honest game the only venture within reach before about month 35 was the $40 almanac. Wholesale needs 1,500 bottles, and I sold 216 in 9 months. The branch waits on the cobbler's shop (25 regulars and $200), which the jump-ahead proprietor still hadn't reached at month 60. The bots grow for ten years, but a player who plays 20–30 months sees a shop that levels off at +$15 a month, as in round 4. | Ventures, unlock thresholds | `tv5-honest` months 1–9. TRADE TALK in `--play 60`. | Put one real venture within reach of an honest shop by month 12–18: wholesale at 600–800 bottles with a smaller order, or a smaller first branch. Keep the big contract for later. |
+| 2 | Major | **Wholesale is a must-buy, and the almanac is a near-nothing.** Wholesale is the best single venture for every line that can get it (+$2.6k to +$4.5k, never negative), and its heat condition keeps the only line that might refuse it from being offered it. The almanac changes adaptive by −$71 and is the same as not buying it. Neither is a decision once you know the numbers. | `investments.json` | Ablation table above. | Give wholesale a cost that bites. The design names "margin cuts, credit terms": payment a month late, a minimum order you must fill or pay a forfeit, or a 6–12 month renewal. Make the almanac's "Mark well" real for mild claims, or give it a reach that helps a capped shop (strangers who become regulars at the branch). |
+| 3 | Minor | **About 90c is the dominant price once you hold the contract.** The druggists pay 55% of the shelf price, capped at 50c, so 91c is the cap. Adaptive at 90c with the ventures is $22.1k, 1.23× the stock line. By hand, moving 60c → 90c tripled monthly profit (+$15 → +$44) and only 3 callers balked. The prospectus prints "at 33c. each" but not that the price follows the shelf price, or the cap. | Wholesale price; prospectus | `--play 64 --dose 0.5`, take the contract, price 60c → 90c. | It's good that a player can find it. If it's meant, say so in the prospectus ("they pay a little over half your shelf price, never above 50c"). If not, scale the cap with reputation, or base the price on cost-plus. |
+| 4 | Minor | **The prospectus shows the condition but not your progress toward it.** "Offered after fifteen hundred bottles sold, while the talk in the ward is low." gives no count, and TRADE TALK covers the coppers and the shop but never the contract. The cancellation is "once the talk turns ugly", but the Works shows suspicion as a number ("a little (7 of 100)"), and the real threshold is 50. | Ventures drawer | Open VENTURES in any game before month 30. | Add the count ("you have sold 216") and the threshold ("they cancel if suspicion reaches 50 of 100"). |
+| 5 | Minor | **The branch and wholesale demand a cash and stock plan the paper doesn't help with.** Taking up the contract left me $26.77 and a need for about 56 more bottles a month. In month 65, 21 of 56 "went short", and the outlay month read "the books down $339.07". There was no warning that the shelf now needs to cover two markets. | Proof, still | `--play 64`, take wholesale. | A one-line hint under SEND TO PRESS while the contract is held: "the druggists want 57; the shelf will hold 84 after the ward's 46". |
+| 6 | Minor | **The wholesale contract makes the shop safer in the bot data.** With wholesale, shopkeeper has 5 product-caused deaths against 10 without, and a peak heat of 32 against 52. Adaptive: 7 against 12. The prospectus warns that strangers die. The numbers say the opposite. | `market.ts` wholesale, heat from wholesale deaths | Ablation: `shopkeeper` against `shopkeeper-wh`. | Check that anonymous Paterson deaths carry some heat home, and find why deaths in the ward fall. |
+| 7 | Low | No confirmation on TAKE IT UP. After a purchase, a "Taken up: …" banner pushes the cards down, so a second click lands on a different card. That is how I bought an almanac I didn't want in game L (`l04.png`). | Ventures drawer | Take one venture, then click where the next button was. | Keep the cards fixed (put the banner in the drawer's header), or confirm purchases over $100. |
+| 8 | Low | A counter tag's tooltip shows through the ventures drawer: "Mr. Timothy Halloran: dyspepsia. A regular for 1 month; hale, delighted with it." sits over the prospectus (`h11.png`). The bench is dimmed, but its hover still answers. | Drawer over the bench | Take up the almanac at month 3 and leave the mouse still. | Suppress bench tooltips while a drawer is open. |
+| 9 | Low | "102 BOTTLES SOLD AT THE SHOP THIS MONTH" when 57 of them went to druggists in Paterson. "BRISK TRADE ON MULBERRY STREET" for six bottles in month 1 (`h-e01.png`). | Edition lead | `--play 64`, wholesale, month 67. `tv5-honest` month 1. | Count only retail "at the shop", or say "102 bottles, 57 of them to the druggists". |
+| 10 | Low | The first +5c click after typing a remedy's name is still swallowed: 4 clicks took 60c to 75c. | Formula book | Type a name, then click +5c. | Commit the name on focus-out without eating the click. |
+| 11 | Low | The SPACE IN THE GAZETTE buttons are still cut off once the type case has 8 claims (with a letter waiting, `h12.png`; also at month 24, `j01.png`). | Type case | Unlock the diploma claim. | Keep the row in view, or wrap the claims in two columns. |
+| 12 | Low | Callers from the Gazette and the almanac are exactly 13 and 10 every month, while ward callers swing from 0 to 25. That's legible, but it reads like a machine. | The Trade | Any game with ads and the almanac. | ±2 noise around the stated "about ten". |
+| 13 | Low | Not verified: in game W, month 65, I clicked the NONE space button and the books still charged "newspaper advertising $3.00". I didn't take a screenshot of the click, so it may have missed. | Type case | – | Worth a quick check. |
+
+## What works
+
+- **The prospectus as a period document.** "PROSPECTUS OF IMPROVEMENTS · for a house in a way of business", visible from month 0, gives every venture its terms, its payoff, a "Mark well" line and what it waits for. A tycoon player can plan from the first proof.
+- **Numbers in print, from the same record as the books.** "It brings orders for about fifty-four bottles a month at 33c. each." "Mark well: about one month in 25 something catches fire." "Callers at the counter: fifteen from the ward, thirteen by the Gazette, ten by the almanac." "Wholesale: the druggists out of town ordered fifty-six bottles and had thirty-five, paying $11.55. The rest went short." I could compute payback and channel efficiency from the paper alone, and I did.
+- **The conditions shape the routes.** Heat keeps the poisoner out of wholesale, the laboratory only pays for narcotics, and the branch amplifies whatever the shop is. The heavy route's choices (lab yes, branch maybe, almanac no) differ from the honest one's (wholesale, almanac, branch later). That is the strategy split I wanted.
+- **The long game grows.** Shopkeeper goes from $7.3k to $13.1k with ventures, cautious from $2.5k to $5.7k ($9.1k at 70c), adaptive from $10.3k to $17.9k. Cash at month 48 dips on the outlays and then pulls ahead: a proper investment curve.
+- **The heavy route now has a jackpot**: a p90 of $27.9k against adaptive's median of $17.9k, with 64% ending early.
+- **TRADE TALK now names the route**: "twenty-five regulars and two hundred dollars", "once two hundred bottles have gone over the counter", "a house that has sold a thousand bottles". Round-4 finding 7 is fixed.
+- **Hyphenation is clean** ("re-minded", "per-sons", "al-manacs", "drug-gists"). No bad breaks seen in about 15 editions.
+- Escape from the drawer put focus back on VENTURES.
+
+## Disclosures
+
+- Jump-ahead: `--play 24 --dose 0.25` (J), `--play 60 --dose 0.5` (L), and `--play 64 --dose 0.5` (W, after the machine restart stopped L). Every venture judgement past month 9 comes from jumped games. The scripted proprietor never takes up a venture and prices at 60c.
+- I used `state` for heat, cash and prices, and `read` text dumps to quote. Every number in the tables is also printed in the paper or the Works.
+- I read `investments.json`, `investments.ts` and the wholesale part of `market.ts`, to set up the bots and to explain the price cap and the shelf order. A player wouldn't have them.
+- My letter script answers the same way every time (testimonial, promise, diploma, testify).
+- I had no audio. The driver log showed only the ALSA "falling back to the dummy driver" error, with no exceptions.
+
+## Round-4 findings re-checked
+
+| R4 # | Severity | Status now | Evidence |
+| --- | --- | --- | --- |
+| 1 | Major | **fixed** | Greedy (stock): median $18.7k, p90 $27.9k (1.56× adaptive's median), 64% ending early. Branch and almanac change the odds in readable ways. |
+| 2 | Major | **partly** | Ventures give the money somewhere to go and keep the bots growing for ten years. By hand, the honest shop still has only the $40 almanac until about month 35 (findings 1 and 2). |
+| 3 | Minor | not re-tested | My only inquest was at heat 3 with a mild bottle. |
+| 4 | Minor | not re-tested | No morphine run this round. The summary reports 1.09×. |
+| 5 | Minor | **not fixed** (as seen) | "File it away." still reads "Nothing gained, nothing risked." against +3 standing and the Gazette. |
+| 6 | Minor | not re-tested | No price-war letter in my months. |
+| 7 | Minor | **fixed** | TRADE TALK names the measure (quotes above). It doesn't cover ventures (finding 4). |
+| 8 | Minor | **partly** | "Callers at the counter: …" now gives the denominator next to "Callers who asked the price and went away: three." It is still two lines to add up yourself. |
+| 9 | Low | **partly** | No false "AGAIN" seen, but "BRISK TRADE" for six bottles and "102 BOTTLES SOLD AT THE SHOP" with 57 wholesale (finding 9). |
+| 10 | Low | **not fixed** | 4 clicks took 60c to 75c. |
+| 11 | Low | **not fixed** | `h12.png`, `j01.png`. |
+| 12 | Low | **fixed** | Liang hyphenation, no bad breaks seen. |
+| 13 | Low | not re-tested | No smear or inspector letter seen. |
+
+## Score
+
+**8 / 10** (round 1: 5, round 2: 7, round 3: 7, round 4: 7.5). The ventures turn the round-4 levelling-off into a second act, and the heavy route finally has a jackpot. I could read the economics from the paper, and price is now a lever with real stakes. Two things keep it from 8.5–9. The best venture is a must-buy and the cheapest is a near-nothing, so the prospectus is closer to a checklist than a portfolio. And a hand player still waits about three years for the second act.

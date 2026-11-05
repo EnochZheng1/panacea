@@ -1,0 +1,105 @@
+# Panacea · round 7 · playtest by "Moral-choice and satire fan"
+I play complicity games (a border-checkpoint game, a frozen-city survival builder) and dark satire. I judge whether choices carry moral weight, whether I feel what poisoning the ward costs, whether the satire is aimed at the trade and the powerful and not the victims, and whether honest and ruthless play both mean something.
+
+**Verdict:** This is the best-aimed satire I've played in a long while. The jokes land on the trade, the coroner, the college that sells diplomas, the charity ladies and the landlord, while the dead get names, ages, streets and a stock likeness. Two devices really do make you complicit: Death standing at the counter beside the regular who will die next, and the "shaking for want of a dose" withdrawal that follows reform. Both give the dark shop real weight. Where the weight slips is afterwards. Three months after fourteen deaths and nine inquests, the ward is back to "NEVER SO MANY BOTTLES SOLD" and nobody remembers. The honest shop is viable but grey, because nothing in the game notices that you chose it.
+
+**Setup:** Build `5a1dbc9` (frozen copy at `scratchpad/build-r7`). Port 47042, seed 7042, one game, **no jump-ahead**, played by hand from the first edition. I played Jan 1885 to Sep 1886: 20 editions and 19 sends to press, about 45 minutes of active testing. The only tooling was a small shell helper (`scratchpad/r7/cold-satire-fan/month.sh`), used from month 10 on. It does exactly what I had been clicking by hand: open the still, click the "BOTH STILLS" button, send to press, and dump the edition's text. There were no restarts. The driver log shows only ALSA/audio-device noise and no exceptions.
+
+## Run log
+
+| Seed | Months | What I tried | Result |
+|---|---|---|---|
+| 7042 | Jan–Jul 1885 (1–7) | **Honest shop**: water, alcohol, sugar, peppermint, valerian 1 oz and gentian ½ oz ("An honest mixture, by the standards of the trade."). Claim "SOOTHES THE NERVES" only. Price 60c, then 40c, then 50c. ¼-col ad from April, Almanac venture in April. | 10–55 bottles a month, books within a few dollars of flat ($150 to $125). No deaths. The paper calls it dull: "TRADE STILL DULL", "THE PROPRIETOR NOW BLAMES THE PAPERS." |
+| 7042 | Jul 1885 – May 1886 (7–17) | **Turning**: a regular's letter asks for "something stronger". I promised, then kept the promise: +1 oz laudanum, then 1.5 oz. Added the claims COMFORT FOR TEETHING BABES, BANISHES RHEUMATISM and (after buying a diploma) ENDORSED BY EMINENT PHYSICIANS. Price 60c, then 70c, ½-col ad, second and third still, Shop Next Door. Kept my head down at one inquest, bribed the coroner at the next, paid off the Temperance League. | Sales up to 75–99 a month, 39 regulars. Deaths: 1, 0, 2, 2, 0, 1, 4, then **14**. Suspicion went from 0 to 100. One inquest named me, then nine inquest letters in a single month. Cash never rose much above $158. |
+| 7042 | May–Sep 1886 (17–20) | **Reform**: laudanum out (assay back to "Habit: none … harmless"), teething claim struck, 9 inquests left unanswered, ignored the rival's price war. | Board of Health seized all 65 strong bottles and three juries named the remedy. One wasted month (my error). Regulars were "shaking for want of a dose". Then a quick recovery: 55, then 75 bottles, 37 regulars, suspicion 71 → 61. |
+
+**Timeline of key moments**
+- **M1 (Jan 1885).** First edition. The PERSONAL column introduces my callers by name. One of them, "Mrs. Wilhelmina Weber, for a teething infant", is standing at the counter while "COMFORT FOR TEETHING BABES !" sits in the type case. The temptation is laid out on the first proof.
+- **M3.** Mrs. Weber's grateful letter: "I am a new woman and my husband says he hardly knows me." I printed it. Next edition: "…Mrs. Wilhelmina Wbeer… who asks that her name be spelled correctly.—Adv." (deliberate, and lovely).
+- **M4.** Ad space opened, and so did VENTURES (tooltip "New: a venture is on offer"). I took the Almanac ($40).
+- **M7.** Sanitary Inspector bribe letter (I let him look). Then "Re: Something Stronger": *"Doc, the tonic dont do what it did. I take two spoons and then four and its like water. You must have something stronger in the back. I can pay. I have to have it."* That letter turned me.
+- **M9.** First death: DEATH OF MR. LOMBARDI. "The proprietor speaks of him warmly, and in the past tense."
+- **M10.** Death (skeleton, top hat, hymnbook) appears at the counter. A line under SEND reads "Death waits at the counter beside Mr. August Mueller." Two months later: "MUELLER.—Peacefully, Mr. August Mueller, retired, aged 82 years. He slept soundly to the last."
+- **M11.** Two UNKNOWN bodies: "A bottle, green and empty, was in the pocket. It is unclaimed."
+- **M12.** THE SHOP NEXT DOOR taken (offered at 25 regulars, 0c. down). "…the cobbler is understood to have been consulted afterward."
+- **M13.** The Eclectic Medical College of Ohio: "examination is waived in cases of evident merit, and all cases are evident." I paid $50. "He has a diploma to show it, and the ink on it is very nearly dry."
+- **M15.** Inquest on Widow Sullivan, who had stood beside Death for three months. Verdict: "Died of poisoning by a proprietary medicine… The papers have been sent to the District Attorney."
+- **M16.** Bribed the coroner ($25). St. Bridget's Mutual Aid: "The Society asks only that the remedy do its members no harm, which we are sure it will not." I subscribed.
+- **M17.** A SICKLY SEASON: "FOURTEEN DEATHS IN THE WARD THIS MONTH; UNDERTAKERS REPORT A BRISK TRADE." Weather: "Mild. The well recover, regrettably." Nine inquests: "This is the seventh such notice the Clerk has had the honour to serve on you this month."
+- **M18.** "SEIZED.—Officers of the Board of Health carried away 65 bottles." "THE MULBERRY STREET BOTTLES.—Nine inquests sat this month upon customers of a single shop… Three juries named it." "Physicians observe that the remedy is purely vegetable, and that so is hemlock."
+- **M19–20.** Reformed. "Mr. Otto Vogel: a regular for three months; poorly, shaking for want of a dose." By month 20: "THE WARD PAYS… NEVER SO MANY BOTTLES SOLD."
+
+## Metrics
+
+| Month | Recipe | Price | Sold | Deaths | Suspicion | Standing | Cash |
+|---|---|---|---|---|---|---|---|
+| 1885-02 | honest | 60c | 11 | 0 | 0 | 10 | $149.16 |
+| 1885-04 | honest | 40c | 10 | 0 | 0 | 14 | $146.72 |
+| 1885-06 | honest | 40c | 48 | 0 | 0 | 15 | $119.58 |
+| 1885-07 | honest | 50c | 41 | 0 | 0 | 16 | $125.20 |
+| 1885-08 | +1 oz laudanum, teething claim | 50c | 55 | 0 | 1 | 16 | $127.62 |
+| 1885-09 | same | 60c | 54 | 1 | 8 | 16 | $118.86 |
+| 1885-10 | same | 60c | 75 | 0 | 7 | 17 | $142.80 |
+| 1885-12 | same | 60c | 80 | 2 | 16 | 19 | $157.92 |
+| 1886-01 | same | 60c | 77 | 2 | 27 | 18 | $157.96 |
+| 1886-03 | 1.5 oz laudanum, 4 claims | 70c | 99 | 1 | 32 | 25 | $132.94 |
+| 1886-04 | same | 70c | 88 | 4 (1 inquest) | 71 | 13 | $141.18 |
+| 1886-05 | same | 70c | 81 | **14** (9 inquests) | **100** | 10 | $113.02 |
+| 1886-06 | honest again | 70c | 0 (seized) | 0 | 71 | 0 | $96.52 |
+| 1886-08 | honest | 60c | 55 | 0 | 64 | 0 | $78.76 |
+| 1886-09 | honest | 60c | 75 | 0 | 61 | 0 | $91.74 |
+
+- **Total deaths on my watch:** 24 in 20 months, all during the 9 laudanum months. None in the 10 honest months.
+- **Money from murder:** the laudanum months grossed more but netted almost nothing. Peak cash was $157.96, against $150 at the start. Ingredients, ads, rent, diploma, bribes and the seizure ate it all. As satire this works ("the trade" doesn't get rich, the coroner and the landlord do). As a temptation it's a weak lure: I never felt the money I was killing for.
+- **Time to first venture:** month 4, about 13 minutes in. Second: month 12, about 30 minutes in. The Almanac paid back roughly: about 10 extra callers and 12 postal bottles a month for $40. The Shop Next Door was free and filled at once.
+- **Time to understand the loop:** about 3 editions. It clicked when the Feb paper said "TOO DEAR FOR THE WARD… Callers who asked the price and went away: seven."
+- **Time to understand that Death at the counter means "this person dies next":** 1 month (M10). It's the clearest signal in the game.
+- **Recovery after the massacre:** 3 months from 14 deaths and 100 suspicion to "NEVER SO MANY BOTTLES SOLD".
+
+## Findings
+
+| # | Severity | What I saw | Where | How to reproduce | Suggested fix |
+|---|---|---|---|---|---|
+| 1 | Major | **The ward forgets.** One month after "FOURTEEN DEATHS" and nine inquests, the PERSONAL column is back to "A NEW PATRON… reports great hopes of it". Two months later the lead is "THE WARD PAYS… NEVER SO MANY BOTTLES SOLD". Standing is 0, yet new customers keep arriving "recommended to it by the label". Nobody refuses the bottle that the Board of Health seized and three juries named. For a complicity game, the memory of the dead is the moral payload, and here it fades too quickly. | Editions Jun–Sep 1886 | Run a 1.5 oz laudanum remedy until a death spike, then reform. | Have the paper and the counter remember: widows of the dead refusing at the counter, "the shop where the Finch boy's father bought it", the named remedy needing a new name to sell at all, slower recruitment while the verdicts are fresh. |
+| 2 | Major | **The money isn't worth the bodies.** Over 9 laudanum months, cash went from $125 to $113 (peak $158) while 24 people died. The dark path tempts through demand and headlines, never through wealth. Satire wants you to *enjoy* the profit a little before the bill comes. | Cash line in THE WORKS, "the books" | See Metrics. | Let the strong bottle make visibly more margin for a while (say, $300–500 in the bank before the inquests), so reform costs something you can feel. |
+| 3 | Minor | **The honest path has no voice of its own.** Ten honest months produced "TRADE STILL DULL", "THE PROPRIETOR NOW BLAMES THE PAPERS" and an inspector's bribe. Nothing in the paper ever notes that the bottle is clean: no grateful survivor, no doctor's grudging nod, no rival who sneers at me for honesty. The only honest-side line was in the assay. | Editions 1885-02 → 07 and 1886-07 → 09 | Play the starter recipe with valerian and gentian. | One or two edition items that recognise honesty, ideally barbed ("The proprietor's customers are said to be alive, and to complain of it"). |
+| 4 | Minor | **"BOTH STILLS" lights only two of three stills.** With three free stills the panel says "three stills are free this month", but the one-click button is "BOTH STILLS · ORDER AND LIGHT 48 EACH · $14.88" (2 × $7.44). I lit only two of my three stills for 4 months without noticing. Confirmed in `StillBench.cs:185-205`: it calls `Brew` twice whatever `StillsFree` is. | THE STILL drawer, from 1886-02 | Reach 3 stills, open THE STILL. | Offer "ALL THREE STILLS" (`StillsFree` × batch) when there are more than two. |
+| 5 | Minor | **"Record" headlines aren't records.** In Sep 1886, 75 bottles was headlined "NEVER SO MANY BOTTLES SOLD / Trade Brisker Than Ever", but I sold 99 in Feb 1886 and 92 in Jan. `EditionWriter.cs:497` fires "record" on a 30% month-on-month rise. | Lead story, 1886-09 | Have a bad month, then a fair one. | Gate the "record"/"never so many"/"best month yet" lines on an all-time high, or reword them as "a recovery". |
+| 6 | Minor | **The IN MEMORIAM card contradicts the article.** Lombardi's card says "Not one of your regulars, so far as the books show." The article next to it says "a customer who never missed a month." | Clicking the lead portrait, Sep 1885 edition | Click the death portrait. | Align the two: if he was a walk-in buyer, have the article say so (that can be the joke). |
+| 7 | Minor | **The Feb 1885 lead says I raised the price**: "The proprietor … has put up his price to 60c., and his callers have put down their hats and left." 60c was the default I never touched. A first-timer reads this as "you did something wrong". | First real edition | New game, keep the default price. | Use different copy when the price was never changed ("has set his price at 60c."). |
+| 8 | Minor | **Poisoned stock can't be destroyed.** Once I reformed, the 65 strong bottles on the shelf would still sell, and there was no "pour it in the gutter" choice. The Board of Health took them for me, which spared me the most interesting moral decision in the game. | THE STILL / FORMULA | Change the recipe with stock on the shelf. | Add a "pour away the shelf" action at a visible cost. It's a perfect complicity beat. |
+| 9 | Low | **PERSONAL column templates repeat until they stop landing.** "…on the recommendation of a neighbor, who has not been seen about lately" and "has tried every remedy for X but one, and as of this month has tried that one too" appeared nearly every month, including months with no deaths. By month 8 the dark joke was wallpaper. | PERSONAL column | Any 6+ months. | Rotate or rate-limit, and tie "not been seen about lately" to an actual recent death. |
+| 10 | Low | **The VENTURES list hides the one live offer.** In April the only takeable item (the Almanac) sat fifth in the list, under four locked ventures. After the first TAKE IT UP click, the list scrolled and the "PAY $40.00 DOWN? PRESS AGAIN" button sat half under the header. | VENTURES drawer, 1885-04 | First time the Almanac is offered. | Sort available ventures to the top, and keep the confirm button in view. |
+| 11 | Low | The expense line reads "branch rent, wages and upkeep $5.00" for the Shop Next Door. I never took the Branch venture. | Books, Jun 1886 | Take the Shop Next Door. | Name it "the shop next door, $5.00". |
+
+## What works
+- **Death at the counter.** A skeleton in a top hat with a hymnbook, standing beside the named regular who's next, plus "Death waits at the counter beside Mr. August Mueller." before you press. It's the single best complicity device here. You can see who your choice will kill and press anyway. Keep it exactly as it is.
+- **Withdrawal after reform:** "poorly, shaking for want of a dose." Going honest *hurts named people*. That makes the moral choice two-sided, which is rare and excellent.
+- **The letters are moral levers with honest prices printed under them.** "Pay him three dollars" or "Let him look: standing −2". "Testify… about 9 in 10 for naming" or "Keep your head down… about 8 in 10". The coroner's 'consulting fee' "rises with every envelope… a bought verdict found out is worse than a jury's." The odds are on the page, so the choice is mine.
+- **The satire hits up, not down.** Targets: the diploma mill, the coroner's fee, the Temperance League you can buy off, the charity fair "The poor were not admitted, but are said to have done well out of it.", the landlord, "WANTED.—A PHYSICIAN willing to endorse anything." The victims get dignity: names, ages, streets, "Funeral private.", "Friends are respectfully invited." Even "after a short and remarkably cheerful illness" mocks the remedy, not Widow Kraus.
+- **The paper as consequence.** Reading my own crimes in a lead story ("THE CORONER NAMES A REMEDY", "A SICKLY SEASON") rather than in a stats screen is exactly right. The weather box is a gem ("Raw. Coughs ripening nicely.", "Mild. The well recover, regrettably.").
+- **The temptation is put next to its victim.** On proof 1, "COMFORT FOR TEETHING BABES !" sits in the type case while Mrs. Weber "for a teething infant" stands at the counter. Nothing forces it. It just waits.
+- **The assay speaks plainly**: "It will sell. Some of the customers may not be back to buy it again." / "fatal in a large dose". There's no hiding behind ignorance, which is what complicity needs.
+- The woodcut look holds up throughout, and the single green bottle is very effective.
+
+## Disclosures
+- No jump-ahead, one continuous game from the first edition.
+- I used `read`/`targets` to quote text exactly and to find button rects, and `state` after each press to log suspicion and standing numbers. Suspicion is also printed on-screen in THE WORKS ("suspicion: a good deal (16 of 100)"), so the table's suspicion column is visible to a player. Standing is shown too ("standing in the ward: 10").
+- From month 10 a helper script ran the still and press clicks for me.
+- After my session I read `StillBench.cs` (lines 185–215) and `EditionWriter.cs` (line 497) only, to confirm findings 4 and 5.
+- In month 18 I accidentally sent to press without brewing (a misplaced click). That month's "NOT A BOTTLE SOLD" is my error, not the game's, though the game did warn me with "SEND IT ANYWAY".
+
+## First hour
+- **0–3 min, edition 1.** It reads as a newspaper and I loved it at once. "Twelve ladies of Brooklyn have vanished entirely. The proprietors are not responsible for vanished ladies." I knew the tone straight away. It wasn't yet clear what I *do*. The only clickable line on the page was the books line. TO THE PROOF was obvious.
+- **3–8 min, first proof.** The bottom-right hint "Nothing on the shelf and nothing on the still: light THE STILL" told me the order. The formula book was clear with the jar tooltips and the assay bars. I misread SIMPLE MIXTURE/STEEPING as tabs, but they're methods. I named the remedy "Honest Abe's Nerve Tonic" with a grim plan in mind. THE STILL's "ORDER ENOUGH FOR 24" then "LIGHT THE FIRE" was easy.
+- **8–10 min, edition 2.** "TOO DEAR FOR THE WARD": I understood price as the first lever. The "put up his price" wording confused me (finding 7).
+- **10–13 min.** First letter, a testimonial. It unlocked ad space ("The Gazette wants $100 in savings and a printed testimonial first"). Clear.
+- **13 min, month 4.** VENTURES opened. I had to scroll to find the one offer I could take (finding 10).
+- **15–20 min, months 5–7.** Honest trade worked but felt grey. Then the "Something Stronger" letter arrived and I understood what the game was about: it doesn't ask *whether* you'll poison people, it waits for a customer to ask you to.
+- **22 min, month 9.** First death. The IN MEMORIAM card is affecting, but its line contradicted the article (finding 6).
+- **25 min, month 10.** Death at the counter. The moment it fully clicked: I could see who was next.
+- **30–38 min, months 12–17.** Escalation: diploma, more laudanum, inquest, bribe, then 14 dead in a month. I felt it. I stopped and reformed because of the paper, not the numbers.
+- **38–45 min, months 18–20.** Seizure, withdrawal, recovery. It was strong at first (shaking regulars), then hollow (the ward forgot within a season).
+
+## Score
+**8 / 10.** The best moral-satire writing and the best complicity device (Death at the counter, by name) I've seen in a business game. Its aim is right: the trade and the powerful are the joke, and the victims are mourned. **One point up:** make the ward remember. Keep the deaths and verdicts in the paper and at the counter for months, and make the strong bottle pay well enough that giving it up costs something.

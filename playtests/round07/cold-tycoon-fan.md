@@ -1,27 +1,113 @@
 # Panacea · round 7 · playtest by "Tycoon fan"
-A business-sim lover (Theme Hospital, Railroad/RollerCoaster Tycoon) who plays to grow: clear economy, visible scale, goals that last to year three.
+A business-sim lover (Theme Hospital, Railroad and RollerCoaster Tycoon) who plays to grow. I want a clear economy, a business I can see getting bigger, and goals that last from year one to year three.
 
-**Verdict:** (draft, in progress)
+**Verdict:** The growth loop works, and it reads better than most tycoon games I've played. The still drawer tells you your next copper from the first minute ("Next: a second still: 0 of 200 bottles sold."), the VENTURES prospectus shows a "So far: x of y" counter on every improvement, and the ledger is a real profit and loss. In 17 hand-played months I went from 21 to 116 bottles a month and took up three ventures. Every one of them showed up in the next ledger. What holds it back is how the growth looks: the still picture never grows, record months get gloomy headlines, profit grows much more slowly than volume, and the spending screens (still, ventures) move their buttons under the cursor.
 
-**Setup:** build 5a1dbc9, port 47041, seed 4141 (fresh, no jump-ahead). Started 22:01 UTC.
+**Setup:** build `5a1dbc9` (frozen copy `build-r7`), port 47041.
+- Game 1: seed 4141, fresh with no jump-ahead. Played 17 months (Jan 1885 to May 1886), from 22:01 to 22:34 UTC, about 33 minutes of active play.
+- Game 2: seed 4142, `--play 28 --dose 0.5` (jump-ahead), about 3 minutes, only to look at the late-game prospectus.
+- Game 3: seed 4141 fresh again, about 2 minutes, to re-screenshot the first screens (see Disclosures).
+- Tooling: small bash wrappers in the scratchpad (`d.sh`, `month.sh`, `brew.sh`, `brew2.sh`) that chain driver clicks and grep the "MONTH IN BRIEF" line. From month 14 on I used them to repeat the same monthly brew-and-press routine. Every decision (letters, ventures, prices, claims, recipes) was still made by hand, one month at a time.
+- Screenshots: `/tmp/claude-0/-home-user-panacea/5950a741-0a66-5ec4-aee9-4515d76a27d7/scratchpad/r7/cold-tycoon-fan/`.
 
-## First hour (in progress)
-- 22:01 First edition, January 3 1885. "A NEW CONCERN / On Mulberry Street". Strong look; satire lands. Callers in PERSONAL column open a customer card (Mrs. Ada Finch, "Looking for something for a teething infant.").
-- 22:04 Proof screen. Hint line under THE WORKS: "Begin with the FORMULA book: pour a remedy and enter it. Then light THE STILL, and send the paper to press." Clear first instruction.
-- 22:05 Formula book: starter glass pre-filled (water/alcohol/syrup/peppermint, 13c, 60c). Added ½ oz laudanum + ½ oz capsicum: "Habit: most will come back", "Danger: a risk to the frail". Named it Mulberry Vigor Tonic, 65c (one of two +5c clicks was eaten after typing in the name field).
-- 22:08 Still: "Next: a second still: 0 of 200 bottles sold." Instantly a goal. Ordered for 36, lit. LIGHT button moved after ordering, my second click missed.
-- 22:10 VENTURES drawer read in full on month 1: 8 improvements, each with a "So far: x of y" counter. Tycoon catnip.
-- M1 (Jan): 21 sold @65c, books +$2.91. Ledger card ("The Month's Books") is a proper P&L.
-- M2 (Feb): 19 sold @70c, books +$5.14, a non-customer died (Miss Goldberg).
-- M3 (Mar): grateful letter -> printed testimonial -> ad space unlocked. 30 sold @60c, books +$9.84. Regular Mr. Lewandowski (73, "peaky") died.
-- M4 (Apr): Inquest letter. Took "keep your head down" (5 in 10) - named anyway, suspicion 6->35, standing 13->1. Reformulated without laudanum (valerian instead). Bought 1/4 col ($3). 29 sold, books +$7.56.
-- M5 (May): Temperance League letter, paid $5. 39 sold, books +$6.64. Headline "THE BEST MONTH YET".
-- M6 (Jun): 1/2 col ($6) shows a green bottle cut in the ad. 40 sold, +$9.24, two regulars gone ("CUSTOMERS DESERT A REMEDY").
-- M7 (Jul): second still arrived by itself (paper notice "A second copper still was carried into the back of a shop", 200 bottles milestone). 33 sold, +$6.12.
-- M8 (Aug): bought diploma $50 (new claim). 37 sold, books -$37.64.
-- M9 (Sep): 35 sold, +$7.32.
-- M10 (Oct): Entered second remedy (old laudanum recipe) "Mulberry Soothing Syrup" 60c, one still each. Syrup sold out 24/24 and "callers went away empty-handed"; Vigor (no laudanum) only 12. Larger Copper offered ($200) but I have $158. Paper says third copper at "a thousand bottles"; still drawer/ventures say 600. A "glass percolator" was bought without my doing.
-- M11 (Nov): St. Bridget's Benefit Society ($1.50/mo, "five more callers"): took it. Percolation method appeared (no tooltip). Found no way to reach the 2nd remedy's price/recipe in the formula book. 45 sold, +$9.18.
-- M12 (Dec): full col ad $11. 53 sold, +$11.14.
-- M13 (Jan 1886): rival Feeney letter. 61 sold, +$6.46. Cash $200.51 = Larger Copper affordable, but I'm demand-bound, not still-bound.
-- M14 (Feb 1886, ~25 min in): took THE PROPRIETOR'S ALMANAC, $40 (two-press confirm). Next ledger: "+$7.20 Orders by post", 82 bottles sold (from 61). First venture felt worth it.
+## Run log
+
+| Game | Seed | Months | What I tried | Result |
+|---|---|---|---|---|
+| 1 | 4141 | 1–4 | Starter recipe with ½ oz laudanum and ½ oz capsicum, 65–70c; then cut to 60c; printed a testimonial; answered an inquest; dropped laudanum for valerian | 21, ?, 30, 29 bottles a month; books up $2.91 to $9.84 a month |
+| 1 | 4141 | 5–9 | Ads from ¼ col up to ½ col; second still arrived on its own at 200 bottles; bought the $50 mail-order diploma | 33–40 bottles a month; cash about $170–$197 |
+| 1 | 4141 | 10–13 | Entered a second remedy (the old laudanum recipe, "Mulberry Soothing Syrup", 60c) and brewed both; joined the Benefit Society ($1.50/mo); full column ad; percolation | 36, 45, 53, 61 bottles a month; cash reached $200.51 |
+| 1 | 4141 | 14–17 | Ventures: Proprietor's Almanac ($40), then the Shop Next Door (0c down, $5/mo) and a Druggist's Standing Order ($100); third still arrived on its own; brewed on three stills | 82, 92, 104, 116 bottles a month; books +$20.74 at best |
+| 2 | 4142 | 28 (jump) | Looked over the prospectus as a scripted proprietor had left it; tried to take A Larger Copper | 850 bottles sold, 15 regulars, $249.59; the copper click missed (see F3) |
+
+**Timeline of key moments (game 1)**
+- M1: the hint line "Begin with the FORMULA book: pour a remedy and enter it. Then light THE STILL, and send the paper to press." got me to a first send in about 5 minutes.
+- M3: a grateful letter let me print a testimonial, and that unlocked ad space (the type case had said "Not yet: the Gazette wants $100 in savings and a printed testimonial first.").
+- M7: "IN THE TRADE.—A second copper still was carried into the back of a shop on Mulberry street this month." This is the first growth milestone, and it arrived by itself.
+- M10: the second remedy (with laudanum) sold out 24 of 24 ("callers went away empty-handed"), while the laudanum-free Vigor sold only 12. This was the first real product-mix decision.
+- M14: first venture taken (Almanac, $40). The next ledger had a new line, "+$7.20 · Orders by post", and sales jumped from 61 to 82.
+- M15: "IN THE TRADE.—A third still has gone into the shop on Mulberry street. The back room is now spoken of locally as 'the works'." Best month: +$20.74.
+- M16: took the Shop Next Door and the Druggist's Standing Order. A new ledger line appeared: "+$4.29 · Sales to druggists out of town".
+- M17: record 116 bottles, books up $11.27. Headline: "OLD CUSTOMERS GONE ELSEWHERE / The Proprietor Is Hurt."
+
+## Metrics
+
+**Growth, game 1 (from the MONTH IN BRIEF line each edition)**
+
+| Month | Bottles sold | Books | Cash after | Regulars |
+|---|---|---|---|---|
+| 1 Jan 85 | 21 | +$2.91 | — | — |
+| 3 Mar | 30 | +$9.84 | — | — |
+| 4 Apr | 29 | +$7.56 | — | — |
+| 5 May | 39 | +$6.64 | $182.09 | 19 |
+| 6 Jun | 40 | +$9.24 | $191.33 | 17 |
+| 7 Jul | 33 | +$6.12 | $197.45 | 16 |
+| 8 Aug | 37 | −$37.64 (diploma) | $159.81 | 18 |
+| 9 Sep | 35 | +$7.32 | $167.13 | 18 |
+| 10 Oct | 36 | +$6.60 | $173.73 | 19 |
+| 11 Nov | 45 | +$9.18 | $182.91 | 19 |
+| 12 Dec | 53 | +$11.14 | $194.05 | 21 |
+| 13 Jan 86 | 61 | +$6.46 | $200.51 | 23 |
+| 14 Feb | 82 | −$20.94 (Almanac) | $179.57 | 24 |
+| 15 Mar | 92 | +$20.74 | $200.31 | 27 |
+| 16 Apr | 104 | −$85.37 (Druggist) | $114.94 | 28 |
+| 17 May | 116 | +$11.27 | $126.21 | 27 |
+
+- Bottles went up 5.5 times (21 to 116). Monthly profit went from about $3 to about $11 (peak $20.74). Starting cash was $150.00; after 17 months I had $126.21, plus three ventures and three stills.
+- Month 17 ledger: income was regulars $36.00, walk-ins $13.80, post $7.20 and druggists $6.93, for $63.93. Costs were $52.66, and $26.50 of that was fixed (rent $3, shop next door $5, ads $11, letter $6, subscriptions $1.50).
+- Time to first venture: 14 months, about 25 minutes of play. The Almanac was affordable much earlier. I waited because the only other offer, the $200 Larger Copper, made no sense while I was limited by customers rather than by still capacity.
+- Production ladder: second still at 200 bottles (month 7), third at 600 (month 15). The fourth still needs 2,000 bottles and $300. I was at 652 in month 16, so at about 116 a month I'd reach it around month 28. That is a good year-3 goal. For comparison, the scripted proprietor at month 28 had only 850 bottles.
+- Clicks for a routine month with two remedies: about 12 (open still, pick the tab, mark, order, light, switch tab, mark, order, light, close, send).
+
+## Findings
+
+| # | Severity | What I saw | Where | How to reproduce | Suggested fix |
+|---|---|---|---|---|---|
+| 1 | Major | After you press ORDER ENOUGH, the LIGHT THE FIRE button moves up about 29px, because the "shelf is short of" line disappears. The click where the button used to be lands on nothing. In month 16 my Vigor batch was never lit, and nothing warned me before the press. The bottles I thought were brewing just weren't there. | THE STILL drawer, right page | With a second remedy tab and one still already lit: mark 48, press ORDER ENOUGH at y≈635, then click where LIGHT was (y≈635). The button is now at y≈606. Targets dump: order `rect [586,619,…]`, light afterwards `rect [406,590,…]`. | Keep the button row fixed (reserve the line), or merge order and light into one "ORDER AND LIGHT" button for a single still, the way the "BOTH STILLS" button already works. Warn before press when a still is free and stock is marked but not lit. |
+| 2 | Major | Growth doesn't show up on screen. The still picture is the same single copper ("Still No. 1 of 3") with two or three stills. The shop and counter look the same at 12 regulars as at 28. The shop next door and the branch only exist as text. | Still drawer art; proof screen counter strip | Get to a third still or take the Shop Next Door, then open THE STILL | Draw the stills side by side, show the knocked-through wall in the counter strip, and maybe put a "the works" illustration in the paper. Tycoon players want to see the empire. |
+| 3 | Minor | The VENTURES list scrolls under the cursor. Arming "TAKE IT UP" scrolls the list about 48px, so "PRESS AGAIN" is no longer under the mouse. Once, my second click armed "A Druggist's Standing Order" instead. Reopening the drawer also jumps back to the last scroll position after it has drawn, so a quick click hits a different card. | VENTURES drawer | Month 16: click "TAKE IT UP · 0c." on the Shop Next Door at (736,269), and the button becomes "PAY 0c. DOWN? PRESS AGAIN" at y≈220. Game 2: open VENTURES and click the Larger Copper at y≈420, which hits nothing because the list jumped to the bottom. | Don't scroll when a button is armed; keep the confirm button where it was. Restore the scroll position before the first frame. |
+| 4 | Minor | Headlines don't match the business result. My record 116-bottle month ran "OLD CUSTOMERS GONE ELSEWHERE / The Proprietor Is Hurt" (two regulars left). The paper is the main feedback, so a record month should read as one. | Edition lead story, month 17 (`m17-ed.png`) | Have a record sales month in which 2 regulars leave | Rank "record month" above a small loss of regulars, or add a sub-deck such as "A RECORD MONTH, ALL THE SAME". |
+| 5 | Minor | Numbers disagree. The paper says the third copper comes at "a house that has sold a thousand bottles". The still drawer and VENTURES both say "Next: a third still: 283 of 600 bottles sold". | Edition, The Trade (Oct 1885, `m10-trade.png`) | Play to about 280 bottles and read TRADE TALK | Use one number in both places. |
+| 6 | Minor | Once a second remedy exists, the formula book only shows the first remedy's price and recipe ("CHANGE THE RECIPE OF MULBERRY VIGOR TONIC"). I found no way to reprice or change the second remedy, unlike the still and type case, which have a tab for each remedy. | FORMULA drawer | Enter a second remedy, close the book, reopen it | Add the same remedy tabs as in the still drawer. |
+| 7 | Minor | Profit grows far more slowly than volume. Ventures brought in volume (+21 druggist bottles at 33c, post orders at 60c), but monthly profit stayed at $6–$20. Payback on the $100 Druggist order is about 14 months. Fine for realism, but the growth doesn't feel earned in the bank. | Ledger, months 14–17 | Take the Almanac and the Druggist order and compare ledgers | Show a per-venture "earned this month" line in the ledger or the prospectus, so the player can see payback, or tune the margins. |
+| 8 | Low | The Shop Next Door's rent appears in the ledger as "Branch rent, wages and upkeep", but I have no branch. | The Month's Books, month 16 and later | Take the Shop Next Door | Label it "The shop next door". |
+| 9 | Low | A free venture button reads "TAKE IT UP · 0c." / "PAY 0c. DOWN? PRESS AGAIN". | VENTURES, Shop Next Door | Reach 25 regulars | Use "TAKE IT UP · NOTHING DOWN". |
+| 10 | Low | A floating label with the card's own title (e.g. "A Druggist's Standing Order") sits over the next card's header and hides text. | VENTURES (`m14-v3.png`, `j-v3.png`) | Rest the mouse in the prospectus | Show it only for disabled cards, or place it near the button. |
+| 11 | Low | The new PERCOLATION method button has no tooltip. Its effect ("Kick: a warm wallop" became "knocks them flat"; cost went from 16c to 18c) only shows up when you try it. | FORMULA, preparation row | After the paper's "bought a glass percolator" notice, hover PERCOLATION | Add a one-line tooltip like the jars have. |
+| 12 | Low | Sentence starts lowercase: "three stills are free this month…". The button still says "BOTH STILLS · ORDER AND LIGHT 48 EACH" when three stills are free. | Still drawer with 3 stills (`96.png`) | Get a third still | Capitalize, and use "TWO STILLS" or name the count. |
+
+No exceptions in `/tmp/panacea-driver-47041.log` in any of the three games. The only output there was ALSA/audio-device noise (`ERR_CANT_OPEN` for the sound card).
+
+## What works
+
+- **The goal ladder is visible from minute one.** "Next: a second still: 0 of 200 bottles sold." in the still drawer, and on every prospectus card "So far: 12 of 25 regulars." or "for a third still, 478 of 600 bottles sold; $200.51 of the $300.00 in hand". This is exactly what a tycoon player wants: I always knew my next target.
+- **The Month's Books ledger.** It opens from "☞ the books" in the brief. A new line appears for each new income stream ("Orders by post", "Sales to druggists out of town", "Subscriptions and retainers", "Outlays on the business"), so every venture visibly changes the P&L. Keep it.
+- **Ventures are real choices with different shapes**: one-off ($200 copper), monthly cost (shop next door), time-limited (Almanac, "ten months to run"), and conditional (druggist and wholesale cancel "if the talk in the ward turns ugly"; wholesale needs "suspicion… must be under 30"). The risk notes are clear ("Mark well: about one month in 25 something catches fire."). They tie growth to the ethics system, which is the game's best idea.
+- **The second remedy as a product line.** A tab per remedy in the still and type case, and "BOTH STILLS · ORDER AND LIGHT" as a bulk action, are what scaling needs.
+- **The "PAY $X DOWN? PRESS AGAIN" confirm**, with the tooltip "Escape, or any other control, to think better of it." A good guard on spending (once F3 is fixed).
+- **Stills arrive with a story** ("The back room is now spoken of locally as 'the works,' and the landlord as a fortunate man."). Milestones feel like a newspaper event.
+- The Hobart & Co. order blank, the trade letters (Benefit Society, the spirits ring, the rival Feeney) as economic events, and the THE MARKETS ticker at the foot of the paper.
+
+## Disclosures
+
+- Game 2 used the jump-ahead `--play 28 --dose 0.5` (a scripted proprietor played 28 months). I used it only to look at the late-game prospectus; I took nothing there.
+- Because of a tool limit, I could not see my own screenshots from roughly the first 6 months of game 1. For those months I relied on the driver's `read`/`targets` text dumps (exact on-screen text, prices, button labels) and the "MONTH IN BRIEF" line. That's more than a real player has, and I couldn't judge those screens visually. To make up for it, I started a fresh seed-4141 game (game 3) and re-screenshotted the first edition, the proof, the still drawer and the VENTURES drawer (`r-01.png` to `r-05.png`). From month 7 on I judged from screenshots.
+- I used `targets` to find button rects throughout, and scripts to repeat routine brewing from month 14. Finding 1 was confirmed from the targets rects.
+- I did not read the game source, docs or other playtests.
+
+## First hour
+
+- **0:00** First edition, "A NEW CONCERN / On Mulberry Street… He Promises Much." I saw $150.00 and 12 regulars in the footer and the callers in PERSONAL. I read it as "the paper is the scoreboard". Satirical ads (Anti-Fat Cordial: "Twelve ladies of Brooklyn have vanished entirely.") set the tone.
+- **0:03** Proof screen. "THE WORKS" panel with cash and four drawer buttons, and the hint line. Clear what to do.
+- **0:04** Formula book: a pre-filled starter glass, an assay with Kick/Calm/Habit/Danger bars, cost per bottle. I added laudanum because "brings the customer back for more" sounded like retention, which is how a tycoon player thinks. Named it, set 65c. One +5c click got lost right after typing in the name field.
+- **0:07** Still: "Next: a second still: 0 of 200 bottles sold." Click: this is the production ladder. Order, then light. My first LIGHT click missed because the button moved (F1).
+- **0:09** VENTURES read in full in month 1: eight improvements with live counters. That is when the long game clicked for me.
+- **0:10** First send, then the ledger: 21 sold, books up $2.91. I understood the margins.
+- **0:12–0:20** Months 2–8: price tuning (I went up to 70c, then down to 60c), a testimonial unlocked ads, an inquest after a regular died (I took laudanum out), and the second still arrived on its own at 200 bottles.
+- **0:20** Month 10: second remedy entered. Sales by product in THE TRADE section showed the laudanum syrup selling out. This was the first time I felt like a manager choosing a product mix.
+- **0:25** Month 14: first venture (Almanac), and the ledger showed it working the next month.
+- **0:30** Month 16: three ventures and three stills, 104 bottles. The mid-game was holding up. The next goals were wholesale (1,200 bottles, suspicion under 30), the fourth still (2,000 bottles) and the branch ($600). The friction was the still drawer's moving buttons and the 12 clicks of routine every month.
+
+## Score
+
+**7 / 10.** It has a real, readable business ladder with ventures that change the books, wrapped in a period newspaper that makes every milestone an event. It would go up a point if the business looked bigger as it grew (more stills drawn, the wall knocked through, a "record month" headline) and the still drawer stopped moving its LIGHT button, so routine production at scale is quick and reliable.

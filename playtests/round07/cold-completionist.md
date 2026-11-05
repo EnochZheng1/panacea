@@ -1,19 +1,129 @@
 # Panacea · round 7 · playtest by "Completionist"
 
-(DRAFT, in progress.) A first-time player who plays games to the end and judges the long arc: change over 1885–1906, new arrivals, history, endings, late-game drag.
+A first-time player who plays games to the end and judges the long arc: does the game change over 1885–1906, do new things keep arriving, does the history move, is the ending satisfying, does the late game drag.
 
-## First hour (notes as they happen)
-- 1885-01 (seed 1885, port 47043, build 5a1dbc9): opening edition "A NEW CONCERN". Hint line on proof sends me to FORMULA. Default honest mix pre-poured; added 0.5 oz laudanum ("A good, steady seller"). Brewed 36, set claims SOOTHES THE NERVES + BANISHES RHEUMATISM.
-- Ventures drawer visible from month 1: shop next door, larger copper, fourth still, branch, almanac, druggist order, wholesale contract, laboratory. Good long-arc signposting.
-- 1885-02 edition: 22 bottles sold, books +$2.82, 15 regulars.
-- 1885-03: Gazette sells space (needs $100 + printed testimonial; testimonial letter came in Feb). Took up THE PROPRIETOR'S ALMANAC ($40) in month 3, about 12 min in. Bought 1/4 col.
-- 1885-06: second still arrives by itself at 200 bottles sold. Customers now "poorly · asks for it by name".
-- 1885-10: Gazette says I "bought a glass percolator" (I did not do anything); Laboratory now offered. Took SHOP NEXT DOOR (26 regulars) and DRUGGIST'S STANDING ORDER ($100).
-- 1885-11: 101 bottles sold, 31 regulars, $201.
-Issues so far: venture/type-case panels jump scroll on click (confirm button scrolls out of view; claim misclick); stale tooltip floats over venture text after scrolling; STEEPING/SIMPLE MIXTURE unexplained; "PAY 0c. DOWN?"; still panel says third still at 600 bottles but Gazette TRADE TALK says coppersmith keeps it for "a house that has sold a thousand bottles"; filler items repeat within 9 months.
-- 1885-12: third still arrives at 600 sold; bought LARGER COPPER ($200). Bug: with three stills the still drawer offers "BOTH STILLS · ORDER AND LIGHT 72 EACH · $25.20" and lights only two (56.png). Sentence starts lowercase "three stills are free this month".
-- 1886-02: diploma letter ($50, became "Doctor", new claim ENDORSED BY EMINENT PHYSICIANS); "Something Stronger" letter from an addicted regular.
-- 1886-03: hand session ended at month 15 (~24 min). Death figure stands beside Mrs Halvorsen, but hint line names Mr Luigi Greco (60.png). No deaths yet in 15 months at 0.5 oz laudanum.
-- Jump game: seed 1885 --play 120 --dose 0.5 -> 1895-01: $748, 14 regulars, suspicion 25, scripted proprietor never grew (3 stills, no ventures). Heroin appears in markets by 1905.
-- Jump game: seed 1885 --play 250 --dose 0.5 -> 1905-11. "THE GREAT AMERICAN FRAUD" lead story (Collier's). Hand-played Nov 1905 -> on. Bought copper + fourth still + shop next door. ORDER AND LIGHT button still says "BOTH STILLS" with 4 stills; need to click it twice.
-- 1906-06 edition: "CONGRESS PASSES THE PURE FOOD AND DRUG ACT". Aug: Hobart distillers' ring letter. Dec 1906 final edition: "THE LAW ARRIVES"; bar reads "The business is closed. The paper has the last word." + BEGIN AGAIN. No career summary. Ended with $1278.47, 49 regulars, 0 deaths across my hand-played months.
+**Verdict:** The first year and a half is a well-paced climb. Something new arrives every two or three months (ad space, a second and third still, the almanac, the shop next door, the druggist, a larger copper, a diploma), and every purchase shows up by name in the next Gazette. The history does arrive at the end, and the 1905–06 run (Collier's "Great American Fraud", the Pure Food and Drug Act passed in the June 30 1906 edition, "THE LAW ARRIVES" in December) is a genuinely good finale. But the paper itself never ages: the same quack ads, the same filler items and the same three letters turn up in 1885, 1895 and 1906. Both endings I reached close on a single line ("The business is closed. The paper has the last word.") with no look back at the twenty-two years.
+
+**Setup:**
+- Build: frozen copy `build-r7`, commit `5a1dbc9`, port 47043.
+- Game 1, hand-played from the first edition: seed 1885, no jump-ahead. 15 months (1885-01 to 1886-03), about 24 minutes.
+- Game 2, jump-ahead: seed 1885 `--play 120 --dose 0.5` (lands in 1895-01). Looked at the edition, proof and drug shelf only.
+- Game 3, jump-ahead: seed 1885 `--play 250 --dose 0.5` (lands in 1905-11). Hand-played 14 months to the 1906 end, about 8 minutes.
+- Game 4, jump-ahead: seed 1885 `--play 120 --dose 1.5` (lands in 1895-01). Hand-played a lethal formula until the shop was closed, 3 months, about 4 minutes.
+- Total active testing: about 37 minutes.
+- Tooling (all in `/tmp/claude-0/-home-user-panacea/5950a741-0a66-5ec4-aee9-4515d76a27d7/scratchpad/r7/cold-completionist/`): `d.sh` wraps `drive.py`; `press.sh` sends to press and takes three edition screenshots; `brew.sh`, `brew2.sh` and `month.sh` mark a batch, order it and light the stills; `nobrew.sh` sends with no brewing; `ct.py` clicks a target by its visible text, scrolling to find it.
+- Screenshots are in the same folder.
+
+## Run log
+
+| Game / seed | Months | What I tried | Result |
+|---|---|---|---|
+| 1 · 1885 (hand) | 1885-01 → 1886-03 (15) | Default honest mix + 0.5 oz laudanum, 70¢; claims SOOTHES THE NERVES + BANISHES RHEUMATISM; ¼ then ½ col ad; ventures: Almanac (m3), Shop Next Door + Druggist's Standing Order (m10), Larger Copper (m12); bought the diploma (m14) | Bottles sold rose from 22 to 129 a month; regulars from 12 to 43; 0 deaths; cash ran $150 → $270 → $105 after spending $390 on ventures |
+| 2 · 1885 `--play 120 --dose 0.5` | jumped to 1895-01 | Read the edition and proof | Scripted shop small: 14 regulars, $748, 3 stills, no ventures, suspicion 25 |
+| 3 · 1885 `--play 250 --dose 0.5` | 1905-11 → 1906-12 (14, hand) | Bought Larger Copper, Fourth Still, Shop Next Door; full-column ad; brewed 4×72 | Regulars 14 → 49; peak 124 bottles a month; the game ended in Dec 1906 with "THE LAW ARRIVES"; $1278.47 |
+| 4 · 1885 `--play 120 --dose 1.5` | 1895-01 → 1895-03 (3, hand) | Reformulated with 2½ oz laudanum + ½ oz morphine ("a spoonful may kill"), $1.00; ignored the coroner | 12, 18 and 10 dead; 6 then 13 inquests; "CLOSED BY ORDER" in March 1895 |
+
+**Key moments**
+- 1885-01: "A NEW CONCERN" first edition. The proof hint sends me to FORMULA, then THE STILL.
+- 1885-02: 22 bottles sold. A testimonial letter arrives; printing it is one condition for buying space.
+- 1885-03: ad space opens. I took up THE PROPRIETOR'S ALMANAC ($40), the first venture, about 12 minutes into play.
+- 1885-06: the second still arrives on its own at 200 bottles sold.
+- 1885-10: 26 regulars. I took the Shop Next Door ($0 down, $5 a month) and the Druggist's Standing Order ($100).
+- 1885-11: "NEVER SO MANY BOTTLES SOLD" (101). The Sanitary Inspector letter arrives.
+- 1885-12: the third still arrives at 600 sold. I bought the Larger Copper ($200).
+- 1886-01: the Trade column itemises the ventures paying off: "By post, to readers of the almanac: ten bottles, $7.00"; "Wholesale: the druggists out of town ordered eighteen bottles".
+- 1886-02: diploma-mill letter ("The Eclectic Medical College of Ohio"); paying gives a new claim, ENDORSED BY EMINENT PHYSICIANS. An addicted regular writes "Something Stronger". The almanac expires ("now chiefly used for lighting fires").
+- 1905-10/11 (jump): lead story "THE GREAT AMERICAN FRAUD"; heroin now quoted in THE MARKETS.
+- 1906-06: "CONGRESS PASSES THE PURE FOOD AND DRUG ACT", in the edition dated June 30, 1906.
+- 1906-08: the distillers' ring letter ("Spirits Are Dearer").
+- 1906-12: "THE LAW ARRIVES · The Pure Food and Drug Act · The Trade Is Thoughtful". The bar reads "The business is closed. The paper has the last word." with a BEGIN AGAIN button.
+- 1895-03 (lethal game): "CLOSED BY ORDER · The Board of Health Acts · A Crowd Gathers; Some Are Disappointed."
+
+## Metrics
+
+**Game 1, hand-played (state reads, start of each month)**
+
+| Month | Cash | Regulars | Bottles sold the month before | Events |
+|---|---|---|---|---|
+| 1885-01 | $150.00 | 12 | 0 | |
+| 1885-02 | ~$152.82 | 15 | 22 | |
+| 1885-03 | $162.30 | 15 | 29 | ads open; Almanac taken |
+| 1885-04 | $135.26 | 16 | 48 | |
+| 1885-05 | $158.62 | 18 | 56 | |
+| 1885-06 | $177.08 | 20 | 49 | 2nd still |
+| 1885-07 | $194.10 | 20 | 61 | |
+| 1885-08 | $220.06 | 22 | 64 | |
+| 1885-09 | $248.12 | 23 | 67 | |
+| 1885-10 | $270.54 | 26 | 73 | Shop Next Door + Druggist |
+| 1885-11 | $201.98 | 31 | 101 | |
+| 1885-12 | $237.42 | 37 | 111 | 3rd still; Copper |
+| 1886-01 | $78.62 | 39 | 129 | |
+| 1886-02 | $121.64 | 42 | 114 | diploma |
+| 1886-03 | $105.16 | 43 | 96 | |
+
+- **Time to the first venture:** month 3, about 12 minutes. Worth it: the Gazette credits the almanac with callers ("ten by the almanac") and $7 a month of post orders for $40.
+- **New arrivals:** something new every 2 to 3 months in the first 15. In order: ads, almanac, 2nd still, 3 ventures, 3rd still, copper, diploma claim.
+- **Late game (1905-11 → 1906-12):** 14 regulars → 49. Bottles 30 → 64 → 108 → 124 a month. Cash $1569.95 → $1278.47, after $500 in ventures. 0 deaths. No new ventures were offered beyond the original list.
+- **Lethal game:** 40 deaths and 19 inquests in 3 months; closed in month 3. The paper covered each death by name or as "UNKNOWN".
+- **Repetition across 21 years:**
+  - Ads: Professor Kline's Electric Liver Pad, the Anti-Fat Cordial, Madame de la Rose's Arsenical Complexion Wafers, Mrs. Whittle's Compound and Prof. Bloom's Hair Restorer appear in 1885, 1895 and 1906 alike.
+  - Filler items that appeared word for word in the editions of 1885-10, 1895-01 and 1906-04:
+    - "FOUND.–On the steps of a church in Mott street, a basket containing a bottle of soothing syrup"
+    - "THE PULPIT.–The Rev. Dr. Parkhurst … thirty-ninth"
+    - "FIRE.–A blaze in a tenement in Baxter street"
+    - "THE HARBOR.–Two schooners from Savannah"
+  - "LOST.–A small dog, answers to Dandy" appears in 1895-02, 1906-04 and 1906-12.
+  - Letters: the Sanitary Inspector letter (1885-11, 1895-01, 1906-10), "Something Stronger" (1886-02, 1906-06) and "Spirits Are Dearer" (1895-01, 1906-08) have identical text each time.
+- **Errors:** the driver log held no exceptions in any game. The only `ERROR` line is ALSA failing to open audio at startup, which is expected in this container.
+
+## Findings
+
+| # | Severity | What I saw | Where | How to reproduce | Suggested fix |
+|---|---|---|---|---|---|
+| 1 | Major | **No career retrospective at either ending.** The 1906 ending and the Board of Health closure both end on the same line, "The business is closed. The paper has the last word.", plus BEGIN AGAIN. There is no tally of 22 years: total bottles, peak regulars, deaths, inquests, fortune, ventures, the remedy's final recipe. The 1906 edition also says "The proprietor … welcomed the measure, and has ordered a great many new labels" for a remedy that contains laudanum and claims CURES CONSUMPTION. So the ending does not seem to react to what the remedy is. | Final edition, bottom bar (`e14a.png`, `h04a.png`) | Play to 1906-12, or kill enough customers to be closed | Add an obituary or retrospective column to the last edition: years in trade, bottles, the dead by name, what the label would now have to declare, where the proprietor went. Vary the closing line by ending. |
+| 2 | Major | **The middle of the twenty years does not move.** Masthead, ads, filler and letters are the same in 1885, 1895 and 1906 (see Metrics). In the two 1895 samples only the markets and "Quinine higher on the news from Panama" differed. The history beats I saw (Collier's, Pure Food and Drug Act) are packed into 1905–06. | Every edition | Compare `m10b.png` (1885-10) with `j120c.png` (1895-01) and `e06c.png` (1906-04) | Give each decade its own ad set and filler pool: bicycles, the Elevated, electric light, the Spanish War, telephone, and Bayer heroin arriving in 1898 rather than only appearing in markets. Retire the 1880s quack ads as their makers die or are exposed. Keep the letters from repeating word for word. |
+| 3 | Minor | **The ORDER AND LIGHT button is hard-coded for two stills.** With three or four stills it still reads "BOTH STILLS · ORDER AND LIGHT 72 EACH" and lights only two, so a full brew needs two presses. I confirmed this in `scripts/UI/StillBench.cs` lines 185–210: `Brew` is called exactly twice. | Still drawer, from the third still on (`56.png`, `e02s.png`) | Get 3+ stills, mark a batch and press the button | Light every free still and label it "ALL N STILLS · ORDER AND LIGHT …". |
+| 4 | Minor | **Venture and type-case panels jump on click.** After TAKE IT UP the list re-scrolls: a "Taken up: …" banner pushes everything down about 60 px, so the "PRESS AGAIN" confirm moves out from under the cursor. The formula panel also shifted about 6 px left and 8 px down after the price buttons were pressed (`h01f3` vs `h01f4`). | VENTURES drawer, FORMULA drawer | Press TAKE IT UP on a lower venture | Keep the confirm button where it was, and put the banner in a fixed slot. |
+| 5 | Minor | **Long death lists leave the page lopsided.** With 18 deaths and 6 inquests, the DEATHS/CORONER column runs far below the other two, which end in blank newsprint. | 1895-03 edition (`h03c.png`) | Use a lethal formula for two months | Flow overflow deaths into the right column, or collapse them to "And eleven more, unclaimed." |
+| 6 | Minor | **The Death figure stands next to the wrong customer.** The hint says "Death waits at the counter beside Mr. Luigi Greco", but the figure stands beside the first figure (Mrs. Hilda Halvorsen). He waited from 1885-11 to 1886-03 and nobody died, so it reads as a threat with no payoff. | Proof, AT THE COUNTER (`52.png`, `60.png`) | Hand-play to 1885-11 at 0.5 oz laudanum | Place Death next to the named customer's figure. |
+| 7 | Minor | **Inconsistent figures for the third still.** The still drawer said "Next: a third still: 469 of 600 bottles sold", while TRADE TALK in the same month talked of a house that had sold a thousand bottles. Later TRADE TALK speaks of "twenty-five batches". | 1885-10 still drawer vs Gazette | Compare the still drawer with TRADE TALK | Use one unit (bottles) and the real threshold in both places. |
+| 8 | Low | **Sentence starts lowercase:** "three stills are free this month…", "four stills are free this month…". | Still drawer (`54.png`, `e02s.png`) | Have 3+ stills | Capitalise the number word. |
+| 9 | Low | **"PAY 0c. DOWN? PRESS AGAIN"** for the free Shop Next Door, and the price shown as "TAKE IT UP · 0c." | VENTURES (`48.png`) | Reach 25 regulars | Say "NOTHING DOWN · $5 A MONTH" and "TAKE THE LEASE? PRESS AGAIN". |
+| 10 | Low | **The "Reformulated …" confirmation prints below the visible part of the assay panel**, so CHANGE THE RECIPE looks like it did nothing. | FORMULA drawer (`h01f5.png`) | Change a recipe | Print the note near the button, or flash the button. |
+| 11 | Low | **The method buttons have no tooltips.** STEEPING, PERCOLATION and SIMPLE MIXTURE show no explanation before you commit. | FORMULA drawer | Hover them | Add a one-line tooltip each. |
+
+## What works
+
+- **Every venture is visibly paid back in the paper.** The Trade column itemises the almanac's post orders and callers, the druggist's wholesale bottles, the branch rent and the copper. NOTICES report each purchase in period voice: "A coppersmith of Water street has delivered a larger copper … the ward has been asked to keep its windows shut."
+- **The VENTURES prospectus can be seen from month 1, with progress counters** ("So far: 469 of 2,000 bottles sold; $270.54 of the $300.00 in hand"). It gives a completionist a ladder to climb. Keep it.
+- **The 1905–06 run is a real finale.** "THE GREAT AMERICAN FRAUD" (Collier's, October 1905), the Act passed in the June 30, 1906 edition, then "THE LAW ARRIVES" in December. That is the right arc, correctly dated.
+- **The lethal path is vivid and fair.** The coroner's letters come with odds pencilled in the margin ("about 8 in 10 for naming"). The ignored-letters warning turns the button into "SEND IT ANYWAY". The paper ends the shop with "Inspectors seal the premises… The proprietor was not present. A tall gentleman in a hat was seen leaving by the rear entrance with a ledger under his arm." Keep all of it.
+- **The diploma letter is a great little arc:** $50, then a NOTICE ("the ink on it is very nearly dry"), then a new claim in the type case.
+- **The writing throughout:** "Weather. Cold rain. Pine coffins advance."; "Mrs. Whittle's correspondence continues brisk, notwithstanding her funeral in March."
+
+## Disclosures
+
+- Three jump-ahead games, all named above. Their 1895 and 1905 starting points come from the scripted proprietor, not from my own play.
+- I read `state` for exact cash, regulars and bottles, and `targets`/`read` to find buttons (via my `ct.py` helper) and quote text. A player has only the screen.
+- After all play, I read `scripts/UI/StillBench.cs` lines 185–215 to confirm finding 3. I read no other source, and nothing under `docs/` or `playtests/`.
+- I could not hear sound.
+- I did not hand-play 1887–1904. My claim that the middle years don't change rests on the 1895 samples and on text repeated in 1885, 1895 and 1906.
+
+## First hour
+
+- **0:00 (1885-01).** First edition, "A NEW CONCERN". I read it as flavour, then clicked the books clipping ("The proprietor's books close the month at $150.00"). TO THE PROOF was clearly the way forward.
+- **0:03.** On the proof, the ☞ hint line told me the shelf was empty and pointed to THE STILL, then FORMULA. A mix was pre-poured. I added ½ oz laudanum, and the assay said "A good, steady seller". I entered the recipe.
+- **0:06.** In the still I clicked bottles to mark 36, then "ORDER ENOUGH" and "LIGHT THE FIRE". The two-step order-then-light took one misread ("the ingredients on hand make none"). Opening VENTURES showed the whole ladder; that was the moment the long game clicked for me.
+- **0:08.** I set two claims in the type case. A click on a claim landed on the wrong one after the list moved.
+- **0:09.** Sent to press. The 7-second press sequence and the Feb edition with 22 sales and new names in PERSONAL: the loop was clear from here.
+- **0:11 (1885-02).** A testimonial letter. I printed it, and learned it unlocks the ad space.
+- **0:12 (1885-03).** Ads opened. I bought ¼ col and took up the almanac (the first venture, month 3).
+- **0:15.** Tried STEEPING, found no explanation and reverted. Raised the price to 70¢; sales kept rising.
+- **0:16–0:20 (1885-05 → 09).** Routine months of brew and press. The second still arrived by itself. About 4 actions per month by now; mild repetition, but the counter kept growing.
+- **0:20 (1885-10).** The Shop Next Door and the Druggist came up together; I took both. This felt like a level-up.
+- **0:22 (1885-12).** Third still, then the copper. Found the "BOTH STILLS" button only lights two.
+- **0:24 (1886-02).** Diploma letter, then "Something Stronger". The game's darker side first showed through the letters, not the deaths: at 0.5 oz nobody died in 15 months.
+
+## Score
+
+**7 / 10.** The opening is excellent and the ventures ladder makes the first two years compelling. The finale has the right history, but the paper doesn't age between 1886 and 1905, and the ending gives no account of the life you just lived. A last-edition retrospective, with the dead, the fortune and what the new label would have had to declare, would move it one point up. So would one decade-specific set of ads and filler.

@@ -224,91 +224,119 @@ public static class Market
             }
         }
 
+        // Orders from away are filled next, from what the regulars left, up to a share of it:
+        // strangers at the counter get the rest, so a contract held on a thin shelf costs the shop
+        // new custom.
+        OrdersFromAway(ctx);
+
         WalkIns(ctx, offers, Sell);
 
         foreach (var kv in revenue)
             Ledger.Adjust(state, Metrics.Cash, kv.Value.Cents, kv.Value.Cause, kv.Value.FormulaId);
-
-        Wholesale(ctx);
     });
 
+    /// <summary>The bottle orders from away are filled with: the one the shop has most of on the shelf.</summary>
+    public static Formula? OrderFormula(GameState state)
+    {
+        Formula? formula = null;
+        int most = 0;
+        foreach (var f in state.Lab.Formulas)
+        {
+            int n = Lab.StockOf(state, f.Id);
+            if (n > most)
+            {
+                formula = f;
+                most = n;
+            }
+        }
+        return formula;
+    }
+
+    private sealed class Allowance
+    {
+        public int Left;
+    }
+
     /// <summary>
-    /// Druggists out of town under contract take their order from the shelf at month's end, at the
-    /// wholesale price, of the bottle the shop has most of. They sell to strangers with no
-    /// tolerance: a strong enough bottle kills some of them, and the talk comes home.
+    /// Orders from away (market.ts ordersFromAway), filled after the regulars have had theirs and
+    /// before the walk-ins, from at most OrdersShelfShare of what the regulars left: druggists out
+    /// of town under contract, at the wholesale price, and readers who send by post, at the shelf
+    /// price. All take the bottle the shop has most of, and order fewer the dearer it is. They sell
+    /// to (or are) strangers with no tolerance: a strong enough bottle kills some of them.
     /// </summary>
-    private static void Wholesale(TurnContext ctx)
+    private static void OrdersFromAway(TurnContext ctx)
     {
         var state = ctx.State;
         var content = ctx.Content;
+        var allowance = new Allowance { Left = (int)Math.Ceiling(Lab.TotalStock(state) * content.Config.Market.OrdersShelfShare) };
         foreach (var inv in Investments.Held(state, content))
         {
-            if (inv.Wholesale is not { } spec) continue;
-            int ordered = Investments.WholesaleOrder(state, inv);
-            state.Month.Wholesale.Ordered += ordered;
-            Formula? formula = null;
-            int most = 0;
-            foreach (var f in state.Lab.Formulas)
-            {
-                int n = Lab.StockOf(state, f.Id);
-                if (n > most)
-                {
-                    formula = f;
-                    most = n;
-                }
-            }
-            if (formula is null || ordered <= 0) continue;
-            int price = Investments.WholesalePrice(inv, formula.PriceCents);
-            var risk = new Dictionary<string, (double P, double Detectability)>(StringComparer.Ordinal);
-            long revenue = 0;
-            for (int i = 0; i < ordered; i++)
-            {
-                var lot = Lab.TakeBottle(state, formula.Id);
-                if (lot is null) break;
-                state.Month.Wholesale.Delivered += 1;
-                state.Stats.BottlesSold += 1;
-                state.Stats.RevenueCents += price;
-                revenue += price;
-                var sale = state.Month.Sales.Find(s => s.FormulaId == formula.Id);
-                if (sale is not null)
-                {
-                    sale.Bottles += 1;
-                    sale.RevenueCents += price;
-                }
-                else
-                {
-                    state.Month.Sales.Add(new SaleRecord { FormulaId = formula.Id, Bottles = 1, RevenueCents = price });
-                }
-                // A stranger in Paterson, of ordinary health, with no tolerance.
-                if (!risk.TryGetValue(lot.Id, out var r))
-                {
-                    var a = Formulas.Analyze(lot.Components, lot.ProcessId, content);
-                    var dose = new DoseContext(lot.Potency, 1, 1);
-                    double danger = Pharmacology.AcuteDanger(a, Pharmacology.ZeroTolerance(), dose, content);
-                    r = (Pharmacology.OverdoseChance(danger, spec.StrangerHealth), a.Properties.Detectability);
-                    risk[lot.Id] = r;
-                }
-                if (r.P > 0 && ctx.Rng.Chance(r.P))
-                {
-                    var segment = CustomersSystem.PickSegment(content, ctx.Rng);
-                    Scrutiny.RecordDeath(state, content, ctx.Rng, new DeathInput
-                    {
-                        CustomerId = null,
-                        Name = "",
-                        Segment = segment.Id,
-                        Consumer = Consumers.Self,
-                        Anonymous = true,
-                        Cause = DeathCauses.Overdose,
-                        ProductImplicated = true,
-                        FormulaId = null,
-                        BadBatch = lot.BadBatch,
-                        Detectability = r.Detectability,
-                    });
-                }
-            }
-            state.Month.Wholesale.RevenueCents += revenue;
-            if (revenue > 0) Ledger.Adjust(state, Metrics.Cash, revenue, Causes.SalesWholesale, inv.Id);
+            if (inv.Wholesale is { } w) Deliver(ctx, inv.Id, w, state.Month.Wholesale, Causes.SalesWholesale, allowance);
+            if (inv.PostOrders is { } p) Deliver(ctx, inv.Id, p, state.Month.Post, Causes.SalesPost, allowance);
         }
+    }
+
+    private static void Deliver(TurnContext ctx, string investmentId, WholesaleSpec spec, WholesaleMonth month,
+        string cause, Allowance allowance)
+    {
+        var state = ctx.State;
+        var content = ctx.Content;
+        var formula = OrderFormula(state);
+        int ordered = Investments.WholesaleOrder(state, spec, formula?.PriceCents);
+        month.Ordered += ordered;
+        if (formula is null || ordered <= 0) return;
+        int price = Investments.WholesalePrice(spec, formula.PriceCents);
+        var risk = new Dictionary<string, (double P, double Detectability)>(StringComparer.Ordinal);
+        long revenue = 0;
+        for (int i = 0; i < ordered; i++)
+        {
+            if (allowance.Left <= 0) break;
+            var lot = Lab.TakeBottle(state, formula.Id);
+            if (lot is null) break;
+            allowance.Left -= 1;
+            month.Delivered += 1;
+            state.Stats.BottlesSold += 1;
+            state.Stats.RevenueCents += price;
+            revenue += price;
+            var sale = state.Month.Sales.Find(s => s.FormulaId == formula.Id);
+            if (sale is not null)
+            {
+                sale.Bottles += 1;
+                sale.RevenueCents += price;
+            }
+            else
+            {
+                state.Month.Sales.Add(new SaleRecord { FormulaId = formula.Id, Bottles = 1, RevenueCents = price });
+            }
+            // A stranger of ordinary health, with no tolerance.
+            if (!risk.TryGetValue(lot.Id, out var r))
+            {
+                var a = Formulas.Analyze(lot.Components, lot.ProcessId, content);
+                var dose = new DoseContext(lot.Potency, 1, 1);
+                double danger = Pharmacology.AcuteDanger(a, Pharmacology.ZeroTolerance(), dose, content);
+                r = (Pharmacology.OverdoseChance(danger, spec.StrangerHealth), a.Properties.Detectability);
+                risk[lot.Id] = r;
+            }
+            if (r.P > 0 && ctx.Rng.Chance(r.P))
+            {
+                var segment = CustomersSystem.PickSegment(content, ctx.Rng);
+                Scrutiny.RecordDeath(state, content, ctx.Rng, new DeathInput
+                {
+                    CustomerId = null,
+                    Name = "",
+                    Segment = segment.Id,
+                    Consumer = Consumers.Self,
+                    Anonymous = true,
+                    Cause = DeathCauses.Overdose,
+                    ProductImplicated = true,
+                    FormulaId = null,
+                    BadBatch = lot.BadBatch,
+                    Detectability = r.Detectability,
+                });
+            }
+        }
+        month.RevenueCents += revenue;
+        if (revenue > 0) Ledger.Adjust(state, Metrics.Cash, revenue, cause, investmentId);
     }
 
     private static void WalkIns(TurnContext ctx, List<Offer> offers, Func<Offer, string, Bought?> sell)

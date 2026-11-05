@@ -90,6 +90,11 @@ public sealed class InvestmentRow
 	public int? WholesaleBottles;
 	/// <summary>Wholesale: what they would pay a bottle, for the bottle the shop has most of.</summary>
 	public long? WholesalePriceCents;
+	/// <summary>Orders by post (the almanac's readers): bottles a month, and what each brings.</summary>
+	public int? PostBottles;
+	public long? PostPriceCents;
+	/// <summary>What it still waits for, in words ("1,120 of 1,200 bottles sold"); empty once held.</summary>
+	public List<string> Progress = new();
 	/// <summary>Chance of an accident each month while held (a laboratory fire).</summary>
 	public double? MishapChance;
 }

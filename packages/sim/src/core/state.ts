@@ -46,7 +46,10 @@ export type NewsItem =
 
 export type InvestmentChange = 'bought' | 'lapsed' | 'lost' | 'mishap';
 
-/** What the druggists out of town ordered this month, what they got, and what they paid. */
+/**
+ * Orders from away this month (druggists under contract, or readers by post): what they asked
+ * for, what the shelf could give them, and what they paid.
+ */
 export interface WholesaleMonth {
   ordered: number;
   delivered: number;
@@ -89,7 +92,10 @@ export interface MonthInProgress {
    * reputation), `newspaper`, `subscriptions` (societies and the like), and each investment id.
    */
   callers: Record<string, number>;
+  /** The druggists under contract. */
   wholesale: WholesaleMonth;
+  /** Orders by post (the almanac's readers). */
+  post: WholesaleMonth;
 }
 
 /** A closed month, as shown in the Ledger. */
@@ -120,6 +126,7 @@ export interface LedgerEntry {
   /** Callers by source (see `MonthInProgress.callers`). */
   callers: Record<string, number>;
   wholesale: WholesaleMonth;
+  post: WholesaleMonth;
 }
 
 export interface FormulaComponent {

@@ -80,6 +80,9 @@ public sealed class PaperFacts
     public long WholesaleRevenueCents;
     /// <summary>Paid down this month for ventures taken up: an outlay, not a bad month.</summary>
     public long InvestedCents;
+    /// <summary>Bottles sent by post to the almanac's readers this month, and what they brought.</summary>
+    public int PostDelivered;
+    public long PostRevenueCents;
 }
 
 public sealed class ProductFact

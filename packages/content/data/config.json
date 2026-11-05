@@ -1,5 +1,5 @@
 {
-  "contentVersion": "0.4.0",
+  "contentVersion": "0.5.0",
   "startDate": {
     "year": 1885,
     "month": 1
@@ -33,7 +33,8 @@
     "meansPerMonth": 3.5,
     "meansLostToHabit": 0.35,
     "priceHesitation": 0.65,
-    "hesitationMargin": 0.3
+    "hesitationMargin": 0.3,
+    "ordersShelfShare": 0.5
   },
   "advertising": {
     "visitorsPerSqrtCent": 0.8,

@@ -50,15 +50,28 @@ public static class Investments
     public static List<Investment> Held(GameState state, ContentPack content) =>
         content.Investments.Where(inv => IsHeld(state, inv.Id)).ToList();
 
-    /// <summary>The bottles a wholesale contract asks for this month: more, the better the name.</summary>
-    public static int WholesaleOrder(GameState state, Investment inv) =>
-        inv.Wholesale is { } w
-            ? (int)Math.Floor(w.BottlesPerMonth * (1 + state.Player.Reputation * w.PerReputation))
-            : 0;
+    /// <summary>
+    /// How a shelf price changes an order from away: 1 at the reference price, more for a cheaper
+    /// bottle (at most MaxOrderBoost), fewer for a dearer one, and none once it is far too dear.
+    /// </summary>
+    public static double OrderPriceFactor(WholesaleSpec spec, int? priceCents)
+    {
+        if (priceCents is not int price || spec.PriceElasticity <= 0) return 1;
+        double factor = 1 + spec.PriceElasticity * (spec.RefPriceCents - price) / spec.RefPriceCents;
+        return Math.Max(0, Math.Min(spec.MaxOrderBoost, factor));
+    }
 
-    /// <summary>What the druggists pay for a bottle sold on the shelf at <paramref name="priceCents"/>.</summary>
-    public static int WholesalePrice(Investment inv, int priceCents) =>
-        inv.Wholesale is { } w ? (int)Math.Min(w.MaxPriceCents, JsMath.Round(priceCents * w.PricePct / 100)) : 0;
+    /// <summary>
+    /// The bottles an order from away asks for this month: more, the better the proprietor's name,
+    /// and fewer, the dearer the bottle (null when the shelf is bare: the order at the reference price).
+    /// </summary>
+    public static int WholesaleOrder(GameState state, WholesaleSpec spec, int? priceCents) =>
+        (int)Math.Floor(spec.BottlesPerMonth * (1 + state.Player.Reputation * spec.PerReputation) *
+            OrderPriceFactor(spec, priceCents));
+
+    /// <summary>What buyers from away pay for a bottle sold on the shelf at <paramref name="priceCents"/>.</summary>
+    public static int WholesalePrice(WholesaleSpec spec, int priceCents) =>
+        (int)Math.Min(spec.MaxPriceCents, JsMath.Round(priceCents * spec.PricePct / 100));
 
     /// <summary>
     /// Turn phase, after expenses: upkeep is paid, accidents happen, contracts are cancelled when

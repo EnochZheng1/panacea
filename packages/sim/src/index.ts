@@ -35,7 +35,13 @@ export {
 } from './systems/formula.ts';
 export { maxBrewable, stockOf, stockValue, totalStock, type StockValue } from './systems/lab.ts';
 export { acuteDanger, feltEffect, overdoseChance, reliefScore } from './systems/pharmacology.ts';
-export { investRefusal, isHeld, wholesaleOrder, wholesalePrice } from './systems/investments.ts';
+export {
+  investRefusal,
+  isHeld,
+  orderPriceFactor,
+  wholesaleOrder,
+  wholesalePrice,
+} from './systems/investments.ts';
 export { availableChoices, nextUnlocks, type UnlockProgress } from './systems/progression.ts';
 export {
   bribeCostCents,
@@ -43,4 +49,9 @@ export {
   implicationChance,
   INQUEST_EVENT_ID,
 } from './systems/scrutiny.ts';
-export { evaluateRequirement, type RequirementStatus } from './systems/requirements.ts';
+export {
+  evaluateRequirement,
+  requirementProgress,
+  type ConditionProgress,
+  type RequirementStatus,
+} from './systems/requirements.ts';

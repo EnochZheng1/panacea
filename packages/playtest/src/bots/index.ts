@@ -1,9 +1,11 @@
 import type { FormulaComponent } from '@panacea/sim';
 import { policyBot, PRESETS } from './policy.ts';
+import { SLOPPY_INVESTMENTS, sloppyBot } from './sloppy.ts';
 import type { Bot, BotTurn } from './types.ts';
 
 export type { Bot, BotTurn } from './types.ts';
 export { policyBot, PRESETS, recipeFor, type Policy } from './policy.ts';
+export { sloppyBot, SLOPPY_INVESTMENTS, type SloppyOptions } from './sloppy.ts';
 
 /** Does nothing; events resolve to their defaults. Establishes the economy's floor. */
 export const idleBot: Bot = {
@@ -105,4 +107,5 @@ export const BOTS: Record<string, () => Bot> = {
   idle: () => idleBot,
   random: () => randomBot,
   ...Object.fromEntries(Object.entries(PRESETS).map(([id, p]) => [id, () => policyBot(p)])),
+  sloppy: () => sloppyBot({ id: 'sloppy', invest: SLOPPY_INVESTMENTS }),
 };

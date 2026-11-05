@@ -430,7 +430,10 @@ public sealed class Background
     public IReadOnlyList<string> Flags { get; init; } = [];
 }
 
-/// <summary>Druggists out of town under contract (schemas.ts InvestmentSchema.wholesale).</summary>
+/// <summary>
+/// Orders from away (schemas.ts OrdersSchema): druggists out of town under contract
+/// (InvestmentSchema.wholesale), or readers who send by post (InvestmentSchema.postOrders).
+/// </summary>
 public sealed class WholesaleSpec
 {
     /// <summary>Bottles a month, × (1 + reputation × PerReputation).</summary>
@@ -442,6 +445,12 @@ public sealed class WholesaleSpec
     public int MaxPriceCents { get; init; }
     /// <summary>Health of the strangers they sell to (no tolerance): a strong bottle kills some.</summary>
     public double StrangerHealth { get; init; }
+    /// <summary>The shelf price at which they order BottlesPerMonth…</summary>
+    public int RefPriceCents { get; init; } = 60;
+    /// <summary>…and the order's factor, 1 + PriceElasticity × (RefPriceCents − price) / RefPriceCents…</summary>
+    public double PriceElasticity { get; init; }
+    /// <summary>…between 0 and this.</summary>
+    public double MaxOrderBoost { get; init; } = 1;
 }
 
 /// <summary>A monthly chance of an accident while an investment is held.</summary>
@@ -473,6 +482,8 @@ public sealed class Investment
     /// <summary>Heat a month per point of label boldness while held.</summary>
     public double HeatPerBoldness { get; init; }
     public WholesaleSpec? Wholesale { get; init; }
+    /// <summary>Readers who send for a bottle by post (an almanac's), at the shelf price.</summary>
+    public WholesaleSpec? PostOrders { get; init; }
     public MishapSpec? Mishap { get; init; }
     /// <summary>Applied when bought; capability changes are undone when it lapses or is lost.</summary>
     public IReadOnlyList<Effect> Effects { get; init; } = [];
@@ -507,6 +518,11 @@ public sealed class MarketConfig
     /// </summary>
     public double PriceHesitation { get; init; }
     public double HesitationMargin { get; init; }
+    /// <summary>
+    /// Orders from away are filled after the regulars have had theirs, from at most this share of
+    /// what is left on the shelf; the walk-ins get the rest.
+    /// </summary>
+    public double OrdersShelfShare { get; init; }
 }
 
 public sealed class AdvertisingConfig

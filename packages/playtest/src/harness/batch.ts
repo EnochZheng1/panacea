@@ -29,11 +29,12 @@ export interface BotSummary {
   p10FinalCashCents: number;
   p90FinalCashCents: number;
   /**
-   * Median cash at the end of months 6, 12, 48 and 120 (a game that ended sooner counts its final
-   * cash): the early game, and whether the long game keeps growing.
+   * Median cash at the end of months 6, 12, 24, 48 and 120 (a game that ended sooner counts its
+   * final cash): the early game, and whether the long game keeps growing.
    */
   medianCashMonth6Cents: number;
   medianCashMonth12Cents: number;
+  medianCashMonth24Cents: number;
   medianCashMonth48Cents: number;
   medianCashMonth120Cents: number;
   medianBottlesSold: number;
@@ -168,6 +169,7 @@ export function summarise(botId: string, results: RunResult[], content: ContentP
     ),
     medianCashMonth6Cents: median(pick((r) => cashAtMonth(r, 6))),
     medianCashMonth12Cents: median(pick((r) => cashAtMonth(r, 12))),
+    medianCashMonth24Cents: median(pick((r) => cashAtMonth(r, 24))),
     medianCashMonth48Cents: median(pick((r) => cashAtMonth(r, 48))),
     medianCashMonth120Cents: median(pick((r) => cashAtMonth(r, 120))),
     medianBottlesSold: median(pick((r) => r.bottlesSold)),
@@ -221,6 +223,7 @@ export function formatReport(report: BatchReport): string {
     'p90 final cash',
     'Cash m6 (median)',
     'Cash m12 (median)',
+    'Cash m24 (median)',
     'Cash m48 (median)',
     'Cash m120 (median)',
     'Median bottles sold',
@@ -239,6 +242,7 @@ export function formatReport(report: BatchReport): string {
       dollars(s.p90FinalCashCents),
       dollars(s.medianCashMonth6Cents),
       dollars(s.medianCashMonth12Cents),
+      dollars(s.medianCashMonth24Cents),
       dollars(s.medianCashMonth48Cents),
       dollars(s.medianCashMonth120Cents),
       s.medianBottlesSold,

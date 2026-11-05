@@ -70,6 +70,7 @@ export function openMonth(state: GameState, stockValueCents: number): MonthInPro
     turnedAwayByPrice: 0,
     callers: {},
     wholesale: { ordered: 0, delivered: 0, revenueCents: 0 },
+    post: { ordered: 0, delivered: 0, revenueCents: 0 },
   };
 }
 
@@ -96,6 +97,7 @@ export function closeMonth(state: GameState, stockValueCents: number): LedgerEnt
     turnedAwayByPrice: m.turnedAwayByPrice,
     callers: m.callers,
     wholesale: m.wholesale,
+    post: m.post,
   };
 }
 

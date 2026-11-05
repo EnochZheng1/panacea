@@ -13,25 +13,60 @@
     "months": 12,
     "requires": { "type": "unlocked", "id": "newspaper_ads" },
     "walkInsPerMonth": 10,
-    "heatPerBoldness": 0.1
+    "heatPerBoldness": 0.15,
+    "postOrders": {
+      "bottlesPerMonth": 12,
+      "perReputation": 0,
+      "pricePct": 100,
+      "maxPriceCents": 150,
+      "strangerHealth": 65,
+      "refPriceCents": 60,
+      "priceElasticity": 1,
+      "maxOrderBoost": 1.5
+    }
   },
   {
-    "id": "wholesale_contract",
-    "costCents": 36000,
+    "id": "druggists_order",
+    "costCents": 10000,
     "requires": {
       "type": "all",
       "of": [
-        { "type": "bottlesSold", "atLeast": 1500 },
+        { "type": "bottlesSold", "atLeast": 400 },
         { "type": "not", "requirement": { "type": "heat", "atLeast": 30 } }
       ]
     },
     "lostWhen": { "type": "heat", "atLeast": 50 },
     "wholesale": {
-      "bottlesPerMonth": 36,
+      "bottlesPerMonth": 16,
       "perReputation": 0.02,
       "pricePct": 55,
       "maxPriceCents": 50,
-      "strangerHealth": 75
+      "strangerHealth": 75,
+      "refPriceCents": 60,
+      "priceElasticity": 1.2,
+      "maxOrderBoost": 1.5
+    }
+  },
+  {
+    "id": "wholesale_contract",
+    "costCents": 30000,
+    "requires": {
+      "type": "all",
+      "of": [
+        { "type": "bottlesSold", "atLeast": 1200 },
+        { "type": "not", "requirement": { "type": "heat", "atLeast": 30 } }
+      ]
+    },
+    "lostWhen": { "type": "heat", "atLeast": 50 },
+    "wholesale": {
+      "bottlesPerMonth": 32,
+      "perReputation": 0.02,
+      "pricePct": 55,
+      "maxPriceCents": 50,
+      "strangerHealth": 75,
+      "refPriceCents": 60,
+      "priceElasticity": 1.2,
+      "maxOrderBoost": 1.5
     }
   },
   {

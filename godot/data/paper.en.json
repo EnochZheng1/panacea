@@ -804,7 +804,9 @@
     "almanac.lapsed": "IN THE TRADE.—The proprietor's almanac for the year is out of date, and is now chiefly used for lighting fires. It may be had again on application.",
     "branch_shop.lost": "IN THE TRADE.—The branch in the Ninth Ward has put up its shutters. The clerk is said to have taken the till, and the ward to have taken the clerk's side.",
     "wholesale_contract.lost": "IN THE TRADE.—Messrs. Kittredge & Vail of Newark have cancelled their order for {product}, having read the papers. New Jersey will have to find its own remedies.",
-    "laboratory.mishap": "FIRE.—A blaze in a back room on Mulberry street brought out Engine No. 9 on {weekday}. A quantity of ether was found to be the cause, and a German chemist the excuse. The proprietor's loss is put at twenty-five dollars, and the talk at a good deal more."
+    "laboratory.mishap": "FIRE.—A blaze in a back room on Mulberry street brought out Engine No. 9 on {weekday}. A quantity of ether was found to be the cause, and a German chemist the excuse. The proprietor's loss is put at twenty-five dollars, and the talk at a good deal more.",
+    "druggists_order.bought": "IN THE TRADE.—A druggist of Atlantic avenue, Brooklyn, is to keep {product} on his own shelf, a dozen or so at a time. He describes it to our reporter as a remedy of the highest character, and the price he pays for it as none of our business.",
+    "druggists_order.lost": "IN THE TRADE.—The Atlantic avenue druggist has sent back the last of {product}, saying he has a family name to think of. He has taken a rival's bitters in its place."
   },
   "outOfTown": [
     "OUT OF TOWN.—A death at Paterson is laid by the family to a remedy bought from a druggist there. The druggist says he had it by the dozen from New-York, and is sorry.",

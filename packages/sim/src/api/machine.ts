@@ -15,6 +15,7 @@ import {
   stockValue,
 } from '../systems/lab.ts';
 import { investRefusal, wholesaleOrder, wholesalePrice } from '../systems/investments.ts';
+import { requirementProgress, type ConditionProgress } from '../systems/requirements.ts';
 import { availableChoices, nextUnlocks, type UnlockProgress } from '../systems/progression.ts';
 import { isRuined } from '../systems/market.ts';
 import { bribeCostCents, bribeExposureChance, INQUEST_EVENT_ID } from '../systems/scrutiny.ts';
@@ -83,12 +84,24 @@ export interface ObservedInvestment {
   walkInsPerMonth: number;
   /** Heat a month per point of label boldness while held. */
   heatPerBoldness: number;
-  /** Wholesale: bottles the druggists would order this month, at the shop's present name. */
+  /**
+   * Wholesale: bottles the druggists would order this month, at the shop's present name and the
+   * shelf price of the bottle the shop has most of (fewer the dearer it is).
+   */
   wholesaleBottles: number | null;
   /** Wholesale: what they would pay a bottle for the bottle the shop has most of. */
   wholesalePriceCents: number | null;
+  /** Orders by post (an almanac's readers): bottles a month at the present shelf price. */
+  postBottles: number | null;
+  /** Orders by post: what each brings. */
+  postPriceCents: number | null;
   /** Chance of an accident each month while held. */
   mishapChance: number | null;
+  /**
+   * What it waits for, as numbers: every condition of its requirement (met or not), then its
+   * price against the cash in hand (`kind: 'cost'`). Empty while it is held.
+   */
+  progress: ConditionProgress[];
 }
 
 export interface Observation {
@@ -143,8 +156,8 @@ export interface Observation {
   lastMonth: LedgerEntry | null;
 }
 
-/** The formula druggists under contract would take: the one with most bottles on the shelf. */
-function wholesaleFormula(state: GameState) {
+/** The formula orders from away would take: the one with most bottles on the shelf. */
+function orderFormula(state: GameState) {
   let best = state.lab.formulas[0];
   let most = 0;
   for (const f of state.lab.formulas) {
@@ -158,10 +171,24 @@ function wholesaleFormula(state: GameState) {
 }
 
 export function observeInvestments(state: GameState, content: ContentPack): ObservedInvestment[] {
-  const formula = wholesaleFormula(state);
+  const formula = orderFormula(state);
+  const price = formula?.priceCents ?? null;
   return content.investments.map((inv) => {
     const holding = state.player.investments[inv.id];
     const refusal = investRefusal(state, inv, content);
+    const progress: ConditionProgress[] = [];
+    if (!holding) {
+      if (inv.requires) progress.push(...requirementProgress(inv.requires, state, content));
+      progress.push({
+        kind: 'cost',
+        id: null,
+        sense: 'atLeast',
+        have: state.player.cashCents,
+        need: inv.costCents,
+        met: state.player.cashCents >= inv.costCents,
+        via: null,
+      });
+    }
     return {
       id: inv.id,
       costCents: inv.costCents,
@@ -174,10 +201,14 @@ export function observeInvestments(state: GameState, content: ContentPack): Obse
       refusal,
       walkInsPerMonth: inv.walkInsPerMonth,
       heatPerBoldness: inv.heatPerBoldness,
-      wholesaleBottles: inv.wholesale ? wholesaleOrder(state, inv) : null,
+      wholesaleBottles: inv.wholesale ? wholesaleOrder(state, inv.wholesale, price) : null,
       wholesalePriceCents:
-        inv.wholesale && formula ? wholesalePrice(inv, formula.priceCents) : null,
+        inv.wholesale && price !== null ? wholesalePrice(inv.wholesale, price) : null,
+      postBottles: inv.postOrders ? wholesaleOrder(state, inv.postOrders, price) : null,
+      postPriceCents:
+        inv.postOrders && price !== null ? wholesalePrice(inv.postOrders, price) : null,
       mishapChance: inv.mishap?.chancePerMonth ?? null,
+      progress,
     };
   });
 }

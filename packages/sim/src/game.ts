@@ -132,6 +132,7 @@ export function newGame(content: ContentPack, options: NewGameOptions): GameStat
       turnedAwayByPrice: 0,
       callers: {},
       wholesale: { ordered: 0, delivered: 0, revenueCents: 0 },
+      post: { ordered: 0, delivered: 0, revenueCents: 0 },
     },
     ledger: [],
     log: [],

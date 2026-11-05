@@ -199,7 +199,7 @@ export const PRESETS: Record<string, Policy> = {
     adSpendCents: 0,
     inquest: 'silent',
     events: 'default',
-    invest: ['branch_shop', 'wholesale_contract', 'almanac'],
+    invest: ['branch_shop', 'wholesale_contract', 'druggists_order', 'almanac'],
   },
   cautious: {
     id: 'cautious',
@@ -218,7 +218,7 @@ export const PRESETS: Record<string, Policy> = {
     adSpendCents: 0,
     inquest: 'testify',
     events: 'default',
-    invest: ['branch_shop', 'wholesale_contract', 'almanac'],
+    invest: ['branch_shop', 'wholesale_contract', 'druggists_order', 'almanac'],
   },
   greedy: {
     id: 'greedy',
@@ -252,7 +252,7 @@ export const PRESETS: Record<string, Policy> = {
     adSpendCents: 1000,
     inquest: 'bribe',
     events: 'default',
-    invest: ['branch_shop', 'wholesale_contract', 'almanac'],
+    invest: ['branch_shop', 'wholesale_contract', 'druggists_order', 'almanac'],
   },
   adaptive: {
     id: 'adaptive',
@@ -269,7 +269,7 @@ export const PRESETS: Record<string, Policy> = {
     events: 'default',
     escalate: { stepOz: 0.05, maxOz: 0.8 },
     deescalate: { heatAbove: 35, stepOz: 0.1, minOz: 0.15 },
-    invest: ['branch_shop', 'wholesale_contract', 'almanac'],
+    invest: ['branch_shop', 'wholesale_contract', 'druggists_order', 'almanac'],
   },
   mercurial: {
     id: 'mercurial',
@@ -287,6 +287,6 @@ export const PRESETS: Record<string, Policy> = {
     adSpendCents: 300,
     inquest: 'silent',
     events: 'default',
-    invest: ['branch_shop', 'wholesale_contract', 'almanac'],
+    invest: ['branch_shop', 'wholesale_contract', 'druggists_order', 'almanac'],
   },
 };

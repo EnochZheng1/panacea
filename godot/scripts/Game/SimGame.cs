@@ -217,9 +217,48 @@ public sealed class SimGame : IGame
 				WholesaleBottles = i.WholesaleBottles,
 				WholesalePriceCents = i.WholesalePriceCents,
 				MishapChance = i.MishapChance,
+				PostBottles = i.PostBottles,
+				PostPriceCents = i.PostPriceCents,
+				Progress = Progress(i.Progress),
 			});
 		}
 		return d;
+	}
+
+	/// <summary>One unmet condition of a venture, as the prospectus prints it.</summary>
+	private string? ProgressLine(ConditionProgress c)
+	{
+		static string N(double x) => ((long)Math.Floor(x)).ToString("N0", System.Globalization.CultureInfo.InvariantCulture);
+		var line = c.Kind switch
+		{
+			"bottlesSold" => $"{N(c.Have)} of {N(c.Need)} bottles sold",
+			"regulars" => $"{N(c.Have)} of {N(c.Need)} regulars",
+			"cash" => $"{EditionWriter.Money((long)c.Have)} of {EditionWriter.Money((long)c.Need)} put by",
+			"cost" => $"{EditionWriter.Money((long)c.Have)} of the {EditionWriter.Money((long)c.Need)} in hand",
+			"heat" when c.Sense == "below" => $"suspicion at {N(c.Have)}; it must be under {N(c.Need)}",
+			"heat" => $"suspicion at {N(c.Have)} of {N(c.Need)}",
+			"unlocked" when c.Id != null => $"waits on {_content.Text($"unlock.{c.Id}.name").ToLowerInvariant()}",
+			_ => null,
+		};
+		return line;
+	}
+
+	/// <summary>The unmet conditions, the ones an unlock waits on set together under its name:
+	/// "for the shop next door, 15 of 25 regulars and $148.95 of $200.00 put by".</summary>
+	private List<string> Progress(IReadOnlyList<ConditionProgress> all)
+	{
+		var open = all.Where(c => !c.Met).ToList();
+		var vias = open.Where(c => c.Via != null).Select(c => c.Via!).Distinct().ToList();
+		var lines = new List<string>();
+		foreach (var v in vias)
+		{
+			var parts = open.Where(c => c.Via == v).Select(ProgressLine).Where(x => x != null).ToList();
+			if (parts.Count > 0) lines.Add($"for {_content.Text($"unlock.{v}.name").ToLowerInvariant()}, {string.Join(" and ", parts)}");
+		}
+		// an unlock already spelled out above needs no "waits on" line of its own
+		foreach (var c in open.Where(c => c.Via == null && !(c.Kind == "unlocked" && vias.Contains(c.Id ?? ""))))
+			if (ProgressLine(c) is { } l) lines.Add(l);
+		return lines;
 	}
 
 	/// <summary>An unknown dead customer, described as the deaths column describes them.</summary>
@@ -298,6 +337,8 @@ public sealed class SimGame : IGame
 			f.WholesaleOrdered = report.Wholesale.Ordered;
 			f.WholesaleDelivered = report.Wholesale.Delivered;
 			f.WholesaleRevenueCents = report.Wholesale.RevenueCents;
+			f.PostDelivered = report.Post.Delivered;
+			f.PostRevenueCents = report.Post.RevenueCents;
 		}
 
 		// what the trade says the shop is near to: the next things it can earn

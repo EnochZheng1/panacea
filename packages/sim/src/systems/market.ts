@@ -1,7 +1,15 @@
-import type { BuyerProfile, ContentPack, DrugClass } from '@panacea/content';
+import type { BuyerProfile, ContentPack, DrugClass, Orders } from '@panacea/content';
 import { CAUSES, type Cause } from '../core/causes.ts';
 import { adjust } from '../core/ledger.ts';
-import type { Bought, Customer, Formula, GameState, Phase, TurnContext } from '../core/index.ts';
+import type {
+  Bought,
+  Customer,
+  Formula,
+  GameState,
+  Phase,
+  TurnContext,
+  WholesaleMonth,
+} from '../core/index.ts';
 import { pickAilment, pickSegment, customerCapacity, generateCustomer } from './customers.ts';
 import { analyzeFormula, claimAppeal, claimBoldness, type FormulaAnalysis } from './formula.ts';
 import {
@@ -10,7 +18,7 @@ import {
   wholesaleOrder,
   wholesalePrice,
 } from './investments.ts';
-import { stockOf, takeBottle } from './lab.ts';
+import { stockOf, takeBottle, totalStock } from './lab.ts';
 import { acuteDanger, appeal, overdoseChance, reliefScore, zeroTolerance } from './pharmacology.ts';
 import { recordDeath } from './scrutiny.ts';
 
@@ -280,12 +288,14 @@ export const salesPhase: Phase = {
       }
     }
 
+    // Orders from away are filled next, from what the regulars left, up to a share of it: strangers
+    // at the counter get the rest, so a contract held on a thin shelf costs the shop new custom.
+    ordersFromAway(ctx);
+
     // Walk-ins.
     walkIns(ctx, offers, sell);
 
     for (const r of revenue.values()) adjust(state, 'cash', r.cents, r.cause, r.formulaId);
-
-    wholesale(ctx);
   },
 };
 
@@ -360,75 +370,101 @@ function walkIns(
   }
 }
 
-/**
- * Druggists out of town under contract take their order from the shelf at month's end, at the
- * wholesale price, of the bottle the shop has most of. They sell to strangers with no tolerance:
- * a strong enough bottle kills some of them, and the talk comes home.
- */
-function wholesale({ state, content, rng }: TurnContext): void {
-  for (const inv of heldInvestments(state, content)) {
-    if (!inv.wholesale) continue;
-    const ordered = wholesaleOrder(state, inv);
-    state.month.wholesale.ordered += ordered;
-    let formula: Formula | undefined;
-    let most = 0;
-    for (const f of state.lab.formulas) {
-      const n = stockOf(state, f.id);
-      if (n > most) {
-        formula = f;
-        most = n;
-      }
+/** The bottle orders from away are filled with: the one the shop has most of on the shelf. */
+export function orderFormula(state: GameState): Formula | undefined {
+  let formula: Formula | undefined;
+  let most = 0;
+  for (const f of state.lab.formulas) {
+    const n = stockOf(state, f.id);
+    if (n > most) {
+      formula = f;
+      most = n;
     }
-    if (!formula || ordered <= 0) continue;
-    const price = wholesalePrice(inv, formula.priceCents);
-    const strangerHealth = inv.wholesale.strangerHealth;
-    const risk = new Map<string, { p: number; detectability: number }>();
-    let revenue = 0;
-    for (let i = 0; i < ordered; i++) {
-      const lot = takeBottle(state, formula.id);
-      if (!lot) break;
-      state.month.wholesale.delivered += 1;
-      state.stats.bottlesSold += 1;
-      state.stats.revenueCents += price;
-      revenue += price;
-      const sale = state.month.sales.find((s) => s.formulaId === formula.id);
-      if (sale) {
-        sale.bottles += 1;
-        sale.revenueCents += price;
-      } else {
-        state.month.sales.push({ formulaId: formula.id, bottles: 1, revenueCents: price });
-      }
-      // A stranger in Paterson, of ordinary health, with no tolerance.
-      let r = risk.get(lot.id);
-      if (!r) {
-        const a = analyzeFormula(lot.components, lot.processId, content);
-        const dose = { potency: lot.potency, doseScale: 1, vulnerability: 1 };
-        const danger = acuteDanger(a, zeroTolerance(), dose, content);
-        r = {
-          p: overdoseChance(danger, strangerHealth),
-          detectability: a.properties.detectability,
-        };
-        risk.set(lot.id, r);
-      }
-      if (r.p > 0 && rng.chance(r.p)) {
-        const segment = pickSegment(content, rng);
-        recordDeath(state, content, rng, {
-          customerId: null,
-          name: '',
-          segment: segment.id,
-          consumer: 'self',
-          anonymous: true,
-          cause: 'overdose',
-          productImplicated: true,
-          formulaId: null,
-          badBatch: lot.badBatch,
-          detectability: r.detectability,
-        });
-      }
-    }
-    state.month.wholesale.revenueCents += revenue;
-    if (revenue > 0) adjust(state, 'cash', revenue, CAUSES.salesWholesale, inv.id);
   }
+  return formula;
+}
+
+/**
+ * Orders from away, filled after the regulars have had theirs and before the walk-ins, from at
+ * most `ordersShelfShare` of what the regulars left: druggists out of town under contract, at the
+ * wholesale price, and readers who send for a bottle by post, at the shelf price. All take the
+ * bottle the shop has most of, and order fewer the dearer it is. They sell to (or are) strangers
+ * with no tolerance: a strong enough bottle kills some of them, and the talk comes home.
+ */
+function ordersFromAway(ctx: TurnContext): void {
+  const { state, content } = ctx;
+  const allowance = { left: Math.ceil(totalStock(state) * content.config.market.ordersShelfShare) };
+  for (const inv of heldInvestments(state, content)) {
+    if (inv.wholesale) {
+      deliver(ctx, inv.id, inv.wholesale, state.month.wholesale, CAUSES.salesWholesale, allowance);
+    }
+    if (inv.postOrders) {
+      deliver(ctx, inv.id, inv.postOrders, state.month.post, CAUSES.salesPost, allowance);
+    }
+  }
+}
+
+function deliver(
+  { state, content, rng }: TurnContext,
+  investmentId: string,
+  spec: Orders,
+  month: WholesaleMonth,
+  cause: Cause,
+  allowance: { left: number },
+): void {
+  const formula = orderFormula(state);
+  const ordered = wholesaleOrder(state, spec, formula?.priceCents ?? null);
+  month.ordered += ordered;
+  if (!formula || ordered <= 0) return;
+  const price = wholesalePrice(spec, formula.priceCents);
+  const risk = new Map<string, { p: number; detectability: number }>();
+  let revenue = 0;
+  for (let i = 0; i < ordered; i++) {
+    if (allowance.left <= 0) break;
+    const lot = takeBottle(state, formula.id);
+    if (!lot) break;
+    allowance.left -= 1;
+    month.delivered += 1;
+    state.stats.bottlesSold += 1;
+    state.stats.revenueCents += price;
+    revenue += price;
+    const sale = state.month.sales.find((s) => s.formulaId === formula.id);
+    if (sale) {
+      sale.bottles += 1;
+      sale.revenueCents += price;
+    } else {
+      state.month.sales.push({ formulaId: formula.id, bottles: 1, revenueCents: price });
+    }
+    // A stranger of ordinary health, with no tolerance.
+    let r = risk.get(lot.id);
+    if (!r) {
+      const a = analyzeFormula(lot.components, lot.processId, content);
+      const dose = { potency: lot.potency, doseScale: 1, vulnerability: 1 };
+      const danger = acuteDanger(a, zeroTolerance(), dose, content);
+      r = {
+        p: overdoseChance(danger, spec.strangerHealth),
+        detectability: a.properties.detectability,
+      };
+      risk.set(lot.id, r);
+    }
+    if (r.p > 0 && rng.chance(r.p)) {
+      const segment = pickSegment(content, rng);
+      recordDeath(state, content, rng, {
+        customerId: null,
+        name: '',
+        segment: segment.id,
+        consumer: 'self',
+        anonymous: true,
+        cause: 'overdose',
+        productImplicated: true,
+        formulaId: null,
+        badBatch: lot.badBatch,
+        detectability: r.detectability,
+      });
+    }
+  }
+  month.revenueCents += revenue;
+  if (revenue > 0) adjust(state, 'cash', revenue, cause, investmentId);
 }
 
 /** Turn phase: rent, and any retainers the shop has agreed to pay. */

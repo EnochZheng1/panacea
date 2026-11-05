@@ -318,6 +318,27 @@ export const BackgroundSchema = z.strictObject({
 export type Background = z.infer<typeof BackgroundSchema>;
 
 /**
+ * Bottles that leave the shop every month for buyers elsewhere: `bottlesPerMonth` × (1 +
+ * reputation × `perReputation`) × the price factor, at `pricePct`% of the shelf price but at most
+ * `maxPriceCents` a bottle. The price factor is 1 + `priceElasticity` × (`refPriceCents` − shelf
+ * price) / `refPriceCents`, between 0 and `maxOrderBoost`: they sell the bottle on at your shelf
+ * price, so a dear bottle sells fewer out there. The orders are filled after the regulars have had
+ * theirs (see `market.ordersShelfShare`), from the bottle the shop has most of. They go to
+ * strangers of `strangerHealth` with no tolerance, and a strong enough bottle kills some of them.
+ */
+export const OrdersSchema = z.strictObject({
+  bottlesPerMonth: z.number().int().min(0),
+  perReputation: z.number().min(0),
+  pricePct: z.number().min(0).max(100),
+  maxPriceCents: z.number().int().min(0),
+  strangerHealth: z.number().min(1).max(100),
+  refPriceCents: z.number().int().min(1).default(60),
+  priceElasticity: z.number().min(0).default(0),
+  maxOrderBoost: z.number().min(1).default(1),
+});
+export type Orders = z.infer<typeof OrdersSchema>;
+
+/**
  * Something the proprietor can buy that pays back over months or years: a branch shop, an
  * almanac, a wholesale contract, a laboratory. Bought with the `Invest` action; held until it
  * runs out (`months`), is lost (`lostWhen`), or for good.
@@ -339,20 +360,12 @@ export const InvestmentSchema = z.strictObject({
   /** Heat each month per point of label boldness, while held (claims printed where all can read). */
   heatPerBoldness: z.number().min(0).default(0),
   /**
-   * Druggists out of town who take bottles every month at a wholesale price: `bottlesPerMonth`
-   * × (1 + reputation × `perReputation`), at `pricePct`% of the shelf price but at most
-   * `maxPriceCents` a bottle. They sell to strangers of `strangerHealth` with no tolerance, and
-   * a strong enough bottle kills some of them.
+   * Druggists out of town who take bottles every month at a wholesale price (see `OrdersSchema`).
+   * They read the papers, and cancel (`lostWhen`) once the talk turns ugly.
    */
-  wholesale: z
-    .strictObject({
-      bottlesPerMonth: z.number().int().min(0),
-      perReputation: z.number().min(0),
-      pricePct: z.number().min(0).max(100),
-      maxPriceCents: z.number().int().min(0),
-      strangerHealth: z.number().min(1).max(100),
-    })
-    .optional(),
+  wholesale: OrdersSchema.optional(),
+  /** Readers who send for a bottle by post (an almanac's): orders at the shelf price, by mail. */
+  postOrders: OrdersSchema.optional(),
   /** A monthly chance of an accident while held (a laboratory fire), with its effects. */
   mishap: z
     .strictObject({
@@ -428,6 +441,11 @@ export const ConfigSchema = z.strictObject({
      */
     priceHesitation: z.number().min(0).max(1),
     hesitationMargin: z.number().positive(),
+    /**
+     * Orders from away (druggists, the post) are filled after the regulars have had theirs, from
+     * at most this share of what is left on the shelf; the walk-ins get the rest.
+     */
+    ordersShelfShare: z.number().min(0).max(1),
   }),
   advertising: z.strictObject({
     /** Extra walk-ins ≈ visitorsPerSqrtCent × √(monthly spend in cents). */

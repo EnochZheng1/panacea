@@ -61,9 +61,14 @@ public sealed record ObservedInvestment(
     string? Refusal, // "already held", "not yet offered" or "not enough cash"
     int WalkInsPerMonth,
     double HeatPerBoldness, // heat a month per point of label boldness while held
-    int? WholesaleBottles, // wholesale: bottles ordered this month at the shop's present name
+    int? WholesaleBottles, // wholesale: bottles ordered this month at the shop's name and shelf price
     int? WholesalePriceCents, // wholesale: paid a bottle for the bottle the shop has most of
-    double? MishapChance); // chance of an accident each month while held
+    int? PostBottles, // orders by post (the almanac's readers): bottles a month at the shelf price
+    int? PostPriceCents, // orders by post: what each brings
+    double? MishapChance, // chance of an accident each month while held
+    // what it waits for: every condition of its requirement (met or not), then its price against
+    // the cash in hand (Kind "cost"); empty while held
+    IReadOnlyList<ConditionProgress> Progress);
 
 /// <summary>What a player could know (api/machine.ts Observation).</summary>
 public sealed class Observation
@@ -243,8 +248,8 @@ public static class Machine
         };
     }
 
-    /// <summary>The formula druggists under contract would take: the one with most bottles on the shelf.</summary>
-    private static Formula? WholesaleFormula(GameState state)
+    /// <summary>The formula orders from away would take: the one with most bottles on the shelf.</summary>
+    private static Formula? OrderFormula(GameState state)
     {
         Formula? best = state.Lab.Formulas.Count > 0 ? state.Lab.Formulas[0] : null;
         int most = 0;
@@ -262,11 +267,19 @@ public static class Machine
 
     public static List<ObservedInvestment> ObserveInvestments(GameState state, ContentPack content)
     {
-        var formula = WholesaleFormula(state);
+        var formula = OrderFormula(state);
+        int? price = formula?.PriceCents;
         return content.Investments.Select(inv =>
         {
             state.Player.Investments.TryGetValue(inv.Id, out var holding);
             string? refusal = Sim.Investments.InvestRefusal(state, inv, content);
+            var progress = new List<ConditionProgress>();
+            if (holding is null)
+            {
+                if (inv.Requires is not null) progress.AddRange(Requirements.Progress(inv.Requires, state, content));
+                progress.Add(new ConditionProgress("cost", null, "atLeast", state.Player.CashCents, inv.CostCents,
+                    state.Player.CashCents >= inv.CostCents, null));
+            }
             return new ObservedInvestment(
                 inv.Id,
                 inv.CostCents,
@@ -279,9 +292,12 @@ public static class Machine
                 refusal,
                 inv.WalkInsPerMonth,
                 inv.HeatPerBoldness,
-                inv.Wholesale is not null ? Sim.Investments.WholesaleOrder(state, inv) : null,
-                inv.Wholesale is not null && formula is not null ? Sim.Investments.WholesalePrice(inv, formula.PriceCents) : null,
-                inv.Mishap?.ChancePerMonth);
+                inv.Wholesale is { } w ? Sim.Investments.WholesaleOrder(state, w, price) : null,
+                inv.Wholesale is { } w2 && price is int p ? Sim.Investments.WholesalePrice(w2, p) : null,
+                inv.PostOrders is { } po ? Sim.Investments.WholesaleOrder(state, po, price) : null,
+                inv.PostOrders is { } po2 && price is int p2 ? Sim.Investments.WholesalePrice(po2, p2) : null,
+                inv.Mishap?.ChancePerMonth,
+                progress);
         }).ToList();
     }
 

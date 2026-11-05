@@ -68,3 +68,123 @@ export function evaluateRequirement(
 }
 
 const binary = (met: boolean): RequirementStatus => ({ met, progress: met ? 1 : 0 });
+
+/**
+ * One condition of a requirement, as numbers a progress line can print: "1,120 of 1,500 bottles
+ * sold", "suspicion 12, offered below 30", "the cobbler's shop: not yet".
+ */
+export interface ConditionProgress {
+  /**
+   * What is counted: a requirement type (`bottlesSold`, `regulars`, `cash`, `heat`, `unlocked`,
+   * `flag`, `date`, …), or `cost` for an investment's price against the cash in hand.
+   */
+  kind: string;
+  /** The unlock or flag waited on (`unlocked`, `flag`), or null. */
+  id: string | null;
+  /**
+   * `atLeast`: met once `have` reaches `need`. `below`: met while `have` stays under `need` (a
+   * ceiling, such as "while the talk in the ward is low").
+   */
+  sense: 'atLeast' | 'below';
+  /** The present count. Cash and cost in cents; unlocked and flag 1 or 0; date a month index. */
+  have: number;
+  need: number;
+  met: boolean;
+  /** Set on the conditions of an unlock that is itself waited on: that unlock's id. */
+  via: string | null;
+}
+
+/** The count a numeric requirement compares, or null for the others. */
+function countFor(req: Requirement, state: GameState): number | null {
+  switch (req.type) {
+    case 'cash':
+      return state.player.cashCents;
+    case 'reputation':
+      return state.player.reputation;
+    case 'notoriety':
+      return state.player.notoriety;
+    case 'bottlesSold':
+      return state.stats.bottlesSold;
+    case 'batchesBrewed':
+      return state.stats.batchesBrewed;
+    case 'heat':
+      return state.scrutiny.heat;
+    case 'deaths':
+      return state.deaths.length;
+    case 'inquests':
+      return state.scrutiny.inquestsHeld;
+    case 'regulars':
+      return state.customers.length;
+    default:
+      return null;
+  }
+}
+
+/**
+ * The leaves of a requirement as progress lines, in content order. "All" lists every part; "any"
+ * lists the parts of its most-met branch; "not" turns a threshold into a ceiling. An `unlocked`
+ * condition not yet met is followed by its unlock's own conditions, marked `via` that unlock.
+ */
+export function requirementProgress(
+  req: Requirement,
+  state: GameState,
+  content: ContentPack,
+  via: string | null = null,
+): ConditionProgress[] {
+  switch (req.type) {
+    case 'all':
+      return req.of.flatMap((r) => requirementProgress(r, state, content, via));
+    case 'any': {
+      let best = req.of[0] as Requirement;
+      let bestProgress = Number.NEGATIVE_INFINITY;
+      for (const r of req.of) {
+        const p = evaluateRequirement(r, state, content).progress;
+        if (p > bestProgress) {
+          best = r;
+          bestProgress = p;
+        }
+      }
+      return requirementProgress(best, state, content, via);
+    }
+    case 'not': {
+      const inner = requirementProgress(req.requirement, state, content, via);
+      // A ceiling on one number reads as that number held below its threshold.
+      if (inner.length === 1 && inner[0]!.sense === 'atLeast' && inner[0]!.via === via) {
+        const c = inner[0]!;
+        return [{ ...c, sense: 'below', met: !c.met }];
+      }
+      const met = !evaluateRequirement(req.requirement, state, content).met;
+      return [{ kind: 'not', id: null, sense: 'below', have: met ? 0 : 1, need: 1, met, via }];
+    }
+    case 'unlocked': {
+      const met = req.id in state.unlocks.unlocked;
+      const line: ConditionProgress = {
+        kind: 'unlocked',
+        id: req.id,
+        sense: 'atLeast',
+        have: met ? 1 : 0,
+        need: 1,
+        met,
+        via,
+      };
+      const unlock = content.byId.unlocks.get(req.id);
+      if (met || !unlock) return [line];
+      return [line, ...requirementProgress(unlock.requirement, state, content, req.id)];
+    }
+    case 'flag': {
+      const met = state.player.flags[req.id] === true;
+      return [{ kind: 'flag', id: req.id, sense: 'atLeast', have: met ? 1 : 0, need: 1, met, via }];
+    }
+    case 'date': {
+      const have = dateIndex(state.meta.date);
+      const need = dateIndex(req.from);
+      return [{ kind: 'date', id: null, sense: 'atLeast', have, need, met: have >= need, via }];
+    }
+    default: {
+      const have = countFor(req, state) as number;
+      const need = req.type === 'cash' ? req.atLeastCents : req.atLeast;
+      const met = need <= 0 || have >= need;
+      return [{ kind: req.type, id: null, sense: 'atLeast', have, need, met, via }];
+    }
+  }
+}

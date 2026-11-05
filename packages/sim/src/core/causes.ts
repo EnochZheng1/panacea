@@ -6,6 +6,7 @@ export const CAUSES = {
   salesShop: 'sales.shop',
   salesWalkIn: 'sales.walk_in',
   salesWholesale: 'sales.wholesale',
+  salesPost: 'sales.post',
   rent: 'expense.rent',
   ingredients: 'expense.ingredients',
   bottling: 'expense.bottling',

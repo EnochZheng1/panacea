@@ -91,6 +91,7 @@ public static class Ledger
             TurnedAwayByPrice = m.TurnedAwayByPrice,
             Callers = m.Callers,
             Wholesale = m.Wholesale,
+            Post = m.Post,
         };
     }
 

@@ -32,8 +32,8 @@ const EXTRAS: Policy['extras'][] = [
 
 const INVEST_SETS: string[][] = [
   [],
-  ['branch_shop', 'wholesale_contract', 'almanac'],
-  ['laboratory', 'branch_shop', 'almanac', 'wholesale_contract'],
+  ['branch_shop', 'wholesale_contract', 'druggists_order', 'almanac'],
+  ['laboratory', 'branch_shop', 'almanac', 'wholesale_contract', 'druggists_order'],
   ['branch_shop', 'almanac'],
 ];
 

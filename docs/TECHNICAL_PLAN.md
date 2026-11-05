@@ -194,7 +194,7 @@ Each milestone ends with a playtest cycle (see the pipeline doc). No date estima
 - **Scrutiny** (`scrutiny.ts`): heat from deaths, complaints and bold claims, with decay; coroner's inquests raised as system events; verdict odds from detectability, heat, reputation, claims and bad batches; escalating bribes; shutdown after two months at heat 100.
 - **Human ledger**: every death is recorded with its public verdict and hidden truth.
 - **Content**: 17 ingredients, 9 unlocks, 8 events (incl. inquests, the temperance ladies, the Board of Health), 7 customer segments, 11 ailments, 8 label claims.
-- **Bots** (`packages/playtest/src/bots/policy.ts`): one parameterised policy with presets `shopkeeper`, `cautious`, `greedy`, `briber`, `adaptive`, `mercurial`, plus `idle` and `random`; batch reports now include deaths, causes, inquests, bribes and heat.
+- **Bots** (`packages/playtest/src/bots/policy.ts`): one parameterised policy with presets `shopkeeper`, `cautious`, `greedy`, `briber`, `adaptive`, `mercurial`, plus `idle`, `random` and `sloppy` (`bots/sloppy.ts`, calibrated to how human testers play: stock by eye, plain letters, ventures when the till allows); batch reports now include deaths, causes, inquests, bribes and heat.
 - **Optimizer** (`pnpm sim:optimize`): random search for the most profitable strategy, reporting whether wealth correlates with deaths.
 - **Debug client** (`packages/client`, `pnpm client:dev`): plays the real sim by hand, with a "show hidden truth" toggle.
 - **Performance**: in-place actions for the harness keep a full run at ~80–100 ms.

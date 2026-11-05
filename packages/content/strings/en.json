@@ -179,6 +179,7 @@
   "event.benefit_society.choice.decline_politely": "Decline, with thanks.",
   "cause.expense.retainer": "Subscriptions and retainers",
   "cause.sales.wholesale": "Sales to druggists out of town",
+  "cause.sales.post": "Orders by post",
   "cause.expense.investment": "Outlays on the business",
   "cause.expense.upkeep": "Branch rent, wages and upkeep",
   "cause.investment.mishap": "Accidents on the premises",
@@ -186,8 +187,10 @@
   "investment.branch_shop.description": "A second counter across town, with a clerk and its own regulars: twenty more can call it their shop, and a dozen strangers a month look in. The rent is due whether they buy or not.",
   "investment.almanac.name": "The Proprietor's Almanac",
   "investment.almanac.description": "Ten thousand almanacs, with the moon's phases, a recipe for pickles and every claim on your label, left on kitchen tables across the city. A year of callers who never read a newspaper, and every claim in print for the year.",
+  "investment.druggists_order.name": "A Druggist's Standing Order",
+  "investment.druggists_order.description": "A druggist over in Brooklyn will take a dozen or more bottles a month for his own shelf, at a wholesale price, and more the better your name. He sells them on at your price, so a dear bottle sells fewer. His bottles are put up after your regulars are served, from what is left on the shelf, and he reads the papers.",
   "investment.wholesale_contract.name": "A Wholesale Contract",
-  "investment.wholesale_contract.description": "Druggists in Paterson, Newark and Yonkers will take your bottles by the dozen every month, at a wholesale price, and more of them the better your name. They read the papers: once the talk turns ugly, they cancel.",
+  "investment.wholesale_contract.description": "Druggists in Paterson, Newark and Elizabeth will take your bottles by the dozen every month, at a wholesale price, and more of them the better your name. They read the papers: once the talk turns ugly, they cancel.",
   "investment.laboratory.name": "A Laboratory",
   "investment.laboratory.description": "A back room fitted with retorts and a German chemist who asks no questions. Opium, morphine and coca bought crude and worked up on the premises, at a quarter of the druggist's price. The chemist draws wages, and ether is apt to catch."
 }

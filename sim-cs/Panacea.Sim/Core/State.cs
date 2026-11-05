@@ -155,7 +155,10 @@ public static class InvestmentChanges
     public const string Mishap = "mishap";
 }
 
-/// <summary>What the druggists out of town ordered this month, what they got, and what they paid.</summary>
+/// <summary>
+/// Orders from away this month (druggists under contract, or readers by post): what they asked
+/// for, what the shelf could give them, and what they paid.
+/// </summary>
 public sealed class WholesaleMonth
 {
     public int Ordered { get; set; }
@@ -202,7 +205,10 @@ public sealed class MonthInProgress
     /// each investment id.
     /// </summary>
     public OrderedMap<int> Callers { get; set; } = new();
+    /// <summary>The druggists under contract.</summary>
     public WholesaleMonth Wholesale { get; set; } = new();
+    /// <summary>Orders by post (the almanac's readers).</summary>
+    public WholesaleMonth Post { get; set; } = new();
 }
 
 /// <summary>A closed month, as shown in the Ledger.</summary>
@@ -233,7 +239,10 @@ public sealed class LedgerEntry
     public int TurnedAwayByPrice { get; set; }
     /// <summary>Callers by source (see <see cref="MonthInProgress.Callers"/>).</summary>
     public OrderedMap<int> Callers { get; set; } = new();
+    /// <summary>The druggists under contract.</summary>
     public WholesaleMonth Wholesale { get; set; } = new();
+    /// <summary>Orders by post (the almanac's readers).</summary>
+    public WholesaleMonth Post { get; set; } = new();
 }
 
 public sealed record FormulaComponent(string IngredientId, double Amount);

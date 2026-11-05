@@ -25,7 +25,8 @@ public partial class Prospectus : VBoxContainer
 	private static readonly System.Collections.Generic.Dictionary<string, string> Waits = new()
 	{
 		["branch_shop"] = "Offered once the shop next door has been knocked through.",
-		["wholesale_contract"] = "Offered after fifteen hundred bottles sold, while the talk in the ward is low.",
+		["wholesale_contract"] = "Offered after twelve hundred bottles sold, while the talk in the ward is low.",
+		["druggists_order"] = "Offered after four hundred bottles sold, while the talk in the ward is low.",
 		["laboratory"] = "Offered once a percolator is in the back room.",
 		["almanac"] = "Offered once the Gazette will sell you space.",
 	};
@@ -81,18 +82,19 @@ public partial class Prospectus : VBoxContainer
 		if (r.UpkeepCents > 0) terms += $", and {EditionWriter.Money(r.UpkeepCents)} a month after";
 		// a contract the druggists can cancel is not "yours for good"
 		terms += r.Months is int m ? $"; it runs {EditionWriter.Words(m)} months."
-			: r.WholesaleBottles != null ? "; it runs until the druggists cancel, which they will if the talk in the ward turns ugly."
+			: r.WholesaleBottles != null ? (r.Id == "druggists_order" ? "; it runs until the druggist cancels, which he will if the talk in the ward turns ugly." : "; it runs until the druggists cancel, which they will if the talk in the ward turns ugly.")
 			: "; it is yours for good.";
 		v.AddChild(Print.Label(terms, Print.Fell, 14));
 
 		// what it brings and what it risks, in plain words
 		var brings = new System.Collections.Generic.List<string>();
 		if (r.WalkInsPerMonth > 0) brings.Add($"about {EditionWriter.Words(r.WalkInsPerMonth)} more callers a month");
+		if (r.PostBottles is int pb && pb > 0) brings.Add($"about {EditionWriter.Words(pb)} bottles a month sent for by post" + (r.PostPriceCents is long pp ? $" at {EditionWriter.Money(pp)}" : ""));
 		if (r.WholesaleBottles is int wb && wb > 0) brings.Add($"orders for about {EditionWriter.Words(wb)} bottles a month" + (r.WholesalePriceCents is long wp ? $" at {EditionWriter.Money(wp)} each" : ""));
 		var risks = new System.Collections.Generic.List<string>();
 		if (r.HeatPerBoldness > 0) risks.Add("it prints your label's claims in ten thousand kitchens, so the bolder they are, the more suspicion it brings each month");
 		if (r.MishapChance is double mc && mc > 0) risks.Add($"about one month in {Math.Max(2, (int)Math.Round(1 / mc))} something catches fire");
-		if (brings.Count > 0) v.AddChild(Print.Label("It brings " + string.Join(", and ", brings) + ".", Print.FellIt, 14));
+		if (brings.Count > 0) v.AddChild(Print.Label(EditionWriter.Set("It brings " + string.Join(", and ", brings) + "."), Print.FellIt, 14));
 		if (risks.Count > 0) v.AddChild(Print.Label("Mark well: " + string.Join("; ", risks) + ".", Print.FellIt, 14));
 
 		if (r.Held)
@@ -103,6 +105,9 @@ public partial class Prospectus : VBoxContainer
 		{
 			// not on offer yet: say what it waits for, as the trade would
 			v.AddChild(Print.Label(Waits.TryGetValue(r.Id, out var w) ? w : why, Print.FellIt, 14, HorizontalAlignment.Right, new Color(Print.Ink, 0.85f)));
+			// and how far the house has come toward it
+			if (r.Progress.Count > 0)
+				v.AddChild(Print.Label(EditionWriter.Set("So far: " + string.Join("; ", r.Progress) + "."), Print.Fell, 13, HorizontalAlignment.Right));
 		}
 		else
 		{

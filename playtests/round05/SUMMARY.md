@@ -117,28 +117,50 @@ matter and Wants reprint, and the dated items stick).
 - **Inquest odds differ by reply** (UX).
 - **The ventures do exactly what their terms say** (careful).
 
-## Next fixes, in order
+## Fixed after round 5
 
-1. **Bring the second act within reach of a hand player.**
-   - Cheaper first steps (a smaller branch, a smaller wholesale order), with costs that scale with the shop.
-   - Progress on each card ("1,120 of 1,500 bottles").
-   - Make the almanac pay and make the wholesale contract a trade-off.
-   - Tune against a "sloppy" bot that plays like the testers did, not the clean adaptive bot.
-2. **The standing matter.**
-   - Dated items run once.
-   - Seasonal items carry their months, and weather items follow the weather box.
-   - The rotation steps by the number of items actually printed.
-   - A larger Wants pool, read in rotation.
-   - Grant's death and funeral on their dates.
-3. **The venture-month lead.** The slump test should ignore investment outlays, and "SOLD AGAIN" should need sales
-   that held.
-4. **Keyboard.** Trap the arrow keys in drawers. Open VENTURES on its first card, not the purchase, and guard the
-   purchase. Show focus on counter tags clearly, or take them out of Tab and give the counter one stop.
-5. **The routine month.** The still remembers its batch, and one order can serve both stills. Fix the WORKS box's
-   height so the buttons stay put. Scroll or wrap the type case so ad space is always visible.
-6. **Copy.**
-   - The bribe outcome is stated truthfully.
-   - Infants are the ones harmed by soothing syrup.
-   - Wholesale bottles are reported apart.
-   - The sound toggle says "SOUND".
-   - The prospectus is set as one sheet.
+| Finding                                                   | Who                               | Now                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| --------------------------------------------------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ventures out of reach by hand                             | tycoon, casual, all three cold    | Balance pass 5 (`balance-pass-5.md`). A `sloppy` bot plays like the testers did: $196 at month 12 and $326 at month 24 in the old game, against the hand reports' $160–220 and $150–300. A first rung was added, a druggist's standing order ($100, at 400 bottles sold). The wholesale contract is now $300, at 1,200 bottles. Sloppy's second venture comes at month 13 (was 35) and its third at month 26 (was 47)            |
+| No progress toward a venture                              | tycoon, sim player, casual        | Each card prints what it still waits for: "So far: for the shop next door, 15 of 25 regulars and $148.95 of $200.00 put by; $148.95 of the $600.00 in hand."                                                                                                                                                                                                                                                                     |
+| Wholesale a must-buy; 90c dominant; the almanac worthless | tycoon                            | Druggists order fewer bottles the dearer the shelf price, and are served after the regulars from at most half of what is left. Bought alone, the contract adds $1.1–3.1k, in line with the other ventures. Adaptive at 90c falls from 1.29× to 1.12×. The almanac's readers send for about twelve bottles a month by post, and it pays back in 7–9 months. Buying everything is not a win for a hand player                      |
+| THE BRIDGE every edition; dated items stick; Wants repeat | art, careful, casual, period, sim | Dated items run once, in the first edition of their window. New items of the day include Grant's death and funeral, the pedestal fund opened and closed, Ellis Island, the cholera ships, the panic, the Maine, the subway and the muckrakers. 69 standing items read on six an edition, and 30 Wants in a per-game order                                                                                                        |
+| Seasonal items ignore the season                          | art, careful, period, sim         | Oysters, skating, the heat, the ice, Coney Island, the holidays and the weather items carry their months                                                                                                                                                                                                                                                                                                                         |
+| TRADE DULL in a venture month; SOLD AGAIN when sales fell | casual, careful                   | A venture's down payment is an outlay, not a slump. "Again" heads need sales that held                                                                                                                                                                                                                                                                                                                                           |
+| Wholesale bottles counted as sold at the shop             | careful                           | Shop sales, wholesale and post orders are reported apart                                                                                                                                                                                                                                                                                                                                                                         |
+| Arrow keys leave drawers; one Enter buys a venture        | UX                                | The arrows stay inside drawers and cuttings. VENTURES opens on its first notice, and a purchase takes a second press with a guard                                                                                                                                                                                                                                                                                                |
+| Counter tags: weak focus, five Tab stops                  | UX                                | The counter is one Tab stop and the arrows walk it. The customer in hand is printed in reverse, with the hover text under AT THE COUNTER                                                                                                                                                                                                                                                                                         |
+| The right column moves; the type case hides ad space      | lapsed, sim player, period, UX    | The post and the warnings have fixed depths. SPACE IN THE GAZETTE sits above the claims, with its rates printed                                                                                                                                                                                                                                                                                                                  |
+| The routine month is a chore                              | lapsed                            | The still remembers its batch. With two stills free, one press orders for and lights both                                                                                                                                                                                                                                                                                                                                        |
+| A second remedy can't be advertised                       | sim player                        | The type case has a tab for each remedy                                                                                                                                                                                                                                                                                                                                                                                          |
+| The bribe message lies                                    | sim player                        | A bribe that comes out at once says so, with the suspicion and standing it cost                                                                                                                                                                                                                                                                                                                                                  |
+| The teething-syrup victim                                 | period                            | The infant is the one the counter shows ill ("infant gravely ill; the mother asking for it by name")                                                                                                                                                                                                                                                                                                                             |
+| Smaller copy                                              | art, careful, UX                  | The infant lead quotes the label only if it claimed teething. The testimonial's address matches its letter. The Clerk counts answered notices. An invented Newark wholesale house, and Elizabeth for Yonkers. "the money of" for "the dollar of". "STILL BARE" for "BARE A SECOND MONTH". The wholesale terms say they can be cancelled. The almanac's risk in plain words. "SOUND: THE SHOP HEARD". Printed tooltips everywhere |
+
+Checks: TS 107/107 and C# 87/87 (parity on 28 fixture games, regenerated), typecheck, lint, format, Godot build,
+`tools/check_cuts.py`.
+
+## Balance after the fixes (80 runs, `--seed r5b`; full report `balance-pass-5.md`)
+
+| Bot                          | Median final cash, before → after | Note                                       |
+| ---------------------------- | --------------------------------- | ------------------------------------------ |
+| cautious                     | $5,963 → $6,754                   |                                            |
+| shopkeeper                   | $13,392 → $15,170                 |                                            |
+| adaptive (moderate)          | $17,905 → $19,414                 |                                            |
+| briber                       | $8,437 → $11,930                  | 51% end early                              |
+| greedy (heavy narcotics)     | $14,844 → $14,844                 | p90 $27.3k (1.41× adaptive); 70% end early |
+| sloppy (plays like a person) | $9,936 → $10,117                  | ventures at months 13, 26 and 40           |
+
+The exploit hunter's best line is 0.94× adaptive's mean.
+
+## Still open
+
+- **The still's money lines use old prices** after the market moves, and the formula book's cost a bottle does too
+  (careful, not fixed since round 4).
+- **The counter cuts vary heads, not bodies**; the mothers hold one baby. The still's flames are still simple (art).
+- **Death at the counter** is unexplained until the warning line, and is the same figure as the lead-story
+  decoration (lapsed).
+- **Given names cluster** within a stock (three Salvatores in eight months).
+- **Escape after the last letter** lands on SEND TO PRESS (UX).
+- None of the round-5 fixes has been played by hand yet: round 6 should test the ventures' new pacing with a
+  first-time panel again.

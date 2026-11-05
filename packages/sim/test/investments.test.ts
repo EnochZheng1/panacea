@@ -7,6 +7,9 @@ import {
   legalActions,
   nextUnlocks,
   observe,
+  orderPriceFactor,
+  wholesaleOrder,
+  wholesalePrice,
   type GameState,
 } from '../src/index.ts';
 import { ingredientUnitCost } from '../src/systems/lab.ts';
@@ -27,14 +30,20 @@ const refusal = (s: GameState, investmentId: string) => {
   return r.ok ? null : r.error;
 };
 
-describe('investments (balance pass 4)', () => {
+describe('investments (balance passes 4 and 5)', () => {
   it('is offered only when its requirement holds, and only once while held', () => {
     const fresh = start('inv0');
     expect(refusal(fresh, 'branch_shop')).toBe('not yet offered');
     expect(refusal(fresh, 'no_such_thing')).toMatch(/unknown investment/);
     const s = richShop();
     expect(legalActions(s, content).find((a) => a.type === 'Invest')).toMatchObject({
-      investmentIds: ['branch_shop', 'almanac', 'wholesale_contract', 'laboratory'],
+      investmentIds: [
+        'branch_shop',
+        'almanac',
+        'druggists_order',
+        'wholesale_contract',
+        'laboratory',
+      ],
     });
     const bought = act(s, { type: 'Invest', investmentId: 'branch_shop' });
     expect(refusal(bought, 'branch_shop')).toBe('already held');
@@ -110,7 +119,17 @@ describe('investments (balance pass 4)', () => {
     );
     const inv = content.byId.investments.get('wholesale_contract')!;
     const w = inv.wholesale!;
-    const order = Math.floor(w.bottlesPerMonth * (1 + s.player.reputation * w.perReputation));
+    const factor = Math.max(
+      0,
+      Math.min(
+        w.maxOrderBoost,
+        1 + (w.priceElasticity * (w.refPriceCents - 100)) / w.refPriceCents,
+      ),
+    );
+    const order = Math.floor(
+      w.bottlesPerMonth * (1 + s.player.reputation * w.perReputation) * factor,
+    );
+    expect(order).toBeGreaterThan(0);
     const price = Math.min(w.maxPriceCents, Math.round((100 * w.pricePct) / 100));
     const { state, report } = endTurn(s, content);
     expect(report.wholesale).toEqual({
@@ -133,6 +152,109 @@ describe('investments (balance pass 4)', () => {
       change: 'lost',
     });
     expect(refusal(cancelled.state, 'wholesale_contract')).toBe('not yet offered');
+  });
+
+  it('druggists order fewer bottles the dearer the shelf price, and none when far too dear', () => {
+    const w = content.byId.investments.get('wholesale_contract')!.wholesale!;
+    const s = start('elastic');
+    expect(orderPriceFactor(w, w.refPriceCents)).toBe(1);
+    expect(orderPriceFactor(w, null)).toBe(1);
+    expect(orderPriceFactor(w, 10)).toBe(w.maxOrderBoost);
+    expect(orderPriceFactor(w, 300)).toBe(0);
+    const at = (cents: number) => wholesaleOrder(s, w, cents) * wholesalePrice(w, cents);
+    // what the druggists pay in all is highest at a middling price, not at the top of the cap
+    expect(at(70)).toBeGreaterThan(at(100));
+    expect(wholesaleOrder(s, w, 90)).toBeLessThan(wholesaleOrder(s, w, 60));
+  });
+
+  it('orders from away take at most their share of what the regulars left; the walk-ins get the rest', () => {
+    const setUp = setUpTonic(richShop('share'), 10);
+    const formulaId = setUp.formulaId;
+    let s = setUp.state;
+    s.customers = [];
+    s = act(
+      s,
+      { type: 'BrewBatch', formulaId, bottles: 10 },
+      { type: 'Invest', investmentId: 'wholesale_contract' },
+      { type: 'Invest', investmentId: 'druggists_order' },
+      { type: 'Invest', investmentId: 'almanac' },
+    );
+    const { report } = endTurn(s, content);
+    const share = content.config.market.ordersShelfShare;
+    expect(report.wholesale.delivered + report.post.delivered).toBe(Math.ceil(10 * share));
+    expect(report.wholesale.ordered).toBeGreaterThan(report.wholesale.delivered);
+  });
+
+  it("an almanac's readers send for bottles by post, at the shelf price", () => {
+    const setUp = setUpTonic(richShop('post'), 300);
+    const formulaId = setUp.formulaId;
+    let s = setUp.state;
+    s = act(
+      s,
+      { type: 'SetPrice', formulaId, priceCents: 70 },
+      { type: 'BrewBatch', formulaId, bottles: 300 },
+      { type: 'Invest', investmentId: 'almanac' },
+    );
+    const spec = content.byId.investments.get('almanac')!.postOrders!;
+    const order = wholesaleOrder(s, spec, 70);
+    expect(order).toBeGreaterThan(0);
+    expect(observe(s, content).investments.find((i) => i.id === 'almanac')).toMatchObject({
+      postBottles: order,
+      postPriceCents: 70,
+      wholesaleBottles: null,
+    });
+    const { report } = endTurn(s, content);
+    expect(report.post).toEqual({ ordered: order, delivered: order, revenueCents: order * 70 });
+    expect(report.wholesale.ordered).toBe(0);
+    expect(report.deltas).toContainEqual({
+      metric: 'cash',
+      amount: order * 70,
+      cause: 'sales.post',
+      detail: 'almanac',
+    });
+  });
+
+  it('the prospectus shows how near each venture is, as numbers', () => {
+    const s = start('prospectus');
+    s.stats.bottlesSold = 1120;
+    s.scrutiny.heat = 12;
+    const o = observe(s, content);
+    const need = (id: string) =>
+      (content.byId.investments.get(id)!.requires as { of: { atLeast?: number }[] }).of[0]!.atLeast;
+    expect(o.investments.find((i) => i.id === 'wholesale_contract')?.progress).toEqual([
+      {
+        kind: 'bottlesSold',
+        id: null,
+        sense: 'atLeast',
+        have: 1120,
+        need: need('wholesale_contract'),
+        met: false,
+        via: null,
+      },
+      { kind: 'heat', id: null, sense: 'below', have: 12, need: 30, met: true, via: null },
+      {
+        kind: 'cost',
+        id: null,
+        sense: 'atLeast',
+        have: s.player.cashCents,
+        need: content.byId.investments.get('wholesale_contract')!.costCents,
+        met: false,
+        via: null,
+      },
+    ]);
+    // a venture that waits on an unlock lists that unlock's own conditions after it
+    const branch = o.investments.find((i) => i.id === 'branch_shop')!.progress;
+    expect(branch[0]).toMatchObject({ kind: 'unlocked', id: 'larger_shop', met: false, via: null });
+    expect(branch.filter((c) => c.via === 'larger_shop').map((c) => c.kind)).toEqual([
+      'regulars',
+      'cash',
+    ]);
+    expect(branch.at(-1)?.kind).toBe('cost');
+    // a venture held waits on nothing
+    const rich = act(richShop('held'), { type: 'Invest', investmentId: 'branch_shop' });
+    expect(
+      observe(rich, content).investments.find((i) => i.id === 'branch_shop')?.progress,
+    ).toEqual([]);
   });
 
   it('a laboratory cheapens the narcotics, and nothing else', () => {

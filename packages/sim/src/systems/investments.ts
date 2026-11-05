@@ -1,4 +1,4 @@
-import type { ContentPack, Investment } from '@panacea/content';
+import type { ContentPack, Investment, Orders } from '@panacea/content';
 import type { Action, ActionResult } from '../core/actions.ts';
 import { CAUSES } from '../core/causes.ts';
 import { adjust } from '../core/ledger.ts';
@@ -71,19 +71,32 @@ export function investmentWalkIns(state: GameState, content: ContentPack): [stri
     .map((inv) => [inv.id, inv.walkInsPerMonth]);
 }
 
-/** The bottles a wholesale contract asks for this month: more, the better the proprietor's name. */
-export const wholesaleOrder = (state: GameState, inv: Investment): number =>
-  inv.wholesale
-    ? Math.floor(
-        inv.wholesale.bottlesPerMonth * (1 + state.player.reputation * inv.wholesale.perReputation),
-      )
-    : 0;
+/**
+ * How a shelf price changes an order from away: 1 at the reference price, more for a cheaper
+ * bottle (at most `maxOrderBoost`), fewer for a dearer one, and none once it is far too dear.
+ */
+export function orderPriceFactor(spec: Orders, priceCents: number | null): number {
+  if (priceCents === null || spec.priceElasticity <= 0) return 1;
+  const factor =
+    1 + (spec.priceElasticity * (spec.refPriceCents - priceCents)) / spec.refPriceCents;
+  return Math.max(0, Math.min(spec.maxOrderBoost, factor));
+}
 
-/** What the druggists pay for a bottle sold on the shelf at `priceCents`. */
-export const wholesalePrice = (inv: Investment, priceCents: number): number =>
-  inv.wholesale
-    ? Math.min(inv.wholesale.maxPriceCents, Math.round((priceCents * inv.wholesale.pricePct) / 100))
-    : 0;
+/**
+ * The bottles an order from away asks for this month: more, the better the proprietor's name,
+ * and fewer, the dearer the bottle they would be sent (`priceCents`; null when the shelf is bare,
+ * which leaves the order as it stands at the reference price).
+ */
+export const wholesaleOrder = (state: GameState, spec: Orders, priceCents: number | null): number =>
+  Math.floor(
+    spec.bottlesPerMonth *
+      (1 + state.player.reputation * spec.perReputation) *
+      orderPriceFactor(spec, priceCents),
+  );
+
+/** What buyers from away pay for a bottle sold on the shelf at `priceCents`. */
+export const wholesalePrice = (spec: Orders, priceCents: number): number =>
+  Math.min(spec.maxPriceCents, Math.round((priceCents * spec.pricePct) / 100));
 
 /**
  * Turn phase, after expenses: upkeep is paid, accidents happen, contracts are cancelled when

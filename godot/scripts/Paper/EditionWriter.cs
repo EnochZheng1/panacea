@@ -209,10 +209,12 @@ public sealed class EditionWriter
             trade.Blocks.Add(new Block { Text = Pick(f, "nosales", _copy.GetProperty("tradeNoSales")), Clip = books });
         // the druggists out of town take theirs from the bottle the shop has most of: those are
         // reported under Wholesale, not as sold over the counter at the shelf price
-        var wholesaleFrom = f.WholesaleDelivered > 0 ? f.Sales.OrderByDescending(x => x.Bottles).FirstOrDefault()?.Product : null;
+        // (and so are the almanac's post orders)
+        var away = f.WholesaleDelivered + f.PostDelivered;
+        var wholesaleFrom = away > 0 ? f.Sales.OrderByDescending(x => x.Bottles).FirstOrDefault()?.Product : null;
         foreach (var s0 in f.Sales)
         {
-            var s = s0.Product == wholesaleFrom ? s0 with { Bottles = Math.Max(0, s0.Bottles - f.WholesaleDelivered) } : s0;
+            var s = s0.Product == wholesaleFrom ? s0 with { Bottles = Math.Max(0, s0.Bottles - away) } : s0;
             if (s.Bottles == 0 && s0.Bottles > 0) continue;
             var price = f.Products.FirstOrDefault(p => p.Name == s.Product)?.PriceCents ?? 0;
             trade.Blocks.Add(new Block
@@ -244,6 +246,8 @@ public sealed class EditionWriter
         var callers = f.Callers.Where(c => c.Callers > 0).ToList();
         if (callers.Count > 1)
             trade.Blocks.Add(new Block { Text = "Callers at the counter: " + string.Join(", ", callers.Select(c => $"{Words(c.Callers)} {(sources.TryGetProperty(c.Source, out var w) ? w.GetString() : c.Source)}")) + ".", Clip = books });
+        if (f.PostDelivered > 0)
+            trade.Blocks.Add(new Block { Text = $"By post, to readers of the almanac: {Words(f.PostDelivered)} bottles, {Money(f.PostRevenueCents)}.", Clip = books });
         if (f.WholesaleOrdered > 0)
             trade.Blocks.Add(new Block { Text = $"Wholesale: the druggists out of town ordered {Words(f.WholesaleOrdered)} bottles and had {Words(f.WholesaleDelivered)}, paying {Money(f.WholesaleRevenueCents)}." + (f.WholesaleDelivered < f.WholesaleOrdered ? " The rest went short." : ""), Clip = books });
         if (f.TurnedAwayByPrice > 0)

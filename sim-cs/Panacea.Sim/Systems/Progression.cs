@@ -4,6 +4,22 @@ public readonly record struct RequirementStatus(bool Met, double Progress);
 
 public sealed record UnlockProgress(string Id, double Progress);
 
+/// <summary>
+/// One condition of a requirement as numbers a progress line can print (requirements.ts
+/// ConditionProgress): "1,120 of 1,500 bottles sold", "suspicion 12, offered below 30".
+/// </summary>
+/// <param name="Kind">What is counted: a requirement type ("bottlesSold", "regulars", "cash", "heat",
+/// "unlocked", "flag", "date", …), "not" for a negated condition that is not a plain threshold, or
+/// "cost" for an investment's price against the cash in hand.</param>
+/// <param name="Id">The unlock or flag waited on ("unlocked", "flag"), or null.</param>
+/// <param name="Sense">"atLeast": met once Have reaches Need. "below": met while Have stays under Need
+/// (a ceiling, such as "while the talk in the ward is low").</param>
+/// <param name="Have">The present count. Cash and cost in cents; unlocked and flag 1 or 0; date a month index.</param>
+/// <param name="Need">The threshold.</param>
+/// <param name="Met">Whether this condition holds now.</param>
+/// <param name="Via">On the conditions of an unlock that is itself waited on: that unlock's id.</param>
+public sealed record ConditionProgress(string Kind, string? Id, string Sense, double Have, double Need, bool Met, string? Via);
+
 /// <summary>Requirements (systems/requirements.ts).</summary>
 public static class Requirements
 {
@@ -13,6 +29,86 @@ public static class Requirements
             : new RequirementStatus(false, Math.Max(0, Math.Min(1, value / target)));
 
     private static RequirementStatus Binary(bool met) => new(met, met ? 1 : 0);
+
+    /// <summary>The count a numeric requirement compares.</summary>
+    private static double CountFor(AtLeastRequirement r, GameState state) => r.Kind switch
+    {
+        "cash" => state.Player.CashCents,
+        "reputation" => state.Player.Reputation,
+        "notoriety" => state.Player.Notoriety,
+        "bottlesSold" => state.Stats.BottlesSold,
+        "batchesBrewed" => state.Stats.BatchesBrewed,
+        "heat" => state.Scrutiny.Heat,
+        "deaths" => state.Deaths.Count,
+        "inquests" => state.Scrutiny.InquestsHeld,
+        "regulars" => state.Customers.Count,
+        _ => throw new InvalidOperationException($"unknown requirement \"{r.Kind}\""),
+    };
+
+    /// <summary>
+    /// The leaves of a requirement as progress lines, in content order (requirements.ts
+    /// requirementProgress). "All" lists every part; "any" the parts of its most-met branch; "not"
+    /// turns a threshold into a ceiling. An "unlocked" condition not yet met is followed by its
+    /// unlock's own conditions, marked Via that unlock.
+    /// </summary>
+    public static List<ConditionProgress> Progress(Requirement req, GameState state, ContentPack content, string? via = null)
+    {
+        switch (req)
+        {
+            case AllRequirement all:
+                return all.Of.SelectMany(r => Progress(r, state, content, via)).ToList();
+            case AnyRequirement any:
+            {
+                var best = any.Of[0];
+                double bestProgress = double.NegativeInfinity;
+                foreach (var r in any.Of)
+                {
+                    double p = Evaluate(r, state, content).Progress;
+                    if (p > bestProgress)
+                    {
+                        best = r;
+                        bestProgress = p;
+                    }
+                }
+                return Progress(best, state, content, via);
+            }
+            case NotRequirement not:
+            {
+                var inner = Progress(not.Requirement, state, content, via);
+                // A ceiling on one number reads as that number held below its threshold.
+                if (inner.Count == 1 && inner[0].Sense == "atLeast" && inner[0].Via == via)
+                    return [inner[0] with { Sense = "below", Met = !inner[0].Met }];
+                bool met = !Evaluate(not.Requirement, state, content).Met;
+                return [new ConditionProgress("not", null, "below", met ? 0 : 1, 1, met, via)];
+            }
+            case UnlockedRequirement u:
+            {
+                bool met = state.Unlocks.Unlocked.ContainsKey(u.Id);
+                var line = new ConditionProgress("unlocked", u.Id, "atLeast", met ? 1 : 0, 1, met, via);
+                if (met || !content.ById.Unlocks.TryGetValue(u.Id, out var unlock)) return [line];
+                return [line, .. Progress(unlock.Requirement, state, content, u.Id)];
+            }
+            case FlagRequirement f:
+            {
+                bool met = state.Player.Flags.TryGetValue(f.Id, out var flag) && flag;
+                return [new ConditionProgress("flag", f.Id, "atLeast", met ? 1 : 0, 1, met, via)];
+            }
+            case DateRequirement d:
+            {
+                int have = Dates.Index(state.Meta.Date);
+                int need = Dates.Index(d.From);
+                return [new ConditionProgress("date", null, "atLeast", have, need, have >= need, via)];
+            }
+            case AtLeastRequirement r:
+            {
+                double have = CountFor(r, state);
+                double need = r.AtLeast;
+                return [new ConditionProgress(r.Kind, null, "atLeast", have, need, need <= 0 || have >= need, via)];
+            }
+            default:
+                throw new InvalidOperationException($"unknown requirement {req.Type}");
+        }
+    }
 
     public static RequirementStatus Evaluate(Requirement req, GameState state, ContentPack content)
     {

@@ -55,15 +55,15 @@ public class GameTests
     [Fact]
     public void EmbeddedContentLoads()
     {
-        Assert.Equal("0.4.0", C.Config.ContentVersion);
+        Assert.Equal("0.5.0", C.Config.ContentVersion);
         Assert.Equal(17, C.Ingredients.Count);
         Assert.Equal(3, C.Processes.Count);
         Assert.Equal(9, C.Unlocks.Count);
         Assert.Equal(12, C.Events.Count);
         Assert.Equal(8, C.Timeline.Count);
         Assert.Equal(12, C.Regulars.Count);
-        Assert.Equal(191, C.Strings.Count);
-        Assert.Equal(4, C.Investments.Count);
+        Assert.Equal(194, C.Strings.Count);
+        Assert.Equal(5, C.Investments.Count);
         Assert.Equal("narcotic_discount_pct", C.ById.Investments["laboratory"].Effects.OfType<CapabilityEffect>().Single().Id);
         Assert.Equal("system", C.ById.Events["inquest"].Trigger);
         Assert.Equal("random", C.ById.Events["grateful_letter"].Trigger);
@@ -479,7 +479,7 @@ public class GameTests
         Assert.Equal("not yet offered", Game.ApplyAction(Start("inv0"), new Invest("branch_shop"), C).Result.Error);
         var s = RichShop();
         var spec = Assert.IsType<InvestSpec>(Machine.LegalActions(s, C).Single(x => x is InvestSpec));
-        Assert.Equal(new[] { "branch_shop", "almanac", "wholesale_contract", "laboratory" }, spec.InvestmentIds);
+        Assert.Equal(new[] { "branch_shop", "almanac", "druggists_order", "wholesale_contract", "laboratory" }, spec.InvestmentIds);
         long before = s.Player.CashCents;
         int capacity = Machine.Observe(s, C).CustomerCapacity;
         s = Act(s, new Invest("branch_shop"));
@@ -511,7 +511,9 @@ public class GameTests
         var (s, formulaId) = SetUpTonic(RichShop("whl"), 300);
         s = Act(s, new SetPrice(formulaId, 100), new BrewBatch(formulaId, 300), new Invest("wholesale_contract"));
         var w = C.ById.Investments["wholesale_contract"].Wholesale!;
-        int order = (int)Math.Floor(w.BottlesPerMonth * (1 + s.Player.Reputation * w.PerReputation));
+        double factor = Math.Max(0, Math.Min(w.MaxOrderBoost, 1 + w.PriceElasticity * (w.RefPriceCents - 100) / w.RefPriceCents));
+        int order = (int)Math.Floor(w.BottlesPerMonth * (1 + s.Player.Reputation * w.PerReputation) * factor);
+        Assert.True(order > 0);
         int price = (int)Math.Min(w.MaxPriceCents, JsMath.Round(100 * w.PricePct / 100));
         var report = Game.EndTurnInPlace(s, C);
         Assert.Equal(order, report.Wholesale.Ordered);
@@ -520,6 +522,76 @@ public class GameTests
         s.Scrutiny.Heat = 80;
         var hot = Game.EndTurnInPlace(s, C);
         Assert.Contains(hot.News, n => n is InvestmentNews { Id: "wholesale_contract", Change: InvestmentChanges.Lost });
+    }
+
+    // --- balance pass 5: orders from away, the post, progress --------------------------------
+
+    [Fact]
+    public void DruggistsOrderFewerTheDearerTheBottleAndNoneWhenFarTooDear()
+    {
+        var w = C.ById.Investments["wholesale_contract"].Wholesale!;
+        var s = Start("elastic");
+        Assert.Equal(1, Investments.OrderPriceFactor(w, w.RefPriceCents));
+        Assert.Equal(1, Investments.OrderPriceFactor(w, null));
+        Assert.Equal(w.MaxOrderBoost, Investments.OrderPriceFactor(w, 10));
+        Assert.Equal(0, Investments.OrderPriceFactor(w, 300));
+        long At(int cents) => (long)Investments.WholesaleOrder(s, w, cents) * Investments.WholesalePrice(w, cents);
+        Assert.True(At(70) > At(100));
+        Assert.True(Investments.WholesaleOrder(s, w, 90) < Investments.WholesaleOrder(s, w, 60));
+    }
+
+    [Fact]
+    public void OrdersFromAwayTakeAtMostTheirShareOfWhatTheRegularsLeft()
+    {
+        var (s, formulaId) = SetUpTonic(RichShop("share"), 10);
+        s.Customers.Clear();
+        s = Act(s, new BrewBatch(formulaId, 10), new Invest("wholesale_contract"), new Invest("druggists_order"), new Invest("almanac"));
+        var report = Game.EndTurnInPlace(s, C);
+        Assert.Equal((int)Math.Ceiling(10 * C.Config.Market.OrdersShelfShare), report.Wholesale.Delivered + report.Post.Delivered);
+        Assert.True(report.Wholesale.Ordered > report.Wholesale.Delivered);
+    }
+
+    [Fact]
+    public void AnAlmanacsReadersSendForBottlesByPostAtTheShelfPrice()
+    {
+        var (s, formulaId) = SetUpTonic(RichShop("post"), 300);
+        s = Act(s, new SetPrice(formulaId, 70), new BrewBatch(formulaId, 300), new Invest("almanac"));
+        var spec = C.ById.Investments["almanac"].PostOrders!;
+        int order = Investments.WholesaleOrder(s, spec, 70);
+        Assert.True(order > 0);
+        var seen = Machine.Observe(s, C).Investments.Single(i => i.Id == "almanac");
+        Assert.Equal(order, seen.PostBottles);
+        Assert.Equal(70, seen.PostPriceCents);
+        Assert.Null(seen.WholesaleBottles);
+        var report = Game.EndTurnInPlace(s, C);
+        Assert.Equal(order, report.Post.Ordered);
+        Assert.Equal(order, report.Post.Delivered);
+        Assert.Equal(order * 70, report.Post.RevenueCents);
+        Assert.Equal(0, report.Wholesale.Ordered);
+        Assert.Contains(report.Deltas, d => d.Cause == Causes.SalesPost && d.Detail == "almanac" && d.Amount == order * 70);
+    }
+
+    [Fact]
+    public void TheProspectusShowsHowNearEachVentureIsAsNumbers()
+    {
+        var s = Start("prospectus");
+        s.Stats.BottlesSold = 1120;
+        s.Scrutiny.Heat = 12;
+        var o = Machine.Observe(s, C);
+        var whl = C.ById.Investments["wholesale_contract"];
+        double need = ((AtLeastRequirement)((AllRequirement)whl.Requires!).Of[0]).AtLeast;
+        Assert.Equal(new[]
+        {
+            new ConditionProgress("bottlesSold", null, "atLeast", 1120, need, false, null),
+            new ConditionProgress("heat", null, "below", 12, 30, true, null),
+            new ConditionProgress("cost", null, "atLeast", s.Player.CashCents, whl.CostCents, false, null),
+        }, o.Investments.Single(i => i.Id == "wholesale_contract").Progress);
+        var branch = o.Investments.Single(i => i.Id == "branch_shop").Progress;
+        Assert.Equal(new ConditionProgress("unlocked", "larger_shop", "atLeast", 0, 1, false, null), branch[0]);
+        Assert.Equal(new[] { "regulars", "cash" }, branch.Where(c => c.Via == "larger_shop").Select(c => c.Kind));
+        Assert.Equal("cost", branch[^1].Kind);
+        var rich = Act(RichShop("held"), new Invest("branch_shop"));
+        Assert.Empty(Machine.Observe(rich, C).Investments.Single(i => i.Id == "branch_shop").Progress);
     }
 
     [Fact]

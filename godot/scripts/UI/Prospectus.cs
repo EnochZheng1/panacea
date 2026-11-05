@@ -44,6 +44,16 @@ public partial class Prospectus : VBoxContainer
 	public void Refresh()
 	{
 		var keep = Print.FocusIndex(this);
+		// the sheet keeps its place in the drawer when it is reset: the slip pressed stays under the hand
+		var frame = GetParent();
+		while (frame != null && frame is not ScrollContainer) frame = frame.GetParent();
+		var scroll = (frame as ScrollContainer)?.ScrollVertical ?? 0;
+		if (frame is ScrollContainer sc0)
+		{
+			Callable.From(() => { if (IsInstanceValid(sc0)) sc0.ScrollVertical = scroll; }).CallDeferred();
+			// and once more after the layout has settled, for the frame that follows focus
+			GetTree().CreateTimer(0.05).Timeout += () => { if (IsInstanceValid(sc0)) sc0.ScrollVertical = scroll; };
+		}
 		_rebuilding = true;
 		foreach (var c in GetChildren()) { RemoveChild(c); c.QueueFree(); }
 		_rebuilding = false;
@@ -118,14 +128,15 @@ public partial class Prospectus : VBoxContainer
 		{
 			// short only of cash: it is on offer, at a price not yet in hand
 			var shortOfCash = !r.CanBuy && r.Refusal != null && r.Refusal.Contains("cash", StringComparison.OrdinalIgnoreCase);
-			var b = Print.Button(r.CanBuy || shortOfCash ? $"☞  TAKE IT UP · {EditionWriter.Money(r.CostCents)}" : "NOT TO BE HAD", 14, solid: r.CanBuy, sound: "till");
+			var price = r.CostCents == 0 ? "NOTHING DOWN" : EditionWriter.Money(r.CostCents);
+			var b = Print.Button(r.CanBuy || shortOfCash ? $"☞  TAKE IT UP · {price}" : "NOT TO BE HAD", 14, solid: r.CanBuy, sound: "till");
 			b.SizeFlagsHorizontal = SizeFlags.ShrinkEnd;
 			Print.SetLive(b, r.CanBuy && d.CashCents >= r.CostCents);
 			b.TooltipText = r.Refusal ?? (d.CashCents < r.CostCents ? $"It wants {EditionWriter.Money(r.CostCents)}, and you have {EditionWriter.Money(d.CashCents)}." : "Paid at once; it starts this month.");
 			var id = r.Id; var name = r.Name; var cost = r.CostCents;
 			if (_asking == id)
 			{
-				b.Text = $"☞  PAY {EditionWriter.Money(cost)} DOWN? PRESS AGAIN";
+				b.Text = cost == 0 ? "☞  TAKE IT UP? PRESS AGAIN" : $"☞  PAY {EditionWriter.Money(cost)} DOWN? PRESS AGAIN";
 				b.TooltipText = "Press again to pay and take it up. Escape, or any other control, to think better of it.";
 			}
 			b.Pressed += () =>

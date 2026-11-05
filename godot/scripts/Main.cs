@@ -551,7 +551,9 @@ public partial class Main : Control
 			when = $"The Gazette of {printed.ToString("MMMM d", System.Globalization.CultureInfo.InvariantCulture)} · now {when}";
 		}
 		_status.Text = _pressing ? "☞ Click, or press any key, to see the edition." : _game.Ended
-			? "The business is closed. The paper has the last word."
+			? (_game.Facts.Career is { } c
+				? $"The business is closed after {(c.Months >= 24 ? $"{c.Months / 12} years" : $"{c.Months} months")}: {c.Bottles:N0} bottles sold, {c.Deaths} dead. The paper has the last word."
+				: "The business is closed. The paper has the last word.")
 			: $"{when} · cash in hand {EditionWriter.Money(cash ?? d.CashCents)}{(_monthDelta is long dm && !_onDesk ? (dm == 0 ? " (the books even)" : $" (the books {(dm > 0 ? "up" : "down")} {EditionWriter.Money(Math.Abs(dm))})") : "")} · {d.Customers} regulars{(d.Letters.Count == 0 ? "" : $" · {d.Letters.Count} letter{(d.Letters.Count == 1 ? "" : "s")} waiting")}";
 	}
 }

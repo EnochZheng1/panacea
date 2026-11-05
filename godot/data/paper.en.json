@@ -221,6 +221,51 @@
       "mid": "A RIVAL OF REPUTE",
       "body": "Cures consumption in all its stages. Testimonials from every state in the Union, and several beyond it.",
       "fine": "Several of the testimonials were received posthumously."
+    },
+    {
+      "head": "THE HYGEIA CYCLE TONIC",
+      "mid": "FOR WHEELMEN",
+      "body": "Restores the Nerve after a Century Run. Endorsed by Seven Clubs of the League of American Wheelmen, or their Secretaries.",
+      "fine": "Not to be taken while mounted.",
+      "from": 1890,
+      "to": 1900
+    },
+    {
+      "head": "PROFESSOR VOLTA'S ELECTRIC INSOLES",
+      "mid": "WALK ON LIGHTNING",
+      "body": "A Galvanic Current from Heel to Crown, for Rheumatism, Cold Feet and Low Spirits. Worn by the Crowned Heads of Europe.",
+      "fine": "The Crowned Heads have not been asked.",
+      "from": 1890,
+      "to": 1899
+    },
+    {
+      "head": "THE ROENTGEN CORSET",
+      "mid": "SEE THROUGH YOUR TROUBLES",
+      "body": "Constructed upon the principle of the New Photography. Corrects the Figure and Reveals the Liver.",
+      "fine": "The Liver is not included.",
+      "from": 1896,
+      "to": 1903
+    },
+    {
+      "head": "RADIOLENE",
+      "mid": "THE RADIUM TONIC",
+      "body": "Liquid Sunshine, charged with the Wonder-Element of Madame Curie. Glows in the Bottle and in the Patient.",
+      "fine": "Keep from the photographic plates.",
+      "from": 1903
+    },
+    {
+      "head": "DR. SPRY'S MOTOR NERVE TONIC",
+      "mid": "FOR AUTOMOBILISTS",
+      "body": "Steadies the Hand at Twenty Miles an Hour. Recommended to all who own, drive, or have been run down by a Motor-Car.",
+      "fine": "Twenty miles an hour is not recommended.",
+      "from": 1902
+    },
+    {
+      "head": "THE PASTEUR PURE-MILK TABLETS",
+      "mid": "A MODERN MARVEL",
+      "body": "Dissolve one in the Baby's Milk and the Microbe Flees. Scientifically Proven upon a Large Number of Babies.",
+      "fine": "The number is not stated.",
+      "from": 1893
     }
   ],
   "undertaker": {
@@ -555,7 +600,6 @@
       ],
       "bodies": [
         "At {price} the bottle, the remedy of Mulberry street is beyond a good part of the ward. Our reporter watched a laborer read the card in the window, count his change, and go home to his cough.",
-        "The proprietor of {product} has put up his price to {price}, and his callers have put down their hats and left. He informs our reporter that a remedy cheaply sold is cheaply regarded, and that he would rather sell one bottle to a gentleman than three to the ward.",
         "Several callers at the shop this month asked the price of {product} and were told {price}. Most of them are said to have found that they felt better already.",
         "Callers at the shop on Mulberry street were seen to read the price on the card, count their change and leave, some of them walking as far as the Bowery for something cheaper and worse."
       ],
@@ -565,7 +609,8 @@
           "The Price Holds, and So Do the Pennies.",
           "{turned_upper} MORE CALLERS TURNED AWAY BY THE PRICE; THE PROPRIETOR HOLDS FIRM."
         ]
-      }
+      },
+      "raised": "The proprietor of {product} has put up his price to {price}, and his callers have put down their hats and left. He informs our reporter that a remedy cheaply sold is cheaply regarded, and that he would rather sell one bottle to a gentleman than three to the ward."
     }
   },
   "infantLead": [
@@ -727,7 +772,70 @@
     "BOARDING.—Rooms for respectable mechanics, a dollar a week. The landlady doctors free of charge and requests that boarders do not.",
     "THE SCHOOLS.—The truant officer reports two hundred boys of the Sixth Ward in no school. Most were found selling newspapers and one was found selling a remedy, at a profit.",
     "POLICE COURT.—A widow charged a tonic man with breach of promise, the promise being printed on the label. The Justice read the label and dismissed the case for vagueness.",
-    "THE DOCKS.—A longshoreman lifted a bale of cotton with one hand on a wager, then fell asleep on it. He credits a tonic for the first and his wife for the second."
+    "THE DOCKS.—A longshoreman lifted a bale of cotton with one hand on a wager, then fell asleep on it. He credits a tonic for the first and his wife for the second.",
+    {
+      "text": "THE WHEEL.—Two hundred bicycles passed along the Boulevard on Sunday. A druggist at 59th street sells a liniment for the wheelman's knee, and another for the pedestrian's.",
+      "from": 1891,
+      "to": 1900,
+      "months": [4, 5, 6, 7, 8, 9, 10]
+    },
+    {
+      "text": "THE TROLLEY.—The new electric cars on Third avenue have killed another dog and frightened a horse into the river. A tonic for the nerves of passengers is advertised on every car.",
+      "from": 1893,
+      "to": 1906
+    },
+    {
+      "text": "THE TELEPHONE.—A druggist on Grand street has had the telephone put in, and a customer rang him at midnight to ask for a remedy for sleeplessness. He recommended hanging up.",
+      "from": 1890,
+      "to": 1906
+    },
+    {
+      "text": "TAMMANY.—The Hall's new sachem has promised clean streets, clean water and a clean election. The druggists of the ward are not alarmed.",
+      "from": 1890,
+      "to": 1906
+    },
+    {
+      "text": "THE NEW PHOTOGRAPHY.—A physician on Second avenue now photographs the bones of his patients by the Roentgen rays, and charges extra for the photograph. Several patients have asked to be photographed thinner.",
+      "from": 1896,
+      "to": 1906
+    },
+    {
+      "text": "THE STRIKE.—The garment workers of the East Side are out again. The druggists report a brisk trade in remedies for the cough, which is the trade's own.",
+      "from": 1890,
+      "to": 1906
+    },
+    {
+      "text": "THE FLATIRON.—The new building at Madison square is twenty stories high, and the wind at its corner lifts the skirts of the ladies. Loafers gather; the police move them on, with the phrase 'twenty-three skidoo.'",
+      "from": 1902,
+      "to": 1906
+    },
+    {
+      "text": "LUNA PARK.—The new pleasure ground at Coney Island is lit by a quarter of a million electric lamps. A remedy for the eyes is sold at the gate.",
+      "from": 1903,
+      "to": 1906,
+      "months": [5, 6, 7, 8, 9]
+    },
+    {
+      "text": "THE MOTOR-CAR.—A motor-car ran down a peddler of soothing syrup on Fifth avenue. Both are said to be recovering, the syrup more quickly.",
+      "from": 1900,
+      "to": 1906
+    },
+    {
+      "text": "THE WAR.—Recruits for Cuba drill in the armory on Lexington avenue. The surgeons report that most of them have been taking something for the climate since April, and some of it was bitters.",
+      "from": 1898,
+      "to": 1898,
+      "months": [5, 6, 7, 8]
+    },
+    {
+      "text": "THE CONSOLIDATION.—Brooklyn is now part of the city, and its druggists are learning to charge Manhattan prices.",
+      "from": 1898,
+      "to": 1899
+    },
+    {
+      "text": "THE MOVING PICTURES.—At Koster & Bial's the vitascope shows a train coming into a station. A lady fainted and was revived with a patent restorative sold, by coincidence, in the lobby.",
+      "from": 1896,
+      "to": 1906
+    }
   ],
   "prospectHints": {
     "second_still": "a second copper, which the coppersmith will let him have once two hundred bottles have gone over the counter",
@@ -838,7 +946,7 @@
     "laboratory.mishap": "FIRE.—A blaze in a back room on Mulberry street brought out Engine No. 9 on {weekday}. A quantity of ether was found to be the cause, and a German chemist the excuse. The proprietor's loss is put at twenty-five dollars, and the talk at a good deal more.",
     "druggists_order.bought": "IN THE TRADE.—A druggist of Atlantic avenue, Brooklyn, is to keep {product} on his own shelf, a dozen or so at a time. He describes it to our reporter as a remedy of the highest character, and the price he pays for it as none of our business.",
     "druggists_order.lost": "IN THE TRADE.—The Atlantic avenue druggist has sent back the last of {product}, saying he has a family name to think of. He has taken a rival's bitters in its place.",
-    "larger_copper.bought": "IN THE TRADE.—A coppersmith of Water street has delivered a larger copper to the shop on Mulberry street, with a worm long enough, he says, to run round the block. Each still will now fill half as many bottles again; the ward has been asked to keep its windows shut.",
+    "larger_copper.bought": "IN THE TRADE.—The coppersmith of Elm street has delivered a larger copper to the shop on Mulberry street, with a worm long enough, he says, to run round the block. Each still will now fill half as many bottles again; the ward has been asked to keep its windows shut.",
     "fourth_still.bought": "IN THE TRADE.—A fourth still has gone into the back of the shop on Mulberry street, and the neighbors report that the floor above is warm in January. The proprietor speaks of a manufactory."
   },
   "outOfTown": [
@@ -852,5 +960,32 @@
     "subscriptions": "by the society",
     "branch_shop": "at the branch",
     "almanac": "by the almanac"
-  }
+  },
+  "deathLeadStranger": [
+    "{pronounCap} was not a regular at the shop on Mulberry street, so far as anyone there recalls, but a bottle of a certain remedy was found among {possessive} effects, and the neighbors have drawn their own conclusions.",
+    "The deceased had come into the ward only lately. Who sold {object} the bottle on the mantel is a question the neighbors have answered among themselves, and the shop on Mulberry street has not."
+  ],
+  "eras": [
+    {
+      "from": 1892,
+      "over": "ILLUSTRATED · ESTABLISHED 1871 · NOW WITH HALF-TONES",
+      "price": "TWO CENTS.",
+      "priceNote": "Cheaper than the World. Sold by All Newsdealers, Barbers & Druggists."
+    },
+    {
+      "from": 1896,
+      "over": "ILLUSTRATED · ESTABLISHED 1871 · EXTRAS AT ALL HOURS",
+      "price": "ONE CENT.",
+      "priceNote": "One Cent, like the Journal. Sold by Newsdealers & Bootblacks.",
+      "yearly": "$3.00 A YEAR."
+    },
+    {
+      "from": 1903,
+      "over": "ESTABLISHED 1871 · THE PEOPLE'S PAPER",
+      "motto": "The Leading Sensational, Sporting & Medical Journal of America, and the Foe of Fraud",
+      "price": "ONE CENT.",
+      "priceNote": "Read by Every Reformer in the City.",
+      "yearly": "$3.00 A YEAR."
+    }
+  ]
 }

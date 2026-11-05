@@ -113,12 +113,99 @@ public partial class StillBench : HBoxContainer
 		var bottles = n * d.BottleCostCents;
 		// the ingredients were paid for when they were ordered: lighting the fire costs only the glass
 		var stuff = Math.Max(0, n * f.UnitCostCents - bottles);
+		var stock = d.Ingredients.ToDictionary(i => i.Id, i => i);
+		(List<(string Id, double Oz)> Needs, long Cost) Shortfall(int batch)
+		{
+			var list = new List<(string Id, double Oz)>();
+			long total = 0;
+			foreach (var c in f.Components.Where(c => c.Ounces > 0))
+			{
+				var have = stock.TryGetValue(c.IngredientId, out var i) ? i.OnHand : 0;
+				var need = Math.Ceiling(Math.Max(0, c.Ounces * batch - have));
+				if (need <= 0) continue;
+				list.Add((c.IngredientId, need));
+				total += (long)Math.Round(need * (i?.CostPerOunceCents ?? 0));
+			}
+			return (list, total);
+		}
+		var Batch = want > max ? want : Math.Min(24, cap);
+		var (needs, cost) = Shortfall(Batch);
+		var fid = f.Id; var fname = f.Name;
+
+		// the buttons sit in fixed places right under the shelf: nothing above them changes when
+		// stock is ordered, and a button with nothing to do stays where it is, greyed, rather
+		// than leaving a gap for the next one to slide into
+		var row = new HBoxContainer();
+		row.AddThemeConstantOverride("separation", 8);
+		var fire = Print.Button(n > 0 ? $"LIGHT THE FIRE · {n} BOTTLES" : "LIGHT THE FIRE", 14, solid: true, sound: "lever");
+		fire.CustomMinimumSize = new Vector2(214, 0);
+		fire.Disabled = n <= 0;
+		fire.TooltipText = n <= 0 ? (want > 0 ? "Not enough stock on the shelf: order first." : "Choose a batch on the shelf.") : "Brews the batch on one still; it is bottled by press time.";
+		var count = n;
+		fire.Pressed += () =>
+		{
+			var err = _game.Brew(fid, count);
+			_note = err ?? $"The fire is lit: {count} bottles of {fname} will be ready by press time.";
+			if (err == null) { _still.Lit = true; _still.Flare(); Sfx.Play("pour", -2f, 0.05f, 0.6f); }
+			Callable.From(() => { if (IsInsideTree()) Print.Focusables(this).FirstOrDefault()?.GrabFocus(); }).CallDeferred();
+			Refresh();
+			Changed?.Invoke();
+		};
+		row.AddChild(fire);
+		var buy = Print.Button(needs.Count > 0 ? $"ORDER FOR {Batch} · {EditionWriter.Money(cost)}" : "THE STOCK IS IN HAND", 12);
+		buy.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+		Print.SetLive(buy, needs.Count > 0);
+		buy.TooltipText = needs.Count > 0 ? $"Orders from Pearl street whatever the recipe is short of, for a batch of {Batch}." : "There is enough on the shelf for this batch.";
+		buy.Pressed += () =>
+		{
+			string? err = null;
+			foreach (var (id, oz) in needs) err ??= _game.Buy(id, oz);
+			_note = err ?? $"Ordered: enough for {Batch} bottles, {EditionWriter.Money(cost)}.";
+			_counts[f.Id] = Batch;
+			// the next thing to do is light the fire: the keyboard goes there
+			_focusFire = err == null;
+			Refresh();
+			Changed?.Invoke();
+		};
+		row.AddChild(buy);
+		_right.AddChild(row);
+		if (_focusFire)
+		{
+			_focusFire = false;
+			Callable.From(() => { if (IsInstanceValid(fire) && fire.IsInsideTree() && !fire.Disabled) fire.GrabFocus(); }).CallDeferred();
+		}
+
+		// every free still at once: one order and one press, however many stills there are
+		var free = d.StillsFree;
+		if (free >= 2 && want > 0)
+		{
+			var all = want * free;
+			var (needsAll, costAll) = Shortfall(all);
+			var which = free == 2 ? "BOTH STILLS" : $"ALL {EditionWriter.Words(free).ToUpperInvariant()} STILLS";
+			var many = Print.Button(costAll > 0 ? $"{which} · ORDER AND LIGHT {want} EACH · {EditionWriter.Money(costAll)}" : $"{which} · LIGHT {want} EACH", 12);
+			many.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+			many.TooltipText = $"Every free still brews {f.Name}: orders what {all} bottles are short of, then lights {EditionWriter.Words(free)} stills of {want} bottles each.";
+			many.Pressed += () =>
+			{
+				string? err = null;
+				foreach (var (id, oz) in needsAll) err ??= _game.Buy(id, oz);
+				var lit = 0;
+				for (var k = 0; k < free && err == null; k++) { err = _game.Brew(fid, want); if (err == null) lit++; }
+				_note = lit > 0
+					? $"{(lit == 1 ? "One fire is" : $"{EditionWriter.Words(lit)} fires are")} lit: {lit * want} bottles of {fname} will be ready by press time{(costAll > 0 ? $", and {EditionWriter.Money(costAll)} of stock was ordered" : "")}.{(err != null ? " " + err : "")}"
+					: err;
+				if (lit > 0) { _still.Lit = true; _still.Flare(); Sfx.Play("pour", -2f, 0.05f, 0.6f); }
+				Callable.From(() => { if (IsInsideTree()) Print.Focusables(this).FirstOrDefault()?.GrabFocus(); }).CallDeferred();
+				Refresh();
+				Changed?.Invoke();
+			};
+			_right.AddChild(many);
+		}
+
+		// what the batch costs and what limits it, under the buttons, where its changing length moves nothing
 		_right.AddChild(Print.Label(want > max
 			? $"You have marked {want}; the ingredients on hand make {(max == 0 ? "none" : max.ToString(CultureInfo.InvariantCulture))}. {(max == 0 ? "Order the rest to light the fire." : $"Order the rest, or light the fire for {max}.")}"
 			: $"{n} bottle{(n == 1 ? "" : "s")} · {EditionWriter.Money(bottles)} for bottles and corks when lit · {(stuff > 0 ? $"takes {EditionWriter.Money(stuff)} of stock off the shelf · " : "")}most the stock allows: {max}", Print.Fell, 15));
-
-		// what limits the batch, and the remedy for it
-		var stock = d.Ingredients.ToDictionary(i => i.Id, i => i);
 		var limits = f.Components.Where(c => c.Ounces > 0).Select(c => (c, can: stock.TryGetValue(c.IngredientId, out var i) ? (int)Math.Floor(i.OnHand / c.Ounces + 1e-9) : 0)).ToList();
 		var shortest = limits.OrderBy(x => x.can).FirstOrDefault();
 		if (limits.Count > 0 && shortest.can < want)
@@ -126,92 +213,6 @@ public partial class StillBench : HBoxContainer
 			var nm = stock.TryGetValue(shortest.c.IngredientId, out var si) ? si.Name : shortest.c.IngredientId;
 			_right.AddChild(Print.Body($"[i]The shelf is short of {Print.Escape(nm.ToLowerInvariant())}: {shortest.c.Ounces:0.##} oz a bottle, {(si?.OnHand ?? 0):0.#} oz on hand.[/i]", 14, justify: false));
 		}
-		var Batch = want > max ? want : 24;
-		var needs = new List<(string Id, double Oz)>();
-		long cost = 0;
-		foreach (var c in f.Components.Where(c => c.Ounces > 0))
-		{
-			var have = stock.TryGetValue(c.IngredientId, out var i) ? i.OnHand : 0;
-			var need = Math.Ceiling(Math.Max(0, c.Ounces * Batch - have));
-			if (need <= 0) continue;
-			needs.Add((c.IngredientId, need));
-			cost += (long)Math.Round(need * (i?.CostPerOunceCents ?? 0));
-		}
-		// the two actions wrap rather than push the drawer wider than the proof
-		var row = new HFlowContainer();
-		row.AddThemeConstantOverride("h_separation", 8);
-		row.AddThemeConstantOverride("v_separation", 8);
-		Button? orderButton = null;
-		if (needs.Count > 0 && d.StillsFree > 0)
-		{
-			var buy = Print.Button($"ORDER ENOUGH FOR {Batch} · {EditionWriter.Money(cost)}", 13);
-			buy.TooltipText = "Orders from Pearl street whatever the recipe is short of, for a batch of " + Batch + ".";
-			buy.Pressed += () =>
-			{
-				string? err = null;
-				foreach (var (id, oz) in needs) err ??= _game.Buy(id, oz);
-				_note = err ?? $"Ordered: enough for {Batch} bottles, {EditionWriter.Money(cost)}.";
-				_counts[f.Id] = Batch;
-				// the next thing to do is light the fire: the keyboard goes there
-				_focusFire = err == null;
-				Refresh();
-				Changed?.Invoke();
-			};
-			orderButton = buy;
-		}
-		var fire = Print.Button(n > 0 ? $"LIGHT THE FIRE · {n} BOTTLES" : "LIGHT THE FIRE", 17, solid: true, sound: "lever");
-		fire.Disabled = n <= 0 || d.StillsFree <= 0;
-		fire.TooltipText = d.StillsFree <= 0 ? "Every still is already on the fire this month." : n <= 0 ? (want > 0 ? "Not enough stock on the shelf: order first." : "Choose a batch on the shelf.") : "Brews the batch; it is bottled by press time.";
-		var fid = f.Id; var count = n; var fname = f.Name;
-		fire.Pressed += () =>
-		{
-			var err = _game.Brew(fid, count);
-			_note = err ?? $"The fire is lit: {count} bottles of {fname} will be ready by press time.";
-			if (err == null) { _still.Lit = true; _still.Flare(); Sfx.Play("pour", -2f, 0.05f, 0.6f); }
-			// the fire button is gone: give the keyboard somewhere to stand
-			Callable.From(() => { if (IsInsideTree()) Print.Focusables(this).FirstOrDefault()?.GrabFocus(); }).CallDeferred();
-			Refresh();
-			Changed?.Invoke();
-		};
-		// the fire comes first in the row, so it stays where it is when the order button goes
-		row.AddChild(fire);
-		if (orderButton != null) row.AddChild(orderButton);
-		if (_focusFire)
-		{
-			_focusFire = false;
-			Callable.From(() => { if (IsInstanceValid(fire) && fire.IsInsideTree() && !fire.Disabled) fire.GrabFocus(); }).CallDeferred();
-		}
-		// two stills free: one order and one press for both, rather than the routine twice over
-		if (d.StillsFree >= 2 && want > 0)
-		{
-			var both = want * 2;
-			var needs2 = new List<(string Id, double Oz)>();
-			long cost2 = 0;
-			foreach (var c in f.Components.Where(c => c.Ounces > 0))
-			{
-				var have = stock.TryGetValue(c.IngredientId, out var i) ? i.OnHand : 0;
-				var need = Math.Ceiling(Math.Max(0, c.Ounces * both - have));
-				if (need <= 0) continue;
-				needs2.Add((c.IngredientId, need));
-				cost2 += (long)Math.Round(need * (i?.CostPerOunceCents ?? 0));
-			}
-			var two = Print.Button(cost2 > 0 ? $"BOTH STILLS · ORDER AND LIGHT {want} EACH · {EditionWriter.Money(cost2)}" : $"BOTH STILLS · LIGHT {want} EACH", 12);
-			two.TooltipText = $"Both stills brew {f.Name}: orders what the two batches are short of, then lights two stills of {want} bottles each.";
-			two.Pressed += () =>
-			{
-				string? err = null;
-				foreach (var (id, oz) in needs2) err ??= _game.Buy(id, oz);
-				err ??= _game.Brew(fid, want);
-				err ??= _game.Brew(fid, want);
-				_note = err ?? $"Both fires are lit: {both} bottles of {fname} will be ready by press time{(cost2 > 0 ? $", and {EditionWriter.Money(cost2)} of stock was ordered" : "")}.";
-				if (err == null) { _still.Lit = true; _still.Flare(); Sfx.Play("pour", -2f, 0.05f, 0.6f); }
-				Callable.From(() => { if (IsInsideTree()) Print.Focusables(this).FirstOrDefault()?.GrabFocus(); }).CallDeferred();
-				Refresh();
-				Changed?.Invoke();
-			};
-			row.AddChild(two);
-		}
-		_right.AddChild(row);
 		if (_note != null) _right.AddChild(Print.Body($"[i]{Print.Escape(_note)}[/i]", 15, justify: false));
 	}
 
@@ -219,9 +220,15 @@ public partial class StillBench : HBoxContainer
 	private sealed partial class BottleShelf : Control, Print.IArrowKeys
 	{
 		public int Count, Max, Capacity = 48;
+		/// <summary>Bottles a row: twelve, or more (printed smaller) when a larger copper makes over four rows.</summary>
+		private int PerRow => Math.Max(12, (Capacity + 3) / 4);
+		private float S => 12f / PerRow;
+		private float W => 20 * S;
+		private float H => 40 * S;
+		private float Gap => 6 * S;
+		private float RowH => H + 14 * S;
 		public event Action<int>? Picked;
 		private int _hover = -1;
-		private const float W = 20, H = 40, Gap = 6;
 
 		public BottleShelf()
 		{
@@ -231,14 +238,14 @@ public partial class StillBench : HBoxContainer
 			TooltipText = "Click a bottle to fill the shelf up to it. Arrow keys change the batch by one.";
 		}
 
-		public override Vector2 _GetMinimumSize() => new(12 * (W + Gap), ((Capacity + 11) / 12) * (H + 14));
+		public override Vector2 _GetMinimumSize() => new(PerRow * (W + Gap), ((Capacity + PerRow - 1) / PerRow) * RowH);
 
 		private int At(Vector2 p)
 		{
 			var col = (int)(p.X / (W + Gap));
-			var row = (int)(p.Y / (H + 14));
-			if (col < 0 || col > 11 || row < 0) return -1;
-			var k = row * 12 + col + 1;
+			var row = (int)(p.Y / RowH);
+			if (col < 0 || col > PerRow - 1 || row < 0) return -1;
+			var k = row * PerRow + col + 1;
 			return k <= Capacity ? k : -1;
 		}
 
@@ -248,7 +255,7 @@ public partial class StillBench : HBoxContainer
 			if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } b && At(b.Position) is var k and > 0) { GrabFocus(); Picked?.Invoke(k); AcceptEvent(); }
 			if (e is InputEventKey { Pressed: true } key)
 			{
-				var step = key.Keycode switch { Key.Right or Key.Plus or Key.Equal or Key.KpAdd => 1, Key.Left or Key.Minus or Key.KpSubtract => -1, Key.Up or Key.Pageup => -12, Key.Down or Key.Pagedown => 12, _ => 0 };
+				var step = key.Keycode switch { Key.Right or Key.Plus or Key.Equal or Key.KpAdd => 1, Key.Left or Key.Minus or Key.KpSubtract => -1, Key.Up or Key.Pageup => -PerRow, Key.Down or Key.Pagedown => PerRow, _ => 0 };
 				if (step != 0) { Picked?.Invoke(Math.Clamp(Count + step, 0, Capacity)); AcceptEvent(); }
 			}
 		}
@@ -264,21 +271,21 @@ public partial class StillBench : HBoxContainer
 			var shown = _hover > 0 ? _hover : Count;
 			for (var i = 0; i < Capacity; i++)
 			{
-				var x = (i % 12) * (W + Gap);
-				var y = (i / 12) * (H + 14);
+				var x = (i % PerRow) * (W + Gap);
+				var y = (i / PerRow) * RowH;
 				var possible = i < Max;
 				var filled = i < shown;
 				// a Boston round in outline: body, shoulder, neck, cork
-				var body = new Rect2(x, y + 12, W, H - 12);
+				var body = new Rect2(x, y + 12 * S, W, H - 12 * S);
 				// beyond what the stock allows, a wanted bottle is only pencilled in
 				if (filled) DrawRect(body, !possible ? new Color(Print.Green, 0.2f) : _hover > 0 && i >= Count ? new Color(Print.Green, 0.45f) : Print.Green);
 				var c = possible ? ink : new Color(ink, 0.5f);
 				DrawRect(body, c, false, 1.6f);
-				DrawLine(new Vector2(x, y + 12), new Vector2(x + W * 0.35f, y + 5), c, 1.6f);
-				DrawLine(new Vector2(x + W, y + 12), new Vector2(x + W * 0.65f, y + 5), c, 1.6f);
-				DrawRect(new Rect2(x + W * 0.35f, y, W * 0.3f, 5), possible ? ink : c);
-				if (filled) DrawRect(new Rect2(x + 3, y + 20, W - 6, 10), Print.Paper);
-				if (i % 12 == 11 || i == Capacity - 1) DrawLine(new Vector2(0, y + H + 2), new Vector2(12 * (W + Gap) - Gap, y + H + 2), ink, 3f);
+				DrawLine(new Vector2(x, y + 12 * S), new Vector2(x + W * 0.35f, y + 5 * S), c, 1.6f);
+				DrawLine(new Vector2(x + W, y + 12 * S), new Vector2(x + W * 0.65f, y + 5 * S), c, 1.6f);
+				DrawRect(new Rect2(x + W * 0.35f, y, W * 0.3f, 5 * S), possible ? ink : c);
+				if (filled) DrawRect(new Rect2(x + 3 * S, y + 20 * S, W - 6 * S, 10 * S), Print.Paper);
+				if (i % PerRow == PerRow - 1 || i == Capacity - 1) DrawLine(new Vector2(0, y + H + 2), new Vector2(PerRow * (W + Gap) - Gap, y + H + 2), ink, 3f);
 			}
 			if (HasFocus()) DrawRect(new Rect2(-4, -4, Size.X + 8, Size.Y + 8), ink, false, 2f);
 		}

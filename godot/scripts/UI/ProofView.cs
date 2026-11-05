@@ -91,6 +91,8 @@ public partial class ProofView : Control
 	private bool _keyboard;
 	/// <summary>The stills and the ventures on offer when those drawers were last opened.</summary>
 	private int _seenStills, _seenOffers;
+	/// <summary>Whom Death stands beside at the counter this month, if anyone.</summary>
+	private string? _deathBeside;
 
 	/// <summary>
 	/// The keyboard never stands nowhere: when an action takes away the focused control (the fire
@@ -219,8 +221,7 @@ public partial class ProofView : Control
 		var unansweredInquests = m.Letters.Count(l => l.Title.StartsWith("Inquest", StringComparison.Ordinal));
 		if (unansweredInquests > 0) warn.Add($"{Spell(unansweredInquests)} inquest{(unansweredInquests == 1 ? "" : "s")} unanswered: the coroner will proceed without you.");
 		else if (m.Letters.Count > 0) warn.Add($"{Spell(m.Letters.Count)} letter{(m.Letters.Count == 1 ? "" : "s")} unanswered: the usual reply will go out for you.");
-		var waiting = m.Regulars.FirstOrDefault(r => r.Looks is "gravely_ill");
-		if (waiting != null) warn.Add($"Death waits at the counter beside {waiting.Name}.");
+		if (_deathBeside != null) warn.Add($"Death waits at the counter beside {_deathBeside}.");
 		var nothing = m.Formulas.Sum(f => f.Stock) == 0 && m.Brewing.Count == 0;
 		// the first month: say where to begin, in so many words
 		if (m.Formulas.Count == 0) warn.Add("Begin with the FORMULA book: pour a remedy and enter it. Then light THE STILL, and send the paper to press.");
@@ -400,7 +401,9 @@ public partial class ProofView : Control
 
 		// the most notable regulars: the sick first, then the hooked, then the new
 		var shown = m.Regulars.OrderByDescending(Risk).ThenBy(r => r.MonthsAsCustomer).Take(5).ToList();
-		var atRisk = shown.FirstOrDefault(r => r.Looks is "gravely_ill" or "poorly");
+		// he stands beside the gravest case shown, and the warning names the same customer
+		var atRisk = shown.FirstOrDefault(r => r.Looks is "gravely_ill") ?? shown.FirstOrDefault(r => r.Looks is "poorly");
+		_deathBeside = atRisk?.Name;
 		DeathPresent = atRisk != null;
 		var others = m.Regulars.Count - shown.Count;
 		var more = Print.Label(others > 0 ? $"and {Spell(others)} more regular{(others == 1 ? "" : "s")}" : m.Regulars.Count == 0 ? "No one has come in yet." : "", Print.FellIt, 13);

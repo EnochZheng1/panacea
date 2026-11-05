@@ -86,6 +86,8 @@ public sealed class SimGame : IGame
 		var report = Sim.Game.EndTurnInPlace(_state, _content);
 		Facts = BuildFacts(report);
 		Facts.SoldLastMonth = before;
+		// the best month before this one, from the books: a record is beaten, not just last month
+		Facts.BestSoldBefore = _state.Ledger.Take(Math.Max(0, _state.Ledger.Count - 1)).Select(e => e.Sales.Sum(x => x.Bottles)).DefaultIfEmpty(0).Max();
 	}
 
 	private static List<FormulaComponent> Components(IReadOnlyList<(string IngredientId, double Ounces)> components) =>
@@ -230,6 +232,42 @@ public sealed class SimGame : IGame
 		return d;
 	}
 
+	/// <summary>The career in figures, and what the chief remedy's label would have to admit.</summary>
+	private CareerFact Career(Observation o)
+	{
+		var c = new CareerFact
+		{
+			Months = _state.Ledger.Count,
+			Bottles = _state.Stats.BottlesSold,
+			RevenueCents = _state.Stats.RevenueCents,
+			Deaths = _state.Deaths.Count,
+			Inquests = _state.Scrutiny.InquestsHeld,
+			Named = _state.Scrutiny.TimesImplicated,
+			Bribes = _state.Scrutiny.BribesPaid,
+		};
+		// the remedy the house sold most of, as it stood at the end
+		var chief = _state.Lab.Formulas.OrderByDescending(x => _state.Ledger.Sum(e => e.Sales.Where(s => s.FormulaId == x.Id).Sum(s => s.Bottles))).FirstOrDefault();
+		if (chief == null) return c;
+		static string Oz(double v) => v >= 1 ? $"{v:0.##} oz" : v >= 0.5 - 1e-9 ? "half an ounce" : v >= 0.25 - 1e-9 ? "a quarter-ounce" : v >= 0.125 - 1e-9 ? "an eighth of an ounce" : "a trace";
+		foreach (var comp in chief.Components)
+		{
+			var law = comp.IngredientId switch
+			{
+				"grain_alcohol" => "Alcohol",
+				"laudanum" => "Opium, as laudanum",
+				"morphine" => "Morphine",
+				"coca_extract" => "Cocaine, as extract of coca",
+				"heroin" => "Heroin",
+				"acetanilide" => "Acetanilide",
+				_ => "",
+			};
+			if (law.Length > 0) c.Declared.Add($"{law}, {Oz(comp.Amount)} to the bottle");
+			else if (comp.IngredientId is "calomel") c.Undeclared.Add($"calomel (mercury), {Oz(comp.Amount)}");
+			else if (comp.IngredientId is "fowlers_solution") c.Undeclared.Add($"Fowler's solution (arsenic), {Oz(comp.Amount)}");
+		}
+		return c;
+	}
+
 	/// <summary>The next rung of the still ladder, and what it waits for, as the still card prints it.</summary>
 	private string? NextCapacity(Observation o)
 	{
@@ -317,6 +355,7 @@ public sealed class SimGame : IGame
 			StockValueCents = o.StockValue.TotalCents,
 			StockValueStartCents = report?.StockValueStartCents ?? o.StockValue.TotalCents,
 		};
+		if (Ended) f.Career = Career(o);
 		if (f.FirstEdition) f.Turn = 0;
 		else f.Turn = report!.Turn + 1;
 

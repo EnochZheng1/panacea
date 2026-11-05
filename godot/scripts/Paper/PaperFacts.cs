@@ -39,6 +39,8 @@ public sealed class PaperFacts
     public List<(string Name, long CostCents)> Markets = new();
     public bool Ended;
     public string? EndReason;
+    /// <summary>The whole career, for the last edition: set only once the business has ended.</summary>
+    public CareerFact? Career;
 
     /// <summary>The month's books by cause, as the Ledger keeps them.</summary>
     public long CashStartCents;
@@ -54,6 +56,8 @@ public sealed class PaperFacts
     public PersonFact? Testimonial;
     /// <summary>Bottles sold the month before, so the paper can tell a slump from a steady trade.</summary>
     public int SoldLastMonth;
+    /// <summary>The most bottles sold in any month before this one.</summary>
+    public int BestSoldBefore;
     /// <summary>
     /// Callers who asked the price and left this month: walk-ins, and regulars come for their
     /// first bottle, who liked something on the shelf but would not pay what it cost (or went to a
@@ -119,3 +123,19 @@ public sealed class PersonFact
 public sealed record InquestFact(PersonFact Person, string Outcome, string Verdict, string? Product);
 
 public sealed record LeftFact(PersonFact Person, string Reason);
+
+/// <summary>A career in figures, for the last edition's review of it.</summary>
+public sealed class CareerFact
+{
+    public int Months;
+    public int Bottles;
+    public long RevenueCents;
+    public int Deaths;
+    public int Inquests;
+    public int Named;
+    public int Bribes;
+    /// <summary>What the 1906 law makes the label declare, for the house's chief remedy ("Alcohol, 2 oz the bottle").</summary>
+    public List<string> Declared = new();
+    /// <summary>What the law did not ask after, though it was in the bottle (mercury, arsenic).</summary>
+    public List<string> Undeclared = new();
+}

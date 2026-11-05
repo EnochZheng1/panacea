@@ -31,11 +31,22 @@ public sealed class EditionWriter
         e.EarLeft = Pick(f, "weather", _copy.GetProperty("weather").GetProperty(f.Month.ToString(CultureInfo.InvariantCulture)));
         e.EarRightTitle = S(mast, "price");
         e.EarRight = S(mast, "priceNote");
+        e.DatelineRight = S(mast, "yearly");
+        // the paper changes with the times: half-tones, the penny war with the World and the
+        // Journal, and at the last the reformers
+        foreach (var era in _copy.GetProperty("eras").EnumerateArray())
+        {
+            if (era.GetProperty("from").GetInt32() > f.Year) continue;
+            if (era.TryGetProperty("over", out var o)) e.Over = o.GetString() ?? e.Over;
+            if (era.TryGetProperty("motto", out var mo)) e.Motto = mo.GetString() ?? e.Motto;
+            if (era.TryGetProperty("price", out var pr)) e.EarRightTitle = pr.GetString() ?? e.EarRightTitle;
+            if (era.TryGetProperty("priceNote", out var pn)) e.EarRight = pn.GetString() ?? e.EarRight;
+            if (era.TryGetProperty("yearly", out var y)) e.DatelineRight = y.GetString() ?? e.DatelineRight;
+        }
 
         var date = f.FirstEdition ? FirstSaturday(f.Year, f.Month) : PublicationDate(f.Year, f.Month);
         e.DatelineLeft = $"VOL. {Roman(f.Year - 1871 + 1)}.—NO. {600 + f.Turn * 4}.";
         e.DatelineCentre = $"NEW-YORK, {date.DayOfWeek.ToString().ToUpperInvariant()}, {date.ToString("MMMM", CultureInfo.InvariantCulture).ToUpperInvariant()} {date.Day}, {date.Year}.";
-        e.DatelineRight = S(mast, "yearly");
         e.Brief = Brief(f);
         e.BriefClip = f.FirstEdition ? null : BooksClip(f);
 
@@ -45,6 +56,8 @@ public sealed class EditionWriter
 
         // ---- the lead: your advertisement dressed as news, or the news itself ----
         e.Lead = WriteLead(f, product);
+        // the last edition looks back over the whole career, under the lead
+        if (f.Ended && f.Career is { } career) e.LeadFoot.Add(CareerReview(f, career, product?.Name ?? "Dr. ——'s remedies"));
         // standing matter, for the make-up to balance the columns with. The pool is shuffled once a
         // game and read on, Rotation items an edition, so nothing is reprinted for several weeks.
         // Seasonal items (oysters, skating, the heat) are passed over out of their months, and an
@@ -52,8 +65,12 @@ public sealed class EditionWriter
         // its window that this game reaches, ahead of everything else.
         var pool = _copy.GetProperty("standing").EnumerateArray()
             .Select(x => x.ValueKind == JsonValueKind.String
-                ? (Text: x.GetString() ?? "", Months: (int[]?)null)
-                : (Text: x.GetProperty("text").GetString() ?? "", Months: x.TryGetProperty("months", out var ms) ? ms.EnumerateArray().Select(m => m.GetInt32()).ToArray() : null))
+                ? (Text: x.GetString() ?? "", Months: (int[]?)null, From: 0, To: 9999)
+                : (Text: x.GetProperty("text").GetString() ?? "", Months: x.TryGetProperty("months", out var ms) ? ms.EnumerateArray().Select(m => m.GetInt32()).ToArray() : null,
+                   From: x.TryGetProperty("from", out var fy) ? fy.GetInt32() : 0, To: x.TryGetProperty("to", out var ty) ? ty.GetInt32() : 9999))
+            // items of a decade (the bicycle, the trolley, the motor-car) only in their years
+            .Where(x => x.From <= f.Year && f.Year <= x.To)
+            .Select(x => (x.Text, x.Months))
             .OrderBy(x => Hash(f.Seed, 0, x.Text)).ToList();
         var nowIdx = f.Year * 12 + f.Month - 1;
         var startIdx = nowIdx - Math.Max(0, f.Turn);
@@ -312,7 +329,10 @@ public sealed class EditionWriter
                 },
             });
         }
-        var rivals = _copy.GetProperty("rivals").EnumerateArray().ToList();
+        // the rival advertisements of the day: the bicycle tonic in the nineties, radium after 1903
+        var rivals = _copy.GetProperty("rivals").EnumerateArray()
+            .Where(r => (!r.TryGetProperty("from", out var a) || a.GetInt32() <= f.Year) && (!r.TryGetProperty("to", out var b) || b.GetInt32() >= f.Year))
+            .ToList();
         var first = (int)(Hash(f.Seed, f.Turn, "rivals") % (uint)rivals.Count);
         for (var i = 0; i < 2; i++)
         {
@@ -455,7 +475,7 @@ public sealed class EditionWriter
                 Cutline = d.Anonymous ? "A GENTLEMAN SEEN IN THE NEIGHBORHOOD." : d.Infant ? $"THE MOTHER, {ShortName(d).ToUpperInvariant()}.—From a stock likeness." : $"{ShortName(d).ToUpperInvariant()}.—From a stock likeness.",
                 Body = d.Anonymous ? Pick(f, "unknownLead" + d.Id, _copy.GetProperty("unknownLead"))
                     : d.Infant ? InfantLead(f, d)
-                    : Fill(Pick(f, "deathLead" + d.Id, _copy.GetProperty("deathLead")), f, d, product?.Name ?? "the remedy"),
+                    : Fill(DeathLead(f, d), f, d, product?.Name ?? "the remedy"),
                 Clip = PersonClip(f, d, "IN MEMORIAM", d.Infant && !d.Anonymous ? "The medicine was for an infant in the family's care." : "See the deaths column for the notice."),
             };
         }
@@ -494,7 +514,8 @@ public sealed class EditionWriter
         var lost = f.Left.Where(l => l.Reason != "bereaved").ToList();
         // every lead the month could carry, most pressing first
         var soldOut = sold > 0 && f.Products.Count > 0 && f.Products.All(p => p.Stock == 0);
-        var record = f.SoldLastMonth >= 6 && sold * 10 >= f.SoldLastMonth * 13 && delta > 0;
+        // a record beats every month before it, by a margin worth printing
+        var record = f.BestSoldBefore >= 6 && sold > f.BestSoldBefore && sold * 20 >= f.BestSoldBefore * 21 && delta > 0;
         var slump = delta < 0 || (f.SoldLastMonth >= 6 && sold * 3 < f.SoldLastMonth * 2);
         var options = new List<string>();
         if (bribed != null) options.Add("bribed");
@@ -535,6 +556,9 @@ public sealed class EditionWriter
         // a body that names someone needs someone to name
         if (subject == null) bodies = bodies.Where(b => !b.Contains("{name}")).ToList();
         var body = Fresh(f, "trade" + kind, bodies);
+        // only a price that went up this month is said to have been put up
+        if (kind == "dear" && product.PrevPriceCents is long was && was < product.PriceCents && t.TryGetProperty("raised", out var raised))
+            body = raised.GetString() ?? body;
         string Sub(string x)
         {
             if (subject is { Infant: true } && kind == "bribed") x = x.Replace("{name}", "the infant child of {name}");
@@ -618,6 +642,43 @@ public sealed class EditionWriter
     private static readonly string[] Tens = { "", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety" };
 
     /// <summary>Numbers under a hundred spelled out, as a compositor would; larger ones in figures.</summary>
+    /// <summary>The career in review: years, bottles, takings, the dead, and (in 1906) what the label must now say.</summary>
+    private Section CareerReview(PaperFacts f, CareerFact c, string product)
+    {
+        var sec = new Section { Title = "A CAREER IN REVIEW." };
+        var start = new DateTime(f.Year, f.Month, 1).AddMonths(-Math.Max(0, c.Months - 1));
+        var years = c.Months / 12;
+        var months = c.Months % 12;
+        var span = years == 0 ? $"{Words(months)} month{(months == 1 ? "" : "s")}"
+            : $"{Words(years)} year{(years == 1 ? "" : "s")}" + (months > 0 ? $" and {Words(months)} month{(months == 1 ? "" : "s")}" : "");
+        sec.Blocks.Add(new Block { Lead = "IN TRADE.—", Text = $"{Cap(span)} on Mulberry street, from {start.ToString("MMMM yyyy", CultureInfo.InvariantCulture)}, in the making and selling of {product}." });
+        sec.Blocks.Add(new Block { Lead = "THE TAKINGS.—", Text = $"{c.Bottles.ToString("N0", CultureInfo.InvariantCulture)} bottles sold over the counter, by post and to the trade, for {Money(c.RevenueCents)} in all." });
+        var dead = c.Deaths == 0 ? "No customer of the shop died while it traded, which the trade will think a waste."
+            : $"{(c.Deaths < 100 ? Cap(Words(c.Deaths)) : c.Deaths.ToString("N0", CultureInfo.InvariantCulture))} of the shop's customers, or the infants they bought for, died while it traded. "
+              + (c.Inquests == 0 ? "No inquest was ever held." : $"{Cap(Words(c.Inquests))} inquest{(c.Inquests == 1 ? " was" : "s were")} held, and the jury named the bottle {(c.Named == 0 ? "not once" : c.Named == 1 ? "once" : $"{Words(c.Named)} times")}")
+              + (c.Inquests > 0 && c.Bribes > 0 ? $"; {Words(c.Bribes)} verdict{(c.Bribes == 1 ? " was" : "s were")} bought." : c.Inquests > 0 ? "." : "");
+        sec.Blocks.Add(new Block { Lead = "THE DEAD.—", Text = dead });
+        if (f.EndReason == "timeline_end")
+        {
+            var label = c.Declared.Count > 0
+                ? $"Under the Act, the label of {product} must now say: {string.Join("; ", c.Declared)}."
+                : $"Under the Act, {product} need declare nothing: there is nothing in it the Act asks after.";
+            if (c.Undeclared.Count > 0) label += $" The Act does not ask after the {string.Join(", or the ", c.Undeclared)}, and the label will not mention it.";
+            sec.Blocks.Add(new Block { Lead = "THE NEW LABEL.—", Text = label });
+        }
+        return sec;
+    }
+
+    /// <summary>The death lead: one that calls the dead a faithful regular only for one who was.</summary>
+    private string DeathLead(PaperFacts f, PersonFact d)
+    {
+        var all = _copy.GetProperty("deathLead").EnumerateArray().Select(x => x.GetString() ?? "").ToList();
+        if (d.Months >= 3) return Fresh(f, "deathLead" + d.Id, all);
+        var fit = all.Where(t => !t.Contains("regular", StringComparison.OrdinalIgnoreCase) && !t.Contains("never missed", StringComparison.Ordinal)).ToList();
+        if (d.Months < 0 || fit.Count == 0) fit = _copy.GetProperty("deathLeadStranger").EnumerateArray().Select(x => x.GetString() ?? "").ToList();
+        return Fresh(f, "deathLead" + d.Id, fit);
+    }
+
     /// <summary>The infant lead: the one that quotes the label is printed only if the label said it.</summary>
     private string InfantLead(PaperFacts f, PersonFact d)
     {
@@ -667,6 +728,8 @@ public sealed class EditionWriter
         parts.Add(sold == 0 ? "Not a bottle sold" : $"{Cap(Words(sold))} bottle{(sold == 1 ? "" : "s")} sold");
         var delta = f.CashCents - f.CashStartCents;
         parts.Add(delta == 0 ? "the books even" : $"the books {(delta > 0 ? "up" : "down")} {Money(Math.Abs(delta))}");
+        // money laid out is not money lost: say how much of a fall was an outlay
+        if (f.InvestedCents > 0 && delta < 0) parts[^1] += $", {Money(f.InvestedCents)} of it laid out on the business";
         // money laid out on stock is still on the shelf: say so beside the cash
         var stock = f.StockValueCents - f.StockValueStartCents;
         if (Math.Abs(stock) >= 100) parts.Add($"stock on hand {(stock > 0 ? "up" : "down")} {Money(Math.Abs(stock))}");
@@ -909,7 +972,7 @@ public sealed class EditionWriter
     /// <summary>"60c.", "$4.19"; a debt is printed as what is owed, "$4.19 owing".</summary>
     public static string Money(long cents) =>
         cents < 0 ? Money(-cents) + " owing"
-        : cents < 100 ? $"{cents}c." : "$" + (cents / 100m).ToString("0.00", CultureInfo.InvariantCulture);
+        : cents < 100 ? $"{cents}c." : "$" + (cents / 100m).ToString("#,0.00", CultureInfo.InvariantCulture);
 
     /// <summary>FNV-1a over seed, turn and key: stable across runs and platforms.</summary>
     private static uint Hash(string seed, int turn, string key)

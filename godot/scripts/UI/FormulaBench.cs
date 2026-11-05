@@ -31,20 +31,28 @@ public partial class FormulaBench : HBoxContainer
 	private string? _note;
 	public event Action? Changed;
 
+	/// <summary>The remedy the book was last opened at, kept between openings.</summary>
+	private static string? _lastOpened;
+
+	/// <summary>Opens the book at a remedy: its recipe in the glass, its name and price on the page.</summary>
+	private void Load(FormulaRow f)
+	{
+		_editing = f.Id;
+		_lastOpened = f.Id;
+		_name = f.Name;
+		_price = f.PriceCents;
+		_process = f.ProcessId;
+		_recipe.Clear(); _order.Clear();
+		foreach (var (id, oz) in f.Components) { _recipe[id] = oz; _order.Add(id); }
+	}
+
 	public FormulaBench(IGame game)
 	{
 		_game = game;
 		AddThemeConstantOverride("separation", 10);
 		var d = game.Desk();
-		var f = d.Formulas.FirstOrDefault();
-		if (f != null)
-		{
-			_editing = f.Id;
-			_name = f.Name;
-			_price = f.PriceCents;
-			_process = f.ProcessId;
-			foreach (var (id, oz) in f.Components) { _recipe[id] = oz; _order.Add(id); }
-		}
+		var f = d.Formulas.FirstOrDefault(x => x.Id == _lastOpened) ?? d.Formulas.FirstOrDefault();
+		if (f != null) Load(f);
 		else
 		{
 			// a plain starting mixture with room left in the bottle for whatever you add
@@ -260,6 +268,23 @@ public partial class FormulaBench : HBoxContainer
 		_verdict.Text = p.Error != null ? $"[b]Not yet.[/b] [i]{Print.Escape(Plain(p.Error))}[/i]" : Verdict(p.Properties);
 
 		foreach (var c in _actions.GetChildren()) { _actions.RemoveChild(c); c.QueueFree(); }
+		// one page in the book for each remedy, and a blank page for a new one
+		var deskNow = _game.Desk();
+		if (deskNow.Formulas.Count > 1)
+		{
+			var tabs = new HFlowContainer();
+			tabs.AddThemeConstantOverride("h_separation", 4);
+			tabs.AddThemeConstantOverride("v_separation", 4);
+			foreach (var g in deskNow.Formulas)
+			{
+				var t = Print.Button(g.Name.ToUpperInvariant(), 10, solid: g.Id == _editing);
+				t.TooltipText = $"Open the book at {g.Name}: its recipe, price and label.";
+				var row = g;
+				t.Pressed += () => { Load(row); _note = null; Refresh(); };
+				tabs.AddChild(t);
+			}
+			_actions.AddChild(tabs);
+		}
 		var nameEdit = new LineEdit { Text = _name, SelectAllOnFocus = true, PlaceholderText = "Name your remedy", TooltipText = "The name on the label and in the Gazette. Choose with care: it cannot be changed once entered." };
 		nameEdit.AddThemeFontOverride("font", Print.Fell);
 		nameEdit.AddThemeFontSizeOverride("font_size", 15);

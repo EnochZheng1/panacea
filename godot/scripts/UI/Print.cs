@@ -129,6 +129,16 @@ public static class Print
 		return c;
 	}
 
+	/// <summary>Every node of type T under a node, depth first.</summary>
+	public static System.Collections.Generic.IEnumerable<T> Descendants<T>(Node n) where T : Node
+	{
+		foreach (var c in n.GetChildren())
+		{
+			if (c is T t) yield return t;
+			foreach (var d in Descendants<T>(c)) yield return d;
+		}
+	}
+
 	public static StyleBoxFlat Box(Color bg, Color border, int borderWidth = 2, int pad = 10, int radius = 0)
 	{
 		var s = new StyleBoxFlat { BgColor = bg, BorderColor = border };

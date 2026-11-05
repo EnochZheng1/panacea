@@ -118,7 +118,7 @@
     "{name}, {occupation}, has got better on {possessive} own. The trade regards this as a breach of faith."
   ],
   "leftDissatisfied": [
-    "WILL the proprietor of {product} kindly refund the dollar of {name}, who says it did nothing whatever.",
+    "WILL the proprietor of {product} kindly refund the money of {name}, who says it did nothing whatever.",
     "{name}, {occupation}, has taken {possessive} custom to a rival establishment, complaining loudly in {street}."
   ],
   "leftDrifted": [
@@ -248,7 +248,24 @@
     "SITUATION WANTED.—By a clergyman, to endorse remedies. References from the families of satisfied customers.",
     "TO LET.—A cellar, suitable for brewing, dry, discreet. No questions; no windows.",
     "WANTED.—Empty bottles of any make, bought by the gross. No enquiry made as to the former contents.",
-    "NOTICE.—The Ladies' Temperance League meets Thursdays. Members are reminded that bitters are not liquor."
+    "NOTICE.—The Ladies' Temperance League meets Thursdays. Members are reminded that bitters are not liquor.",
+    "WANTED.—A PHOTOGRAPHER to make before-and-after portraits. Must be able to make the before.",
+    "TO LET.—A shop on Elizabeth street, lately a druggist's. The fixtures stay; the proprietor has gone abroad, suddenly.",
+    "LOST.—A recipe for a celebrated remedy, written on the back of a laundry bill. Of no value to any but the owner, who will pay five dollars.",
+    "WANTED.—A COMPOSITOR for a medical journal. Must set ten thousand words a day of testimonials, and believe none of them.",
+    "FOR SALE.—A horse and wagon, with a lecturer's platform and a banjo. The lecturer is not included, having been retained by the county.",
+    "SITUATION WANTED.—As nurse, by a woman of experience. Has seen every remedy on the Bowery tried, and can tell you which.",
+    "WANTED.—Old corks, sound, by the bushel. Apply at the back of any druggist's on Mulberry street.",
+    "MONEY TO LOAN.—On watches, jewelry and remedies of standing. No questions asked as to the standing.",
+    "WANTED.—A CLERK who writes a good female hand, for correspondence. The ladies who write to Mrs. Whittle must be answered.",
+    "FOUND.—A set of false teeth in a Second Avenue car. The owner may have them on describing the remedy he was taking.",
+    "TO LET.—A front parlor, suitable for a physician, a dentist or a mesmerist. Previous tenant was all three.",
+    "WANTED.—A BOY to stand in the shop window and grow. Must be small now.",
+    "PERSONAL.—Will the lady who bought a bottle of Elixir on Thursday and left her baby please return for the baby. The Elixir is paid for.",
+    "FOR SALE.—Bottles, a gross, embossed CURE. Will scrape off for an extra cent.",
+    "WANTED.—Agents in every town to sell a remedy on commission. No knowledge of medicine needed, or wanted.",
+    "NOTICE.—The undersigned will not be responsible for debts contracted by his wife while under the influence of any remedy.",
+    "WANTED.—A DOCTOR'S CARRIAGE, second hand. The doctor is not required."
   ],
   "regularsIntro": "AMONG THE CALLERS.—{name}, {occupation}, troubled by {ailment}, has been seen at the new shop.",
   "endings": {
@@ -479,7 +496,7 @@
         "headline": "STILL NO BOTTLES TO BE HAD",
         "decks": [
           "The Shortage Continues.",
-          "THE SHELF ON MULBERRY STREET BARE A SECOND MONTH; THE WARD GROWS IMPATIENT."
+          "THE SHELF ON MULBERRY STREET STILL BARE; THE WARD GROWS IMPATIENT."
         ]
       }
     },
@@ -562,10 +579,16 @@
     "A CARD.—The undersigned begs to inform his friends that he is not the Dr. —— of Mulberry street, and has never been, and will thank the ward to stop asking him for it.",
     "SPORTING.—At Harry Hill's on Saturday, a sparring exhibition, four rounds, for a purse of ten dollars. The loser was revived with a remedy and is said to be doing well.",
     "LOST.—On the Bowery, a gentleman's umbrella with a horn handle. Also his health, which he believes he left at a druggist's. Reward for the umbrella.",
-    "THE WEATHER.—The Signal Service predicts fair and colder. Druggists report the colder part already selling well.",
+    {
+      "text": "THE WEATHER.—The Signal Service predicts fair and colder. Druggists report the colder part already selling well.",
+      "months": [10, 11, 12, 1, 2, 3]
+    },
     "BOARDING.—A quiet front room for a single gentleman of regular habits. No cooking, no dogs, no remedies in the room.",
     "THE ELEVATED.—The Third Avenue line reports eleven passengers asleep at the terminus on Sunday, a record. All were roused but two, who were thought to be resting.",
-    "SPORTING.—The pedestrian match at the Garden enters its fifth day. The leader attributes his endurance to cold water and a clear conscience, and is not expected to win.",
+    {
+      "text": "SPORTING.—The pedestrian match at the Garden enters its fifth day. The leader attributes his endurance to cold water and a clear conscience, and is not expected to win.",
+      "months": [2, 3, 4, 5, 10, 11, 12]
+    },
     "A CARD.—Mrs. E. Dooley wishes to thank the neighbors for their kindness during her late husband's illness, and the druggist on the corner for his.",
     "WANTED.—A strong boy to carry bottles. Must not drink from them. Apply at the back.",
     "AMUSEMENTS.—At the Bowery Theatre, \"The Poisoned Chalice,\" a drama in five acts. The management guarantees every death in it is a stage death.",
@@ -574,14 +597,23 @@
     "THE HARBOR.—Two schooners in from Savannah with turpentine and rosin. The rosin is for the trade; the turpentine, it is said, is for the remedies.",
     "CITY HALL.—The Aldermen met for eleven minutes and voted themselves a dinner. The question of the street-cleaning contract was referred to the dinner.",
     "A CARD.—Prof. Lacour, the celebrated mesmerist, is obliged to postpone his lectures at Cooper Union, having been unable to wake his assistant.",
-    "THE SEASON.—Oysters are in, and so are the complaints. Physicians report a brisk trade in stomachs; druggists report the same.",
-    "SPORTING.—The Metropolitans beat the Brooklyns by eleven runs to four. The Atlantics' pitcher had taken a tonic for his arm.",
+    {
+      "text": "THE SEASON.—Oysters are in, and so are the complaints. Physicians report a brisk trade in stomachs; druggists report the same.",
+      "months": [9, 10, 11, 12, 1, 2, 3, 4]
+    },
+    {
+      "text": "SPORTING.—The Metropolitans beat the Brooklyns by eleven runs to four. The Atlantics' pitcher had taken a tonic for his arm.",
+      "months": [4, 5, 6, 7, 8, 9, 10]
+    },
     "LOST.—A pocketbook, in a Third Avenue car, containing a pawn ticket and a prescription. The prescription is of no value to the finder.",
     "WANTED.—A lady of refinement to sign letters of thanks for a remedy. No experience of the remedy required.",
     "TO LET.—Two rooms over a druggist's. The smell, the landlord says, is wholesome.",
     "POLICE COURT.—A peddler of 'Vital Bitters' was fined for obstructing the sidewalk with a crowd. The Justice did not inquire into the bitters, and bought a bottle.",
     "FIRE.—A blaze in a tenement in Baxter street was put out by the engine company before the third floor caught. A quantity of patent medicine in a rear room burned with a blue flame for an hour.",
-    "THE WEATHER.—Hot and close. The Health Department urges the poor to keep out of the sun, and the rich to keep out of the city, which they have.",
+    {
+      "text": "THE WEATHER.—Hot and close. The Health Department urges the poor to keep out of the sun, and the rich to keep out of the city, which they have.",
+      "months": [6, 7, 8]
+    },
     "AMUSEMENTS.—At the Bowery dime museum, the Living Skeleton is to wed the Fat Lady on Thursday. The bride attributes her figure to a remedy; the groom attributes his to another.",
     "SHIPPING.—Cleared, the steamer Germanic for Liverpool, with grain, cotton and forty cases of an American remedy for the English market, which is said to be in need of it.",
     "A CARD.—The undersigned has not been cured by any remedy whatever, and wishes it known, having been asked eleven times this week.",
@@ -595,7 +627,76 @@
     "BOARDING.—Table board for gentlemen, two dollars a week. Medicines not provided at table.",
     "CHARITY.—The ladies of St. Bartholomew's held a fair for the poor of the Sixth Ward. The poor were not admitted, but are said to have done well out of it.",
     "WANTED.—Bottles, half-pint, round, green, by the gross. A good price for any that have been washed.",
-    "THE COURTS.—A druggist sued by a widow was found not liable, the jury holding that her husband had read the label and should have known better. The label said 'harmless.'"
+    "THE COURTS.—A druggist sued by a widow was found not liable, the jury holding that her husband had read the label and should have known better. The label said 'harmless.'",
+    {
+      "text": "THE BRIDGE.—Twenty thousand crossed the Brooklyn Bridge on Sunday. A hawker of a cure for vertigo did a good trade at the middle.",
+      "months": [4, 5, 6, 7, 8, 9]
+    },
+    {
+      "text": "THE PARK.—Skating on the lake in Central Park; the red ball is up. A vendor of a chest balm sold out by three o'clock, chiefly to those who had watched.",
+      "months": [12, 1, 2]
+    },
+    {
+      "text": "CONEY ISLAND.—Forty thousand went down by the boats on Sunday. A remedy for sea-sickness was sold on the way out and a remedy for sunstroke on the way back, by the same man.",
+      "months": [6, 7, 8]
+    },
+    {
+      "text": "THE ICE.—The ice companies announce a short crop and a long price. Tenement mothers are advised to keep the milk in the coolest place available, which is the druggist's.",
+      "months": [7, 8]
+    },
+    {
+      "text": "COAL.—Coal is up a dollar the ton. The poor of the Sixth Ward will burn the furniture, as usual, and take something for the chest, as usual.",
+      "months": [11, 12, 1, 2]
+    },
+    {
+      "text": "THE CITY.—The Board of Health reports the summer complaint among infants in the tenements, and asks mothers not to dose them with anything that makes them quiet. The druggists ask what else is for sale.",
+      "months": [7, 8]
+    },
+    {
+      "text": "SPORTING.—The Giants have signed a pitcher from Troy. His arm is said to be made of iron; his manager has been asked to make no further claims of that kind for it.",
+      "months": [3, 4]
+    },
+    {
+      "text": "THE SEASON.—Oysters are out until September. The fish market is quiet, and so are the stomachs; physicians are taking the opportunity to go to Saratoga.",
+      "months": [5, 6, 7, 8]
+    },
+    {
+      "text": "THE WEATHER.—Snow in the night, and the streets not cleaned. The Aldermen have voted the street-cleaners a holiday, as being the most economical course.",
+      "months": [12, 1, 2]
+    },
+    {
+      "text": "THE WEATHER.—Rain all week. Rheumatics are reported very low; a liniment on Canal street is selling at the rate of a bottle a knee.",
+      "months": [3, 4, 10, 11]
+    },
+    {
+      "text": "CHRISTMAS.—The stores on Grand street are lit till ten. A druggist advertises a tonic as the ideal present for a mother-in-law, and declines to say why.",
+      "months": [12]
+    },
+    {
+      "text": "NEW YEAR'S.—Gentlemen made their calls yesterday, two hundred houses apiece by some reports. The druggists open early today for headaches.",
+      "months": [1]
+    },
+    {
+      "text": "THE FOURTH.—The ward celebrated with firecrackers from dawn. Three fingers were lost in Hester street; the druggists sold arnica by the pint and a soothing syrup for the dogs.",
+      "months": [7]
+    },
+    "POLICE COURT.—A man who sold a cure for baldness from a cart in Grand street was found to be bald, and was fined for misrepresentation. He has appealed, on the ground that he never claimed to use it.",
+    "THE COURTS.—A jury in the Tombs could not agree whether a tonic of forty per cent spirit was a medicine or a drink. They retired to consider it, and the bailiff reports they are still considering it.",
+    "SHIPPING.—Arrived, the bark Celestine, from Smyrna, with figs, carpets and a quantity of opium. The figs were inspected.",
+    "THE ELEVATED.—A lady on the Sixth Avenue line was relieved of her purse, her hat-pin and her opinion of the Company, in that order.",
+    "AMUSEMENTS.—At Tony Pastor's, a new comedian who imitates a patent-medicine lecture so well that two of the audience bought bottles at the door.",
+    "A CARD.—The firm of Hobart & Co. begs to inform the trade that its laudanum is unchanged in strength, and that any stronger laudanum on the street is not theirs, and is not cheaper.",
+    "THE PULPIT.—The Rev. Dr. Parkhurst preached on the sins of the city, naming forty. Patent medicines were thirty-ninth, between the policy shops and the Elevated.",
+    "CHARITY.—The Children's Aid Society asks for shoes for the newsboys. A proprietor of bitters has sent a gross of bottles instead, with his compliments.",
+    "THE CITY.—The Health Department has seized forty barrels of swill milk in Brooklyn. The milkman says the cows were taking a tonic and are much improved.",
+    "STREET SCENE.—Two rival doctors' wagons met on the Bowery and their lecturers argued for an hour, each pointing to the other's customers as evidence.",
+    "FIRE.—A blaze at a druggist's on Division street was put out with the stock, which proved more flammable than the shop. The proprietor is uninsured and unhurt, and has removed to Brooklyn.",
+    "LOST.—A small dog, answers to Dandy, last seen near a druggist's back door licking a bottle. Owner fears the worst, or the best.",
+    "THE MARKETS.—Quinine higher on the news from Panama; camphor steady; laudanum unchanged and in good supply. Opinions on the weather are plentiful and cheap.",
+    "BOARDING.—Rooms for respectable mechanics, a dollar a week. The landlady doctors free of charge and requests that boarders do not.",
+    "THE SCHOOLS.—The truant officer reports two hundred boys of the Sixth Ward in no school. Most were found selling newspapers and one was found selling a remedy, at a profit.",
+    "POLICE COURT.—A widow charged a tonic man with breach of promise, the promise being printed on the label. The Justice read the label and dismissed the case for vagueness.",
+    "THE DOCKS.—A longshoreman lifted a bale of cotton with one hand on a wager, then fell asleep on it. He credits a tonic for the first and his wife for the second."
   ],
   "prospectHints": {
     "second_still": "a second copper, which the coppersmith will let him have once two hundred bottles have gone over the counter",
@@ -610,14 +711,24 @@
   },
   "standingDated": [
     {
-      "text": "THE PEDESTAL FUND.—The World's subscription for the Statue's pedestal passes ninety thousand dollars. A proprietor of bitters has offered a hundred if the lady may hold one of his bottles instead of the torch.",
+      "text": "THE PEDESTAL FUND.—The World asks a dollar of every reader toward a pedestal for the Statue, which waits in its crates. A proprietor of bitters has offered a hundred dollars if the lady may hold one of his bottles instead of the torch.",
       "from": "1885-03",
-      "to": "1886-09"
+      "to": "1885-07"
     },
     {
-      "text": "GENERAL GRANT.—The ward is draped in black for the General's funeral. The druggists report that the General was a martyr to his throat, and that their throat lozenges are now for sale at a reduction.",
+      "text": "GENERAL GRANT.—The General is dead at Mount McGregor, of the cancer in his throat that kept him writing his memoirs to the last. The druggists of the ward report that he took nothing for it but cocaine and a little morphine, and offer both at the usual rates.",
+      "from": "1885-07",
+      "to": "1885-07"
+    },
+    {
+      "text": "THE FUNERAL.—The General's funeral went up Broadway for five hours. The ward is draped in black; a throat lozenge is advertised in his memory at a reduction.",
       "from": "1885-08",
-      "to": "1885-09"
+      "to": "1885-08"
+    },
+    {
+      "text": "THE PEDESTAL FUND.—The World's subscription has passed a hundred thousand dollars, chiefly in dimes from schoolchildren. The proprietor of bitters has withdrawn his offer and sent a dollar.",
+      "from": "1885-08",
+      "to": "1885-08"
     },
     {
       "text": "THE STATUE.—Liberty is unveiled in the harbor in a fog so thick that the guns could not find her. The ward celebrated with fireworks and a remedy, and some will feel both for a week.",
@@ -630,14 +741,54 @@
       "to": "1888-04"
     },
     {
-      "text": "THE BRIDGE.—Twenty thousand crossed the Brooklyn Bridge on Sunday. A hawker of a cure for vertigo did a good trade at the middle.",
-      "from": "1885-01",
-      "to": "1890-12"
-    },
-    {
       "text": "THE ELECTION.—The ward voted early and often. A remedy for hoarseness was given away at the polling place, by a candidate who had several.",
       "from": "1888-11",
       "to": "1888-11"
+    },
+    {
+      "text": "THE CENTENNIAL.—The city kept the hundredth year of General Washington's inauguration with three days of parades. A druggist on Broad street exhibited the President's false teeth, or a set of them.",
+      "from": "1889-04",
+      "to": "1889-05"
+    },
+    {
+      "text": "THE ISLAND.—The new immigrant station on Ellis Island is open. Each arrival is examined by a physician; those found sickly are sent back, and the rest are sent to Mulberry street.",
+      "from": "1892-01",
+      "to": "1892-02"
+    },
+    {
+      "text": "THE CHOLERA.—Ships from Hamburg are held at quarantine with cholera aboard. The druggists of the city report a run on every bottle with 'cholera' on the label, and some without.",
+      "from": "1892-09",
+      "to": "1892-10"
+    },
+    {
+      "text": "THE PANIC.—The banks are calling in their loans and the mills are shut. The ward has no money for medicine, and buys it anyway, on credit, from a man who has none either.",
+      "from": "1893-06",
+      "to": "1893-08"
+    },
+    {
+      "text": "THE POLICE BOARD.—Mr. Roosevelt walks the beats at night to catch his patrolmen asleep. He found two in a druggist's doorway, sleeping very soundly, and has asked what the druggist sells.",
+      "from": "1895-06",
+      "to": "1895-07"
+    },
+    {
+      "text": "THE GREATER CITY.—Brooklyn, Queens and Staten Island are joined to New York at midnight. The druggists of Brooklyn are now in the same city as their creditors.",
+      "from": "1898-01",
+      "to": "1898-01"
+    },
+    {
+      "text": "THE WAR.—The Maine is sunk in Havana harbor, and the papers are for war. Recruits in the Sixth Ward are offered a tonic 'for the climate of Cuba' at a soldier's discount.",
+      "from": "1898-03",
+      "to": "1898-04"
+    },
+    {
+      "text": "THE SUBWAY.—The underground railway is open from City Hall to Harlem in fifteen minutes. A tonic for the nerves of passengers is sold at every station but the first, whose passengers have not yet been down.",
+      "from": "1904-10",
+      "to": "1904-11"
+    },
+    {
+      "text": "THE MUCKRAKERS.—Collier's prints 'The Great American Fraud,' naming the remedies and what is in them. The druggists of the ward report the article is very popular, and so, still, are the remedies.",
+      "from": "1905-10",
+      "to": "1905-11"
     }
   ],
   "verdictLead": [
@@ -648,11 +799,11 @@
   "investmentNotices": {
     "branch_shop.bought": "IN THE TRADE.—The proprietor of {product} has taken a corner shop in the Ninth Ward, fitted with counter and gas, and put a clerk in it. The Ninth Ward is said to be delighted, and has not yet been asked.",
     "almanac.bought": "IN THE TRADE.—Ten thousand copies of the proprietor's almanac are going about the city, with the moon's phases, a recipe for pickles and every claim on his label. The pickles are said to be reliable.",
-    "wholesale_contract.bought": "IN THE TRADE.—Messrs. Hegeman & Co. of Paterson will take the goods of {product} by the dozen, for druggists in Paterson, Newark and Yonkers. New Jersey is to be cured wholesale.",
+    "wholesale_contract.bought": "IN THE TRADE.—Messrs. Kittredge & Vail of Newark will take the goods of {product} by the dozen, for druggists in Paterson, Newark and Elizabeth. New Jersey is to be cured wholesale.",
     "laboratory.bought": "IN THE TRADE.—A back room on Mulberry street has been fitted with retorts, and a German chemist installed who asks no questions. The neighbors have begun to ask some.",
     "almanac.lapsed": "IN THE TRADE.—The proprietor's almanac for the year is out of date, and is now chiefly used for lighting fires. It may be had again on application.",
     "branch_shop.lost": "IN THE TRADE.—The branch in the Ninth Ward has put up its shutters. The clerk is said to have taken the till, and the ward to have taken the clerk's side.",
-    "wholesale_contract.lost": "IN THE TRADE.—Messrs. Hegeman & Co. of Paterson have cancelled their order for {product}, having read the papers. New Jersey will have to find its own remedies.",
+    "wholesale_contract.lost": "IN THE TRADE.—Messrs. Kittredge & Vail of Newark have cancelled their order for {product}, having read the papers. New Jersey will have to find its own remedies.",
     "laboratory.mishap": "FIRE.—A blaze in a back room on Mulberry street brought out Engine No. 9 on {weekday}. A quantity of ether was found to be the cause, and a German chemist the excuse. The proprietor's loss is put at twenty-five dollars, and the talk at a good deal more."
   },
   "outOfTown": [

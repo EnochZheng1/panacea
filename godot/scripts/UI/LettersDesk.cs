@@ -72,7 +72,7 @@ public partial class LettersDesk : VBoxContainer
 		["inquest.testify"] = "Your word helps a mild bottle, and hurts a strong one: the jury's chemist tests whatever you bring. If they name your bottle, suspicion rises 24 and your standing falls.",
 		["inquest.stay_silent"] = "No chemistry is heard, which suits a strong bottle. If the jury names your bottle anyway, suspicion rises 24 and your standing falls.",
 		["inquest.bribe_coroner"] = "The verdict you pay for. His fee rises with every envelope and with the talk in the ward, and an envelope can come to light: a bought verdict found out is worse than a jury's.",
-		["grateful_letter.print_testimonial"] = "Standing in the ward +3, and the Gazette will sell you space once you have $100 put by.",
+		["grateful_letter.print_testimonial"] = "Standing in the ward +3. A testimonial in print is half of what the Gazette asks before it sells you space; the other half is $100 put by.",
 		["grateful_letter.file_away"] = "Nothing gained, nothing risked.",
 		["diploma_mill.buy_diploma"] = "$50, and you may style yourself Doctor: a new claim for the type case. You become better known, for better or worse.",
 		["diploma_mill.decline"] = "Costs nothing.",
@@ -137,7 +137,7 @@ public partial class LettersDesk : VBoxContainer
 		{
 			var h = 0u;
 			foreach (var ch in d.Letters[i].InstanceId) h = (h ^ ch) * 16777619u;
-			AddChild(Sheet(d.Letters[i], press.AddDays(-2 - (int)(h % 12)), i, d.Letters.Take(i + 1).Count(x => x.EventId == "inquest")));
+			AddChild(Sheet(d.Letters[i], press.AddDays(-2 - (int)(h % 12)), i, Served(d.Turn) + d.Letters.Take(i + 1).Count(x => x.EventId == "inquest")));
 		}
 	}
 
@@ -152,6 +152,10 @@ public partial class LettersDesk : VBoxContainer
 		s.RotationDegrees = -1f;
 		return s;
 	}
+
+	/// <summary>Inquest notices answered so far this month (the month's turn, and the count).</summary>
+	private static (int Turn, int Count) _served;
+	private static int Served(int turn) => _served.Turn == turn ? _served.Count : 0;
 
 	private Control Sheet(Letter l, DateTime date, int index, int inquestNo = 0)
 	{
@@ -251,6 +255,8 @@ public partial class LettersDesk : VBoxContainer
 		var heat0 = d0.Heat;
 		var inquest = d0.Letters.FirstOrDefault(x => x.InstanceId == instance)?.EventId == "inquest";
 		var err = _game.Resolve(instance, choice);
+		// the Clerk counts the notices he has served this month, answered ones included
+		if (inquest && err == null) _served = (d0.Turn, Served(d0.Turn) + 1);
 		if (err != null) { _note = "Refused: " + err; Refresh(); return; }
 		var d1 = _game.Desk();
 		var after = d1.CashCents;
@@ -264,6 +270,8 @@ public partial class LettersDesk : VBoxContainer
 		if (Math.Abs(talk) >= 1) now.Add($"suspicion {(talk > 0 ? "rises" : "falls")} {Math.Abs(talk):0}");
 		if (Math.Abs(standing) >= 1) now.Add($"your standing {(standing > 0 ? "rises" : "falls")} {Math.Abs(standing):0}");
 		var outcome = !inquest ? (now.Count > 0 ? " At once: " + string.Join("; ", now) + "." : "") + " Anything further will be in the next edition."
+			// a bribe can come out at once: then say so, not that the verdict was bought cleanly
+			: choice == "bribe_coroner" && d1.Heat > heat0 + 10 ? $" The coroner took your envelope, and the ward heard of it before the jury sat. Suspicion is now {d1.Heat:0} of 100{(standing <= -1 ? $", and your standing falls {Math.Abs(standing):0}" : "")}. The paper will have the rest."
 			: choice == "bribe_coroner" ? " The coroner has your envelope; the verdict will be the one you paid for."
 			: d1.Heat > heat0 + 10 ? $" The jury sat at once and named your bottle. Suspicion is now {d1.Heat:0} of 100. The paper will have the rest."
 			: " The jury sat at once and found nothing against you. The paper will have the verdict.";

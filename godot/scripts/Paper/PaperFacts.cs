@@ -78,6 +78,8 @@ public sealed class PaperFacts
     public int WholesaleOrdered;
     public int WholesaleDelivered;
     public long WholesaleRevenueCents;
+    /// <summary>Paid down this month for ventures taken up: an outlay, not a bad month.</summary>
+    public long InvestedCents;
 }
 
 public sealed class ProductFact

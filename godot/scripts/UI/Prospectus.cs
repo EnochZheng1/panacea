@@ -15,6 +15,10 @@ public partial class Prospectus : VBoxContainer
 {
 	private readonly IGame _game;
 	private string? _note;
+	/// <summary>The venture whose slip has been pressed once: the next press pays.</summary>
+	private string? _asking;
+	/// <summary>True while the sheet is being reset, when focus leaves the old slips without the player.</summary>
+	private bool _rebuilding;
 	public event Action? Changed;
 
 	/// <summary>What each venture waits for before it is offered (the sim's conditions, in words).</summary>
@@ -36,7 +40,9 @@ public partial class Prospectus : VBoxContainer
 	public void Refresh()
 	{
 		var keep = Print.FocusIndex(this);
+		_rebuilding = true;
 		foreach (var c in GetChildren()) { RemoveChild(c); c.QueueFree(); }
+		_rebuilding = false;
 		var d = _game.Desk();
 
 		var top = new HBoxContainer();
@@ -50,8 +56,16 @@ public partial class Prospectus : VBoxContainer
 			Print.RestoreFocus(this, keep);
 			return;
 		}
+		// one printed sheet, the notices ruled off one from the next, not loose cards
+		var sheet = new VBoxContainer();
+		sheet.AddThemeConstantOverride("separation", 10);
 		var i = 0;
-		foreach (var row in d.Investments) AddChild(Notice(row, d, i++));
+		foreach (var row in d.Investments)
+		{
+			if (i > 0) sheet.AddChild(Print.Rule(2f, 0.8f, 2f));
+			sheet.AddChild(Notice(row, d, i++));
+		}
+		AddChild(Print.Slip(sheet, 18));
 		Print.RestoreFocus(this, keep);
 	}
 
@@ -65,7 +79,10 @@ public partial class Prospectus : VBoxContainer
 		// the terms, as a price current would set them
 		var terms = $"Terms: {EditionWriter.Money(r.CostCents)} down";
 		if (r.UpkeepCents > 0) terms += $", and {EditionWriter.Money(r.UpkeepCents)} a month after";
-		terms += r.Months is int m ? $"; it runs {EditionWriter.Words(m)} months." : "; it is yours for good.";
+		// a contract the druggists can cancel is not "yours for good"
+		terms += r.Months is int m ? $"; it runs {EditionWriter.Words(m)} months."
+			: r.WholesaleBottles != null ? "; it runs until the druggists cancel, which they will if the talk in the ward turns ugly."
+			: "; it is yours for good.";
 		v.AddChild(Print.Label(terms, Print.Fell, 14));
 
 		// what it brings and what it risks, in plain words
@@ -73,7 +90,7 @@ public partial class Prospectus : VBoxContainer
 		if (r.WalkInsPerMonth > 0) brings.Add($"about {EditionWriter.Words(r.WalkInsPerMonth)} more callers a month");
 		if (r.WholesaleBottles is int wb && wb > 0) brings.Add($"orders for about {EditionWriter.Words(wb)} bottles a month" + (r.WholesalePriceCents is long wp ? $" at {EditionWriter.Money(wp)} each" : ""));
 		var risks = new System.Collections.Generic.List<string>();
-		if (r.HeatPerBoldness > 0) risks.Add("every claim on your label is read in ten thousand kitchens, and the ward talks of it");
+		if (r.HeatPerBoldness > 0) risks.Add("it prints your label's claims in ten thousand kitchens, so the bolder they are, the more suspicion it brings each month");
 		if (r.MishapChance is double mc && mc > 0) risks.Add($"about one month in {Math.Max(2, (int)Math.Round(1 / mc))} something catches fire");
 		if (brings.Count > 0) v.AddChild(Print.Label("It brings " + string.Join(", and ", brings) + ".", Print.FellIt, 14));
 		if (risks.Count > 0) v.AddChild(Print.Label("Mark well: " + string.Join("; ", risks) + ".", Print.FellIt, 14));
@@ -93,20 +110,47 @@ public partial class Prospectus : VBoxContainer
 			b.SizeFlagsHorizontal = SizeFlags.ShrinkEnd;
 			Print.SetLive(b, r.CanBuy && d.CashCents >= r.CostCents);
 			b.TooltipText = r.Refusal ?? (d.CashCents < r.CostCents ? $"It wants {EditionWriter.Money(r.CostCents)}, and you have {EditionWriter.Money(d.CashCents)}." : "Paid at once; it starts this month.");
-			var id = r.Id; var name = r.Name;
+			var id = r.Id; var name = r.Name; var cost = r.CostCents;
+			if (_asking == id)
+			{
+				b.Text = $"☞  PAY {EditionWriter.Money(cost)} DOWN? PRESS AGAIN";
+				b.TooltipText = "Press again to pay and take it up. Escape, or any other control, to think better of it.";
+			}
 			b.Pressed += () =>
 			{
+				if (_asking != id)
+				{
+					// ask first, and give a moment before a second press counts
+					_asking = id;
+					_note = $"{name}: {EditionWriter.Money(cost)} down. Press again to take it up.";
+					Main.Guard(400);
+					Refresh();
+					return;
+				}
+				_asking = null;
 				var err = _game.Invest(id);
-				_note = err != null ? "Refused: " + err : $"Taken up: {name}. It will be in the next edition.";
+				_note = err != null ? "Refused: " + err : $"Taken up: {name}, for {EditionWriter.Money(cost)}. It will be in the next edition.";
+				Main.Guard(800);
 				Refresh();
 				if (err == null) Changed?.Invoke();
+			};
+			b.FocusExited += () =>
+			{
+				if (_asking != id || _rebuilding) return;
+				_asking = null;
+				_note = null;
+				Callable.From(() => { if (IsInstanceValid(this)) Refresh(); }).CallDeferred();
 			};
 			v.AddChild(b);
 			if (r.Refusal != null) v.AddChild(Print.Label(r.Refusal, Print.FellIt, 13, HorizontalAlignment.Right, new Color(Print.Ink, 0.85f)));
 			else if (d.CashCents < r.CostCents) v.AddChild(Print.Label($"It wants {EditionWriter.Money(r.CostCents)}; you have {EditionWriter.Money(d.CashCents)}.", Print.FellIt, 13, HorizontalAlignment.Right, new Color(Print.Ink, 0.85f)));
 		}
-		var s = Print.Slip(v, 16);
-		s.RotationDegrees = index % 2 == 0 ? -0.4f : 0.3f;
+		var s = Print.Panel(v, Print.Box(new Color(0, 0, 0, 0), new Color(0, 0, 0, 0), 2, 8));
+		s.FocusMode = FocusModeEnum.All;
+		s.TooltipText = r.Name;
+		var plain = s.GetThemeStylebox("panel");
+		s.FocusEntered += () => s.AddThemeStyleboxOverride("panel", Print.Box(new Color(0, 0, 0, 0), Print.Ink, 3, 8));
+		s.FocusExited += () => s.AddThemeStyleboxOverride("panel", plain);
 		return s;
 	}
 }

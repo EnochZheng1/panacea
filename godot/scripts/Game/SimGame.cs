@@ -283,6 +283,7 @@ public sealed class SimGame : IGame
 		{
 			f.CashStartCents = report.CashStartCents;
 			f.TurnedAwayByPrice = report.TurnedAwayByPrice;
+			f.InvestedCents = -(long)Math.Round(report.Deltas.Where(x => x.Metric == "cash" && x.Cause == "expense.investment").Sum(x => x.Amount));
 			foreach (var g in report.Deltas.Where(x => x.Metric == "cash").GroupBy(x => x.Cause))
 				f.CashLines.Add((_content.Text($"cause.{g.Key}"), (long)Math.Round(g.Sum(x => x.Amount))));
 			foreach (var g in report.Deltas.Where(x => x.Metric == "heat").GroupBy(x => x.Cause))
@@ -389,7 +390,8 @@ public sealed class SimGame : IGame
 		{
 			"delighted" => "delighted with it", "unhappy" => "unhappy with it", "grumbling" => "grumbling", _ => "content",
 		};
-		return $"{looks}, {extra}";
+		// a regular who buys for an infant: the dose, and the illness, are the infant's
+		return r.Infant ? $"the infant {looks}; the mother {extra}" : $"{looks}, {extra}";
 	}
 
 	private PersonFact Remembered(PersonFact p)

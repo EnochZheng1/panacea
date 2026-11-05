@@ -37,6 +37,8 @@ public partial class Main : Control
 		theme.SetFontSize("font_size", "TooltipLabel", 15);
 		theme.SetColor("font_color", "TooltipLabel", Print.Ink);
 		Theme = theme;
+		// and for the footer and the press, which sit on their own canvas layers
+		GetTree().Root.Theme = theme;
 		var args = OS.GetCmdlineUserArgs();
 		string Arg(string name, string fallback)
 		{
@@ -94,7 +96,7 @@ public partial class Main : Control
 		var sound = InvertedButton(Band(true));
 		_sound = sound;
 		_edition.ChainFocus(_sound, _nav);
-		sound.CustomMinimumSize = new Vector2(176, 0);
+		sound.CustomMinimumSize = new Vector2(214, 0);
 		sound.TooltipText = "Sound is on. Press to silence it.";
 		sound.SizeFlagsVertical = SizeFlags.ShrinkCenter;
 		sound.AddThemeFontSizeOverride("font_size", 13);
@@ -172,8 +174,8 @@ public partial class Main : Control
 	private int _restarts;
 
 	/// <summary>On the black footer the ticket is printed white-on-black, inking white on hover.</summary>
-	/// <summary>The sound toggle, in the shop's words: the press, the till and the paper heard, or hushed.</summary>
-	private static string Band(bool on) => on ? "THE SHOP: HEARD" : "THE SHOP: HUSHED";
+	/// <summary>The sound toggle: says it is the sound, in the shop's words (the press, the till and the paper heard, or hushed).</summary>
+	private static string Band(bool on) => on ? "SOUND: THE SHOP HEARD" : "SOUND: HUSHED";
 
 	private static Button InvertedButton(string text)
 	{
@@ -321,8 +323,9 @@ public partial class Main : Control
 
 	public override void _Input(InputEvent e)
 	{
-		// a cutting in the hand holds the keyboard: Tab goes nowhere behind it
-		if (_clipping != null && (e.IsActionPressed("ui_focus_next") || e.IsActionPressed("ui_focus_prev")))
+		// a cutting in the hand holds the keyboard: Tab and the arrows go nowhere behind it
+		if (_clipping != null && (e.IsActionPressed("ui_focus_next") || e.IsActionPressed("ui_focus_prev")
+			|| e.IsActionPressed("ui_up") || e.IsActionPressed("ui_down") || e.IsActionPressed("ui_left") || e.IsActionPressed("ui_right")))
 		{
 			GetViewport().SetInputAsHandled();
 			return;

@@ -16,7 +16,9 @@ namespace Panacea.UI;
 public partial class StillBench : HBoxContainer
 {
 	private readonly IGame _game;
-	private readonly Dictionary<string, int> _counts = new();
+	/// <summary>The batch marked for each remedy. Kept from month to month: the proprietor's usual
+	/// batch is the one he marked last time, not the house default.</summary>
+	private static readonly Dictionary<string, int> _counts = new();
 	private string? _formula;
 	private string? _note;
 	private readonly StillDrawing _still = new();
@@ -162,6 +164,36 @@ public partial class StillBench : HBoxContainer
 			Changed?.Invoke();
 		};
 		row.AddChild(fire);
+		// two stills free: one order and one press for both, rather than the routine twice over
+		if (d.StillsFree >= 2 && want > 0)
+		{
+			var both = want * 2;
+			var needs2 = new List<(string Id, double Oz)>();
+			long cost2 = 0;
+			foreach (var c in f.Components.Where(c => c.Ounces > 0))
+			{
+				var have = stock.TryGetValue(c.IngredientId, out var i) ? i.OnHand : 0;
+				var need = Math.Ceiling(Math.Max(0, c.Ounces * both - have));
+				if (need <= 0) continue;
+				needs2.Add((c.IngredientId, need));
+				cost2 += (long)Math.Round(need * (i?.CostPerOunceCents ?? 0));
+			}
+			var two = Print.Button(cost2 > 0 ? $"ORDER AND LIGHT BOTH · {want} EACH · {EditionWriter.Money(cost2)}" : $"LIGHT BOTH STILLS · {want} EACH", 13);
+			two.TooltipText = $"Orders what both batches are short of, then lights two stills of {want} bottles each.";
+			two.Pressed += () =>
+			{
+				string? err = null;
+				foreach (var (id, oz) in needs2) err ??= _game.Buy(id, oz);
+				err ??= _game.Brew(fid, want);
+				err ??= _game.Brew(fid, want);
+				_note = err ?? $"Both fires are lit: {both} bottles of {fname} will be ready by press time{(cost2 > 0 ? $", and {EditionWriter.Money(cost2)} of stock was ordered" : "")}.";
+				if (err == null) { _still.Lit = true; _still.Flare(); Sfx.Play("pour", -2f, 0.05f, 0.6f); }
+				Callable.From(() => { if (IsInsideTree()) Print.Focusables(this).FirstOrDefault()?.GrabFocus(); }).CallDeferred();
+				Refresh();
+				Changed?.Invoke();
+			};
+			row.AddChild(two);
+		}
 		_right.AddChild(row);
 		if (_note != null) _right.AddChild(Print.Body($"[i]{Print.Escape(_note)}[/i]", 15, justify: false));
 	}

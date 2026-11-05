@@ -65,6 +65,8 @@ public partial class ProofView : Control
 	private bool _skipRestore;
 	private Control? _holder;
 	private int _slipsScroll;
+	/// <summary>The remedy whose label the type case is setting, when there is more than one.</summary>
+	private string? _adFormula;
 
 	/// <summary>
 	/// While a drawer is open, Tab and Shift+Tab go round the drawer's own controls only: the bench
@@ -75,6 +77,15 @@ public partial class ProofView : Control
 		if (_drawer == null || _holder == null || !IsInstanceValid(_holder) || !IsVisibleInTree()) return;
 		var next = e.IsActionPressed("ui_focus_next");
 		var prev = e.IsActionPressed("ui_focus_prev");
+		// the arrow keys walk the drawer too, in reading order, and never out onto the bench
+		// behind it (a control that uses the arrows itself, a slider or a text field, keeps them)
+		var owner = GetViewport().GuiGetFocusOwner();
+		var ownsArrows = owner is Godot.Range or LineEdit or TextEdit;
+		if (!ownsArrows)
+		{
+			next |= e.IsActionPressed("ui_down") || e.IsActionPressed("ui_right");
+			prev |= e.IsActionPressed("ui_up") || e.IsActionPressed("ui_left");
+		}
 		if (!next && !prev) return;
 		var items = Print.Focusables(_holder).Where(c => !(c is BaseButton { Disabled: true })).ToList();
 		if (items.Count == 0) return;
@@ -161,7 +172,10 @@ public partial class ProofView : Control
 		slipsFrame.AddChild(slips);
 		slips.AddChild(TypeCase(m));
 		// the post and the works hold the drawers' buttons: always in view, never scrolled away
-		bench.AddChild(LettersSlip(m));
+		// fixed heights, so the buttons stay where the hand left them from month to month
+		var post = LettersSlip(m);
+		post.CustomMinimumSize = new Vector2(0, 104);
+		bench.AddChild(post);
 		bench.AddChild(WorksSlip(m));
 		var warn = new List<string>();
 		var unansweredInquests = m.Letters.Count(l => l.Title.StartsWith("Inquest", StringComparison.Ordinal));
@@ -174,7 +188,11 @@ public partial class ProofView : Control
 		// space the shop cannot pay for is not printed: say so before the press, not after
 		if (m.CanAdvertise && m.AdSpendCents > m.CashCents)
 			warn.Add($"The notice costs {EditionWriter.Money(m.AdSpendCents)} and you have {EditionWriter.Money(m.CashCents)}: the Gazette will not print it unpaid.");
-		foreach (var w in warn) bench.AddChild(Print.Label("☞ " + w, Print.FellIt, 13, color: Print.Paper));
+		// the warnings sit in a box of fixed depth under the lever's row, so they never move it
+		var warnings = new VBoxContainer { CustomMinimumSize = new Vector2(0, 76) };
+		warnings.AddThemeConstantOverride("separation", 1);
+		foreach (var w in warn.Take(4)) warnings.AddChild(Print.Label("☞ " + w, Print.FellIt, 13, color: Print.Paper));
+		bench.AddChild(warnings);
 		bench.AddChild(Lever(nothing || unansweredInquests > 0));
 
 		if (_drawer != null)
@@ -352,6 +370,7 @@ public partial class ProofView : Control
 		// the strip is as wide as the proof column; share it out between the figures
 		const float width = 1280f - 44f - 20f - BenchWidth, start = 54f;
 		var slot = Math.Min(172f, (width - start - 70f) / Math.Max(shown.Count, 1));
+		var tags = new List<(PanelContainer Tag, string About)>();
 		for (var i = 0; i < shown.Count; i++)
 		{
 			var r = shown[i];
@@ -390,24 +409,37 @@ public partial class ProofView : Control
 			var tag = Print.Slip(Tag(r), 5);
 			tag.Position = new Vector2(x, CounterTop + 2);
 			tag.CustomMinimumSize = new Vector2(slot - 10, 0);
-			// the tags are in the Tab order: a focused tag is ruled heavier, and what the mouse
-			// would show on hover is set in the line under AT THE COUNTER
+			// what the mouse would show on hover, for the keyboard (see below)
 			var about = $"{r.Name}: a regular for {Spell(r.MonthsAsCustomer)} month{(r.MonthsAsCustomer == 1 ? "" : "s")}; {Panacea.Game.SimGame.Describe(r)}.";
 			tag.TooltipText = fig?.TooltipText ?? about;
-			tag.FocusMode = FocusModeEnum.All;
-			var plain = tag.GetThemeStylebox("panel");
-			var moreText = more.Text;
-			tag.FocusEntered += () =>
-			{
-				tag.AddThemeStyleboxOverride("panel", Print.Box(Print.Paper, Print.Ink, 6, 4));
-				more.Text = about;
-			};
-			tag.FocusExited += () =>
-			{
-				tag.AddThemeStyleboxOverride("panel", plain);
-				more.Text = moreText;
-			};
 			strip.AddChild(tag);
+			tags.Add((tag, about));
+		}
+		// the counter is one stop in the Tab order; the arrows walk along it. The customer in hand
+		// is printed in reverse, white on black, and described in the line under AT THE COUNTER
+		if (tags.Count > 0)
+		{
+			strip.FocusMode = FocusModeEnum.All;
+			var moreText = more.Text;
+			var sel = 0;
+			void Mark(int i, bool on)
+			{
+				var (t, about) = tags[i];
+				t.AddThemeStyleboxOverride("panel", on ? Print.Box(Print.Ink, Print.Paper, 3, 4) : Print.Box(Print.Paper, Print.Ink, 3, 4));
+				foreach (var l in Print.Descendants<Label>(t)) l.AddThemeColorOverride("font_color", on ? Print.Paper : Print.Ink);
+				if (on) more.Text = about + (tags.Count > 1 ? "  (◀ ▶ for the next)" : "");
+			}
+			strip.FocusEntered += () => Mark(sel, true);
+			strip.FocusExited += () => { Mark(sel, false); more.Text = moreText; };
+			strip.GuiInput += ev =>
+			{
+				var step = ev.IsActionPressed("ui_right") ? 1 : ev.IsActionPressed("ui_left") ? -1 : 0;
+				if (step == 0) return;
+				Mark(sel, false);
+				sel = (sel + step + tags.Count) % tags.Count;
+				Mark(sel, true);
+				strip.AcceptEvent();
+			};
 		}
 		// nobody close to the end yet: he waits at the far end of the counter, faintly
 		if (atRisk == null && AddFigure(strip, "wc_death", start + shown.Count * slot + 6, 230, 0.2f) is { } waiting)
@@ -472,7 +504,7 @@ public partial class ProofView : Control
 		v.AddChild(Print.Label((r.Infant ? "for " : "") + r.Ailment.ToLowerInvariant(), Print.Fell, 12, wrap: false));
 		var status = new List<string>
 		{
-			r.Looks switch { "gravely_ill" => "gravely ill", "poorly" => "poorly", "peaky" => "peaky", _ => "hale" },
+			(r.Infant ? "infant " : "") + r.Looks switch { "gravely_ill" => "gravely ill", "poorly" => "poorly", "peaky" => "peaky", _ => "hale" },
 		};
 		if (r.Ruined) status.Add("ruined by it");
 		else if (r.Withdrawal) status.Add("shaking");
@@ -488,11 +520,48 @@ public partial class ProofView : Control
 	private Control TypeCase(DeskModel m)
 	{
 		var v = SlipBody("THE TYPE CASE");
-		var product = m.Formulas.FirstOrDefault();
+		var product = m.Formulas.FirstOrDefault(x => x.Id == _adFormula) ?? m.Formulas.FirstOrDefault();
 		if (product == null)
 		{
 			v.AddChild(Print.Body("[i]No remedy yet: open the formula book.[/i]", 13, justify: false));
 			return Print.Slip(v, 10);
+		}
+		v.AddChild(Print.Label("SPACE IN THE GAZETTE", Print.Rye, 12));
+		var sizes = new HBoxContainer();
+		sizes.AddThemeConstantOverride("separation", 4);
+		var tier = AdSpace.TierFor(m.AdSpendCents);
+		for (var i = 0; i < AdSpace.Tiers.Length; i++)
+		{
+			var t = AdSpace.Tiers[i];
+			var b = Print.Button(t.Short, 11, solid: m.CanAdvertise && i == tier);
+			b.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+			b.TooltipText = t.Cents == 0 ? "No notice in the Gazette" : $"{t.Name}: {EditionWriter.Money(t.Cents)} a month";
+			Print.SetLive(b, m.CanAdvertise);
+			var cents = t.Cents;
+			b.Pressed += () => Act(_game.SetAdSpend(cents));
+			sizes.AddChild(b);
+		}
+		v.AddChild(sizes);
+		// the rates, printed rather than hidden in the tooltips
+		v.AddChild(Print.Label("Rates: " + string.Join(" · ", AdSpace.Tiers.Where(t => t.Cents > 0).Select(t => $"{t.Short.ToLowerInvariant()} {EditionWriter.Money(t.Cents)}")) + " a month.", Print.FellIt, 11));
+		var adsNext = m.NextUnlocks.FirstOrDefault(u => u.Name.Contains("Advertis"));
+		if (!m.CanAdvertise) v.AddChild(Print.Body(adsNext.Name != null && adsNext.Progress >= 0.999
+			? "[i]Both conditions are met: space can be bought from next month.[/i]"
+			: "[i]Not yet: the Gazette wants $100 in savings and a printed testimonial first.[/i]", 12, justify: false));
+		// a second remedy has its own label: choose which one the claims are set for
+		if (m.Formulas.Count > 1)
+		{
+			var tabs = new HFlowContainer();
+			tabs.AddThemeConstantOverride("h_separation", 4);
+			foreach (var g in m.Formulas)
+			{
+				var t = Print.Button(g.Name.ToUpperInvariant(), 10, solid: g.Id == product.Id);
+				var gid = g.Id;
+				t.TooltipText = $"Set the claims on the label of {g.Name}.";
+				t.Pressed += () => { _adFormula = gid; Refresh(); };
+				tabs.AddChild(t);
+			}
+			v.AddChild(tabs);
 		}
 		v.AddChild(Print.Body($"[i]Claims for {Print.Escape(product.Name)}, up to four. Bolder type sells more, and the coroner reads it too.[/i]", 12, justify: false));
 		var flow = new HFlowContainer();
@@ -520,26 +589,6 @@ public partial class ProofView : Control
 			flow.AddChild(b);
 		}
 		v.AddChild(flow);
-		v.AddChild(Print.Label("SPACE IN THE GAZETTE", Print.Rye, 12));
-		var sizes = new HBoxContainer();
-		sizes.AddThemeConstantOverride("separation", 4);
-		var tier = AdSpace.TierFor(m.AdSpendCents);
-		for (var i = 0; i < AdSpace.Tiers.Length; i++)
-		{
-			var t = AdSpace.Tiers[i];
-			var b = Print.Button(t.Short, 11, solid: m.CanAdvertise && i == tier);
-			b.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-			b.TooltipText = t.Cents == 0 ? "No notice in the Gazette" : $"{t.Name}: {EditionWriter.Money(t.Cents)} a month";
-			Print.SetLive(b, m.CanAdvertise);
-			var cents = t.Cents;
-			b.Pressed += () => Act(_game.SetAdSpend(cents));
-			sizes.AddChild(b);
-		}
-		v.AddChild(sizes);
-		var adsNext = m.NextUnlocks.FirstOrDefault(u => u.Name.Contains("Advertis"));
-		if (!m.CanAdvertise) v.AddChild(Print.Body(adsNext.Name != null && adsNext.Progress >= 0.999
-			? "[i]Both conditions are met: space can be bought from next month.[/i]"
-			: "[i]Not yet: the Gazette wants $100 in savings and a printed testimonial first.[/i]", 12, justify: false));
 		if (_note != null)
 		{
 			var why = _note.Contains("At most", StringComparison.Ordinal) ? _note + " Strike one out to make room." : _note;

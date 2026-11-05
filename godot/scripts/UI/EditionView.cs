@@ -99,7 +99,12 @@ public partial class EditionView : ScrollContainer
 		p.MouseExited += () => { if (!p.HasFocus()) p.AddThemeStyleboxOverride("panel", Wash(false)); };
 		p.FocusEntered += () =>
 		{
-			p.AddThemeStyleboxOverride("panel", Wash(true));
+			// the keyboard's place is ruled all round, heavier than the hand's margin rule
+			var ring = Wash(true);
+			ring.BorderWidthTop = ring.BorderWidthBottom = ring.BorderWidthRight = 3;
+			ring.BorderWidthLeft = 5;
+			ring.ExpandMarginLeft = ring.ExpandMarginRight = ring.ExpandMarginTop = ring.ExpandMarginBottom = 3;
+			p.AddThemeStyleboxOverride("panel", ring);
 			// bring the item into view with a margin, not flush against the edge or the footer
 			Callable.From(() =>
 			{
@@ -240,7 +245,7 @@ public partial class EditionView : ScrollContainer
 		AddLead(lead, e.Lead);
 		foreach (var s in e.LeadFoot) AddSection(lead, s);
 		foreach (var s in e.Right) AddSection(right, s);
-		Balance(new[] { left, lead, right }, e.Standing);
+		Balance(new[] { left, lead, right }, e.Standing, e.Printed);
 
 		// ---- the markets ----
 		page.AddChild(Print.Rule());
@@ -253,7 +258,7 @@ public partial class EditionView : ScrollContainer
 	/// The make-up: once the columns are laid out, the short ones are filled with standing matter
 	/// until every column's foot is within a few lines of the longest, as a compositor would.
 	/// </summary>
-	private async void Balance(VBoxContainer[] cols, List<string> standing)
+	private async void Balance(VBoxContainer[] cols, List<string> standing, Action<int>? printed)
 	{
 		var next = 0;
 		var headed = new HashSet<VBoxContainer>();
@@ -273,6 +278,7 @@ public partial class EditionView : ScrollContainer
 				shortest.AddChild(Print.Rule(1.2f, 0.5f, 2));
 				shortest.AddChild(Print.Label(headed.Count == 1 ? "BRIEFLY." : headed.Count == 2 ? "CITY ITEMS." : "SUNDRY MATTERS.", Print.Rye, 15, HorizontalAlignment.Center));
 			}
+			printed?.Invoke(next);
 			var t = standing[next++];
 			var dash = t.IndexOf(".—", StringComparison.Ordinal);
 			var text = dash > 0 ? $"[b]{Print.Escape(t[..(dash + 2)])}[/b]{Print.Escape(t[(dash + 2)..])}" : Print.Escape(t);

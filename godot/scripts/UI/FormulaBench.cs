@@ -71,7 +71,7 @@ public partial class FormulaBench : HBoxContainer
 		var v = new VBoxContainer();
 		v.AddThemeConstantOverride("separation", 6);
 		v.AddChild(Print.Label("THE DRUG SHELF", Print.Rye, 18, HorizontalAlignment.Center));
-		v.AddChild(Print.Body("[i]Click a jar to pour half an ounce (the dear drugs by the eighth); hold Shift for half as much. Right-click to take it back.[/i]", 13, centre: true));
+		v.AddChild(Print.Body("[i]Click a jar to pour half an ounce (the dear drugs by the eighth); hold Shift for half as much. Right-click to take it back. By keyboard: the arrows walk the shelf, Enter pours, Backspace takes it back.[/i]", 13, centre: true));
 		var scroll = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled, SizeFlagsVertical = SizeFlags.ExpandFill, CustomMinimumSize = new Vector2(0, 380) };
 		Print.QuietScrollbar(scroll);
 		_shelf = new GridContainer { Columns = 3, SizeFlagsHorizontal = SizeFlags.ExpandFill };
@@ -107,7 +107,13 @@ public partial class FormulaBench : HBoxContainer
 		var inGlass = _recipe.GetValueOrDefault(i.Id);
 		var box = new PanelContainer { CustomMinimumSize = new Vector2(84, 108), MouseFilter = MouseFilterEnum.Stop, MouseDefaultCursorShape = CursorShape.PointingHand, FocusMode = FocusModeEnum.All };
 		var on = inGlass > 0;
-		box.AddThemeStyleboxOverride("panel", Print.Box(on ? new Color(Print.Ink, 0.08f) : new Color(0, 0, 0, 0), Print.Ink, on ? 2 : 1, 4));
+		var plain = Print.Box(on ? new Color(Print.Ink, 0.08f) : new Color(0, 0, 0, 0), Print.Ink, on ? 2 : 1, 4);
+		box.AddThemeStyleboxOverride("panel", plain);
+		// the keyboard's jar is printed in reverse at the foot and ruled heavily, not one pixel more
+		var ring = Print.Box(on ? new Color(Print.Ink, 0.08f) : new Color(0, 0, 0, 0), Print.Ink, 4, 4);
+		ring.ExpandMarginLeft = ring.ExpandMarginRight = ring.ExpandMarginTop = ring.ExpandMarginBottom = 3;
+		box.FocusEntered += () => box.AddThemeStyleboxOverride("panel", ring);
+		box.FocusExited += () => box.AddThemeStyleboxOverride("panel", plain);
 		box.TooltipText = $"{i.Name}: {EditionWriter.Money(i.CostPerOunceCents)} the ounce, {i.OnHand:0.#} oz on hand.\n{i.Description}";
 		var v = new VBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
 		v.AddThemeConstantOverride("separation", 0);
@@ -259,18 +265,27 @@ public partial class FormulaBench : HBoxContainer
 		nameEdit.AddThemeFontSizeOverride("font_size", 15);
 		nameEdit.AddThemeColorOverride("font_color", Print.Ink);
 		nameEdit.AddThemeStyleboxOverride("normal", Print.Box(Print.Paper, Print.Ink, 1, 5));
-		nameEdit.AddThemeStyleboxOverride("focus", Print.Box(Print.Paper, Print.Ink, 2, 5));
+		// a field being typed in is ruled heavily, with a caret that shows
+		var typing = Print.Box(Print.Paper, Print.Ink, 4, 5);
+		typing.ExpandMarginLeft = typing.ExpandMarginRight = typing.ExpandMarginTop = typing.ExpandMarginBottom = 2;
+		nameEdit.AddThemeStyleboxOverride("focus", typing);
+		nameEdit.AddThemeColorOverride("caret_color", Print.Ink);
+		nameEdit.AddThemeConstantOverride("caret_width", 2);
+		nameEdit.CaretBlink = true;
 		nameEdit.TextChanged += t => _name = t;
 		var editing = d.Formulas.FirstOrDefault(f => f.Id == _editing);
 		if (editing == null) _actions.AddChild(nameEdit);
 		var priceRow = new HBoxContainer();
 		priceRow.AddThemeConstantOverride("separation", 4);
 		var shown = editing?.PriceCents ?? _price;
-		priceRow.AddChild(Print.Label($"Sold at {EditionWriter.Money(shown)}", Print.Fell, 15, wrap: false));
-		priceRow.AddChild(new Control { SizeFlagsHorizontal = SizeFlags.ExpandFill });
+		// say whose price the buttons change: the remedy on the shelf, or the one being entered
+		var priceLabel = Print.Label(editing != null ? $"{editing.Name}, on the shelf at {EditionWriter.Money(shown)}" : $"The new remedy, to sell at {EditionWriter.Money(shown)}", Print.Fell, 15);
+		priceLabel.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+		priceRow.AddChild(priceLabel);
 		foreach (var step in new[] { -5, 5 })
 		{
 			var b = Print.Button(step > 0 ? $"+{step}c" : $"{step}c", 11);
+			b.TooltipText = editing != null ? $"Changes the price of {editing.Name} on the shelf, from this month." : "Changes the price the new remedy will be entered at.";
 			var s = step;
 			b.Pressed += () =>
 			{
@@ -284,13 +299,15 @@ public partial class FormulaBench : HBoxContainer
 		_actions.AddChild(priceRow);
 		if (editing != null)
 		{
-			var re = Print.Button("POUR IT INTO THE BOTTLE", 13, solid: true, sound: "lever");
+			var re = Print.Button($"CHANGE THE RECIPE OF {editing.Name.ToUpperInvariant()}", 13, solid: true, sound: "lever");
+			re.AutowrapMode = TextServer.AutowrapMode.WordSmart;
 			re.TooltipText = "Change what goes in the bottle. The label stays the same; stock already brewed is unaffected.";
 			re.Disabled = p.Error != null;
 			re.Pressed += () => { _note = _game.Reformulate(editing.Id, Recipe(), _process) ?? "Reformulated. The next batch will be the new recipe; the customers will not be told."; Refresh(); Changed?.Invoke(); };
 			_actions.AddChild(re);
 			var fresh = Print.Button("ENTER IT AS A NEW REMEDY", 12);
-			fresh.Pressed += () => { _editing = null; _name = "A New Remedy"; _price = 50; Refresh(); };
+			fresh.TooltipText = "Enters this recipe as a second remedy, with its own name, price and label. The one on the shelf is left as it is.";
+			fresh.Pressed += () => { _editing = null; _name = "A New Remedy"; _price = editing.PriceCents; Refresh(); };
 			_actions.AddChild(fresh);
 		}
 		else

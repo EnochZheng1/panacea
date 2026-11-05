@@ -19,6 +19,7 @@ public partial class StillBench : HBoxContainer
 	/// <summary>The batch marked for each remedy. Kept from month to month: the proprietor's usual
 	/// batch is the one he marked last time, not the house default.</summary>
 	private static readonly Dictionary<string, int> _counts = new();
+	private bool _focusFire;
 	private string? _formula;
 	private string? _note;
 	private readonly StillDrawing _still = new();
@@ -100,6 +101,7 @@ public partial class StillBench : HBoxContainer
 
 		// the bottling shelf: a mark for every bottle the stock allows; click to choose the batch
 		_right.AddChild(Print.Label("THE BATCH", Print.Rye, 14));
+		_right.AddChild(Print.Label("Click a bottle to mark the batch, or with the keyboard: ◀ ▶ a bottle at a time, ▲ ▼ a dozen.", Print.FellIt, 13));
 		var shelf = new BottleShelf { Count = want, Max = max, Capacity = Math.Min(96, Math.Max(48, ((Math.Max(max, want) + 11) / 12) * 12)) };
 		shelf.Picked += k => { _counts[f.Id] = k; Sfx.Play("tick", -6f, 0.1f); Refresh(); };
 		_right.AddChild(shelf);
@@ -134,6 +136,7 @@ public partial class StillBench : HBoxContainer
 		var row = new HFlowContainer();
 		row.AddThemeConstantOverride("h_separation", 8);
 		row.AddThemeConstantOverride("v_separation", 8);
+		Button? orderButton = null;
 		if (needs.Count > 0 && d.StillsFree > 0)
 		{
 			var buy = Print.Button($"ORDER ENOUGH FOR {Batch} · {EditionWriter.Money(cost)}", 13);
@@ -144,10 +147,12 @@ public partial class StillBench : HBoxContainer
 				foreach (var (id, oz) in needs) err ??= _game.Buy(id, oz);
 				_note = err ?? $"Ordered: enough for {Batch} bottles, {EditionWriter.Money(cost)}.";
 				_counts[f.Id] = Batch;
+				// the next thing to do is light the fire: the keyboard goes there
+				_focusFire = err == null;
 				Refresh();
 				Changed?.Invoke();
 			};
-			row.AddChild(buy);
+			orderButton = buy;
 		}
 		var fire = Print.Button(n > 0 ? $"LIGHT THE FIRE · {n} BOTTLES" : "LIGHT THE FIRE", 17, solid: true, sound: "lever");
 		fire.Disabled = n <= 0 || d.StillsFree <= 0;
@@ -163,7 +168,14 @@ public partial class StillBench : HBoxContainer
 			Refresh();
 			Changed?.Invoke();
 		};
+		// the fire comes first in the row, so it stays where it is when the order button goes
 		row.AddChild(fire);
+		if (orderButton != null) row.AddChild(orderButton);
+		if (_focusFire)
+		{
+			_focusFire = false;
+			Callable.From(() => { if (IsInstanceValid(fire) && fire.IsInsideTree() && !fire.Disabled) fire.GrabFocus(); }).CallDeferred();
+		}
 		// two stills free: one order and one press for both, rather than the routine twice over
 		if (d.StillsFree >= 2 && want > 0)
 		{
@@ -178,8 +190,8 @@ public partial class StillBench : HBoxContainer
 				needs2.Add((c.IngredientId, need));
 				cost2 += (long)Math.Round(need * (i?.CostPerOunceCents ?? 0));
 			}
-			var two = Print.Button(cost2 > 0 ? $"ORDER AND LIGHT BOTH · {want} EACH · {EditionWriter.Money(cost2)}" : $"LIGHT BOTH STILLS · {want} EACH", 13);
-			two.TooltipText = $"Orders what both batches are short of, then lights two stills of {want} bottles each.";
+			var two = Print.Button(cost2 > 0 ? $"BOTH STILLS · ORDER AND LIGHT {want} EACH · {EditionWriter.Money(cost2)}" : $"BOTH STILLS · LIGHT {want} EACH", 12);
+			two.TooltipText = $"Both stills brew {f.Name}: orders what the two batches are short of, then lights two stills of {want} bottles each.";
 			two.Pressed += () =>
 			{
 				string? err = null;
@@ -199,7 +211,7 @@ public partial class StillBench : HBoxContainer
 	}
 
 	/// <summary>Bottles in rows of twelve: the chosen ones printed, the possible ones outlined.</summary>
-	private sealed partial class BottleShelf : Control
+	private sealed partial class BottleShelf : Control, Print.IArrowKeys
 	{
 		public int Count, Max, Capacity = 48;
 		public event Action<int>? Picked;
@@ -231,7 +243,7 @@ public partial class StillBench : HBoxContainer
 			if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } b && At(b.Position) is var k and > 0) { GrabFocus(); Picked?.Invoke(k); AcceptEvent(); }
 			if (e is InputEventKey { Pressed: true } key)
 			{
-				var step = key.Keycode switch { Key.Right => 1, Key.Left => -1, Key.Up => -12, Key.Down => 12, _ => 0 };
+				var step = key.Keycode switch { Key.Right or Key.Plus or Key.Equal or Key.KpAdd => 1, Key.Left or Key.Minus or Key.KpSubtract => -1, Key.Up or Key.Pageup => -12, Key.Down or Key.Pagedown => 12, _ => 0 };
 				if (step != 0) { Picked?.Invoke(Math.Clamp(Count + step, 0, Capacity)); AcceptEvent(); }
 			}
 		}

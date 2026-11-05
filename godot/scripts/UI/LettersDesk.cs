@@ -229,12 +229,12 @@ public partial class LettersDesk : VBoxContainer
 						? $"Pencilled in the margin: {Chance(p)} that it comes out. —J.D."
 						: $"Pencilled in the margin: {Chance(p)} for naming" +
 							(l.Odds.TryGetValue(id == "testify" ? "stay_silent" : "testify", out var q) && Chance(q) == Chance(p) ? ", speak or not" : "") + ". The jury sits at once. —J.D.";
-				var line = Print.Label(risk, Print.FellIt, 13, color: new Color(Print.Ink, 0.85f));
+				var line = Print.Label(risk, Print.FellIt, 15, color: Print.Ink);
 				riskLine = line;
 				v.AddChild(line);
 				if (pencil != null)
 				{
-					var margin = Print.Label(pencil, Print.FellIt, 13, HorizontalAlignment.Right, new Color(Print.Ink, 0.85f));
+					var margin = Print.Label(pencil, Print.FellIt, 14, HorizontalAlignment.Right, Print.Ink);
 					margin.RotationDegrees = -0.8f;
 					riskLine = margin;
 					v.AddChild(margin);

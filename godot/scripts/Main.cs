@@ -167,7 +167,7 @@ public partial class Main : Control
 	private void FocusMain()
 	{
 		if (_clipping != null) return;
-		if (_onDesk) _desk.FocusLever();
+		if (_onDesk) _desk.FocusStart();
 		else _nav.GrabFocus();
 	}
 	private string _seed = "";
@@ -288,19 +288,16 @@ public partial class Main : Control
 		_pressing = false;
 		_nav.Disabled = false;
 		_sound.Disabled = false;
+		// the footer stops asking for a key once the edition is out, and a key meant for the
+		// press run (pressed as it ends) does not turn the page straight past the paper
+		UpdateStatus(null);
+		Guard(700);
 		FocusMain();
 	}
 
 	/// <summary>A click during the press run goes straight to the printed paper.</summary>
 	public override void _UnhandledInput(InputEvent e)
 	{
-		// Escape puts down whatever is in your hand: a cutting, then a tool slip
-		if (!_pressing && e.IsActionPressed("ui_cancel"))
-		{
-			if (_clipping != null) { CloseClipping(); GetViewport().SetInputAsHandled(); }
-			else if (_onDesk && _desk.CloseDrawer()) GetViewport().SetInputAsHandled();
-			return;
-		}
 		// during the press, any click or key skips to the printed edition (never past it)
 		var skip = e is InputEventMouseButton { Pressed: true } || e is InputEventKey { Pressed: true, Echo: false };
 		if (!_pressing || !skip) return;
@@ -323,6 +320,13 @@ public partial class Main : Control
 
 	public override void _Input(InputEvent e)
 	{
+		// Escape puts down whatever is in your hand: a cutting, then a drawer. Taken here, before
+		// the GUI, so a tooltip left showing by the last click cannot swallow it
+		if (!_pressing && e.IsActionPressed("ui_cancel") && Time.GetTicksMsec() >= _guardUntil)
+		{
+			if (_clipping != null) { CloseClipping(); GetViewport().SetInputAsHandled(); return; }
+			if (_onDesk && _desk.CloseDrawer()) { GetViewport().SetInputAsHandled(); return; }
+		}
 		// a cutting in the hand holds the keyboard: Tab and the arrows go nowhere behind it
 		if (_clipping != null && (e.IsActionPressed("ui_focus_next") || e.IsActionPressed("ui_focus_prev")
 			|| e.IsActionPressed("ui_up") || e.IsActionPressed("ui_down") || e.IsActionPressed("ui_left") || e.IsActionPressed("ui_right")))

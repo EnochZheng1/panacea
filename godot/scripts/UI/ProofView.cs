@@ -25,6 +25,19 @@ public partial class ProofView : Control
 
 	public void FocusLever() { if (_drawer == null && _lever != null && IsInstanceValid(_lever)) _lever.GrabFocus(); }
 
+	/// <summary>
+	/// Coming to the proof, the keyboard starts where the month's work starts: the formula book
+	/// while there is no remedy, the still while it is cold and has something to brew, else the press.
+	/// </summary>
+	public void FocusStart()
+	{
+		if (_drawer != null || _game == null) { FocusLever(); return; }
+		var d = _game.Desk();
+		var start = d.Formulas.Count == 0 ? "FORMULA" : d.Brewing.Count == 0 && d.StillsFree > 0 && d.Formulas.Sum(f => f.Stock) < 24 ? "THE STILL" : null;
+		var b = start == null ? null : Print.Focusables(this).OfType<Button>().FirstOrDefault(x => x.Text == start && !x.Disabled);
+		if (b != null) b.GrabFocus(); else FocusLever();
+	}
+
 	/// <summary>Closes an open tool slip; false if none was open.</summary>
 	public bool CloseDrawer()
 	{
@@ -38,7 +51,9 @@ public partial class ProofView : Control
 		var opener = was switch { "still" => "THE STILL", "formula" => "FORMULA", "supplies" => "SUPPLIES", "ventures" => "VENTURES", "letters" => "OPEN THE LETTERS", _ => "" };
 		Callable.From(() =>
 		{
-			var b = Print.Focusables(this).OfType<Button>().FirstOrDefault(x => x.Text == opener && !x.Disabled);
+			// (the letters button is gone once the post is answered: then the works, not the press)
+			var b = Print.Focusables(this).OfType<Button>().FirstOrDefault(x => x.Text == opener && !x.Disabled)
+				?? Print.Focusables(this).OfType<Button>().FirstOrDefault(x => x.Text == "THE STILL" && !x.Disabled);
 			if (b != null) b.GrabFocus(); else FocusLever();
 		}).CallDeferred();
 		return true;
@@ -72,15 +87,38 @@ public partial class ProofView : Control
 	/// While a drawer is open, Tab and Shift+Tab go round the drawer's own controls only: the bench
 	/// behind the shade is out of reach until the drawer is put down.
 	/// </summary>
+	/// <summary>True while the player is using the keyboard (the last input was a key, not the mouse).</summary>
+	private bool _keyboard;
+	/// <summary>The stills and the ventures on offer when those drawers were last opened.</summary>
+	private int _seenStills, _seenOffers;
+
+	/// <summary>
+	/// The keyboard never stands nowhere: when an action takes away the focused control (the fire
+	/// lit, a slip reset) focus goes to the drawer's first control, or the works, rather than to none.
+	/// </summary>
+	public override void _Process(double delta)
+	{
+		if (!_keyboard || !IsVisibleInTree()) return;
+		var owner = GetViewport().GuiGetFocusOwner();
+		if (owner != null && owner.IsVisibleInTree()) return;
+		if (_drawer != null && _holder != null && IsInstanceValid(_holder))
+			Print.Focusables(_holder).FirstOrDefault(c => !(c is BaseButton { Disabled: true }))?.GrabFocus();
+		else if (_drawer == null)
+			(Print.Focusables(this).OfType<Button>().FirstOrDefault(x => x.Text == "THE STILL" && !x.Disabled) as Control
+				?? (_lever != null && IsInstanceValid(_lever) && _lever.IsInsideTree() ? _lever : null))?.GrabFocus();
+	}
+
 	public override void _Input(InputEvent e)
 	{
+		if (e is InputEventKey { Pressed: true }) _keyboard = true;
+		else if (e is InputEventMouseButton { Pressed: true }) _keyboard = false;
 		if (_drawer == null || _holder == null || !IsInstanceValid(_holder) || !IsVisibleInTree()) return;
 		var next = e.IsActionPressed("ui_focus_next");
 		var prev = e.IsActionPressed("ui_focus_prev");
 		// the arrow keys walk the drawer too, in reading order, and never out onto the bench
 		// behind it (a control that uses the arrows itself, a slider or a text field, keeps them)
 		var owner = GetViewport().GuiGetFocusOwner();
-		var ownsArrows = owner is Godot.Range or LineEdit or TextEdit;
+		var ownsArrows = owner is Godot.Range or LineEdit or TextEdit or Print.IArrowKeys;
 		if (!ownsArrows)
 		{
 			next |= e.IsActionPressed("ui_down") || e.IsActionPressed("ui_right");
@@ -184,7 +222,9 @@ public partial class ProofView : Control
 		var waiting = m.Regulars.FirstOrDefault(r => r.Looks is "gravely_ill");
 		if (waiting != null) warn.Add($"Death waits at the counter beside {waiting.Name}.");
 		var nothing = m.Formulas.Sum(f => f.Stock) == 0 && m.Brewing.Count == 0;
-		if (nothing) warn.Add("Nothing on the shelf and nothing on the still: the shop will sell nothing this month.");
+		// the first month: say where to begin, in so many words
+		if (m.Formulas.Count == 0) warn.Add("Begin with the FORMULA book: pour a remedy and enter it. Then light THE STILL, and send the paper to press.");
+		else if (nothing) warn.Add("Nothing on the shelf and nothing on the still: light THE STILL, or the shop will sell nothing this month.");
 		// space the shop cannot pay for is not printed: say so before the press, not after
 		if (m.CanAdvertise && m.AdSpendCents > m.CashCents)
 			warn.Add($"The notice costs {EditionWriter.Money(m.AdSpendCents)} and you have {EditionWriter.Money(m.CashCents)}: the Gazette will not print it unpaid.");
@@ -378,7 +418,11 @@ public partial class ProofView : Control
 			// Death stands at the shoulder of whoever is nearest the end, a head taller than anyone
 			// he leans toward the one he is waiting for
 			if (r == atRisk && AddFigure(strip, "wc_death", x - 44, 230, 1f) is { } death)
+			{
 				Anim.Sway(death, 1.4f, 4.2f, lean: 3.5f);
+				death.MouseFilter = _drawer == null ? MouseFilterEnum.Pass : MouseFilterEnum.Ignore;
+				death.TooltipText = $"Death, at the shoulder of {r.Name}, who is {(r.Looks == "gravely_ill" ? "gravely ill" : "poorly")}. He stands beside whoever is nearest the end.";
+			}
 			// the same stock cut twice in a row is printed the other way round
 			var cut = CutFor(r);
 			var flip = shown.Take(i).Count(o => CutFor(o) == cut) % 2 == 1;
@@ -387,7 +431,8 @@ public partial class ProofView : Control
 			var fig = AddFigure(strip, cut, x + 10, h, 1f, flip);
 			if (fig != null)
 			{
-				fig.MouseFilter = MouseFilterEnum.Pass;
+				// behind an open drawer the counter keeps its hover text to itself
+				fig.MouseFilter = _drawer == null ? MouseFilterEnum.Pass : MouseFilterEnum.Ignore;
 				fig.TooltipText = $"{r.Name}: {(r.Infant ? "for " : "")}{r.Ailment.ToLowerInvariant()}. A regular for {r.MonthsAsCustomer} month{(r.MonthsAsCustomer == 1 ? "" : "s")}; {Panacea.Game.SimGame.Describe(r)}.";
 				var phase = (StableHash(r.Id) % 100u) / 100f * 2f;
 				if (r.Looks == "gravely_ill") Anim.Sway(fig, 1.6f, 3.0f + phase * 0.5f);
@@ -411,7 +456,8 @@ public partial class ProofView : Control
 			tag.CustomMinimumSize = new Vector2(slot - 10, 0);
 			// what the mouse would show on hover, for the keyboard (see below)
 			var about = $"{r.Name}: a regular for {Spell(r.MonthsAsCustomer)} month{(r.MonthsAsCustomer == 1 ? "" : "s")}; {Panacea.Game.SimGame.Describe(r)}.";
-			tag.TooltipText = fig?.TooltipText ?? about;
+			tag.TooltipText = _drawer != null ? "" : fig?.TooltipText ?? about;
+			if (_drawer != null) tag.MouseFilter = MouseFilterEnum.Ignore;
 			strip.AddChild(tag);
 			tags.Add((tag, about));
 		}
@@ -443,7 +489,11 @@ public partial class ProofView : Control
 		}
 		// nobody close to the end yet: he waits at the far end of the counter, faintly
 		if (atRisk == null && AddFigure(strip, "wc_death", start + shown.Count * slot + 6, 230, 0.2f) is { } waiting)
+		{
 			Anim.Sway(waiting, 0.8f, 5.5f);
+			waiting.MouseFilter = _drawer == null ? MouseFilterEnum.Pass : MouseFilterEnum.Ignore;
+			waiting.TooltipText = "Death, at the far end of the counter. Nobody is near enough for him yet; when someone falls poorly he comes and stands beside them.";
+		}
 		return strip;
 	}
 
@@ -543,7 +593,7 @@ public partial class ProofView : Control
 		}
 		v.AddChild(sizes);
 		// the rates, printed rather than hidden in the tooltips
-		v.AddChild(Print.Label("Rates: " + string.Join(" · ", AdSpace.Tiers.Where(t => t.Cents > 0).Select(t => $"{t.Short.ToLowerInvariant()} {EditionWriter.Money(t.Cents)}")) + " a month.", Print.FellIt, 11));
+		v.AddChild(Print.Label("Rates: " + string.Join(" · ", AdSpace.Tiers.Where(t => t.Cents > 0).Select(t => $"{t.Short.ToLowerInvariant()} {EditionWriter.Money(t.Cents)}")) + " a month.", Print.FellIt, 12));
 		var adsNext = m.NextUnlocks.FirstOrDefault(u => u.Name.Contains("Advertis"));
 		if (!m.CanAdvertise) v.AddChild(Print.Body(adsNext.Name != null && adsNext.Progress >= 0.999
 			? "[i]Both conditions are met: space can be bought from next month.[/i]"
@@ -635,21 +685,42 @@ public partial class ProofView : Control
 		var books = new VBoxContainer();
 		books.AddThemeConstantOverride("separation", -2);
 		books.AddChild(Print.Label(EditionWriter.Money(m.CashCents), Print.Rye, 22, HorizontalAlignment.Right, wrap: false));
-		var talk = Print.Label($"suspicion: {DeskView.Talk(m.Heat)} ({m.Heat:0} of 100)", Print.FellIt, 12, HorizontalAlignment.Right, wrap: false);
+		var talk = Print.Label($"suspicion: {DeskView.Talk(m.Heat)} ({m.Heat:0} of 100)", Print.FellIt, 13, HorizontalAlignment.Right, wrap: false);
 		talk.TooltipText = "What the ward says about your bottles. The more it talks, the more inquests the coroner calls; at 100 the Board of Health moves to close the shop.";
 		talk.MouseFilter = MouseFilterEnum.Pass;
 		books.AddChild(talk);
+		// standing is moved by letters and deaths: show it, not only suspicion
+		var standing = Print.Label($"standing in the ward: {m.Reputation:0}", Print.FellIt, 13, HorizontalAlignment.Right, wrap: false);
+		standing.TooltipText = "What the ward thinks of the shop. Good standing brings callers and keeps regulars; letters and deaths move it.";
+		standing.MouseFilter = MouseFilterEnum.Pass;
+		books.AddChild(standing);
 		grid.AddChild(books);
 		v.AddChild(grid);
 		var row = new HBoxContainer();
 		row.AddThemeConstantOverride("separation", 4);
 		// the house's long game sits beside the works: the prospectus of improvements
+		// something new behind a drawer (a still, a venture on offer) is printed in reverse until looked at
+		var stills = m.StillsFree + m.Brewing.Count;
+		if (_seenStills == 0) _seenStills = stills;
+		var offers = m.Investments.Count(i => !i.Held && i.CanBuy);
+		var fresh = new Dictionary<string, bool>
+		{
+			["still"] = stills > _seenStills && _seenStills > 0,
+			["ventures"] = offers > _seenOffers,
+		};
 		foreach (var (key, label) in new[] { ("still", "THE STILL"), ("formula", "FORMULA"), ("supplies", "SUPPLIES"), ("ventures", "VENTURES") })
 		{
-			var b = Print.Button(label, 11);
+			var isNew = fresh.GetValueOrDefault(key);
+			var b = Print.Button(label, 11, solid: isNew);
+			if (isNew) b.TooltipText = key == "still" ? "New: another still is yours." : "New: a venture is on offer.";
 			b.SizeFlagsHorizontal = SizeFlags.ExpandFill;
 			var k = key;
-			b.Pressed += () => OpenDrawer(k);
+			b.Pressed += () =>
+			{
+				if (k == "still") _seenStills = stills;
+				if (k == "ventures") _seenOffers = offers;
+				OpenDrawer(k);
+			};
 			row.AddChild(b);
 		}
 		v.AddChild(row);

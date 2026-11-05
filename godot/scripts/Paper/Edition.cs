@@ -27,6 +27,8 @@ public sealed class Edition
     public string Markets = "";
     /// <summary>Standing matter, in order, for the compositor to fill short columns with.</summary>
     public List<string> Standing = new();
+    /// <summary>The make-up reports each item of standing matter it sets on the page, by index.</summary>
+    public System.Action<int>? Printed;
 }
 
 public sealed class Section

@@ -126,8 +126,9 @@ public partial class Prospectus : VBoxContainer
 				if (_asking != id)
 				{
 					// ask first, and give a moment before a second press counts
+					// (no note above the sheet: it would push the button out from under the hand)
 					_asking = id;
-					_note = $"{name}: {EditionWriter.Money(cost)} down. Press again to take it up.";
+					_note = null;
 					Main.Guard(400);
 					Refresh();
 					return;

@@ -66,14 +66,23 @@ public sealed class EditionWriter
                 return Math.Max(a, startIdx) == nowIdx && nowIdx <= b;
             })
             .Select(x => x.GetProperty("text").GetString() ?? "").ToList();
-        var cursor = (f.Turn * Rotation) % Math.Max(1, pool.Count);
-        var picked = new List<string>();
-        for (var k = 0; k < pool.Count && picked.Count < 12; k++)
+        // the items the paper has gone longest without printing, in the game's shuffled order; the
+        // page reports back which it set (it takes twelve to twenty), so the next edition reads on
+        // from there rather than from a guess. The month's list is kept for the second writing.
+        if (!_standingFor.TryGetValue(f.Turn, out var picked))
         {
-            var item = pool[(cursor + k) % pool.Count];
-            if (item.Months == null || item.Months.Contains(f.Month)) picked.Add(item.Text);
+            picked = pool
+                .Select((x, i) => (x.Text, x.Months, Order: (i - f.Turn * Rotation % pool.Count + pool.Count) % pool.Count))
+                .Where(x => x.Months == null || x.Months.Contains(f.Month))
+                .OrderBy(x => _printed.TryGetValue(x.Text, out var at) ? at : int.MinValue)
+                .ThenBy(x => x.Order)
+                .Take(24).Select(x => x.Text).ToList();
+            _standingFor[f.Turn] = picked;
         }
+        var turn = f.Turn;
         e.Standing = dated.Concat(picked).ToList();
+        var keys = e.Standing.ToList();
+        e.Printed = i => { if (i >= 0 && i < keys.Count) _printed[keys[i]] = turn; };
 
         // ---- left column: the consequences ----
         if (f.Deaths.Count > 0)
@@ -111,9 +120,12 @@ public sealed class EditionWriter
             {
                 var key = q.Outcome switch { "bribed" => "inquestBribed", "implicated" => "inquestImplicated", _ => "inquestCleared" };
                 var template = Pick(f, key + q.Person.Id, _copy.GetProperty(key));
-                if (q.Person.Infant && !q.Person.Anonymous) template = template.Replace("{name}", "the infant child of {name}");
+                if (q.Person.Infant) template = template.Replace("{name}", "the infant child of {name}");
                 var text = Fill(template, f, q.Person, q.Product ?? productName)
                     .Replace("{verdict}", q.Verdict);
+                // with more than one remedy on sale, say whose bottle was on the mantel
+                if (f.Products.Count > 1 && q.Product != null && !text.Contains(q.Product, StringComparison.Ordinal))
+                    text += $" The bottle in evidence was {q.Product}.";
                 var meaning = q.Outcome switch
                 {
                     "bribed" => "Your envelope reached the coroner. The verdict is the one you paid for.",
@@ -194,11 +206,11 @@ public sealed class EditionWriter
             var wants = new Section { Title = S(sec, "classified") };
             var all = _copy.GetProperty("classifieds");
             var n = all.GetArrayLength();
-            // read on in a per-game order, a few an edition, like the standing matter
-            var order = Enumerable.Range(0, n).OrderBy(i => Hash(f.Seed, 0, "wants" + i)).ToList();
-            var start = (f.Turn * 4) % n;
+            // the wants the paper has gone longest without printing, none twice in an edition
+            var list = Enumerable.Range(0, n).Select(i => all[i].GetString() ?? "").ToList();
+            var usedWants = new HashSet<string>();
             for (var i = 0; i < Math.Min(n, 6 - used + 1); i++)
-                wants.Blocks.Add(new Block { Text = all[order[(start + i) % n]].GetString() ?? "" });
+                wants.Blocks.Add(new Block { Text = Fresh(f, "wants" + i, list, usedWants) });
             e.Left.Add(wants);
         }
 
@@ -476,7 +488,8 @@ public sealed class EditionWriter
         var sold = f.Sales.Sum(x => x.Bottles);
         // money laid out on stock still on the shelf is not a bad month: judge cash and stock together
         // and a venture paid for is an outlay, not a loss
-        var delta = f.CashCents - f.CashStartCents + (f.StockValueCents - f.StockValueStartCents) + Math.Max(0, f.InvestedCents);
+        var books = f.CashCents - f.CashStartCents + (f.StockValueCents - f.StockValueStartCents);
+        var delta = books + Math.Max(0, f.InvestedCents);
         var bribed = f.Inquests.FirstOrDefault(q => q.Outcome == "bribed");
         var lost = f.Left.Where(l => l.Reason != "bereaved").ToList();
         // every lead the month could carry, most pressing first
@@ -521,11 +534,13 @@ public sealed class EditionWriter
         var bodies = t.GetProperty("bodies").EnumerateArray().Select(x => x.GetString() ?? "").ToList();
         // a body that names someone needs someone to name
         if (subject == null) bodies = bodies.Where(b => !b.Contains("{name}")).ToList();
-        var body = bodies[(int)(Hash(f.Seed, f.Turn, "trade" + kind) % (uint)bodies.Count)];
+        var body = Fresh(f, "trade" + kind, bodies);
         string Sub(string x)
         {
             if (subject is { Infant: true } && kind == "bribed") x = x.Replace("{name}", "the infant child of {name}");
             x = x.Replace("{sold_upper} BOTTLES", sold == 1 ? "ONE BOTTLE" : "{sold_upper} BOTTLES");
+            // a good month whose takings went into a venture or a lease: the books are not up
+            if (books < 0) x = x.Replace("AND THE BOOKS WELL UP; THE PROPRIETOR ORDERS A NEW HAT", "AND THE TAKINGS PUT STRAIGHT BACK INTO THE BUSINESS");
             return Fill(x, f, subject, product.Name)
                 .Replace("{product_upper}", product.Name.ToUpperInvariant())
                 .Replace("{sold_upper}", Words(sold).ToUpperInvariant())
@@ -536,7 +551,7 @@ public sealed class EditionWriter
         }
         return new Story
         {
-            Headline = S(head, "headline"),
+            Headline = Sub(head.GetProperty("headline").ValueKind == JsonValueKind.Array ? Fresh(f, "headline" + kind + again, head.GetProperty("headline").EnumerateArray().Select(x => x.GetString() ?? "").ToList()) : S(head, "headline")),
             Decks = head.GetProperty("decks").EnumerateArray().Select(x => Sub(x.GetString() ?? "")).ToList(),
             Cut = kind is "growing" or "losing" && subject != null ? CutFor(subject) : S(t, "cut"),
             Cutline = kind is "growing" or "losing" && subject != null ? $"{ShortName(subject).ToUpperInvariant()}.—From a stock likeness." : S(t, "cutline"),
@@ -609,11 +624,14 @@ public sealed class EditionWriter
         var all = _copy.GetProperty("infantLead").EnumerateArray().Select(x => x.GetString() ?? "").ToList();
         var teething = f.Products.Any(p => p.ClaimNames.Any(c => c.Contains("teeth", StringComparison.OrdinalIgnoreCase) || c.Contains("teething", StringComparison.OrdinalIgnoreCase)));
         var fit = all.Where(t => teething || !t.Contains("on the advice of the label", StringComparison.Ordinal)).ToList();
-        return fit[(int)(Hash(f.Seed, f.Turn, "infantLead" + d.Id) % (uint)fit.Count)];
+        return Fresh(f, "infantLead" + d.Id, fit);
     }
 
-    /// <summary>How far the standing matter reads on each edition: about as many items as a page takes.</summary>
+    /// <summary>Where each edition starts reading the shuffled standing matter, among items equally stale.</summary>
     private const int Rotation = 6;
+    /// <summary>When each item of standing matter was last set on a page, and each month's list.</summary>
+    private readonly Dictionary<string, int> _printed = new();
+    private readonly Dictionary<int, List<string>> _standingFor = new();
 
     public static string Words(int n) => n switch
     {
@@ -840,23 +858,48 @@ public sealed class EditionWriter
     }
 
     /// <summary>Like Pick, but never the same variant twice in one edition while others remain.</summary>
-    private string PickUnused(PaperFacts f, string key, JsonElement options, HashSet<string> used)
-    {
-        var n = options.GetArrayLength();
-        var start = (int)(Hash(f.Seed, f.Turn, key) % (uint)n);
-        for (var k = 0; k < n; k++)
-        {
-            var t = options[(start + k) % n].GetString() ?? "";
-            if (used.Add(t)) return t;
-        }
-        return options[start].GetString() ?? "";
-    }
+    private string PickUnused(PaperFacts f, string key, JsonElement options, HashSet<string> used) =>
+        Fresh(f, key, options.EnumerateArray().Select(x => x.GetString() ?? "").ToList(), used);
 
     private string Pick(PaperFacts f, string key, JsonElement options)
     {
         if (options.ValueKind == JsonValueKind.String) return options.GetString() ?? "";
-        var n = options.GetArrayLength();
-        return n == 0 ? "" : options[(int)(Hash(f.Seed, f.Turn, key) % (uint)n)].GetString() ?? "";
+        return Fresh(f, key, options.EnumerateArray().Select(x => x.GetString() ?? "").ToList());
+    }
+
+    /// <summary>When each piece of copy was last printed this game, and what each month's picks were.</summary>
+    private readonly Dictionary<string, int> _lastUsed = new();
+    private readonly Dictionary<string, string> _memo = new();
+
+    /// <summary>
+    /// Picks the piece of copy the paper has gone longest without printing (one never printed
+    /// first, from a seeded starting point), so a phrase is not reprinted while the list holds
+    /// another. The month's pick is remembered: the edition is written twice (for the press run
+    /// and for the reading) and must come out the same both times.
+    /// </summary>
+    private string Fresh(PaperFacts f, string key, IReadOnlyList<string> options, HashSet<string>? used = null)
+    {
+        if (options.Count == 0) return "";
+        var memoKey = $"{f.Turn}:{key}";
+        if (_memo.TryGetValue(memoKey, out var kept)) { used?.Add(kept); return kept; }
+        var n = options.Count;
+        var start = (int)(Hash(f.Seed, f.Turn, key) % (uint)n);
+        string? best = null;
+        var bestTurn = int.MaxValue;
+        for (var k = 0; k < n; k++)
+        {
+            var t = options[(start + k) % n];
+            if (used != null && used.Contains(t)) continue;
+            // (a rewrite of the month never gets here: the memo answers it)
+            var last = _lastUsed.TryGetValue(t, out var at) ? at : int.MinValue;
+            if (last < bestTurn) { best = t; bestTurn = last; }
+            if (last == int.MinValue) break;
+        }
+        best ??= options[start];
+        _lastUsed[best] = f.Turn;
+        _memo[memoKey] = best;
+        used?.Add(best);
+        return best;
     }
 
     private static string S(JsonElement e, string name) => e.GetProperty(name).GetString() ?? "";

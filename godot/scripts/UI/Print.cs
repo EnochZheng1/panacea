@@ -129,6 +129,10 @@ public static class Print
 		return c;
 	}
 
+	/// <summary>A control that uses the arrow keys itself (the still's bottle shelf): the drawers' arrow
+	/// navigation leaves them to it.</summary>
+	public interface IArrowKeys { }
+
 	/// <summary>Every node of type T under a node, depth first.</summary>
 	public static System.Collections.Generic.IEnumerable<T> Descendants<T>(Node n) where T : Node
 	{

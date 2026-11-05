@@ -78,7 +78,7 @@ public sealed class PaperFacts
     public int WholesaleOrdered;
     public int WholesaleDelivered;
     public long WholesaleRevenueCents;
-    /// <summary>Paid down this month for ventures taken up: an outlay, not a bad month.</summary>
+    /// <summary>Laid out this month rather than lost to trade (ventures, a letter's price, bribes): an outlay, not a bad month.</summary>
     public long InvestedCents;
     /// <summary>Bottles sent by post to the almanac's readers this month, and what they brought.</summary>
     public int PostDelivered;

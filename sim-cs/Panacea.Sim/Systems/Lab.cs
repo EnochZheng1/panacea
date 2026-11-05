@@ -54,17 +54,25 @@ public static class Lab
     /// ingredients on hand, and every bottle brewing or on the shelf at what its ingredients and
     /// bottling would cost now. Money spent on stock is not lost, and the books can say so.
     /// </summary>
+    /// <summary>
+    /// What a bottle of this recipe costs to make at today's prices (with any discount or
+    /// surcharge): its ingredients, its bottle and cork, and its process. The figure an order
+    /// actually charges.
+    /// </summary>
+    public static double FormulaUnitCost(GameState state, IEnumerable<FormulaComponent> components, string processId, ContentPack content)
+    {
+        double cost = BottlingCostPerBottle(processId, content);
+        foreach (var c in components) cost += c.Amount * IngredientUnitCost(state, c.IngredientId, content);
+        return cost;
+    }
+
     public static StockValue StockValue(GameState state, ContentPack content)
     {
         double ingredients = 0;
         foreach (var (id, qty) in state.Lab.Inventory)
             if (qty > 0) ingredients += qty * IngredientUnitCost(state, id, content);
-        double BottleCost(List<FormulaComponent> components, string processId)
-        {
-            double cost = BottlingCostPerBottle(processId, content);
-            foreach (var c in components) cost += c.Amount * IngredientUnitCost(state, c.IngredientId, content);
-            return cost;
-        }
+        double BottleCost(List<FormulaComponent> components, string processId) =>
+            FormulaUnitCost(state, components, processId, content);
         double shelf = 0;
         foreach (var b in state.Lab.Batches) shelf += b.Bottles * BottleCost(b.Components, b.ProcessId);
         foreach (var lot in state.Lab.Stock) shelf += lot.Bottles * BottleCost(lot.Components, lot.ProcessId);
@@ -181,23 +189,30 @@ public static class Lab
         return Math.Max(0, state.Player.Capabilities.GetOr("stills", 0) - busy);
     }
 
+    /// <summary>The most bottles one still makes in a batch: the copper's size, for every still.</summary>
+    public static int StillBottles(GameState state, ContentPack content) =>
+        Math.Max(1, content.Config.StillBottles + state.Player.Capabilities.GetOr("still_bottles", 0));
+
     public static int BottlingCostPerBottle(string processId, ContentPack content) =>
         content.Config.BottleCostCents +
         (content.ById.Processes.TryGetValue(processId, out var p) ? p.ExtraCostPerBottleCents : 0);
 
-    /// <summary>The largest batch the player could brew right now (ingredients, cash, and a free still).</summary>
+    /// <summary>
+    /// The largest batch the player could brew right now: ingredients, cash, a free still, and
+    /// what one still holds.
+    /// </summary>
     public static int MaxBrewable(GameState state, string formulaId, ContentPack content)
     {
         var formula = Find(state, formulaId);
         if (formula is null || StillsFree(state) == 0) return 0;
-        double max = double.PositiveInfinity;
+        double max = StillBottles(state, content);
         foreach (var c in formula.Components)
         {
             max = Math.Min(max, Math.Floor(RoundQty(state.Lab.Inventory.GetOr(c.IngredientId, 0) / c.Amount)));
         }
         int perBottle = BottlingCostPerBottle(formula.ProcessId, content);
         if (perBottle > 0) max = Math.Min(max, Math.Floor((double)state.Player.CashCents / perBottle));
-        return double.IsFinite(max) ? (int)Math.Max(0, max) : 0;
+        return (int)Math.Max(0, max);
     }
 
     public static ActionResult BrewBatch(GameState state, BrewBatch action, ContentPack content)
@@ -206,6 +221,8 @@ public static class Lab
         if (formula is null) return ActionResult.Fail($"unknown formula \"{action.FormulaId}\"");
         if (action.Bottles < 1) return ActionResult.Fail("bottles must be a positive integer");
         if (StillsFree(state) == 0) return ActionResult.Fail("no free still this month");
+        int most = StillBottles(state, content);
+        if (action.Bottles > most) return ActionResult.Fail($"a still makes at most {most} bottles a batch");
         foreach (var c in formula.Components)
         {
             double need = RoundQty(c.Amount * action.Bottles);

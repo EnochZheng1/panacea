@@ -8,15 +8,28 @@ import {
   validateClaims,
 } from '../systems/formula.ts';
 import {
+  formulaUnitCost,
   ingredientUnitCost,
   maxBrewable,
+  stillBottles,
   stillsFree,
   stockOf,
   stockValue,
 } from '../systems/lab.ts';
-import { investRefusal, wholesaleOrder, wholesalePrice } from '../systems/investments.ts';
-import { requirementProgress, type ConditionProgress } from '../systems/requirements.ts';
-import { availableChoices, nextUnlocks, type UnlockProgress } from '../systems/progression.ts';
+import {
+  investmentProgress,
+  investRefusal,
+  wholesaleOrder,
+  wholesalePrice,
+} from '../systems/investments.ts';
+import type { ConditionProgress } from '../systems/requirements.ts';
+import {
+  availableChoices,
+  capacitySteps,
+  nextUnlocks,
+  type CapacityStep,
+  type UnlockProgress,
+} from '../systems/progression.ts';
 import { isRuined } from '../systems/market.ts';
 import { bribeCostCents, bribeExposureChance, INQUEST_EVENT_ID } from '../systems/scrutiny.ts';
 
@@ -115,7 +128,16 @@ export interface Observation {
   notoriety: number;
   heat: number;
   capabilities: Record<string, number>;
+  /** Stills in the back room, lit or cold. */
+  stills: number;
   stillsFree: number;
+  /** The most bottles one still makes in a batch (every still alike). */
+  stillBottles: number;
+  /**
+   * What would add to the stills or their size, not yet had: unlocks (in content order), then
+   * ventures, each with what it waits for. The first with `stills > 0` is the next still.
+   */
+  nextCapacity: CapacityStep[];
   inventory: Record<string, number>;
   /**
    * The stock at today's cost: bottles brewing or on the shelf, and ingredients on hand. Buying
@@ -133,6 +155,7 @@ export interface Observation {
     priceCents: number;
     claims: string[];
     stock: number;
+    /** A bottle at today's prices: ingredients (with any discount or surcharge) and bottling. */
     unitCostCents: number;
     properties: Properties;
   }[];
@@ -154,6 +177,11 @@ export interface Observation {
   nextUnlocks: UnlockProgress[];
   investments: ObservedInvestment[];
   lastMonth: LedgerEntry | null;
+  /**
+   * Of the last three closed months, how many ended with the shelf bare: the months an order
+   * from away, which takes only what is left on the shelf, would have gone short.
+   */
+  shelfBareMonths: number;
 }
 
 /** The formula orders from away would take: the one with most bottles on the shelf. */
@@ -176,19 +204,7 @@ export function observeInvestments(state: GameState, content: ContentPack): Obse
   return content.investments.map((inv) => {
     const holding = state.player.investments[inv.id];
     const refusal = investRefusal(state, inv, content);
-    const progress: ConditionProgress[] = [];
-    if (!holding) {
-      if (inv.requires) progress.push(...requirementProgress(inv.requires, state, content));
-      progress.push({
-        kind: 'cost',
-        id: null,
-        sense: 'atLeast',
-        have: state.player.cashCents,
-        need: inv.costCents,
-        met: state.player.cashCents >= inv.costCents,
-        via: null,
-      });
-    }
+    const progress = holding ? [] : investmentProgress(state, inv, content);
     return {
       id: inv.id,
       costCents: inv.costCents,
@@ -226,7 +242,10 @@ export function observe(state: GameState, content: ContentPack): Observation {
     notoriety: state.player.notoriety,
     heat: state.scrutiny.heat,
     capabilities: { ...state.player.capabilities },
+    stills: Math.max(0, state.player.capabilities['stills'] ?? 0),
     stillsFree: stillsFree(state),
+    stillBottles: stillBottles(state, content),
+    nextCapacity: capacitySteps(state, content),
     inventory: { ...state.lab.inventory },
     stockValue: stockValue(state, content),
     ingredients: content.ingredients
@@ -248,7 +267,7 @@ export function observe(state: GameState, content: ContentPack): Observation {
         priceCents: f.priceCents,
         claims: [...f.claims],
         stock: stockOf(state, f.id),
-        unitCostCents: a.unitCostCents,
+        unitCostCents: formulaUnitCost(state, f.components, f.processId, content),
         properties: a.properties,
       };
     }),
@@ -303,6 +322,7 @@ export function observe(state: GameState, content: ContentPack): Observation {
     nextUnlocks: nextUnlocks(state, content),
     investments: observeInvestments(state, content),
     lastMonth: state.ledger.at(-1) ?? null,
+    shelfBareMonths: state.ledger.slice(-3).filter((e) => e.shelfEndBottles === 0).length,
   };
 }
 

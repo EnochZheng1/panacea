@@ -98,6 +98,7 @@ export function closeMonth(state: GameState, stockValueCents: number): LedgerEnt
     callers: m.callers,
     wholesale: m.wholesale,
     post: m.post,
+    shelfEndBottles: state.lab.stock.reduce((n, lot) => n + lot.bottles, 0),
   };
 }
 

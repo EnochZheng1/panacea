@@ -33,7 +33,7 @@ import {
 } from '../src/systems/market.ts';
 import { zeroTolerance } from '../src/systems/pharmacology.ts';
 import { resolveInquest } from '../src/systems/scrutiny.ts';
-import { act, content, months, start } from './helpers.ts';
+import { act, content, months, roomFor, start } from './helpers.ts';
 
 const LAUDANUM_TONIC: FormulaComponent[] = [
   { ingredientId: 'grain_alcohol', amount: 2 },
@@ -167,6 +167,7 @@ function stocked(components: FormulaComponent[], bottles: number, seed = 'm') {
     });
   }
   const formulaId = s.lab.formulas[0]!.id;
+  roomFor(s, bottles);
   s = act(s, { type: 'BrewBatch', formulaId, bottles });
   productionPhase.run({ state: s, content, rng: Rng.fromSeed(seed), scratch: newScratch() });
   return { state: s, formulaId };

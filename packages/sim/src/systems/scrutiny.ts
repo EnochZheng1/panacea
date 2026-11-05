@@ -92,15 +92,20 @@ export function recordDeath(
 
 /**
  * What the coroner currently charges. Rises with every bribe and with the heat, and is asked
- * in round sums: a coroner names his price to the nearest five dollars.
+ * in round sums: a coroner names his price to the nearest five dollars. Whatever the heat has
+ * done since, it is never less than the last fee paid and `bribeMinRiseCents` more: the fee
+ * rises with every envelope.
  */
 export function bribeCostCents(state: GameState, content: ContentPack): number {
-  const { bribeBaseCents, bribeRisePerBribe, bribeHeatDoubling } = content.config.scrutiny;
+  const { bribeBaseCents, bribeRisePerBribe, bribeHeatDoubling, bribeMinRiseCents } =
+    content.config.scrutiny;
   const raw =
     bribeBaseCents *
     (1 + bribeRisePerBribe * state.scrutiny.bribesPaid) *
     (1 + state.scrutiny.heat / bribeHeatDoubling);
-  return Math.max(500, Math.round(raw / 500) * 500);
+  const asked = Math.max(500, Math.round(raw / 500) * 500);
+  const last = state.scrutiny.lastBribeCents;
+  return last > 0 ? Math.max(asked, last + bribeMinRiseCents) : asked;
 }
 
 /**
@@ -200,6 +205,7 @@ export function resolveInquest(
     const exposure = bribeExposureChance(state, content);
     adjust(state, 'cash', -cost, CAUSES.bribe, record.id);
     state.scrutiny.bribesPaid += 1;
+    state.scrutiny.lastBribeCents = cost;
     if (rng.chance(exposure)) {
       // the money is gone, and the jury hears where it went: worse than any verdict
       implicate(30, 15, 10);

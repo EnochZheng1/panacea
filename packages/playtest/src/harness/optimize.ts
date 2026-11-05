@@ -30,11 +30,13 @@ const EXTRAS: Policy['extras'][] = [
   ],
 ];
 
+const CAPACITY = ['shop_next_door', 'larger_copper', 'fourth_still'];
 const INVEST_SETS: string[][] = [
   [],
-  ['branch_shop', 'wholesale_contract', 'druggists_order', 'almanac'],
-  ['laboratory', 'branch_shop', 'almanac', 'wholesale_contract', 'druggists_order'],
-  ['branch_shop', 'almanac'],
+  ['branch_shop', 'wholesale_contract', 'druggists_order', 'almanac', ...CAPACITY],
+  ['laboratory', 'branch_shop', 'almanac', 'wholesale_contract', 'druggists_order', ...CAPACITY],
+  ['branch_shop', 'almanac', 'shop_next_door'],
+  ['almanac', ...CAPACITY],
 ];
 
 export function randomPolicy(rng: Rng, id: string): Policy {

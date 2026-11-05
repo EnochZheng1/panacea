@@ -225,6 +225,9 @@ public partial class ProofView : Control
 		// the first month: say where to begin, in so many words
 		if (m.Formulas.Count == 0) warn.Add("Begin with the FORMULA book: pour a remedy and enter it. Then light THE STILL, and send the paper to press.");
 		else if (nothing) warn.Add("Nothing on the shelf and nothing on the still: light THE STILL, or the shop will sell nothing this month.");
+		// a shelf that keeps ending bare is money left on the counter, and orders left unfilled
+		if (m.ShelfBareMonths >= 2 && !nothing)
+			warn.Add($"The shelf ended bare in {Spell(m.ShelfBareMonths)} of the last three months: brew more, or look in THE STILL for what the next still waits on.");
 		// space the shop cannot pay for is not printed: say so before the press, not after
 		if (m.CanAdvertise && m.AdSpendCents > m.CashCents)
 			warn.Add($"The notice costs {EditionWriter.Money(m.AdSpendCents)} and you have {EditionWriter.Money(m.CashCents)}: the Gazette will not print it unpaid.");
@@ -700,7 +703,7 @@ public partial class ProofView : Control
 		row.AddThemeConstantOverride("separation", 4);
 		// the house's long game sits beside the works: the prospectus of improvements
 		// something new behind a drawer (a still, a venture on offer) is printed in reverse until looked at
-		var stills = m.StillsFree + m.Brewing.Count;
+		var stills = m.Stills > 0 ? m.Stills : m.StillsFree + m.Brewing.Count;
 		if (_seenStills == 0) _seenStills = stills;
 		var offers = m.Investments.Count(i => !i.Held && i.CanBuy);
 		var fresh = new Dictionary<string, bool>

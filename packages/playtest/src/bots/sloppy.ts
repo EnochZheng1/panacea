@@ -18,14 +18,22 @@ export interface SloppyOptions {
 /** Everything but the laboratory, which a reader of "opium, morphine and coca" passes by. */
 export const SLOPPY_INVESTMENTS = [
   'almanac',
+  'shop_next_door',
+  'larger_copper',
+  'fourth_still',
   'druggists_order',
   'wholesale_contract',
   'branch_shop',
 ];
 
-/** Batch sizes a hand player picks from the still's dial (dozens, up to a still's 48). */
+/**
+ * Ventures that only make the stills bigger or more: taken up only once the proprietor has seen
+ * the wall, a month with every still lit full and the shelf bare all the same.
+ */
+const CAPACITY = ['larger_copper', 'fourth_still'];
+
+/** Batch sizes a hand player picks from the still's dial: dozens, up to what a still holds. */
 const BATCH_STEP = 12;
-const BATCH_MAX = 48;
 
 export function sloppyBot(options: SloppyOptions): Bot {
   // Chosen once per game, on the first turn, from the bot's own RNG.
@@ -35,6 +43,9 @@ export function sloppyBot(options: SloppyOptions): Bot {
   /** The shelf the proprietor means to keep for the counter, adjusted by eye each month. */
   let shelf = 24;
   let created = false;
+  /** Whether last month every still was lit with a full batch, and when that last sold out. */
+  let litEveryStill = false;
+  let walledTurn = Number.NEGATIVE_INFINITY;
 
   const policyFor = (): Policy => ({
     id: options.id,
@@ -64,6 +75,8 @@ export function sloppyBot(options: SloppyOptions): Bot {
       let obs = t.observe();
       const capacity = t.content.config.bottleCapacity;
       const rent = t.content.config.rentCents;
+      if (litEveryStill && obs.formulas[0]?.stock === 0) walledTurn = obs.turn;
+      litEveryStill = false;
 
       // The post: inquests answered one way or the other; most letters get the plain answer
       // (the default), and now and then the proprietor takes up whatever the letter offers.
@@ -85,6 +98,7 @@ export function sloppyBot(options: SloppyOptions): Bot {
         .filter((i) => i.canBuy && options.invest.includes(i.id))
         .sort((a, b) => a.costCents - b.costCents);
       for (const inv of offered) {
+        if (CAPACITY.includes(inv.id) && obs.turn - walledTurn > 3) continue;
         const reserve = 6000 + 6 * (rent + inv.upkeepCents);
         if (obs.cashCents - inv.costCents < reserve) continue;
         if (t.act({ type: 'Invest', investmentId: inv.id }).ok) obs = t.observe();
@@ -144,16 +158,20 @@ export function sloppyBot(options: SloppyOptions): Bot {
       let wanted = Math.round((guess - formula.stock) / BATCH_STEP) * BATCH_STEP;
       const unit = Math.max(1, formula.unitCostCents);
       wanted = Math.min(wanted, Math.floor(Math.max(0, obs.cashCents - 2 * rent) / unit));
+      const most = Math.floor(obs.stillBottles / BATCH_STEP) * BATCH_STEP;
+      let full = 0;
       while (wanted >= BATCH_STEP && t.observe().stillsFree > 0) {
-        const bottles = Math.min(BATCH_MAX, Math.floor(wanted / BATCH_STEP) * BATCH_STEP);
+        const bottles = Math.min(most, Math.floor(wanted / BATCH_STEP) * BATCH_STEP);
         for (const c of recipe) {
           const have = t.observe().inventory[c.ingredientId] ?? 0;
           const need = Math.ceil(c.amount * bottles - have - 1e-9);
           if (need > 0) t.act({ type: 'BuyIngredient', ingredientId: c.ingredientId, units: need });
         }
         if (!t.act({ type: 'BrewBatch', formulaId: formula.id, bottles }).ok) break;
+        if (bottles === most) full += 1;
         wanted -= bottles;
       }
+      litEveryStill = full > 0 && full === obs.stills;
     },
   };
 }

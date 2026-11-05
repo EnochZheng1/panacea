@@ -245,9 +245,17 @@ describe('investments (balance passes 4 and 5)', () => {
     // a venture that waits on an unlock lists that unlock's own conditions after it
     const branch = o.investments.find((i) => i.id === 'branch_shop')!.progress;
     expect(branch[0]).toMatchObject({ kind: 'unlocked', id: 'larger_shop', met: false, via: null });
-    expect(branch.filter((c) => c.via === 'larger_shop').map((c) => c.kind)).toEqual([
-      'regulars',
-      'cash',
+    // the wall comes down only when the shop next door is taken up (a venture of its own)
+    expect(branch.filter((c) => c.via === 'larger_shop')).toEqual([
+      {
+        kind: 'flag',
+        id: 'knocked_through',
+        sense: 'atLeast',
+        have: 0,
+        need: 1,
+        met: false,
+        via: 'larger_shop',
+      },
     ]);
     expect(branch.at(-1)?.kind).toBe('cost');
     // a venture held waits on nothing
@@ -339,16 +347,14 @@ describe('names and progress (balance pass 4)', () => {
 
   it('an unlock that needs everything is only as near as its least-met part', () => {
     const s = start('progress');
-    s.stats.bottlesSold = 547;
+    s.stats.bottlesSold = 330;
     s.unlocks.unlocked['second_still'] = 0;
     const third = content.byId.unlocks.get('third_still')!;
-    expect(evaluateRequirement(third.requirement, s, content).progress).toBeCloseTo(0.547);
+    expect(evaluateRequirement(third.requirement, s, content).progress).toBeCloseTo(0.55);
     s.stats.batchesBrewed = 1;
     s.player.cashCents = 50_000;
     const qc = content.byId.unlocks.get('quality_control')!;
     expect(evaluateRequirement(qc.requirement, s, content).progress).toBeCloseTo(1 / 40);
-    expect(nextUnlocks(s, content).find((u) => u.id === 'third_still')?.progress).toBeCloseTo(
-      0.547,
-    );
+    expect(nextUnlocks(s, content).find((u) => u.id === 'third_still')?.progress).toBeCloseTo(0.55);
   });
 });

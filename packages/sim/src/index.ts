@@ -33,16 +33,31 @@ export {
   validateFormula,
   type FormulaAnalysis,
 } from './systems/formula.ts';
-export { maxBrewable, stockOf, stockValue, totalStock, type StockValue } from './systems/lab.ts';
+export {
+  formulaUnitCost,
+  maxBrewable,
+  stillBottles,
+  stockOf,
+  stockValue,
+  totalStock,
+  type StockValue,
+} from './systems/lab.ts';
 export { acuteDanger, feltEffect, overdoseChance, reliefScore } from './systems/pharmacology.ts';
 export {
+  investmentProgress,
   investRefusal,
   isHeld,
   orderPriceFactor,
   wholesaleOrder,
   wholesalePrice,
 } from './systems/investments.ts';
-export { availableChoices, nextUnlocks, type UnlockProgress } from './systems/progression.ts';
+export {
+  availableChoices,
+  capacitySteps,
+  nextUnlocks,
+  type CapacityStep,
+  type UnlockProgress,
+} from './systems/progression.ts';
 export {
   bribeCostCents,
   bribeExposureChance,

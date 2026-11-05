@@ -17,6 +17,18 @@ public static class Investments
         return null;
     }
 
+    /// <summary>
+    /// What a venture not held waits for, as numbers: every condition of its requirement (met or
+    /// not), then its price against the cash in hand (Kind "cost").
+    /// </summary>
+    public static List<ConditionProgress> Progress(GameState state, Investment inv, ContentPack content)
+    {
+        var progress = inv.Requires is not null ? Requirements.Progress(inv.Requires, state, content) : new List<ConditionProgress>();
+        progress.Add(new ConditionProgress("cost", null, "atLeast", state.Player.CashCents, inv.CostCents,
+            state.Player.CashCents >= inv.CostCents, null));
+        return progress;
+    }
+
     public static ActionResult Invest(GameState state, Invest action, ContentPack content)
     {
         if (!content.ById.Investments.TryGetValue(action.InvestmentId, out var inv))

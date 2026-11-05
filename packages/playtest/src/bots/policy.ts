@@ -28,10 +28,14 @@ export interface Policy {
   deescalate?: { heatAbove: number; stepOz: number; minOz: number };
   /**
    * Investments to buy, in order of preference, whenever one is offered and the cash left after
-   * it would still cover half a year of rent, advertising and its own upkeep.
+   * it would still cover half a year of rent, advertising and its own upkeep. A larger copper or
+   * another still is bought only once last month's sales came near what the stills can make.
    */
   invest?: string[];
 }
+
+/** Ventures that only add to what the stills make: bought once the stills are the limit. */
+const CAPACITY = ['larger_copper', 'fourth_still'];
 
 const FLAVOUR: FormulaComponent[] = [
   { ingredientId: 'peppermint_oil', amount: 0.1 },
@@ -101,9 +105,13 @@ export function policyBot(policy: Policy): Bot {
       }
 
       // Investments.
+      const soldBefore = obs.lastMonth?.sales.reduce((n, x) => n + x.bottles, 0) ?? 0;
       for (const id of policy.invest ?? []) {
         const inv = obs.investments.find((i) => i.id === id);
         if (!inv?.canBuy) continue;
+        // a larger copper only once the stills are the limit
+        const capacity = obs.stills * obs.stillBottles;
+        if (CAPACITY.includes(id) && soldBefore < 0.85 * capacity) continue;
         const reserve =
           6 * (t.content.config.rentCents + policy.adSpendCents + inv.upkeepCents) + 3000;
         if (obs.cashCents - inv.costCents < reserve) continue;
@@ -171,14 +179,23 @@ export function policyBot(policy: Policy): Bot {
       if (wanted <= 0 || obs.stillsFree === 0) return;
       const reserve = t.content.config.rentCents * 2 + policy.adSpendCents;
       const unit = Math.max(1, obs.formulas[0]?.unitCostCents ?? 1);
-      const bottles = Math.min(wanted, Math.floor(Math.max(0, obs.cashCents - reserve) / unit));
+      // as many stills as it takes, each up to what a still holds
+      let bottles = Math.min(
+        wanted,
+        Math.floor(Math.max(0, obs.cashCents - reserve) / unit),
+        obs.stillsFree * obs.stillBottles,
+      );
       if (bottles < 1) return;
       for (const c of recipe) {
         const have = t.observe().inventory[c.ingredientId] ?? 0;
         const need = Math.ceil(c.amount * bottles - have - 1e-9);
         if (need > 0) t.act({ type: 'BuyIngredient', ingredientId: c.ingredientId, units: need });
       }
-      t.act({ type: 'BrewBatch', formulaId: formula.id, bottles });
+      while (bottles > 0) {
+        const batch = Math.min(bottles, obs.stillBottles);
+        if (!t.act({ type: 'BrewBatch', formulaId: formula.id, bottles: batch }).ok) break;
+        bottles -= batch;
+      }
     },
   };
 }
@@ -199,7 +216,15 @@ export const PRESETS: Record<string, Policy> = {
     adSpendCents: 0,
     inquest: 'silent',
     events: 'default',
-    invest: ['branch_shop', 'wholesale_contract', 'druggists_order', 'almanac'],
+    invest: [
+      'branch_shop',
+      'wholesale_contract',
+      'druggists_order',
+      'almanac',
+      'shop_next_door',
+      'larger_copper',
+      'fourth_still',
+    ],
   },
   cautious: {
     id: 'cautious',
@@ -218,7 +243,15 @@ export const PRESETS: Record<string, Policy> = {
     adSpendCents: 0,
     inquest: 'testify',
     events: 'default',
-    invest: ['branch_shop', 'wholesale_contract', 'druggists_order', 'almanac'],
+    invest: [
+      'branch_shop',
+      'wholesale_contract',
+      'druggists_order',
+      'almanac',
+      'shop_next_door',
+      'larger_copper',
+      'fourth_still',
+    ],
   },
   greedy: {
     id: 'greedy',
@@ -237,7 +270,7 @@ export const PRESETS: Record<string, Policy> = {
     inquest: 'bribe',
     events: 'first',
     escalate: { stepOz: 0.025, maxOz: 0.375 },
-    invest: ['laboratory', 'branch_shop'],
+    invest: ['laboratory', 'branch_shop', 'shop_next_door'],
   },
   briber: {
     id: 'briber',
@@ -252,7 +285,15 @@ export const PRESETS: Record<string, Policy> = {
     adSpendCents: 1000,
     inquest: 'bribe',
     events: 'default',
-    invest: ['branch_shop', 'wholesale_contract', 'druggists_order', 'almanac'],
+    invest: [
+      'branch_shop',
+      'wholesale_contract',
+      'druggists_order',
+      'almanac',
+      'shop_next_door',
+      'larger_copper',
+      'fourth_still',
+    ],
   },
   adaptive: {
     id: 'adaptive',
@@ -269,7 +310,15 @@ export const PRESETS: Record<string, Policy> = {
     events: 'default',
     escalate: { stepOz: 0.05, maxOz: 0.8 },
     deescalate: { heatAbove: 35, stepOz: 0.1, minOz: 0.15 },
-    invest: ['branch_shop', 'wholesale_contract', 'druggists_order', 'almanac'],
+    invest: [
+      'branch_shop',
+      'wholesale_contract',
+      'druggists_order',
+      'almanac',
+      'shop_next_door',
+      'larger_copper',
+      'fourth_still',
+    ],
   },
   mercurial: {
     id: 'mercurial',
@@ -287,6 +336,14 @@ export const PRESETS: Record<string, Policy> = {
     adSpendCents: 300,
     inquest: 'silent',
     events: 'default',
-    invest: ['branch_shop', 'wholesale_contract', 'druggists_order', 'almanac'],
+    invest: [
+      'branch_shop',
+      'wholesale_contract',
+      'druggists_order',
+      'almanac',
+      'shop_next_door',
+      'larger_copper',
+      'fourth_still',
+    ],
   },
 };

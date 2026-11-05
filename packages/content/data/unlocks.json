@@ -74,7 +74,7 @@
         },
         {
           "type": "bottlesSold",
-          "atLeast": 1000
+          "atLeast": 600
         }
       ]
     },
@@ -131,30 +131,10 @@
     "id": "larger_shop",
     "category": "facility",
     "requirement": {
-      "type": "all",
-      "of": [
-        {
-          "type": "regulars",
-          "atLeast": 25
-        },
-        {
-          "type": "cash",
-          "atLeastCents": 20000
-        }
-      ]
+      "type": "flag",
+      "id": "knocked_through"
     },
-    "effects": [
-      {
-        "type": "capability",
-        "id": "shop_capacity",
-        "delta": 20
-      },
-      {
-        "type": "capability",
-        "id": "rent_extra_cents",
-        "delta": 500
-      }
-    ]
+    "effects": []
   },
   {
     "id": "bulk_supplier",

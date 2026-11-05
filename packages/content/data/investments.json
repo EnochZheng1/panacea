@@ -1,5 +1,34 @@
 [
   {
+    "id": "shop_next_door",
+    "costCents": 0,
+    "upkeepCents": 500,
+    "requires": { "type": "regulars", "atLeast": 25 },
+    "effects": [
+      { "type": "capability", "id": "shop_capacity", "delta": 20 },
+      { "type": "setFlag", "id": "knocked_through" }
+    ]
+  },
+  {
+    "id": "larger_copper",
+    "costCents": 20000,
+    "requires": { "type": "unlocked", "id": "second_still" },
+    "effects": [{ "type": "capability", "id": "still_bottles", "delta": 24 }]
+  },
+  {
+    "id": "fourth_still",
+    "costCents": 30000,
+    "upkeepCents": 300,
+    "requires": {
+      "type": "all",
+      "of": [
+        { "type": "unlocked", "id": "third_still" },
+        { "type": "bottlesSold", "atLeast": 2000 }
+      ]
+    },
+    "effects": [{ "type": "capability", "id": "stills", "delta": 1 }]
+  },
+  {
     "id": "branch_shop",
     "costCents": 60000,
     "upkeepCents": 500,

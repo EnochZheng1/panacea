@@ -395,6 +395,11 @@ export const ConfigSchema = z.strictObject({
   bottleCostCents: z.number().int().min(0),
   /** Fluid ounces per bottle. */
   bottleCapacity: z.number().positive(),
+  /**
+   * The most bottles one still makes in a batch. A capability `still_bottles` (a larger copper)
+   * adds to it, for every still.
+   */
+  stillBottles: z.number().int().min(1),
   maxFormulas: z.number().int().min(1),
   maxEventsPerMonth: z.number().int().min(0),
   /** Consecutive months with negative cash before the business fails. */
@@ -499,6 +504,11 @@ export const ConfigSchema = z.strictObject({
     bribeBaseCents: z.number().int().min(0),
     /** Each bribe already paid makes the next dearer by this share of the base fee. */
     bribeRisePerBribe: z.number().min(0),
+    /**
+     * Whatever the heat, every fee is at least this much more than the last one paid: the fee
+     * rises with every envelope.
+     */
+    bribeMinRiseCents: z.number().int().min(0),
     /** The fee is multiplied by 1 + heat / bribeHeatDoubling: a notorious case costs more. */
     bribeHeatDoubling: z.number().positive(),
     /**

@@ -737,7 +737,7 @@
     "third_still": "a third copper, which the coppersmith keeps for a house that has sold a thousand bottles",
     "coroner_fees": "an understanding with the coroner, which every proprietor comes to after his first inquest",
     "quality_control": "a chemist of his own, to be engaged after forty batches with a hundred dollars put by, or at once if a bad batch ever comes to light",
-    "larger_shop": "the cobbler's shop next door, which the landlord will let to a proprietor with twenty-five regulars and two hundred dollars",
+    "larger_shop": "the cobbler's shop next door, which the landlord will let, at five dollars a month, to a proprietor with twenty-five regulars",
     "bulk_supplier": "terms from an importer on Pearl street, who gives them to a house that has brewed twenty-five batches"
   },
   "standingDated": [
@@ -837,7 +837,9 @@
     "wholesale_contract.lost": "IN THE TRADE.—Messrs. Kittredge & Vail of Newark have cancelled their order for {product}, having read the papers. New Jersey will have to find its own remedies.",
     "laboratory.mishap": "FIRE.—A blaze in a back room on Mulberry street brought out Engine No. 9 on {weekday}. A quantity of ether was found to be the cause, and a German chemist the excuse. The proprietor's loss is put at twenty-five dollars, and the talk at a good deal more.",
     "druggists_order.bought": "IN THE TRADE.—A druggist of Atlantic avenue, Brooklyn, is to keep {product} on his own shelf, a dozen or so at a time. He describes it to our reporter as a remedy of the highest character, and the price he pays for it as none of our business.",
-    "druggists_order.lost": "IN THE TRADE.—The Atlantic avenue druggist has sent back the last of {product}, saying he has a family name to think of. He has taken a rival's bitters in its place."
+    "druggists_order.lost": "IN THE TRADE.—The Atlantic avenue druggist has sent back the last of {product}, saying he has a family name to think of. He has taken a rival's bitters in its place.",
+    "larger_copper.bought": "IN THE TRADE.—A coppersmith of Water street has delivered a larger copper to the shop on Mulberry street, with a worm long enough, he says, to run round the block. Each still will now fill half as many bottles again; the ward has been asked to keep its windows shut.",
+    "fourth_still.bought": "IN THE TRADE.—A fourth still has gone into the back of the shop on Mulberry street, and the neighbors report that the floor above is warm in January. The proprietor speaks of a manufactory."
   },
   "outOfTown": [
     "OUT OF TOWN.—A death at Paterson is laid by the family to a remedy bought from a druggist there. The druggist says he had it by the dozen from New-York, and is sorry.",

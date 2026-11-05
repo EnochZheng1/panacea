@@ -1,5 +1,5 @@
 {
-  "contentVersion": "0.5.0",
+  "contentVersion": "0.6.0",
   "startDate": {
     "year": 1885,
     "month": 1
@@ -13,6 +13,7 @@
   "rentCents": 300,
   "bottleCostCents": 3,
   "bottleCapacity": 8,
+  "stillBottles": 48,
   "maxFormulas": 6,
   "maxEventsPerMonth": 2,
   "bankruptcyGraceMonths": 3,
@@ -75,6 +76,7 @@
     "inquestBaseChance": 0.25,
     "bribeBaseCents": 1500,
     "bribeRisePerBribe": 0.1,
+    "bribeMinRiseCents": 500,
     "bribeHeatDoubling": 100,
     "bribeExposurePerBribe": 0.03,
     "bribeExposurePerNotoriety": 0.0025,

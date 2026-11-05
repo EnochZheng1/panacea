@@ -120,35 +120,44 @@ handful of interaction slips.
 - **The writing.** The narrative reader called it excellent: the paper tells the story of the shop.
 - **No crashes.** No tester found an exception in five games and five jump-ahead runs.
 
-## Next fixes, in order
+## Fixed after round 6
 
-1. **The paper's repetition.**
-   - Step the rotation by the number of items actually printed, or keep a per-game "printed" set.
-   - No lead body or deck word for word twice in a year.
-   - More bodies for the common leads, and rotate the personal and verdict phrases.
-2. **The lead and the books.**
-   - Record and brisk decks that say "the books" only when the books rose.
-   - Excuse event payments (a lease) as well as ventures.
-3. **The middle-game ceiling.**
-   - A larger still or a third one sooner, or the still's capacity as a venture.
-   - Say when the next still comes.
-   - Offer the standing order only when the shelf can serve it.
-4. **Interaction.**
-   - Keep LIGHT THE FIRE in place.
-   - Tooltips off while a drawer is open.
-   - The ventures confirm in place.
-   - Escape always closes a drawer.
-   - The formula book's price buttons label which remedy they change.
-   - "BOTH STILLS" names the remedy.
-5. **The first minutes.**
-   - A pointer on the first proof ("Open the FORMULA book to make your first remedy").
-   - A mark on THE STILL or VENTURES when something new arrives.
-   - Standing on the Works slip.
-   - A line explaining Death.
-6. **Keyboard.**
-   - The batch by arrows.
-   - TAKE IT UP in the Tab order.
-   - Focus kept after every action.
-   - Stronger focus on jars, clippings and the name field.
-   - Keyboard hints in the formula book.
-   - The first proof's focus not on SEND TO PRESS.
+| Finding                                                            | Who                          | Now                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ------------------------------------------------------------------ | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Two stills sell out from month 7–8                                 | strategy, cozy               | Balance pass 6 (`balance-pass-6.md`). The sim had no batch limit: the 48-bottle rule lived only in the still card, so every bot brewed a month in one batch and pass 5 never met the ceiling. Now `stillBottles` is a sim rule and the stills are a ladder: 48 → 96 → 144 (the third still at 600 bottles, was 1,000) → 216 (a larger copper, $200, every still 72) → 288 (a fourth still, $300 + $3 a month). For the tester-like bot, sold-out months 6–24 fall from 8% to 2%. Ads matter again: a full column over a half sells +223 bottles in months 13–24, against +36 before. Adaptive sells 263 a month at month 120 (was capped at 144) |
+| Nothing says when the next still comes                             | cozy                         | The still card prints the next rung: "Next: a third still: 280 of 600 bottles sold."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| The shop next door raises the rent unasked                         | strategy                     | It is a venture: nothing down, $5 a month, offered at 25 regulars                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| The standing order sold to a bare shelf                            | cozy                         | With the ladder, a full-stills shop has its order filled 98% of months to month 24 (was 67%). A proof warning appears when the shelf ended bare in two of the last three months                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| The coroner's fee doesn't rise                                     | story                        | It rises by at least $5 on every envelope                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| The still's money lines use old prices                             | careful (R4, R5)             | The unit cost is at today's prices, in the sim and in the formula book                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| Small items repeat; leads and phrases word for word                | story, streamer              | The make-up reports what it printed; each edition prefers the items printed longest ago. Eight editions measured: no standing item more than twice, and at least four editions apart. Every stock phrase, lead body, Wants item and verdict picks the one printed longest ago. Alternative headlines and new bodies for the common leads                                                                                                                                                                                                                                                                                                         |
+| "THE BOOKS WELL UP" over "the books down"; TRADE DULL from a lease | cozy, streamer, keyboard     | The record deck says the books are up only when they are. Letters' prices and bribes are outlays, like ventures                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Controls move or leak                                              | all                          | LIGHT THE FIRE keeps its place and takes focus after an order. Escape is taken before the GUI, so a tooltip can't swallow it. The counter's hover text is off behind drawers. The ventures confirm doesn't shift. The price line names its remedy, and CHANGE THE RECIPE OF … replaces POUR IT INTO THE BOTTLE. BOTH STILLS names the remedy in its tooltip                                                                                                                                                                                                                                                                                      |
+| The first minutes teach nothing                                    | streamer, keyboard, strategy | The first proof says where to begin, with focus on FORMULA (or THE STILL while it is cold). Standing is shown beside suspicion. A new still or venture prints its button in reverse. Death has hover text                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| The keyboard                                                       | keyboard                     | The bottle shelf takes the arrows again (the round-5 drawer arrow walk had stolen them), with +/− and Page Up/Down. Focus is never left on nothing. Heavy focus rules on jars, clippings and the name field, with a caret. The formula book's help gives the keys. After the press the footer stops asking for a key, and a late key doesn't skip the edition. Key consequence lines are set larger                                                                                                                                                                                                                                              |
+| Paper copy                                                         | story                        | The Coroner's Court names "the infant child of" an unknown mother, as the lead does. With two remedies, the bottle in evidence is named                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+
+Checks: TS 113/113 and C# 93/93 (parity on 28 fixture games, regenerated), typecheck, lint, format, Godot build,
+`tools/check_cuts.py`.
+
+## Balance after the fixes (80 runs, `--seed r6b`; full report `balance-pass-6.md`)
+
+| Bot                          | Median final cash, before → after | Note                                                                       |
+| ---------------------------- | --------------------------------- | -------------------------------------------------------------------------- |
+| cautious                     | $6.7k → $7.0k                     |                                                                            |
+| shopkeeper                   | $14.8k → $15.9k                   |                                                                            |
+| adaptive                     | $19.6k → $21.0k                   |                                                                            |
+| briber                       | $10.8k → $15.6k                   | early endings 49% → 8% (one big batch had let one bad batch spoil a month) |
+| greedy                       | $24.5k → $26.0k                   | early endings 50% → 30%                                                    |
+| sloppy (plays like a person) | $10.1k → $16.0k                   | ventures at months 3, 13, 18 and 26 (were 3, 13, 26 and 41)                |
+
+The exploit hunter's best line is 0.87× adaptive's mean; adaptive at 90c is 1.08×.
+
+## Still open
+
+- **The bottle engravings carry their own labels** ("PANACEA … ONE DOLLAR"), so a notice for another remedy shows
+  the wrong bottle. It needs blank-label variants and the label set in type.
+- **TRADE TALK repeats** the same progress hint every month until the unlock comes.
+- **Briber's early endings fell from 49% to 8%** with the batch rule. The bribe route may now be too safe; watch it
+  in the next round.
+- **None of the round-6 fixes has been played by hand.** Round 7 should be a first-time panel again.

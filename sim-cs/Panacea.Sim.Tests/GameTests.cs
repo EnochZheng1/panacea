@@ -42,10 +42,18 @@ public class GameTests
         return state;
     }
 
+    /// <summary>Puts a copper big enough for a batch of <paramref name="bottles"/> on every still (a test's shortcut).</summary>
+    private static void RoomFor(GameState state, int bottles)
+    {
+        int extra = bottles - C.Config.StillBottles;
+        if (extra > state.Player.Capabilities.GetOr("still_bottles", 0)) state.Player.Capabilities["still_bottles"] = extra;
+    }
+
     private static (GameState State, string FormulaId) SetUpTonic(GameState state, int bottles)
     {
         var (s, result) = Game.ApplyAction(state, new CreateFormula("Test Tonic", Tonic, "simple_mix", 50), C);
         Assert.True(result.Ok);
+        RoomFor(s, bottles);
         foreach (var c in Tonic) s = Act(s, new BuyIngredient(c.IngredientId, (int)Math.Ceiling(c.Amount * bottles)));
         return (s, result.CreatedId!);
     }
@@ -55,15 +63,16 @@ public class GameTests
     [Fact]
     public void EmbeddedContentLoads()
     {
-        Assert.Equal("0.5.0", C.Config.ContentVersion);
+        Assert.Equal("0.6.0", C.Config.ContentVersion);
         Assert.Equal(17, C.Ingredients.Count);
         Assert.Equal(3, C.Processes.Count);
         Assert.Equal(9, C.Unlocks.Count);
+        Assert.Equal(48, C.Config.StillBottles);
         Assert.Equal(12, C.Events.Count);
         Assert.Equal(8, C.Timeline.Count);
         Assert.Equal(12, C.Regulars.Count);
-        Assert.Equal(194, C.Strings.Count);
-        Assert.Equal(5, C.Investments.Count);
+        Assert.Equal(200, C.Strings.Count);
+        Assert.Equal(8, C.Investments.Count);
         Assert.Equal("narcotic_discount_pct", C.ById.Investments["laboratory"].Effects.OfType<CapabilityEffect>().Single().Id);
         Assert.Equal("system", C.ById.Events["inquest"].Trigger);
         Assert.Equal("random", C.ById.Events["grateful_letter"].Trigger);
@@ -588,7 +597,9 @@ public class GameTests
         }, o.Investments.Single(i => i.Id == "wholesale_contract").Progress);
         var branch = o.Investments.Single(i => i.Id == "branch_shop").Progress;
         Assert.Equal(new ConditionProgress("unlocked", "larger_shop", "atLeast", 0, 1, false, null), branch[0]);
-        Assert.Equal(new[] { "regulars", "cash" }, branch.Where(c => c.Via == "larger_shop").Select(c => c.Kind));
+        // the wall comes down only when the shop next door is taken up (a venture of its own)
+        Assert.Equal(new[] { new ConditionProgress("flag", "knocked_through", "atLeast", 0, 1, false, "larger_shop") },
+            branch.Where(c => c.Via == "larger_shop"));
         Assert.Equal("cost", branch[^1].Kind);
         var rich = Act(RichShop("held"), new Invest("branch_shop"));
         Assert.Empty(Machine.Observe(rich, C).Investments.Single(i => i.Id == "branch_shop").Progress);
@@ -631,11 +642,153 @@ public class GameTests
     public void AnUnlockThatNeedsEverythingIsOnlyAsNearAsItsLeastMetPart()
     {
         var s = Start("progress");
-        s.Stats.BottlesSold = 547;
+        s.Stats.BottlesSold = 330;
         s.Unlocks.Unlocked["second_still"] = 0;
-        Assert.Equal(0.547, Requirements.Evaluate(C.ById.Unlocks["third_still"].Requirement, s, C).Progress, 9);
+        Assert.Equal(0.55, Requirements.Evaluate(C.ById.Unlocks["third_still"].Requirement, s, C).Progress, 9);
         s.Stats.BatchesBrewed = 1;
         s.Player.CashCents = 50_000;
         Assert.Equal(1.0 / 40, Requirements.Evaluate(C.ById.Unlocks["quality_control"].Requirement, s, C).Progress, 9);
+    }
+
+    // --- balance pass 6: the stills, the shop next door, the coroner's fee --------------------
+
+    [Fact]
+    public void AStillMakesAtMostACoppersWorthABatchAndALargerCopperMakesEveryStillBigger()
+    {
+        int copper = C.Config.StillBottles;
+        var s = Start("copper");
+        s.Player.CashCents = 500_000;
+        s.Month.StartCashCents = s.Player.CashCents;
+        var (state, formulaId) = SetUpTonic(s, copper); // no larger copper needed for this one
+        foreach (var c in Tonic) state = Act(state, new BuyIngredient(c.IngredientId, (int)Math.Ceiling(c.Amount * 200)));
+        var o = Machine.Observe(state, C);
+        Assert.Equal((1, copper), (o.Stills, o.StillBottles));
+        Assert.Equal(copper, Assert.IsType<BrewBatchSpec>(Machine.LegalActions(state, C).Single(x => x is BrewBatchSpec)).MaxBottles);
+        var over = Game.ApplyAction(state, new BrewBatch(formulaId, copper + 1), C).Result;
+        Assert.Equal($"a still makes at most {copper} bottles a batch", over.Error);
+
+        state.Unlocks.Unlocked["second_still"] = 0;
+        state.Player.Capabilities["stills"] = 2;
+        var after = Act(state, new Invest("larger_copper"));
+        int bigger = copper + C.ById.Investments["larger_copper"].Effects.OfType<CapabilityEffect>().Single().Delta;
+        Assert.Equal(bigger, Machine.Observe(after, C).StillBottles);
+        var both = Act(after, new BrewBatch(formulaId, bigger), new BrewBatch(formulaId, bigger - 1));
+        Assert.Equal(new[] { bigger, bigger - 1 }, both.Lab.Batches.Select(b => b.Bottles));
+    }
+
+    [Fact]
+    public void TheStillCardCanSayWhatTheNextStillWaitsFor()
+    {
+        var s = Start("next");
+        s.Stats.BottlesSold = 150;
+        var steps = Machine.Observe(s, C).NextCapacity;
+        Assert.Equal(new[] { ("second_still", "unlock", 1, 0), ("third_still", "unlock", 1, 0), ("larger_copper", "investment", 0, 24), ("fourth_still", "investment", 1, 0) },
+            steps.Select(c => (c.Id, c.Source, c.Stills, c.StillBottles)));
+        Assert.Equal(new[] { new ConditionProgress("bottlesSold", null, "atLeast", 150, 200, false, null) }, steps[0].Progress);
+        Assert.Equal(new[] { ("unlocked", (string?)null), ("bottlesSold", "second_still"), ("bottlesSold", null) },
+            steps[1].Progress.Select(c => (c.Kind, c.Via)));
+        Assert.Equal(("cost", 20_000.0), (steps[2].Progress[^1].Kind, steps[2].Progress[^1].Need));
+
+        s.Unlocks.Unlocked["second_still"] = 0;
+        s.Stats.BottlesSold = 450;
+        var third = Machine.Observe(s, C).NextCapacity[0];
+        Assert.Equal("third_still", third.Id);
+        Assert.Equal(new[]
+        {
+            new ConditionProgress("unlocked", "second_still", "atLeast", 1, 1, true, null),
+            new ConditionProgress("bottlesSold", null, "atLeast", 450, 600, false, null),
+        }, third.Progress);
+        s.Unlocks.Unlocked["third_still"] = 0;
+        Assert.Equal(new[] { "larger_copper", "fourth_still" }, Machine.Observe(s, C).NextCapacity.Select(c => c.Id));
+    }
+
+    [Fact]
+    public void AFormulasUnitCostIsWhatAnOrderChargesTodayAfterTheMarketMoves()
+    {
+        var s = Start("prices");
+        s.Player.CashCents = 100_000;
+        s.Month.StartCashCents = s.Player.CashCents;
+        var created = Act(s, new CreateFormula("T", Tonic, "simple_mix", 60));
+        double before = Machine.Observe(created, C).Formulas[0].UnitCostCents;
+        var dearer = created.Clone();
+        dearer.Player.Capabilities["surcharge_pct_grain_alcohol"] = 100;
+        dearer.Player.Capabilities["ingredient_discount_pct"] = 15;
+        double now = Machine.Observe(dearer, C).Formulas[0].UnitCostCents;
+        Assert.NotEqual(before, now);
+        double expected = C.Config.BottleCostCents;
+        foreach (var c in Tonic) expected += c.Amount * Lab.IngredientUnitCost(dearer, c.IngredientId, C);
+        Assert.Equal(expected, now, 9);
+        Assert.Equal(Lab.FormulaUnitCost(dearer, Tonic, "simple_mix", C), now, 9);
+    }
+
+    [Fact]
+    public void TheBooksRecordWhatWasLeftOnTheShelfAndObserveCountsTheBareMonths()
+    {
+        var (s, formulaId) = SetUpTonic(Start("bare"), 10);
+        var (sold, report) = Game.EndTurn(Act(s, new BrewBatch(formulaId, 10)), C);
+        Assert.Equal(Lab.TotalStock(sold), report.ShelfEndBottles);
+        sold = Months(sold, 3);
+        Assert.All(sold.Ledger.TakeLast(3), e => Assert.Equal(0, e.ShelfEndBottles));
+        Assert.Equal(3, Machine.Observe(sold, C).ShelfBareMonths);
+    }
+
+    [Fact]
+    public void TheShopNextDoorIsKnockedThroughOnlyWhenTakenUp()
+    {
+        var s = Start("nextdoor");
+        s.Player.CashCents = 100_000;
+        s.Month.StartCashCents = s.Player.CashCents;
+        var json = StateJson.Serialize(s.Customers[0]);
+        while (s.Customers.Count < 30)
+        {
+            var c = StateJson.Deserialize<Customer>(json);
+            c.Id = $"c{s.Customers.Count}";
+            s.Customers.Add(c);
+        }
+        var (left, report) = Game.EndTurn(s, C);
+        Assert.False(left.Unlocks.Unlocked.ContainsKey("larger_shop"));
+        Assert.Equal(-C.Config.RentCents, report.Deltas.Where(d => d.Cause == Causes.Rent).Sum(d => d.Amount));
+        var offer = Machine.Observe(left, C).Investments.Single(i => i.Id == "shop_next_door");
+        Assert.True(offer.CanBuy);
+        Assert.Equal(500, offer.UpkeepCents);
+        var taken = Act(left, new Invest("shop_next_door"));
+        var (state, after) = Game.EndTurn(taken, C);
+        Assert.Equal(taken.Meta.Turn, state.Unlocks.Unlocked["larger_shop"]);
+        Assert.Contains(after.Deltas, d => d.Cause == Causes.Upkeep && d.Amount == -500 && d.Detail == "shop_next_door");
+        Assert.Equal(Machine.Observe(left, C).CustomerCapacity + 20, Machine.Observe(state, C).CustomerCapacity);
+        Assert.NotEqual("not yet offered", Machine.Observe(state, C).Investments.Single(i => i.Id == "branch_shop").Refusal);
+    }
+
+    [Fact]
+    public void TheCoronersFeeRisesWithEveryEnvelopeEvenWhenTheTalkHasDiedDown()
+    {
+        var state = Start("fee");
+        state.Player.CashCents = 100_000;
+        state.Month.StartCashCents = state.Player.CashCents;
+        state.Unlocks.Unlocked["coroner_fees"] = 0;
+        state.Scrutiny.Heat = 100;
+        state.Month.StartHeat = 100;
+        var fees = new List<long>();
+        for (int i = 0; i < 3; i++)
+        {
+            state = state.Clone();
+            state.Deaths.Add(new DeathRecord
+            {
+                Id = $"death_{i}", Date = state.Meta.Date, Name = "Mr. Test", Segment = "labourer", Consumer = Consumers.Self,
+                Cause = DeathCauses.Overdose, ProductImplicated = true, Detectability = 4, Inquest = InquestStates.Pending,
+            });
+            state.Events.Pending.Add(new PendingEvent { InstanceId = $"inq_{i}", EventId = "inquest", DrawnTurn = 0, DeathId = $"death_{i}" });
+            long cost = Scrutiny.BribeCostCents(state, C);
+            Assert.Equal(cost, Machine.Observe(state, C).PendingEvents[^1].BribeCostCents);
+            fees.Add(cost);
+            state = Act(state, new ResolveEvent($"inq_{i}", "bribe_coroner"));
+            Assert.Equal(cost, state.Scrutiny.LastBribeCents);
+            double cooled = Math.Max(0, state.Scrutiny.Heat - 30);
+            state.Month.StartHeat -= state.Scrutiny.Heat - cooled;
+            state.Scrutiny.Heat = cooled;
+        }
+        long rise = C.Config.Scrutiny.BribeMinRiseCents;
+        Assert.True(fees[1] >= fees[0] + rise, $"{fees[0]} then {fees[1]}");
+        Assert.True(fees[2] >= fees[1] + rise, $"{fees[1]} then {fees[2]}");
     }
 }

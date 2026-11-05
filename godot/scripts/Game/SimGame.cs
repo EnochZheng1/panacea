@@ -66,7 +66,8 @@ public sealed class SimGame : IGame
 		var error = Formulas.Validate(comps, processId, _state, _content);
 		if (error != null) return new FormulaPreview { Error = Sentence(error) };
 		var a = Formulas.Analyze(comps, processId, _content);
-		return new FormulaPreview { UnitCostCents = (long)Math.Ceiling(a.UnitCostCents), Properties = Props(a.Properties) };
+		// at today's prices, what an order would really charge
+		return new FormulaPreview { UnitCostCents = (long)Math.Ceiling(Lab.FormulaUnitCost(_state, comps, processId, _content)), Properties = Props(a.Properties) };
 	}
 
 	/// <summary>Everyone ever seen at the counter, as last seen (the paper remembers them).</summary>
@@ -109,6 +110,10 @@ public sealed class SimGame : IGame
 			Reputation = o.Reputation,
 			Heat = o.Heat,
 			StillsFree = o.StillsFree,
+			Stills = o.Stills,
+			StillBottles = o.StillBottles,
+			NextCapacity = NextCapacity(o),
+			ShelfBareMonths = o.ShelfBareMonths,
 			BottleCapacityOunces = _content.Config.BottleCapacity,
 			BottleCostCents = _content.Config.BottleCostCents,
 			CanAdvertise = o.CanAdvertise,
@@ -225,6 +230,19 @@ public sealed class SimGame : IGame
 		return d;
 	}
 
+	/// <summary>The next rung of the still ladder, and what it waits for, as the still card prints it.</summary>
+	private string? NextCapacity(Observation o)
+	{
+		var step = o.NextCapacity.FirstOrDefault();
+		if (step == null) return null;
+		var what = step.Source == "investment" ? _content.Text($"investment.{step.Id}.name") : _content.Text($"unlock.{step.Id}.name");
+		var lines = Progress(step.Progress);
+		// a still names itself; a larger copper says what it does
+		var gives = step.Stills > 0 ? "" : $", {step.StillBottles} bottles a still";
+		var where = step.Source == "investment" ? " (in VENTURES)" : "";
+		return lines.Count == 0 ? $"Next: {what.ToLowerInvariant()}{gives}{where}." : $"Next: {what.ToLowerInvariant()}{gives}{where}: {string.Join("; ", lines)}.";
+	}
+
 	/// <summary>One unmet condition of a venture, as the prospectus prints it.</summary>
 	private string? ProgressLine(ConditionProgress c)
 	{
@@ -238,6 +256,7 @@ public sealed class SimGame : IGame
 			"heat" when c.Sense == "below" => $"suspicion at {N(c.Have)}; it must be under {N(c.Need)}",
 			"heat" => $"suspicion at {N(c.Have)} of {N(c.Need)}",
 			"unlocked" when c.Id != null => $"waits on {_content.Text($"unlock.{c.Id}.name").ToLowerInvariant()}",
+			"flag" when c.Id == "knocked_through" => "the shop next door taken (in VENTURES)",
 			_ => null,
 		};
 		return line;

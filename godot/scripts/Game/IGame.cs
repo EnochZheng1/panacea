@@ -44,6 +44,13 @@ public sealed class DeskModel
 	public double Reputation;
 	public double Heat;
 	public int StillsFree;
+	/// <summary>Stills the shop has, and the most bottles one makes a batch.</summary>
+	public int Stills;
+	public int StillBottles = 48;
+	/// <summary>What the next rung of capacity waits for, in words ("the third still: 450 of 600 bottles sold").</summary>
+	public string? NextCapacity;
+	/// <summary>Of the last three months, how many closed with the shelf bare.</summary>
+	public int ShelfBareMonths;
 	public double BottleCapacityOunces;
 	public bool CanAdvertise;
 	public long AdSpendCents;

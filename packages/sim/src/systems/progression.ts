@@ -1,9 +1,14 @@
-import type { ContentPack, EventChoice } from '@panacea/content';
+import type { ContentPack, Effect, EventChoice } from '@panacea/content';
 import { CAUSES } from '../core/causes.ts';
 import { compareDates } from '../core/date.ts';
 import type { GameState, PendingEvent, Phase, Rng } from '../core/index.ts';
 import { applyEffects } from './effects.ts';
-import { evaluateRequirement } from './requirements.ts';
+import { investmentProgress, isHeld } from './investments.ts';
+import {
+  evaluateRequirement,
+  requirementProgress,
+  type ConditionProgress,
+} from './requirements.ts';
 import { bribeCostCents, resolveInquest } from './scrutiny.ts';
 
 /** Turn phase: historical events fire on their dates, regardless of the player. */
@@ -74,6 +79,66 @@ export function nextUnlocks(state: GameState, content: ContentPack, limit = 3): 
     }))
     .sort((a, b) => b.progress - a.progress || compareOrdinal(a.id, b.id))
     .slice(0, limit);
+}
+
+/** A step up in what the stills can make: another still, or a larger copper for every still. */
+export interface CapacityStep {
+  /** The unlock or venture that brings it. */
+  id: string;
+  source: 'unlock' | 'investment';
+  /** Stills it adds. */
+  stills: number;
+  /** Bottles it adds to every still's batch. */
+  stillBottles: number;
+  /**
+   * What it waits for, as for a venture's prospectus: every condition of its requirement (an
+   * unlock it waits on followed by that unlock's own, marked `via`), and for a venture, its price
+   * against the cash in hand (`kind: 'cost'`).
+   */
+  progress: ConditionProgress[];
+}
+
+const capacityOf = (effects: readonly Effect[]) => {
+  let stills = 0;
+  let stillBottles = 0;
+  for (const e of effects) {
+    if (e.type !== 'capability' || e.months !== undefined) continue;
+    if (e.id === 'stills') stills += e.delta;
+    if (e.id === 'still_bottles') stillBottles += e.delta;
+  }
+  return { stills, stillBottles };
+};
+
+/**
+ * What would add to the stills or their size and is not yet had: unlocks in content order, then
+ * ventures not held. The still card prints the first that adds a still ("the third still: 640 of
+ * 1,000 bottles sold").
+ */
+export function capacitySteps(state: GameState, content: ContentPack): CapacityStep[] {
+  const steps: CapacityStep[] = [];
+  for (const u of content.unlocks) {
+    if (u.id in state.unlocks.unlocked) continue;
+    const c = capacityOf(u.effects);
+    if (c.stills <= 0 && c.stillBottles <= 0) continue;
+    steps.push({
+      id: u.id,
+      source: 'unlock',
+      ...c,
+      progress: requirementProgress(u.requirement, state, content),
+    });
+  }
+  for (const inv of content.investments) {
+    if (isHeld(state, inv.id)) continue;
+    const c = capacityOf(inv.effects);
+    if (c.stills <= 0 && c.stillBottles <= 0) continue;
+    steps.push({
+      id: inv.id,
+      source: 'investment',
+      ...c,
+      progress: investmentProgress(state, inv, content),
+    });
+  }
+  return steps;
 }
 
 /** Locale-independent string order (UTF-16 code units), identical in every engine. */

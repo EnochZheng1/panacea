@@ -85,14 +85,18 @@ public static class Scrutiny
 
     /// <summary>
     /// What the coroner currently charges. Rises with every bribe and with the heat, and is asked
-    /// in round sums: a coroner names his price to the nearest five dollars.
+    /// in round sums: a coroner names his price to the nearest five dollars. Whatever the heat has
+    /// done since, it is never less than the last fee paid and BribeMinRiseCents more: the fee
+    /// rises with every envelope.
     /// </summary>
     public static long BribeCostCents(GameState state, ContentPack content)
     {
         var cfg = content.Config.Scrutiny;
         double raw = cfg.BribeBaseCents * (1 + cfg.BribeRisePerBribe * state.Scrutiny.BribesPaid) *
             (1 + state.Scrutiny.Heat / cfg.BribeHeatDoubling);
-        return Math.Max(500, (long)JsMath.Round(raw / 500) * 500);
+        long asked = Math.Max(500, (long)JsMath.Round(raw / 500) * 500);
+        long last = state.Scrutiny.LastBribeCents;
+        return last > 0 ? Math.Max(asked, last + cfg.BribeMinRiseCents) : asked;
     }
 
     /// <summary>
@@ -185,6 +189,7 @@ public static class Scrutiny
             double exposure = BribeExposureChance(state, content);
             Ledger.Adjust(state, Metrics.Cash, -cost, Causes.Bribe, record.Id);
             state.Scrutiny.BribesPaid += 1;
+            state.Scrutiny.LastBribeCents = cost;
             if (rng.Chance(exposure))
             {
                 // the money is gone, and the jury hears where it went: worse than any verdict

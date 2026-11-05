@@ -4,7 +4,11 @@ import { CAUSES } from '../core/causes.ts';
 import { adjust } from '../core/ledger.ts';
 import type { GameState, InvestmentChange, Phase } from '../core/index.ts';
 import { applyEffects } from './effects.ts';
-import { evaluateRequirement } from './requirements.ts';
+import {
+  evaluateRequirement,
+  requirementProgress,
+  type ConditionProgress,
+} from './requirements.ts';
 
 /**
  * Investments: things the proprietor buys that pay back over months or years. A branch shop
@@ -28,6 +32,28 @@ export function investRefusal(
   }
   if (state.player.cashCents < inv.costCents) return 'not enough cash';
   return null;
+}
+
+/**
+ * What a venture not held waits for, as numbers: every condition of its requirement (met or not),
+ * then its price against the cash in hand (`kind: 'cost'`).
+ */
+export function investmentProgress(
+  state: GameState,
+  inv: Investment,
+  content: ContentPack,
+): ConditionProgress[] {
+  const progress = inv.requires ? requirementProgress(inv.requires, state, content) : [];
+  progress.push({
+    kind: 'cost',
+    id: null,
+    sense: 'atLeast',
+    have: state.player.cashCents,
+    need: inv.costCents,
+    met: state.player.cashCents >= inv.costCents,
+    via: null,
+  });
+  return progress;
 }
 
 export function invest(

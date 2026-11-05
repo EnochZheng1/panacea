@@ -42,6 +42,14 @@ export function months(state: GameState, n: number): GameState {
   return state;
 }
 
+/** Puts a copper big enough for a batch of `bottles` on every still (a test's shortcut). */
+export function roomFor(state: GameState, bottles: number): void {
+  const extra = bottles - content.config.stillBottles;
+  if (extra > (state.player.capabilities['still_bottles'] ?? 0)) {
+    state.player.capabilities['still_bottles'] = extra;
+  }
+}
+
 /** Creates the test tonic and buys ingredients for `bottles` bottles. Returns the formula id. */
 export function setUpTonic(
   state: GameState,
@@ -61,6 +69,7 @@ export function setUpTonic(
   expect(created.result.ok).toBe(true);
   const formulaId = (created.result as { createdId: string }).createdId;
   let s = created.state;
+  roomFor(s, bottles);
   for (const c of TONIC) {
     s = act(s, {
       type: 'BuyIngredient',

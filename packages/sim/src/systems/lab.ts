@@ -51,6 +51,21 @@ export function ingredientUnitCost(state: GameState, ingredientId: string, conte
   return ing.costPerUnitCents * (1 - discount / 100) * (1 + surcharge / 100) * (1 - narcotic / 100);
 }
 
+/**
+ * What a bottle of this recipe costs to make at today's prices (with any discount or surcharge):
+ * its ingredients, its bottle and cork, and its process. The figure an order actually charges.
+ */
+export function formulaUnitCost(
+  state: GameState,
+  components: readonly FormulaComponent[],
+  processId: string,
+  content: ContentPack,
+): number {
+  let cost = bottlingCostPerBottle(processId, content);
+  for (const c of components) cost += c.amount * ingredientUnitCost(state, c.ingredientId, content);
+  return cost;
+}
+
 export interface StockValue {
   /** Bottles on the shelf or brewing: their ingredients and bottling. */
   shelfCents: number;
@@ -69,12 +84,8 @@ export function stockValue(state: GameState, content: ContentPack): StockValue {
   for (const [id, qty] of Object.entries(state.lab.inventory)) {
     if (qty > 0) ingredients += qty * ingredientUnitCost(state, id, content);
   }
-  const bottleCost = (components: readonly FormulaComponent[], processId: string) => {
-    let cost = bottlingCostPerBottle(processId, content);
-    for (const c of components)
-      cost += c.amount * ingredientUnitCost(state, c.ingredientId, content);
-    return cost;
-  };
+  const bottleCost = (components: readonly FormulaComponent[], processId: string) =>
+    formulaUnitCost(state, components, processId, content);
   let shelf = 0;
   for (const b of state.lab.batches) shelf += b.bottles * bottleCost(b.components, b.processId);
   for (const lot of state.lab.stock)
@@ -194,6 +205,10 @@ export const stillsFree = (state: GameState): number =>
       state.lab.batches.filter((b) => b.startedTurn === state.meta.turn).length,
   );
 
+/** The most bottles one still makes in a batch: the copper's size, for every still. */
+export const stillBottles = (state: GameState, content: ContentPack): number =>
+  Math.max(1, content.config.stillBottles + (state.player.capabilities['still_bottles'] ?? 0));
+
 export function bottlingCostPerBottle(processId: string, content: ContentPack): number {
   return (
     content.config.bottleCostCents +
@@ -201,11 +216,14 @@ export function bottlingCostPerBottle(processId: string, content: ContentPack): 
   );
 }
 
-/** The largest batch the player could brew right now (ingredients, cash, and a free still). */
+/**
+ * The largest batch the player could brew right now: ingredients, cash, a free still, and what
+ * one still holds.
+ */
 export function maxBrewable(state: GameState, formulaId: string, content: ContentPack): number {
   const formula = state.lab.formulas.find((f) => f.id === formulaId);
   if (!formula || stillsFree(state) === 0) return 0;
-  let max = Number.POSITIVE_INFINITY;
+  let max: number = stillBottles(state, content);
   for (const c of formula.components) {
     max = Math.min(
       max,
@@ -214,7 +232,7 @@ export function maxBrewable(state: GameState, formulaId: string, content: Conten
   }
   const perBottle = bottlingCostPerBottle(formula.processId, content);
   if (perBottle > 0) max = Math.min(max, Math.floor(state.player.cashCents / perBottle));
-  return Number.isFinite(max) ? Math.max(0, max) : 0;
+  return Math.max(0, max);
 }
 
 export function brewBatch(
@@ -228,6 +246,8 @@ export function brewBatch(
     return fail('bottles must be a positive integer');
   }
   if (stillsFree(state) === 0) return fail('no free still this month');
+  const most = stillBottles(state, content);
+  if (action.bottles > most) return fail(`a still makes at most ${most} bottles a batch`);
   for (const c of formula.components) {
     const need = roundQty(c.amount * action.bottles);
     if ((state.lab.inventory[c.ingredientId] ?? 0) + 1e-9 < need) {

@@ -20,6 +20,19 @@ public sealed record UnlockProgress(string Id, double Progress);
 /// <param name="Via">On the conditions of an unlock that is itself waited on: that unlock's id.</param>
 public sealed record ConditionProgress(string Kind, string? Id, string Sense, double Have, double Need, bool Met, string? Via);
 
+/// <summary>
+/// A step up in what the stills can make (progression.ts CapacityStep): another still, or a larger
+/// copper for every still.
+/// </summary>
+/// <param name="Id">The unlock or venture that brings it.</param>
+/// <param name="Source">"unlock" or "investment".</param>
+/// <param name="Stills">Stills it adds.</param>
+/// <param name="StillBottles">Bottles it adds to every still's batch.</param>
+/// <param name="Progress">What it waits for, as for a venture's prospectus: every condition of its
+/// requirement (an unlock it waits on followed by that unlock's own, marked Via), and for a venture,
+/// its price against the cash in hand (Kind "cost").</param>
+public sealed record CapacityStep(string Id, string Source, int Stills, int StillBottles, IReadOnlyList<ConditionProgress> Progress);
+
 /// <summary>Requirements (systems/requirements.ts).</summary>
 public static class Requirements
 {
@@ -287,6 +300,43 @@ public static class Progression
             }))
             .Take(limit)
             .ToList();
+    }
+
+    private static (int Stills, int StillBottles) CapacityOf(IReadOnlyList<Effect> effects)
+    {
+        int stills = 0, bottles = 0;
+        foreach (var e in effects)
+        {
+            if (e is not CapabilityEffect { Months: null } c) continue;
+            if (c.Id == "stills") stills += c.Delta;
+            if (c.Id == "still_bottles") bottles += c.Delta;
+        }
+        return (stills, bottles);
+    }
+
+    /// <summary>
+    /// What would add to the stills or their size and is not yet had: unlocks in content order,
+    /// then ventures not held. The still card prints the first that adds a still ("the third
+    /// still: 640 of 1,000 bottles sold").
+    /// </summary>
+    public static List<CapacityStep> CapacitySteps(GameState state, ContentPack content)
+    {
+        var steps = new List<CapacityStep>();
+        foreach (var u in content.Unlocks)
+        {
+            if (state.Unlocks.Unlocked.ContainsKey(u.Id)) continue;
+            var (stills, bottles) = CapacityOf(u.Effects);
+            if (stills <= 0 && bottles <= 0) continue;
+            steps.Add(new CapacityStep(u.Id, "unlock", stills, bottles, Requirements.Progress(u.Requirement, state, content)));
+        }
+        foreach (var inv in content.Investments)
+        {
+            if (Investments.IsHeld(state, inv.Id)) continue;
+            var (stills, bottles) = CapacityOf(inv.Effects);
+            if (stills <= 0 && bottles <= 0) continue;
+            steps.Add(new CapacityStep(inv.Id, "investment", stills, bottles, Investments.Progress(state, inv, content)));
+        }
+        return steps;
     }
 
     private static bool IsRandomPending(PendingEvent p, ContentPack content) =>

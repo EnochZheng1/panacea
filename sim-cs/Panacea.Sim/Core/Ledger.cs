@@ -92,6 +92,7 @@ public static class Ledger
             Callers = m.Callers,
             Wholesale = m.Wholesale,
             Post = m.Post,
+            ShelfEndBottles = Lab.TotalStock(state),
         };
     }
 

@@ -88,21 +88,26 @@ public partial class StillBench : HBoxContainer
 			_right.AddChild(Print.Body($"[i]Every still is on the fire ({Print.Escape(lit)}). The bottles will be on the shelf by press time; send the paper to press when you are ready.[/i]", 15, justify: false));
 			return;
 		}
-		var stills = d.StillsFree == 1 ? "One still is free" : d.StillsFree == 2 ? "Two stills are free" : $"{d.StillsFree} stills are free";
-		_right.AddChild(Print.Body($"[i]{stills} this month. A batch is bottled by the time the paper goes to press.[/i]", 14, justify: false));
+		var stills = d.StillsFree == 1 ? "One still is free" : d.StillsFree == 2 ? "Two stills are free" : $"{EditionWriter.Words(d.StillsFree)} stills are free";
+		_right.AddChild(Print.Body($"[i]{stills} this month, {EditionWriter.Words(d.StillBottles)} bottles a batch at most. A batch is bottled by the time the paper goes to press.[/i]", 14, justify: false));
+		// the ladder: what the next still (or a larger copper) waits for
+		if (d.NextCapacity != null) _right.AddChild(Print.Body($"[i]{Print.Escape(EditionWriter.Set(d.NextCapacity))}[/i]", 13, justify: false));
 		foreach (var (name, onFire) in d.Brewing)
 			_right.AddChild(Print.Label($"On the fire: {onFire} bottles of {name}", Print.FellIt, 15));
 
 		var max = Math.Max(0, f.MaxBrewable);
 		// the batch you want may be more than the shelf allows: the order button makes up the rest
-		var want = Math.Clamp(_counts.GetValueOrDefault(f.Id, max > 0 ? Math.Min(24, max) : 24), 0, 96);
+		// a still makes at most so many bottles a batch (48, or more with a larger copper)
+		var cap = Math.Max(1, d.StillBottles);
+		max = Math.Min(max, cap);
+		var want = Math.Clamp(_counts.GetValueOrDefault(f.Id, max > 0 ? Math.Min(24, max) : 24), 0, cap);
 		_counts[f.Id] = want;
 		var n = Math.Min(want, max);
 
 		// the bottling shelf: a mark for every bottle the stock allows; click to choose the batch
 		_right.AddChild(Print.Label("THE BATCH", Print.Rye, 14));
 		_right.AddChild(Print.Label("Click a bottle to mark the batch, or with the keyboard: ◀ ▶ a bottle at a time, ▲ ▼ a dozen.", Print.FellIt, 13));
-		var shelf = new BottleShelf { Count = want, Max = max, Capacity = Math.Min(96, Math.Max(48, ((Math.Max(max, want) + 11) / 12) * 12)) };
+		var shelf = new BottleShelf { Count = want, Max = max, Capacity = ((cap + 11) / 12) * 12 };
 		shelf.Picked += k => { _counts[f.Id] = k; Sfx.Play("tick", -6f, 0.1f); Refresh(); };
 		_right.AddChild(shelf);
 		var bottles = n * d.BottleCostCents;

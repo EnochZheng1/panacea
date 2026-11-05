@@ -104,6 +104,7 @@ export function newGame(content: ContentPack, options: NewGameOptions): GameStat
       heat: 0,
       peakHeat: 0,
       bribesPaid: 0,
+      lastBribeCents: 0,
       inquestsHeld: 0,
       timesImplicated: 0,
       monthsAtShutdownHeat: 0,

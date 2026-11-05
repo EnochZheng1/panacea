@@ -127,6 +127,8 @@ export interface LedgerEntry {
   callers: Record<string, number>;
   wholesale: WholesaleMonth;
   post: WholesaleMonth;
+  /** Bottles left on the shelf when the month closed: 0 is a month that sold out. */
+  shelfEndBottles: number;
 }
 
 export interface FormulaComponent {
@@ -301,6 +303,8 @@ export interface GameState {
     heat: number;
     peakHeat: number;
     bribesPaid: number;
+    /** The last fee the coroner was paid, in cents (0 before the first). */
+    lastBribeCents: number;
     inquestsHeld: number;
     timesImplicated: number;
     /** Consecutive month-ends at or above the shutdown heat. */

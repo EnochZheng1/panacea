@@ -574,6 +574,8 @@ public sealed class ScrutinyConfig
     public long BribeBaseCents { get; init; }
     /// <summary>Each bribe already paid raises the fee by this share of the base.</summary>
     public double BribeRisePerBribe { get; init; }
+    /// <summary>Whatever the heat, every fee is at least this much more than the last one paid.</summary>
+    public long BribeMinRiseCents { get; init; }
     /// <summary>The fee is multiplied by 1 + heat / BribeHeatDoubling: a notorious case costs more.</summary>
     public double BribeHeatDoubling { get; init; }
     /// <summary>Chance a bribe comes out: per bribe already paid, plus per point of notoriety, up to the max.</summary>
@@ -595,6 +597,11 @@ public sealed class Config
     public long RentCents { get; init; }
     public int BottleCostCents { get; init; }
     public double BottleCapacity { get; init; }
+    /// <summary>
+    /// The most bottles one still makes in a batch. A capability "still_bottles" (a larger copper)
+    /// adds to it, for every still.
+    /// </summary>
+    public int StillBottles { get; init; }
     public int MaxFormulas { get; init; }
     public int MaxEventsPerMonth { get; init; }
     public int BankruptcyGraceMonths { get; init; }

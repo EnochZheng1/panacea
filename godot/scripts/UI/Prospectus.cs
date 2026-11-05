@@ -27,6 +27,9 @@ public partial class Prospectus : VBoxContainer
 		["branch_shop"] = "Offered once the shop next door has been knocked through.",
 		["wholesale_contract"] = "Offered after twelve hundred bottles sold, while the talk in the ward is low.",
 		["druggists_order"] = "Offered after four hundred bottles sold, while the talk in the ward is low.",
+		["shop_next_door"] = "Offered once the shop has twenty-five regulars.",
+		["larger_copper"] = "Offered once the second still is in.",
+		["fourth_still"] = "Offered once the third still is in and two thousand bottles are sold.",
 		["laboratory"] = "Offered once a percolator is in the back room.",
 		["almanac"] = "Offered once the Gazette will sell you space.",
 	};
@@ -78,7 +81,7 @@ public partial class Prospectus : VBoxContainer
 		v.AddChild(Print.Body(Print.Escape(EditionWriter.Set(r.Description)), 15));
 
 		// the terms, as a price current would set them
-		var terms = $"Terms: {EditionWriter.Money(r.CostCents)} down";
+		var terms = r.CostCents == 0 ? "Terms: nothing down" : $"Terms: {EditionWriter.Money(r.CostCents)} down";
 		if (r.UpkeepCents > 0) terms += $", and {EditionWriter.Money(r.UpkeepCents)} a month after";
 		// a contract the druggists can cancel is not "yours for good"
 		terms += r.Months is int m ? $"; it runs {EditionWriter.Words(m)} months."
@@ -104,14 +107,18 @@ public partial class Prospectus : VBoxContainer
 		else if (!r.CanBuy && r.Refusal is { } why && why.StartsWith("Not yet", StringComparison.Ordinal))
 		{
 			// not on offer yet: say what it waits for, as the trade would
-			v.AddChild(Print.Label(Waits.TryGetValue(r.Id, out var w) ? w : why, Print.FellIt, 14, HorizontalAlignment.Right, new Color(Print.Ink, 0.85f)));
+			// (a description that already says what it waits for is not told twice)
+			if (!r.Description.Contains("Offered", StringComparison.Ordinal))
+				v.AddChild(Print.Label(Waits.TryGetValue(r.Id, out var w) ? w : why, Print.FellIt, 14, HorizontalAlignment.Right, new Color(Print.Ink, 0.85f)));
 			// and how far the house has come toward it
 			if (r.Progress.Count > 0)
 				v.AddChild(Print.Label(EditionWriter.Set("So far: " + string.Join("; ", r.Progress) + "."), Print.Fell, 13, HorizontalAlignment.Right));
 		}
 		else
 		{
-			var b = Print.Button(r.CanBuy ? $"☞  TAKE IT UP · {EditionWriter.Money(r.CostCents)}" : "NOT TO BE HAD", 14, solid: r.CanBuy, sound: "till");
+			// short only of cash: it is on offer, at a price not yet in hand
+			var shortOfCash = !r.CanBuy && r.Refusal != null && r.Refusal.Contains("cash", StringComparison.OrdinalIgnoreCase);
+			var b = Print.Button(r.CanBuy || shortOfCash ? $"☞  TAKE IT UP · {EditionWriter.Money(r.CostCents)}" : "NOT TO BE HAD", 14, solid: r.CanBuy, sound: "till");
 			b.SizeFlagsHorizontal = SizeFlags.ShrinkEnd;
 			Print.SetLive(b, r.CanBuy && d.CashCents >= r.CostCents);
 			b.TooltipText = r.Refusal ?? (d.CashCents < r.CostCents ? $"It wants {EditionWriter.Money(r.CostCents)}, and you have {EditionWriter.Money(d.CashCents)}." : "Paid at once; it starts this month.");
@@ -148,7 +155,7 @@ public partial class Prospectus : VBoxContainer
 				Callable.From(() => { if (IsInstanceValid(this)) Refresh(); }).CallDeferred();
 			};
 			v.AddChild(b);
-			if (r.Refusal != null) v.AddChild(Print.Label(r.Refusal, Print.FellIt, 13, HorizontalAlignment.Right, new Color(Print.Ink, 0.85f)));
+			if (r.Refusal != null && !shortOfCash) v.AddChild(Print.Label(r.Refusal, Print.FellIt, 13, HorizontalAlignment.Right, new Color(Print.Ink, 0.85f)));
 			else if (d.CashCents < r.CostCents) v.AddChild(Print.Label($"It wants {EditionWriter.Money(r.CostCents)}; you have {EditionWriter.Money(d.CashCents)}.", Print.FellIt, 13, HorizontalAlignment.Right, new Color(Print.Ink, 0.85f)));
 		}
 		var s = Print.Panel(v, Print.Box(new Color(0, 0, 0, 0), new Color(0, 0, 0, 0), 2, 8));

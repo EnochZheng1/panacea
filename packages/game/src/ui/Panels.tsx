@@ -275,7 +275,9 @@ export function BenchPanel({
 export function StillPanel({ game, onBrew }: { game: Game; onBrew: (formulaId: string) => void }) {
   const formulas = game.state.lab.formulas;
   const [formulaId, setFormulaId] = useState(formulas[0]?.id ?? '');
-  const [bottles, setBottles] = useState(30);
+  const [wanted, setBottles] = useState(30);
+  // a still makes at most its copper's worth a batch
+  const bottles = Math.min(wanted, game.obs.stillBottles);
   const fid = formulas.some((f) => f.id === formulaId) ? formulaId : (formulas[0]?.id ?? '');
   const plan = fid ? game.brewPlan(fid, bottles) : null;
   const busy = game.obs.stillsFree === 0;
@@ -318,9 +320,9 @@ export function StillPanel({ game, onBrew }: { game: Game; onBrew: (formulaId: s
             label="Batch size"
             unit="bottles"
             value={bottles}
-            min={5}
-            max={300}
-            step={5}
+            min={4}
+            max={game.obs.stillBottles}
+            step={4}
             onChange={setBottles}
           />
           {plan && (

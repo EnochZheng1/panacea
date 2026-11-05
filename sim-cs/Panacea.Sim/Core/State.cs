@@ -243,6 +243,8 @@ public sealed class LedgerEntry
     public WholesaleMonth Wholesale { get; set; } = new();
     /// <summary>Orders by post (the almanac's readers).</summary>
     public WholesaleMonth Post { get; set; } = new();
+    /// <summary>Bottles left on the shelf when the month closed: 0 is a month that sold out.</summary>
+    public int ShelfEndBottles { get; set; }
 }
 
 public sealed record FormulaComponent(string IngredientId, double Amount);
@@ -462,6 +464,8 @@ public sealed class ScrutinyState
     public double Heat { get; set; }
     public double PeakHeat { get; set; }
     public int BribesPaid { get; set; }
+    /// <summary>The last fee the coroner was paid, in cents (0 before the first).</summary>
+    public long LastBribeCents { get; set; }
     public int InquestsHeld { get; set; }
     public int TimesImplicated { get; set; }
     public int MonthsAtShutdownHeat { get; set; }

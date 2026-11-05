@@ -34,7 +34,7 @@ public sealed record ObservedFormula(
     int PriceCents,
     IReadOnlyList<string> Claims,
     int Stock,
-    double UnitCostCents,
+    double UnitCostCents, // a bottle at today's prices: ingredients (with any discount or surcharge) and bottling
     Properties Properties);
 
 public sealed record ObservedBatch(string FormulaId, int Bottles);
@@ -83,7 +83,16 @@ public sealed class Observation
     public double Notoriety { get; init; }
     public double Heat { get; init; }
     public required OrderedMap<int> Capabilities { get; init; }
+    /// <summary>Stills in the back room, lit or cold.</summary>
+    public int Stills { get; init; }
     public int StillsFree { get; init; }
+    /// <summary>The most bottles one still makes in a batch (every still alike).</summary>
+    public int StillBottles { get; init; }
+    /// <summary>
+    /// What would add to the stills or their size, not yet had: unlocks (in content order), then
+    /// ventures, each with what it waits for. The first with Stills &gt; 0 is the next still.
+    /// </summary>
+    public required IReadOnlyList<CapacityStep> NextCapacity { get; init; }
     public required OrderedMap<double> Inventory { get; init; }
     /// <summary>
     /// The stock at today's cost: bottles brewing or on the shelf, and ingredients on hand. Buying
@@ -105,6 +114,11 @@ public sealed class Observation
     public required IReadOnlyList<UnlockProgress> NextUnlocks { get; init; }
     public required IReadOnlyList<ObservedInvestment> Investments { get; init; }
     public LedgerEntry? LastMonth { get; init; }
+    /// <summary>
+    /// Of the last three closed months, how many ended with the shelf bare: the months an order
+    /// from away, which takes only what is left on the shelf, would have gone short.
+    /// </summary>
+    public int ShelfBareMonths { get; init; }
 }
 
 /// <summary>A kind of move currently available, with parameter bounds (api/machine.ts ActionSpec).</summary>
@@ -199,7 +213,10 @@ public static class Machine
             Notoriety = state.Player.Notoriety,
             Heat = state.Scrutiny.Heat,
             Capabilities = state.Player.Capabilities.Clone(),
+            Stills = Math.Max(0, state.Player.Capabilities.GetOr("stills", 0)),
             StillsFree = Lab.StillsFree(state),
+            StillBottles = Lab.StillBottles(state, content),
+            NextCapacity = Progression.CapacitySteps(state, content),
             Inventory = state.Lab.Inventory.Clone(),
             StockValue = Lab.StockValue(state, content),
             Ingredients = content.Ingredients
@@ -214,7 +231,7 @@ public static class Machine
             {
                 var a = Sim.Formulas.Analyze(f.Components, f.ProcessId, content);
                 return new ObservedFormula(f.Id, f.Name, f.PriceCents, f.Claims.ToList(), Lab.StockOf(state, f.Id),
-                    a.UnitCostCents, a.Properties);
+                    Lab.FormulaUnitCost(state, f.Components, f.ProcessId, content), a.Properties);
             }).ToList(),
             BatchesInProgress = state.Lab.Batches.Select(b => new ObservedBatch(b.FormulaId, b.Bottles)).ToList(),
             Customers = state.Customers.Select(c => new ObservedCustomer(
@@ -245,6 +262,7 @@ public static class Machine
             NextUnlocks = Progression.NextUnlocks(state, content),
             Investments = ObserveInvestments(state, content),
             LastMonth = state.Ledger.Count > 0 ? state.Ledger[^1] : null,
+            ShelfBareMonths = state.Ledger.Skip(Math.Max(0, state.Ledger.Count - 3)).Count(e => e.ShelfEndBottles == 0),
         };
     }
 
@@ -273,13 +291,7 @@ public static class Machine
         {
             state.Player.Investments.TryGetValue(inv.Id, out var holding);
             string? refusal = Sim.Investments.InvestRefusal(state, inv, content);
-            var progress = new List<ConditionProgress>();
-            if (holding is null)
-            {
-                if (inv.Requires is not null) progress.AddRange(Requirements.Progress(inv.Requires, state, content));
-                progress.Add(new ConditionProgress("cost", null, "atLeast", state.Player.CashCents, inv.CostCents,
-                    state.Player.CashCents >= inv.CostCents, null));
-            }
+            var progress = holding is null ? Sim.Investments.Progress(state, inv, content) : new List<ConditionProgress>();
             return new ObservedInvestment(
                 inv.Id,
                 inv.CostCents,

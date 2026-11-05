@@ -1,3 +1,106 @@
 # Panacea · round 6 · playtest by "Narrative-game reader"
 
-(Draft in progress. Port 47023, seed 6023, build 3e627bf.)
+I play writing-led games and read every word. I judge the prose and its voice, whether the paper tells the story of my choices, whether the people in it feel like people, whether the satire is aimed at the trade rather than at its victims, and whether the writing repeats.
+
+**Verdict:** The best writing I have met in a business game. The Gazette's deadpan is exact, and it is aimed at the right targets: the trade, the coroner, the Aldermen. When something happens because of me (a bare shelf, a price I set too high, a death, a bribed coroner), the paper says so in a voice that is funny and damning at once. The weakness is volume. Over twelve monthly editions the small items and the personal-column phrases come round so often that by the tenth edition I was skimming the paper the game asks me to read.
+
+**Setup:**
+- Build `3e627bf`, port 47023.
+- Game 1: seed 6023, a fresh start played by hand from the first edition (January 1885) through twelve sends to press, to the edition of December 26, 1885.
+- Game 2: seed 6024 with `--play 10 --dose 1.5` (jump-ahead), played by hand for 2 more presses plus a look at the third month's letters, to see inquests and the coroner.
+- About 45 minutes of active play.
+- Tooling: one helper, `/tmp/claude-0/-home-user-panacea/5950a741-0a66-5ec4-aee9-4515d76a27d7/scratchpad/r6/cold-story-reader/tools/dump.py`, scrolls an edition and saves all its text, so I could count repetitions across editions. The dumps are `ed03.txt` … `ed13.txt` and `g2_ed01-03.txt` in the same folder.
+- Screenshots: `/tmp/claude-0/-home-user-panacea/5950a741-0a66-5ec4-aee9-4515d76a27d7/scratchpad/r6/cold-story-reader/`.
+
+## Run log
+
+| Seed | Months | What I tried | Result |
+|---|---|---|---|
+| 6023 | Jan–Jun 1885 (6 presses) | Mild laudanum tonic, "Mother Mercy's Soothing Elixir", 60c, claims Soothes the Nerves + Banishes Rheumatism (+ Woman's Best Friend from March). ½-col ad from March. Accepted St. Bridget's Benefit Society. | Cash $150 → $193. Regulars 12 → 24. No deaths. Shelf bare twice. |
+| 6023 | Jul–Dec 1885 (6 presses) | Took up **The Proprietor's Almanac** ($40, July). Made a strong second remedy, "Dr. Lowe's Sovereign Nervine" ($1, 1.5 oz laudanum, assay "fatal in a large dose"). Promised a regular "something stronger". Let Feeney undercut me. Paid the sanitary inspector $3. Took up **A Druggist's Standing Order** ($100, November). Paid the Jersey distiller $6. | Cash peaked at $204.58 and fell to $135.95 after the standing order. Regulars 35. 4 deaths, 0 inquests. The shop next door knocked through in October. |
+| 6024 `--play 10 --dose 1.5` | Nov 1885–Jan 1886 (2 presses) | Arrived the month after an inquest had named the remedy. Paid the coroner's "consulting fee" twice ($30 each). | Two bought verdicts ("Visitation of God", "Natural Causes"). Cash $79.95 → $25.59. |
+
+**Timeline of key moments (game 1)**
+- **Jan 3.** Front page: "A NEW CONCERN / On Mulberry Street / He Promises Much". The markets line ends "Coffins, pine, $4.00. Lilies, plentiful." I was hooked.
+- **Jan 31.** "THE SHELF BARE ON MULBERRY STREET / Callers Turned Away". The first lead story was about my own under-brewing. This is when it clicked that the paper is the report on my choices.
+- **Feb.** Mrs. Leah Kaplan's letter asks the paper to spell her name right. The next edition prints "Mrs. Leah Kalpan". A perfect small joke.
+- **Mar 28.** "A RECORD MONTH ON MULBERRY STREET … THE PROPRIETOR ORDERS A NEW HAT." Followed by: "Asked the secret of his success, he said it was the purity of his preparations, and laughed for some time."
+- **Jul.** I took up the Almanac (the first venture I bought). By mistake I also raised my old remedy to $1.00 (Finding 3). The paper caught me: "Mother Mercy's Soothing Elixir, up to $1.00 from 60c." and "Callers who asked the price and went away: twenty-seven."
+- **Jul 25.** "DEATH OF MR. LEWANDOWSKI", "aged 82 years, after a short and remarkably cheerful illness." The proprietor "reminds the ward that the remedy is purely vegetable." The In Memoriam card ends "No inquest has been called. Yet."
+- **Aug.** A regular writes: "Doc, the tonic dont do what it did…". I promised a stronger preparation.
+- **Aug 29.** "FOUND DEAD IN THE BOWERY … Nothing was found on it but a spoon."
+- **Oct 31.** "DEATH OF MR. SMITH": "The proprietor speaks of him warmly, and in the past tense." Also "OUT OF TOWN.—A death at Paterson…" This came the month before I bought the druggist's standing order, so it read like foreshadowing.
+- **Game 2, Nov 28.** Bought verdict: "Coroner Hanlon, lately seen in a new overcoat, found that an unknown elderly woman 'Died by the Visitation of God.' The jury was not consulted."
+- **Game 2, Dec 26.** "THE CORONER IS SATISFIED / … NO BOTTLE IS EXAMINED", "…was seen afterward at Delmonico's, satisfied again."
+
+## Metrics
+
+- **Cash, game 1, by edition:** $150.00 → 156.12 → 156.60 → 164.52 → 173.16 → 184.20 → 193.14 → 166.64 (Almanac and price mistake) → 184.48 → 194.78 → 204.58 → 123.13 (standing order) → 135.95.
+- **Regulars, game 1:** 12 → 14 → 18 → 22 → 21 → 24 → 25 → 27 → 29 → 29 → 31 → 35.
+- **Deaths, game 1:** 4 (Lewandowski, unknown man in the Bowery, Smith, out-of-town Paterson). Inquests: 0.
+- **Filler repetition, game 1, editions 3–13:**
+  - 196 filler items printed, of which 125 were distinct; 60 of those 125 ran in more than one edition.
+  - Items already printed in an earlier edition, edition by edition: 0, 6, 6, 4, 9, 4, 3, 6, 10, 8, **15 of 19**.
+  - The most repeated: "A BOTTLE.—Not to be had for love or money." (4 editions). Nine other items ran in 3 consecutive editions, among them "THE ELEVATED.—A gentleman fell asleep…", "CONEY ISLAND.—Forty thousand…" and "THE SEASON.—Oysters are in…".
+  - Edition 2 also reprinted about seven items from edition 1 (from my notes during play).
+- **Personal-column templates, 11 editions:**
+  - "on the recommendation of a neighbor, who has not been seen about lately": 5
+  - "He came out with a bottle and a look of hope": 5
+  - "recommended to it by the label": 4
+  - "has tried every remedy for X but one, and as of this month has tried that one too": 4
+  - "reports great hopes of it": 4
+- **Lead stories repeated word for word:** "THE SHELF BARE ON MULBERRY STREET / Callers Turned Away / EVERY BOTTLE … THE WARD WAITS." led 4 of the 13 editions (Jan 31, Jun 27, Sep 26, Nov 28). The Mar 28 lead ("A RECORD MONTH") was reprinted later in spring. One variant appeared, on Dec 26: "STILL NO BOTTLES TO BE HAD / The Shortage Continues." It shows the system can vary these; it just doesn't do so often enough.
+- **First venture by hand:** month 7 (July). I opened VENTURES in month 1 and did not reopen it until July, so it may have been on offer earlier. Cost $40. The Almanac brought about 10 callers and 4 mail-order bottles a month, and its in-paper notice ("The pickles are said to be reliable") was a treat, so it felt worth it. The standing order ($100 in month 11) returned $2.97, then $2.64, a month, because I could not brew enough ("ordered twenty-two bottles and had nine"). It felt like a trap I walked into, though the paper told me so honestly.
+- **Driver log:** no exceptions. Only the expected ALSA and dummy-audio warnings.
+
+## Findings
+
+| # | Severity | What I saw | Where | How to reproduce | Suggested fix |
+|---|---|---|---|---|---|
+| 1 | Major | Filler repeats heavily. By the edition of Dec 26, 1885, 15 of the 19 small items had already run. Several items ran three editions in a row ("THE SEASON.—Oysters are in…" on Oct 31, Nov 28, Dec 26). For a reader this turns the paper from something to read into something to scan. | Edition: BRIEFLY, CITY ITEMS, WANTS & SUNDRIES | Play 10+ months and compare editions (`ed11.txt`–`ed13.txt`) | Don't let an item run again within N editions (say 6). Weight toward unseen items. Give each item a season or year window so the pool advances with the calendar. |
+| 2 | Major | The same lead story, headline and body word for word, ran 4 times in 12 months: "THE SHELF BARE ON MULBERRY STREET… one, being told there was none, wept." The lead story is the most important writing in the game, and it reads as canned the second time. The personal-column templates (see Metrics) have the same problem: "who has not been seen about lately" is a great joke once and numbing at five. | Edition front page; PERSONAL | Under-brew in any two months | Write 3–4 variants for each common lead (shelf bare, record month, brisk trade), or a "second time" variant as with "STILL NO BOTTLES". Refer back to earlier events ("for the third time this year"). Retire a personal template for a few editions after it is used. |
+| 3 | Major | In the Formula book I loaded my existing remedy, changed the recipe, and pressed +5c eight times before pressing "ENTER IT AS A NEW REMEDY". The price clicks went live on the **old** remedy, 60c → $1.00. The new remedy began at a separate 50c. The page never names which remedy it is editing. The next paper: "Callers who asked the price and went away: twenty-seven." | Formula book, Assay column ("Sold at …", −5c/+5c) (`53.png`, `54.png`) | Proof → FORMULA → add an ingredient → +5c ×8 → ENTER IT AS A NEW REMEDY → check the type-case ad price | Put a title on the book page naming the remedy being edited. Hold price changes until POUR or ENTER, or apply them to the remedy being saved. |
+| 4 | Minor | A contradiction within one edition. The Coroner's Court item: "An inquest upon the body of an unknown young mother…". The lead story body in the same paper: "The inquest upon the body of **the infant child of** an unknown young mother…". The previous paper had reported the mother herself found dead, and the coroner's letter was "Re: Inquest into the Death of an Unknown Young Mother". | Game 2, edition of Dec 26, 1885 (`g2_09.png`, `g2_ed03.txt`) | Seed 6024 `--play 10 --dose 1.5`; pay the coroner on both inquests | Use one subject template for the inquest descriptor in both places. |
+| 5 | Minor | With two remedies on sale, no death notice, lead story or In Memoriam card says which one the dead man took. Lewandowski died the month I launched a $1 remedy rated "fatal in a large dose". The paper says only "a certain remedy". I could not learn from the death. | Clipping card "IN MEMORIAM" (`62.png`), lead story | Sell two remedies; wait for a death | Have the card's "Last seen at the counter" line name the bottle. The paper can stay coy; the card should not. |
+| 6 | Minor | The bottle woodcut on my YOUR NOTICE clipping card reads "DR. ——'s Celebrated PANACEA … ONE DOLLAR", while my notice is Mother Mercy's at 60c. It breaks the "this is my product" feeling. | Clipping card for my notice (`63.png`) | Rename the remedy, click your notice in the paper | Print the remedy's name and price on the label, or a blank label. The in-paper caption "From the engraver's stock" already covers the stock look. |
+| 7 | Minor | Hovering a customer at the counter shows their tooltip on top of an open drawer (Ventures, the Still). The mouse passes through the modal. | Proof, any drawer open (`50.png`, `58.png`) | Open VENTURES; move the mouse over the lower part of the screen | Block hover under open drawers. |
+| 8 | Minor | The inquest letter warns the coroner's "fee rises with every envelope", but the second envelope a month later was also $30.00. Only the odds of being found out moved (1 in 10 → 2 in 10). | Coroner's letter, game 2 (`g2_03.png`, `g2_07.png`) | Pay the coroner on two inquests in a row | Raise the figure, or reword the warning. |
+| 9 | Low | Inquest cards and death portraits reuse the same old man in a top hat (Lewandowski in game 1; "Name Unknown" in game 2). In the paper the joke "From a stock likeness" covers this. On the personal memorial card it undercuts the person. | Clipping cards (`62.png`, `g2_02.png`) | Two elderly-man deaths | Vary the card portraits, or pick one from the customer's own counter figure. |
+| 10 | Low | The Benefit Society letter is identical, word for word, in both games, and so are the inquest letters except for the descriptor. A recurring correspondent could vary their words on a second appearance. | Letters | Compare `42.png` with `g2_10.png` | One or two variants per letter type. |
+
+## What works
+
+- **The voice.** It is consistent, period-true and deadpan, and its targets are the trade, City Hall, the coroner and the charity ladies, never the sick. Examples:
+  - "The poor were not admitted, but are said to have done well out of it."
+  - "Patent medicines were thirty-ninth, between the policy shops and the Elevated."
+  - "Mrs. Whittle's correspondence continues brisk, notwithstanding her funeral in March."
+  - "The Justice read the label and dismissed the case for vagueness."
+- **The dead are treated with dignity through understatement.** "After a short and remarkably cheerful illness". "The proprietor speaks of him warmly, and in the past tense." "The police describe the face as peaceful. A cork was found in one hand." The joke always lands on the trade, not on the body.
+- **The coroner arc** is the best writing in the game. The inquest letter's three replies with pencilled odds ("about 1 in 10 that it comes out. —J.D."). The new overcoat. Delmonico's. "A green bottle entered in evidence could not afterward be found."
+- **The paper reacts to my choices**, in the lead story and in THE TRADE: the bare shelf, the new hat, the price rise and the 27 walkaways, the knocked-through wall ("the cobbler is understood to have been consulted afterward"), the Brooklyn druggist who calls the price he pays "none of our business".
+- **The letters have character.** "Doc, the tonic dont do what it did. I take two spoons and then four and its like water." This is the addiction mechanic, delivered in one customer's voice. The sanitary inspector "who is still in the back room". The distillers' ring.
+- **The counter figures tell a quiet story.** Their tags drift from "peaky · delighted" to "poorly · asks for it by name" to "gravely ill" without a number shown. Death waits at the counter beside a named regular.
+- **Period texture with callbacks.** Grant's death in July 1885 and his funeral in August; the Pedestal Fund offer in March and its withdrawal in August ("has withdrawn his offer and sent a dollar").
+- **THE MARKETS line** as a running death-counter: "Coffins, pine, $4.15. Lilies, firm." / "Lilies, scarce."
+- **The proof as a page with "dele (strike out)" marks** on last month's personals is a lovely framing device, as is "The editor sets it when the month is out."
+
+## Disclosures
+
+- **Game 2 used `--play 10 --dose 1.5`.** A scripted proprietor played Jan–Oct 1885.
+- I used `read` text dumps to count repetitions and quote text exactly, and `state` to check prices after Finding 3. A real player has only the screen.
+- I used `targets` to find button coordinates.
+- I did not read the source, the docs or earlier playtests.
+- Some early screenshots (01–29) could not be viewed back because of a tool image limit. I noted what they showed in the draft as I played, so the notes on Ed.1–3 come from that and from `ed03.txt`.
+
+## First hour
+
+- **0–3 min.** The first edition. I read it top to bottom. I took it to be a sensational newspaper in which I am the "NEW CONCERN" on Mulberry Street. I wasn't yet sure what to *do*. The clickable "☞ the books" line and "TO THE PROOF" told me.
+- **3–10 min.** The proof page. I took it as next month's paper, with my ad slot and the Lead Story box reading "The editor sets it when the month is out." That line taught me the loop before I played it. The Formula book's Assay bars (Kick / Calm / Habit / Danger) read well: "hard to give up", "fatal in a large dose". I named the remedy. I did not notice that ad space was locked in month 1.
+- **10 min.** I sent to press. The lead story was about my bare shelf, and **it clicked**: the paper is the feedback.
+- **12–20 min.** I bought ½ col and added a claim. A record month and the new hat. Letters (Kaplan, the Benefit Society) gave regulars names and voices.
+- **20–30 min.** I found the VENTURES Prospectus and took the Almanac. I made my price mistake in the Formula book and only understood it from the next paper. That part was fair, but it should not have happened.
+- **30–40 min.** The first death. I read the In Memoriam card twice. "No inquest has been called. Yet." made me want to stop selling the strong remedy, and I wanted to know if it was that one. By now I recognized about half the small items and started skimming them.
+
+## Score
+
+**7 / 10.** The writing is publishable, and the paper really does tell the story of my shop. Repetition in the filler and the lead stories wears that down within a year of game time. To move it up a point: cut repeats, so no filler item reruns within six editions and the common leads get variants, and make the death cards name the bottle.

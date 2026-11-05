@@ -19,3 +19,5 @@
 - May 32 sold (+$9.68); Jun 2 letters: printed testimonial (Bridget Sullivan), joined St. Bridget's benefit society ($1.50/mo). Letters drawer: focus starts on first reply, moves to next letter after a reply: good. Focus to none after the last reply; Escape then puts focus on SEND TO PRESS.
 - Jun: batch size cannot be changed by keyboard; ONE mouse click on the bottle grid (700,345) set 48. Disclosed.
 - Jul: bought 1/4 COL by keyboard (selected = inverted + frame). 45 sold, a second still arrived ("IN THE TRADE.—A second copper still...").
+- Aug: Feeney price-war letter -> "Let him try". With two stills, Right,Enter on ORDER ENOUGH moved focus to "ORDER AND LIGHT BOTH · 48 EACH", and the next Enter lit both (96 brewing) when I meant one. 71 sold, first death (infant of Mrs. Hale, teething claim, 0.5 oz laudanum/bottle).
+- Sep: inquest letter (Coroner). Testified: "found nothing against you". Verdict in paper: "Died of an Excess of Spite." Diploma offer: stove. After the last reply, Escape left focus at none, a second Escape reached SEND TO PRESS. Swapped laudanum for valerian by keyboard (Backspace / Enter on jars). 57 sold.

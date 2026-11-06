@@ -86,6 +86,14 @@ public partial class Main : Control
 		footer.AddThemeStyleboxOverride("panel", bar);
 		var row = new HBoxContainer();
 		row.AddThemeConstantOverride("separation", 18);
+		// the menu: the title page, the settings, a way out (Escape opens it too)
+		var menu = InvertedButton("☰ MENU");
+		menu.AddThemeFontSizeOverride("font_size", 13);
+		menu.SizeFlagsVertical = SizeFlags.ShrinkCenter;
+		menu.FocusMode = FocusModeEnum.Click;
+		menu.TooltipText = "The title page, the settings, and a way out. (Escape opens it too.)";
+		menu.Pressed += () => { if (!_pressing && _card == null) ShowPause(); };
+		row.AddChild(menu);
 		_status = Print.Label("", Print.FellIt, 17, color: Print.Paper);
 		_status.SizeFlagsVertical = SizeFlags.ShrinkCenter;
 		row.AddChild(_status);
@@ -100,7 +108,7 @@ public partial class Main : Control
 		sound.TooltipText = "Sound is on. Press to silence it.";
 		sound.SizeFlagsVertical = SizeFlags.ShrinkCenter;
 		sound.AddThemeFontSizeOverride("font_size", 13);
-		sound.Pressed += () => { Sfx.SetEnabled(!Sfx.Enabled); sound.Text = Band(Sfx.Enabled); sound.TooltipText = Sfx.Enabled ? "Sound is on. Press to silence it." : "Sound is off. Press to have it back."; };
+		sound.Pressed += () => { Settings.SetSound(!Sfx.Enabled); SyncSound(); };
 		row.AddChild(sound);
 		row.AddChild(_nav);
 		footer.AddChild(row);
@@ -112,6 +120,19 @@ public partial class Main : Control
 		Autoplay.Laudanum = double.Parse(Arg("--dose", "0.25"), System.Globalization.CultureInfo.InvariantCulture);
 		for (var i = 0; i < play && !_game.Ended; i++) Autoplay.OneMonth(_game);
 		ShowEdition();
+		// a player's launch opens on the title page; screenshot, driver and test runs go straight in
+		_dev = args.Any(a => a is "--shot" or "--play" or "--driver" or "--screen" or "--drawer" or "--clip" or "--fake" or "--pour" or "--hover" or "--autopress" or "--seed")
+			// --player: a driven run that takes the player's path (the title page, real saves)
+			&& !args.Contains("--player");
+		if (!_dev)
+		{
+			Settings.Load();
+			SyncSound();
+			ShowTitle();
+		}
+		else if (args.Contains("--title")) ShowTitle();
+		else if (args.Contains("--menu")) ShowPause();
+		if (Arg("--savetest", "") is { Length: > 0 } months) SaveTest(int.Parse(months));
 		if (Arg("--screen", "edition") is "desk" or "proof") SetDesk(true);
 		if (Arg("--drawer", "") is { Length: > 0 } drawer) _desk.OpenDrawer(drawer);
 		if (int.TryParse(Arg("--driver", ""), out var port))
@@ -197,13 +218,148 @@ public partial class Main : Control
 		return b;
 	}
 
+	// ---------- the front door: the title page, the menu, the settings, the save ----------
+
+	private bool _dev;
+	private FrontCard? _card;
+	private CanvasLayer? _cardLayer;
+	private bool _confirmNew;
+
+	private void SyncSound()
+	{
+		_sound.Text = Band(Sfx.Enabled);
+		_sound.TooltipText = Sfx.Enabled ? "Sound is on. Press to silence it." : "Sound is off. Press to have it back.";
+	}
+
+	private void ShowCard(FrontCard card)
+	{
+		CloseCard();
+		_cardLayer ??= new CanvasLayer { Layer = 30 };
+		if (_cardLayer.GetParent() == null) AddChild(_cardLayer);
+		_card = card;
+		_cardLayer.AddChild(card);
+		Sfx.Play("slip", -4f);
+	}
+
+	private void CloseCard()
+	{
+		if (_card == null) return;
+		_card.GetParent()?.RemoveChild(_card);
+		_card.QueueFree();
+		_card = null;
+		Main.Guard(250);
+		FocusMain();
+	}
+
+	private void ShowTitle()
+	{
+		var c = new FrontCard(640);
+		c.Title("PANACEA", 54);
+		c.Line("A business in patent medicines · New York, 1885–1906", 17);
+		c.Rule();
+		c.Notice("A NOTE BEFORE THE SHOP OPENS",
+			"Panacea is a satire of the patent-medicine trade. It shows drug use and addiction, deaths (among them the deaths of infants) and the frauds the trade practised. The joke is on the sellers and the men who let them sell, never on the people they sold to.");
+		var label = SaveStore.Label();
+		var resumable = label != null && label != "The business is closed.";
+		if (resumable) c.Choice("☞  CONTINUE", ContinueSaved, label, solid: true);
+		c.Choice(_confirmNew ? "A NEW SHOP? PRESS AGAIN" : "A NEW SHOP", () =>
+		{
+			// a shop on the books is not thrown away on one press
+			if (resumable && !_confirmNew) { _confirmNew = true; ShowTitle(); return; }
+			_confirmNew = false;
+			NewShop(null);
+			CloseCard();
+		}, resumable ? (_confirmNew ? "The shop on the books will be lost." : null) : "Twenty years of the trade, from January 1885.", solid: !resumable);
+		c.Choice("SETTINGS", () => ShowSettings(ShowTitle));
+		c.Choice("QUIT", () => GetTree().Quit());
+		ShowCard(c);
+	}
+
+	private void ShowPause()
+	{
+		var c = new FrontCard(520);
+		c.Title("THE MENU", 30);
+		c.Line(_game.Ended ? "The business is closed." : "The game is saved at every edition.", 15);
+		c.OnEscape = CloseCard;
+		c.Choice("☞  BACK TO THE SHOP", CloseCard, solid: true);
+		c.Choice("SETTINGS", () => ShowSettings(ShowPause));
+		c.Choice("SAVE, AND THE TITLE PAGE", () => { SaveNow(); ShowTitle(); });
+		c.Choice("SAVE, AND QUIT", () => { SaveNow(); GetTree().Quit(); });
+		ShowCard(c);
+	}
+
+	private void ShowSettings(Action back)
+	{
+		var c = new FrontCard(480);
+		c.Title("SETTINGS", 30);
+		c.OnEscape = back;
+		c.Choice($"THE WINDOW: {(Settings.Fullscreen ? "FULL SCREEN" : "A WINDOW")}", () => { Settings.SetFullscreen(!Settings.Fullscreen); ShowSettings(back); }, "Press to change.");
+		c.Choice($"SOUND: {(Settings.Sound ? "ON" : "OFF")}", () => { Settings.SetSound(!Settings.Sound); SyncSound(); ShowSettings(back); }, "The press, the till, the paper.");
+		c.Choice("☜  BACK", back, solid: true);
+		ShowCard(c);
+	}
+
+	/// <summary>Writes the save (a dev run never touches the player's save).</summary>
+	private void SaveNow()
+	{
+		if (_dev || _game is not SimGame sg) return;
+		SaveStore.Write(sg.SaveJson());
+	}
+
+	private void ContinueSaved()
+	{
+		var json = SaveStore.Read();
+		if (json == null) return;
+		using (var f = FileAccess.Open("res://data/paper.en.json", FileAccess.ModeFlags.Read))
+			_writer = new EditionWriter(f.GetAsText());
+		var writer = _writer;
+		var loaded = SimGame.Load(json, facts => writer.Write(facts));
+		if (loaded == null) { ShowTitle(); return; }
+		_game = loaded;
+		_desk.Bind(_game);
+		SetDesk(false, slide: false);
+		ShowEdition();
+		CloseCard();
+	}
+
+	/// <summary>A fresh shop: a new seed (the same one in a dev run), a fresh paper, the old save gone.</summary>
+	private void NewShop(string? seed)
+	{
+		if (!_dev) SaveStore.Delete();
+		using (var f = FileAccess.Open("res://data/paper.en.json", FileAccess.ModeFlags.Read))
+			_writer = new EditionWriter(f.GetAsText());
+		_game = SimGame.Start(seed ?? $"shop-{(long)Time.GetUnixTimeFromSystem()}-{GD.Randi() % 10000}");
+		_desk.Bind(_game);
+		SetDesk(false, slide: false);
+		ShowEdition();
+		SaveNow();
+	}
+
+	/// <summary>Dev: plays N months, saves, loads, and checks the loaded game matches.</summary>
+	private void SaveTest(int months)
+	{
+		for (var i = 0; i < months && !_game.Ended; i++) Autoplay.OneMonth(_game);
+		if (_game is not SimGame sg) return;
+		var json = sg.SaveJson();
+		var back = SimGame.Load(json, null);
+		var opt = new System.Text.Json.JsonSerializerOptions { IncludeFields = true };
+		var a = System.Text.Json.JsonSerializer.Serialize(sg.Desk(), opt) + System.Text.Json.JsonSerializer.Serialize(sg.Facts, opt);
+		var b = back == null ? "" : System.Text.Json.JsonSerializer.Serialize(back.Desk(), opt) + System.Text.Json.JsonSerializer.Serialize(back.Facts, opt);
+		GD.Print(a == b ? $"SAVETEST OK: {months} months, {json.Length} bytes" : "SAVETEST MISMATCH");
+	}
+
+	public override void _Notification(int what)
+	{
+		// closing the window keeps the shop
+		if (what == NotificationWMCloseRequest) SaveNow();
+	}
+
 	private void Navigate()
 	{
 		if (_game.Ended)
 		{
 			_restarts++;
-			_game = SimGame.Start($"{_seed}-{_restarts}");
-			ShowEdition();
+			NewShop(_dev ? $"{_seed}-{_restarts}" : null);
 			return;
 		}
 		SetDesk(!_onDesk);
@@ -232,6 +388,7 @@ public partial class Main : Control
 		Sfx.Play("lever", 0f, 0.02f);
 		Sfx.StopLoop("death", 0.3f);
 		_game.GoToPress();
+		SaveNow();
 		var edition = _writer.Write(_game.Facts);
 
 		var run = BuildPressRun(edition, out var sheets, out var copies, out var title);
@@ -326,6 +483,7 @@ public partial class Main : Control
 		{
 			if (_clipping != null) { CloseClipping(); GetViewport().SetInputAsHandled(); return; }
 			if (_onDesk && _desk.CloseDrawer()) { GetViewport().SetInputAsHandled(); return; }
+			if (_card == null && !_dev) { ShowPause(); GetViewport().SetInputAsHandled(); return; }
 		}
 		// a cutting in the hand holds the keyboard: Tab and the arrows go nowhere behind it
 		if (_clipping != null && (e.IsActionPressed("ui_focus_next") || e.IsActionPressed("ui_focus_prev")

@@ -46,6 +46,12 @@ cd godot && godot --headless --export-release Linux ../build/linux/Panacea.x86_6
 
 The macOS preset is unsigned and untested.
 
+The game keeps one save, `user://panacea.save` (on Linux, `~/.local/share/godot/app_userdata/Panacea/`). A save
+is the seed and the log of every action taken; loading replays it, so the shop and the paper's memory of what it
+printed are rebuilt exactly. It is written after every edition and on leaving. Runs started with dev arguments
+(`--shot`, `--play`, `--driver`, `--seed`, ...) skip the title page and never touch the save; add `--player` to
+a driven run to take the player's path.
+
 ### Layout
 
 | Package             | Role                                                                                       |

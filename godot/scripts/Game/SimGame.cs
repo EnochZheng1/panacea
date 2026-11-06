@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Panacea.Paper;
 using Panacea.Sim;
@@ -46,19 +47,94 @@ public sealed class SimGame : IGame
 	private static string? Sentence(string? error) =>
 		string.IsNullOrEmpty(error) ? error : char.ToUpperInvariant(error[0]) + error[1..] + (error.EndsWith('.') ? "" : ".");
 
-	public string? Buy(string ingredientId, double ounces) => Do(new BuyIngredient(ingredientId, (int)Math.Round(ounces)));
+	public string? Buy(string ingredientId, double ounces) { Log("buy", ingredientId, N(ounces)); return Do(new BuyIngredient(ingredientId, (int)Math.Round(ounces))); }
 
-	public string? CreateFormula(string name, IReadOnlyList<(string IngredientId, double Ounces)> components, string processId, long priceCents) =>
-		Do(new CreateFormula(name, Components(components), processId, (int)priceCents));
+	public string? CreateFormula(string name, IReadOnlyList<(string IngredientId, double Ounces)> components, string processId, long priceCents)
+	{
+		Log(new[] { "create", name, processId, priceCents.ToString(CultureInfo.InvariantCulture) }.Concat(Flat(components)).ToArray());
+		return Do(new CreateFormula(name, Components(components), processId, (int)priceCents));
+	}
 
-	public string? SetPrice(string formulaId, long priceCents) => Do(new SetPrice(formulaId, (int)priceCents));
-	public string? Reformulate(string formulaId, IReadOnlyList<(string IngredientId, double Ounces)> components, string processId) =>
-		Do(new Reformulate(formulaId, Components(components), processId));
-	public string? SetClaims(string formulaId, IReadOnlyList<string> claimIds) => Do(new SetClaims(formulaId, claimIds.ToList()));
-	public string? SetAdSpend(long cents) => Do(new SetAdSpend((int)cents));
-	public string? Brew(string formulaId, int bottles) => Do(new BrewBatch(formulaId, bottles));
-	public string? Resolve(string instanceId, string choiceId) => Do(new ResolveEvent(instanceId, choiceId));
-	public string? Invest(string investmentId) => Do(new Invest(investmentId));
+	public string? SetPrice(string formulaId, long priceCents) { Log("price", formulaId, priceCents.ToString(CultureInfo.InvariantCulture)); return Do(new SetPrice(formulaId, (int)priceCents)); }
+	public string? Reformulate(string formulaId, IReadOnlyList<(string IngredientId, double Ounces)> components, string processId)
+	{
+		Log(new[] { "reformulate", formulaId, processId }.Concat(Flat(components)).ToArray());
+		return Do(new Reformulate(formulaId, Components(components), processId));
+	}
+	public string? SetClaims(string formulaId, IReadOnlyList<string> claimIds) { Log(new[] { "claims", formulaId }.Concat(claimIds).ToArray()); return Do(new SetClaims(formulaId, claimIds.ToList())); }
+	public string? SetAdSpend(long cents) { Log("ads", cents.ToString(CultureInfo.InvariantCulture)); return Do(new SetAdSpend((int)cents)); }
+	public string? Brew(string formulaId, int bottles) { Log("brew", formulaId, bottles.ToString(CultureInfo.InvariantCulture)); return Do(new BrewBatch(formulaId, bottles)); }
+	public string? Resolve(string instanceId, string choiceId) { Log("resolve", instanceId, choiceId); return Do(new ResolveEvent(instanceId, choiceId)); }
+	public string? Invest(string investmentId) { Log("invest", investmentId); return Do(new Invest(investmentId)); }
+
+	// ---------- saving: the seed and every action, replayed on loading ----------
+
+	/// <summary>Every action the player has taken, in order; with the seed it rebuilds the game exactly.</summary>
+	private readonly List<string[]> _log = new();
+	private bool _replaying;
+
+	private void Log(params string[] entry) { if (!_replaying) _log.Add(entry); }
+	private static string N(double v) => v.ToString("R", CultureInfo.InvariantCulture);
+	private static IEnumerable<string> Flat(IReadOnlyList<(string IngredientId, double Ounces)> c) => c.SelectMany(x => new[] { x.IngredientId, N(x.Ounces) });
+	private static List<(string, double)> Unflat(string[] e, int from)
+	{
+		var list = new List<(string, double)>();
+		for (var i = from; i + 1 < e.Length; i += 2) list.Add((e[i], double.Parse(e[i + 1], CultureInfo.InvariantCulture)));
+		return list;
+	}
+
+	/// <summary>The game as a save: a small JSON document of the seed, a label for the title card, and the log.</summary>
+	public string SaveJson()
+	{
+		var d = Desk();
+		var label = $"{new DateTime(d.Year, d.Month, 1).ToString("MMMM yyyy", CultureInfo.InvariantCulture)} · {EditionWriter.Money(d.CashCents)} · {d.Customers} regulars";
+		return System.Text.Json.JsonSerializer.Serialize(new SaveFile { Version = 1, Seed = _seed, Label = Ended ? "The business is closed." : label, Ended = Ended, Log = _log });
+	}
+
+	public sealed class SaveFile
+	{
+		public int Version { get; set; }
+		public string Seed { get; set; } = "";
+		public string Label { get; set; } = "";
+		public bool Ended { get; set; }
+		public List<string[]> Log { get; set; } = new();
+	}
+
+	/// <summary>
+	/// Rebuilds a saved game by replaying its actions from the seed. <paramref name="onEdition"/>
+	/// sees every edition the player read (the first, and one after each press), so the paper's
+	/// memory of what it printed is rebuilt with it.
+	/// </summary>
+	public static SimGame? Load(string json, Action<PaperFacts>? onEdition)
+	{
+		var save = System.Text.Json.JsonSerializer.Deserialize<SaveFile>(json);
+		if (save == null || save.Version != 1) return null;
+		var g = (SimGame)Start(save.Seed);
+		onEdition?.Invoke(g.Facts);
+		foreach (var e in save.Log)
+		{
+			g._log.Add(e);
+			g._replaying = true;
+			try
+			{
+				switch (e[0])
+				{
+					case "buy": g.Buy(e[1], double.Parse(e[2], CultureInfo.InvariantCulture)); break;
+					case "create": g.CreateFormula(e[1], Unflat(e, 4), e[2], long.Parse(e[3], CultureInfo.InvariantCulture)); break;
+					case "price": g.SetPrice(e[1], long.Parse(e[2], CultureInfo.InvariantCulture)); break;
+					case "reformulate": g.Reformulate(e[1], Unflat(e, 3), e[2]); break;
+					case "claims": g.SetClaims(e[1], e.Skip(2).ToList()); break;
+					case "ads": g.SetAdSpend(long.Parse(e[1], CultureInfo.InvariantCulture)); break;
+					case "brew": g.Brew(e[1], int.Parse(e[2], CultureInfo.InvariantCulture)); break;
+					case "resolve": g.Resolve(e[1], e[2]); break;
+					case "invest": g.Invest(e[1]); break;
+					case "press": g.GoToPress(); onEdition?.Invoke(g.Facts); break;
+				}
+			}
+			finally { g._replaying = false; }
+		}
+		return g;
+	}
 
 	public FormulaPreview Preview(IReadOnlyList<(string IngredientId, double Ounces)> components, string processId)
 	{
@@ -80,6 +156,7 @@ public sealed class SimGame : IGame
 	public void GoToPress()
 	{
 		if (Ended) return;
+		Log("press");
 		foreach (var r in Desk().Regulars) _known[r.Name] = r;
 		foreach (var p in Facts.Products) _lastPrice[p.Id] = p.PriceCents;
 		var before = Facts.Sales.Sum(x => x.Bottles);

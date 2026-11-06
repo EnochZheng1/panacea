@@ -24,7 +24,11 @@ export interface CausalDelta {
   detail?: string;
 }
 
-export type LeaveReason = 'recovered' | 'dissatisfied' | 'drifted' | 'bereaved';
+/**
+ * Why a regular stopped coming. `afraid`: an undependent regular who heard what the ward says of
+ * the bottle (see `GameState.ward`) and took their custom elsewhere.
+ */
+export type LeaveReason = 'recovered' | 'dissatisfied' | 'drifted' | 'bereaved' | 'afraid';
 export type InquestOutcome = 'cleared' | 'implicated' | 'bribed';
 
 export type NewsItem =
@@ -63,11 +67,32 @@ export interface InvestmentHolding {
   endsTurn: number | null;
 }
 
+/**
+ * One formula's sales this month, with where the bottles went: to regulars at the counter
+ * (`shop`), to strangers at the counter (`walkIn`), to the druggists under contract
+ * (`wholesale`) and by post (`post`). The four splits sum to `bottles` and `revenueCents`.
+ */
 export interface SaleRecord {
   formulaId: string;
   bottles: number;
   revenueCents: number;
+  shopBottles: number;
+  shopRevenueCents: number;
+  walkInBottles: number;
+  walkInRevenueCents: number;
+  wholesaleBottles: number;
+  wholesaleRevenueCents: number;
+  postBottles: number;
+  postRevenueCents: number;
+  /**
+   * Of `shopRevenueCents`, what regulars who crave the bottle paid over the shelf price (see
+   * `cravingPremiumCents`): the counter took `shopBottles` × the price, and this besides.
+   */
+  cravingPremiumCents: number;
 }
+
+/** Where a bottle sold went (see `SaleRecord`). */
+export type SaleSource = 'shop' | 'walkIn' | 'wholesale' | 'post';
 
 /** Running totals for the month in progress. Actions and turn phases both write here. */
 export interface MonthInProgress {
@@ -75,6 +100,7 @@ export interface MonthInProgress {
   startReputation: number;
   startNotoriety: number;
   startHeat: number;
+  startWardMemory: number;
   /** What the stock was worth at cost when the month opened (see `stockValue`). */
   startStockValueCents: number;
   deltas: CausalDelta[];
@@ -110,6 +136,9 @@ export interface LedgerEntry {
   notorietyEnd: number;
   heatStart: number;
   heatEnd: number;
+  /** What the ward remembered against the shop when the month opened and closed (0..100). */
+  wardMemoryStart: number;
+  wardMemoryEnd: number;
   /**
    * Ingredients on hand and bottles brewing or on the shelf, valued at cost, when the month
    * opened and when it closed. Cash spent on stock is not lost: the books show it here.
@@ -209,6 +238,20 @@ export interface Customer {
 
 export type DeathCause = 'overdose' | 'poisoning' | 'disease' | 'natural';
 
+/**
+ * The cause of a death as the ward and the coroner's register give it, which the player sees:
+ *
+ * - `overdose`: found insensible after a dose (every overdose; the bottle is the plain suspect).
+ * - `wasting`: wasted away, as from a slow poison (a load of metals).
+ * - `ailment`: of the complaint they came in with (`DeathRecord.ailment`): the consumption, a
+ *   cough gone to the chest, an infant's teething fever.
+ * - `old_age`: an elderly customer, in the ordinary way.
+ * - `natural`: suddenly, of a fever going about, in the ordinary way.
+ *
+ * It never says whether the remedy hastened a death that looked natural: that stays hidden.
+ */
+export type ReportedCause = 'overdose' | 'wasting' | 'ailment' | 'old_age' | 'natural';
+
 /** The human ledger. Truth fields are hidden from the player. */
 export interface DeathRecord {
   id: string;
@@ -219,8 +262,12 @@ export interface DeathRecord {
   segment: string;
   consumer: 'self' | 'infant';
   anonymous: boolean;
+  /** The complaint they took the remedy for, if known (a stranger by post: null). */
+  ailment: string | null;
   /** Truth. */
   cause: DeathCause;
+  /** The cause as the ward gives it (see `ReportedCause`): visible to the player. */
+  reportedCause: ReportedCause;
   /** Truth: did your product cause or hasten this death? */
   productImplicated: boolean;
   formulaId: string | null;
@@ -298,6 +345,18 @@ export interface GameState {
   };
   customers: Customer[];
   deaths: DeathRecord[];
+  /**
+   * The ward's memory of harm: what the neighbours say of the shop, apart from the authorities'
+   * suspicion (`scrutiny.heat`). Deaths the remedy caused or hastened, verdicts that named it and
+   * bottles the Board of Health carried away add to it; it fades by a share each month, so a bad
+   * month weighs for most of a year. It puts off strangers at the counter, keeps them from coming
+   * back as regulars, and sends some regulars elsewhere.
+   */
+  ward: {
+    /** 0..100. */
+    memory: number;
+    peakMemory: number;
+  };
   scrutiny: {
     /** 0..100: how much the neighbourhood, the press and the authorities are talking. */
     heat: number;

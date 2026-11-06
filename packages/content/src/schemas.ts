@@ -411,6 +411,14 @@ export const ConfigSchema = z.strictObject({
     perReputation: z.number().min(0),
     /** Chance a satisfied walk-in becomes a regular. */
     conversionChance: z.number().min(0).max(1),
+    /**
+     * Word of a strong bottle brings callers of its own (`callers.word`): ⌊wordPerHabit ×
+     * clamp(habit − wordHabitFloor, 0, wordHabitCap)⌋ a month, by the most habit-forming bottle on
+     * the shelf. A mild tonic is not talked about; a narcotic one is.
+     */
+    wordPerHabit: z.number().min(0),
+    wordHabitFloor: z.number().min(0),
+    wordHabitCap: z.number().min(0),
   }),
   market: z.strictObject({
     /**
@@ -426,14 +434,33 @@ export const ConfigSchema = z.strictObject({
      * (budgetBase + budgetPerAttachment × attachment) × (1 + dependency) on the extra ones.
      */
     bottlesPerAttachment: z.number().min(0),
+    /**
+     * A craving regular needs more as the dose stops working ("two spoons and then four"): their
+     * attachment for the extra bottles is dependency × (bottlesPerAttachment + bottlesPerTolerance
+     * × their total tolerance above toleranceFloor), at most habitBottlesMax extra bottles. A mild
+     * tonic's regulars never build tolerance past the floor; a strong bottle's do within months.
+     */
+    bottlesPerTolerance: z.number().min(0),
+    toleranceFloor: z.number().min(0),
+    /**
+     * A regular who craves a strong bottle pays over its price, up to cravingPremium × dependency
+     * of it, while they owe less than premiumDebtMonths months' means: in full for a bottle whose
+     * habit is premiumHabitFloor + premiumHabitSpan or more, nothing at premiumHabitFloor or less.
+     */
+    cravingPremium: z.number().min(0),
+    premiumDebtMonths: z.number().min(0),
+    premiumHabitFloor: z.number().min(0),
+    premiumHabitSpan: z.number().positive(),
+    habitBottlesMax: z.number().int().min(0),
     budgetBase: z.number().min(0),
     budgetPerAttachment: z.number().min(0),
     /**
      * A regular can afford usual price × meansPerMonth a month. Spending more runs up a debt,
-     * paid down in leaner months; while a regular owes more than a month's means they are
-     * ruined: they buy one bottle at most, and their family complains.
+     * paid down in leaner months; while a regular owes more than `ruinMonths` months' means
+     * they are ruined: they buy one bottle at most, and their family complains.
      */
     meansPerMonth: z.number().positive(),
+    ruinMonths: z.number().positive(),
     /**
      * The habit eats the means: a regular's means are multiplied by
      * (1 − meansLostToHabit × dependency).
@@ -519,6 +546,38 @@ export const ConfigSchema = z.strictObject({
     bribeExposurePerNotoriety: z.number().min(0),
     bribeExposureMax: z.number().min(0).max(1),
     benignVerdicts: z.array(IdSchema).min(1),
+  }),
+  /**
+   * The ward's memory of harm (0..100), apart from the heat: what the neighbours say. Each
+   * month-end it fades to (1 − memoryDecay) of itself, less memoryDecayFlat, and then the month's
+   * harms are added to it.
+   */
+  ward: z.strictObject({
+    memoryDecay: z.number().min(0).max(1),
+    memoryDecayFlat: z.number().min(0),
+    /** A regular's death the remedy caused, that looked it (an overdose or a wasting). */
+    perDeath: z.number().min(0),
+    perInfantDeath: z.number().min(0),
+    /** A stranger found dead with the bottle (a walk-in, or a buyer by post). */
+    perStrangerDeath: z.number().min(0),
+    /** A death that looked natural, but the remedy hastened. */
+    perHastenedDeath: z.number().min(0),
+    /** Added for a death from a mis-measured batch: a bottle that killed on the spot. */
+    perBadBatchDeath: z.number().min(0),
+    /** An inquest whose jury named the remedy. */
+    perVerdict: z.number().min(0),
+    /** Added when the verdict came of a bribe found out. */
+    perExposedBribe: z.number().min(0),
+    /** The Board of Health carried the bottles away. */
+    perSeizure: z.number().min(0),
+    /** At a memory of 100, strangers at the counter buy this much less often… */
+    walkInLoss: z.number().min(0).max(1),
+    /** …come back as regulars this much less often… */
+    conversionLoss: z.number().min(0).max(1),
+    /** …and an undependent regular leaves with this chance a month. Scales with the memory. */
+    leaveChance: z.number().min(0).max(1),
+    /** The months the observation counts what the ward remembers over (`wardRemembers`). */
+    rememberMonths: z.number().int().min(1),
   }),
 });
 export type Config = z.infer<typeof ConfigSchema>;

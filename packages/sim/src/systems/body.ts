@@ -15,6 +15,7 @@ import {
   zeroTolerance,
 } from './pharmacology.ts';
 import { recordDeath } from './scrutiny.ts';
+import { frightenedAway } from './ward.ts';
 
 /**
  * The body model. Each month, every regular takes the bottles they bought:
@@ -76,6 +77,7 @@ export const bodyPhase: Phase = {
           segment: seg.id,
           consumer,
           anonymous: true,
+          ailment: w.ailmentId,
           cause: 'overdose',
           productImplicated: true,
           formulaId: w.bought.formulaId,
@@ -138,6 +140,7 @@ function monthForCustomer(
       segment: c.segment,
       consumer: c.consumer,
       anonymous: false,
+      ailment: c.ailment,
       cause,
       productImplicated,
       formulaId: lastFormula ?? recentFormula(state, c),
@@ -251,6 +254,9 @@ function monthForCustomer(
       : state.meta.turn - c.lastPurchaseTurn) >= 3
   ) {
     reason = 'drifted';
+  } else if (frightenedAway(state, c, content, (p) => rng.chance(p))) {
+    // a regular who is not hooked hears what the ward says of the bottle, and goes elsewhere
+    reason = 'afraid';
   }
   if (reason) {
     state.stats.customersLost += 1;

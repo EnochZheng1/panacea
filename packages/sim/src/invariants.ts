@@ -106,6 +106,27 @@ export function checkInvariants(state: GameState, content: ContentPack): string[
     }
   });
 
+  // Sales: every bottle and cent is under exactly one source (the shop, walk-ins, druggists, post).
+  for (const e of [...state.ledger.slice(-1), { turn: meta.turn, sales: state.month.sales }]) {
+    for (const x of e.sales) {
+      const bottles = x.shopBottles + x.walkInBottles + x.wholesaleBottles + x.postBottles;
+      const cents =
+        x.shopRevenueCents + x.walkInRevenueCents + x.wholesaleRevenueCents + x.postRevenueCents;
+      if (bottles !== x.bottles || cents !== x.revenueCents) {
+        v.push(`turn ${e.turn}: sales of "${x.formulaId}" do not add up by source`);
+      }
+      if (x.cravingPremiumCents < 0 || x.cravingPremiumCents > x.shopRevenueCents) {
+        v.push(`turn ${e.turn}: sales of "${x.formulaId}" have an impossible craving premium`);
+      }
+    }
+  }
+
+  // The ward's memory
+  if (!(state.ward.memory >= 0 && state.ward.memory <= 100 + EPS)) {
+    v.push(`ward memory out of range: ${state.ward.memory}`);
+  }
+  if (state.ward.peakMemory + EPS < state.ward.memory) v.push('ward memory above its peak');
+
   // Events
   let randomPending = 0;
   for (const p of state.events.pending) {

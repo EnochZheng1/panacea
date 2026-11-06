@@ -296,7 +296,9 @@ function withInquest(productImplicated: boolean, detectability = 4, seed = 'inq'
     segment: 'labourer',
     consumer: 'self',
     anonymous: false,
+    ailment: 'rheumatism',
     cause: productImplicated ? 'overdose' : 'natural',
+    reportedCause: productImplicated ? 'overdose' : 'natural',
     productImplicated,
     formulaId: null,
     badBatch: false,
@@ -445,7 +447,7 @@ describe('the habit, the coroner and the post (balance pass 2)', () => {
         c.satisfaction = 0.5;
       }
       const means = meansCents(a!, content);
-      a!.debtCents = means + 1;
+      a!.debtCents = content.config.market.ruinMonths * means + 1;
       expect(observe(state, content).customers.find((c) => c.id === a!.id)!.ruined).toBe(true);
       const ctx = sellTo(state, `r${i}`);
       const boughtA = ctx.scratch.purchases.get(a!.id) ?? [];
@@ -453,7 +455,9 @@ describe('the habit, the coroner and the post (balance pass 2)', () => {
       expect(boughtA.length).toBeLessThanOrEqual(1);
       ruinedBottles += boughtA.length;
       solventBottles += boughtB.length;
-      const spentB = boughtB.length * 150;
+      // the ruined regular pays nothing over the price; the solvent one pays the craving's premium
+      const premium = state.month.sales.reduce((n, x) => n + x.cravingPremiumCents, 0);
+      const spentB = boughtB.length * 150 + premium;
       const meansB = meansCents(b!, content);
       expect(b!.debtCents).toBe(Math.max(0, spentB - meansB));
     }

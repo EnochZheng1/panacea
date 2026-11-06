@@ -24,7 +24,12 @@ public sealed record ObservedDeath(
     bool Anonymous,
     string? FormulaId,
     string Inquest,
-    string? Verdict);
+    string? Verdict,
+    string? Ailment, // the complaint they took the remedy for, if known (a stranger by post: null)
+    // the cause as the ward and the coroner's register give it (ReportedCauses): overdose, wasting,
+    // ailment (of the complaint they came in with), old_age or natural; whether the remedy hastened
+    // a death that looked natural is not shown
+    string ReportedCause);
 
 public sealed record ObservedIngredient(string Id, double CostPerUnitCents);
 
@@ -82,6 +87,14 @@ public sealed class Observation
     public double Reputation { get; init; }
     public double Notoriety { get; init; }
     public double Heat { get; init; }
+    /// <summary>
+    /// What the ward remembers against the shop, 0..100: the neighbours' memory of the harm the remedy
+    /// did (not the authorities' suspicion, which is Heat). It fades over most of a year, and while it
+    /// lasts strangers buy less, few come back as regulars, and some regulars leave.
+    /// </summary>
+    public double WardMemory { get; init; }
+    /// <summary>What it remembers, counted over the last Months months, for the paper.</summary>
+    public required WardRemembers WardRemembers { get; init; }
     public required OrderedMap<int> Capabilities { get; init; }
     /// <summary>Stills in the back room, lit or cold.</summary>
     public int Stills { get; init; }
@@ -212,6 +225,8 @@ public static class Machine
             Reputation = state.Player.Reputation,
             Notoriety = state.Player.Notoriety,
             Heat = state.Scrutiny.Heat,
+            WardMemory = state.Ward.Memory,
+            WardRemembers = WardSystem.Remembers(state, content),
             Capabilities = state.Player.Capabilities.Clone(),
             Stills = Math.Max(0, state.Player.Capabilities.GetOr("stills", 0)),
             StillsFree = Lab.StillsFree(state),
@@ -245,7 +260,8 @@ public static class Machine
                 Market.IsRuined(c, content))).ToList(),
             CustomerCapacity = CustomersSystem.CustomerCapacity(state, content),
             Deaths = state.Deaths.Select(d => new ObservedDeath(
-                d.Id, d.Turn, d.Date, d.Name, d.Segment, d.Consumer, d.Anonymous, d.FormulaId, d.Inquest, d.Verdict)).ToList(),
+                d.Id, d.Turn, d.Date, d.Name, d.Segment, d.Consumer, d.Anonymous, d.FormulaId, d.Inquest, d.Verdict,
+                d.Ailment, d.ReportedCause)).ToList(),
             PendingEvents = state.Events.Pending.Select(p =>
             {
                 var death = !string.IsNullOrEmpty(p.DeathId) ? state.Deaths.Find(d => d.Id == p.DeathId) : null;

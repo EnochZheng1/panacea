@@ -91,8 +91,88 @@ public static class Market
         c.Profile.BaseWillingnessCents * content.Config.Market.MeansPerMonth *
         (1 - content.Config.Market.MeansLostToHabit * c.Body.Dependency);
 
-    /// <summary>A regular who owes more than a month's means: one bottle at most, and a family that complains.</summary>
-    public static bool IsRuined(Customer c, ContentPack content) => c.DebtCents > MeansCents(c, content);
+    /// <summary>
+    /// A regular who owes more than RuinMonths months' means: one bottle at most, and a family that
+    /// complains. A habit can run up a long slate before it comes to that.
+    /// </summary>
+    public static bool IsRuined(Customer c, ContentPack content) =>
+        c.DebtCents > content.Config.Market.RuinMonths * MeansCents(c, content);
+
+    private static double TotalTolerance(Customer c)
+    {
+        double sum = 0;
+        foreach (var cls in DrugClasses.All) sum = sum + c.Body.Tolerance[cls];
+        return sum;
+    }
+
+    /// <summary>
+    /// The bottles a regular wants this month: one, and as many more as their attachment calls for.
+    /// Satisfaction alone buys a bottle for the cupboard; a craving buys more, and more again as the
+    /// dose stops working (tolerance), up to HabitBottlesMax extra.
+    /// </summary>
+    public static int BottlesWanted(Customer c, ContentPack content)
+    {
+        if (IsRuined(c, content)) return 1;
+        var m = content.Config.Market;
+        double dep = c.Body.Dependency;
+        double tolerance = TotalTolerance(c);
+        double craving = dep * (m.BottlesPerAttachment + m.BottlesPerTolerance * Math.Max(0, tolerance - m.ToleranceFloor));
+        double liking = Math.Max(dep, c.Satisfaction) * m.BottlesPerAttachment;
+        return 1 + (int)Math.Floor(Math.Min(m.HabitBottlesMax, Math.Max(liking, craving)));
+    }
+
+    /// <summary>
+    /// What a regular who craves the bottle pays over its shelf price: a habit pays what it is asked,
+    /// and something over to have a bottle kept back. Only for a bottle strong enough to make a habit
+    /// (habit past PremiumHabitFloor, the whole premium at PremiumHabitSpan beyond it), and only while
+    /// the regular still has the money (they owe less than PremiumDebtMonths months' means). Up to
+    /// CravingPremium × dependency of the price.
+    /// </summary>
+    public static long CravingPremiumCents(Customer c, Offer offer, ContentPack content)
+    {
+        var m = content.Config.Market;
+        if (c.Body.Dependency <= content.Config.Body.WithdrawalThreshold) return 0;
+        if (c.DebtCents > m.PremiumDebtMonths * MeansCents(c, content)) return 0;
+        double habit = offer.Analysis.Properties.Habit;
+        double strength = Math.Min(1, Math.Max(0, (habit - m.PremiumHabitFloor) / m.PremiumHabitSpan));
+        return (long)JsMath.Round(offer.Formula.PriceCents * m.CravingPremium * c.Body.Dependency * strength);
+    }
+
+    /// <summary>Adds one bottle sold to the month's sales of its formula, under where it went.</summary>
+    public static void RecordSale(GameState state, string formulaId, long priceCents, SaleSource source, long premiumCents = 0)
+    {
+        priceCents += premiumCents;
+        state.Stats.BottlesSold += 1;
+        state.Stats.RevenueCents += priceCents;
+        var sale = state.Month.Sales.Find(s => s.FormulaId == formulaId);
+        if (sale is null)
+        {
+            sale = new SaleRecord { FormulaId = formulaId };
+            state.Month.Sales.Add(sale);
+        }
+        sale.Bottles += 1;
+        sale.RevenueCents += priceCents;
+        switch (source)
+        {
+            case SaleSource.Shop: sale.ShopBottles += 1; sale.ShopRevenueCents += priceCents; break;
+            case SaleSource.WalkIn: sale.WalkInBottles += 1; sale.WalkInRevenueCents += priceCents; break;
+            case SaleSource.Wholesale: sale.WholesaleBottles += 1; sale.WholesaleRevenueCents += priceCents; break;
+            case SaleSource.Post: sale.PostBottles += 1; sale.PostRevenueCents += priceCents; break;
+        }
+        sale.CravingPremiumCents += premiumCents;
+    }
+
+    /// <summary>
+    /// Callers drawn by word of a strong bottle ("word"): the most habit-forming bottle on the shelf
+    /// is talked about, and strangers come asking for the stuff that works.
+    /// </summary>
+    public static int WordOfStrength(IReadOnlyList<Offer> offers, ContentPack content)
+    {
+        var w = content.Config.WalkIns;
+        double habit = 0;
+        foreach (var o in offers) habit = Math.Max(habit, o.Analysis.Properties.Habit);
+        return (int)Math.Floor(w.WordPerHabit * Math.Min(w.WordHabitCap, Math.Max(0, habit - w.WordHabitFloor)));
+    }
 
     private static Buyer CustomerAsBuyer(Customer c) => new(c.Profile, c.Ailment, c.Body.Tolerance, c.Body.Dependency);
 
@@ -153,27 +233,22 @@ public static class Market
         // Insertion-ordered, like the TS Map: revenue is booked in first-sale order.
         var revenue = new OrderedMap<Revenue>();
 
-        Bought? Sell(Offer offer, string cause)
+        void Book(string cause, string formulaId, long cents)
+        {
+            string key = $"{cause}|{formulaId}";
+            var r = revenue.GetOr(key, null!) ?? new Revenue { Cause = cause, FormulaId = formulaId, Cents = 0 };
+            r.Cents += cents;
+            revenue[key] = r;
+        }
+
+        Bought? Sell(Offer offer, string cause, long premium)
         {
             var lot = Lab.TakeBottle(state, offer.Formula.Id);
             if (lot is null) return null;
             int price = offer.Formula.PriceCents;
-            state.Stats.BottlesSold += 1;
-            state.Stats.RevenueCents += price;
-            string key = $"{cause}|{offer.Formula.Id}";
-            var r = revenue.GetOr(key, null!) ?? new Revenue { Cause = cause, FormulaId = offer.Formula.Id, Cents = 0 };
-            r.Cents += price;
-            revenue[key] = r;
-            var sale = state.Month.Sales.Find(s => s.FormulaId == offer.Formula.Id);
-            if (sale is not null)
-            {
-                sale.Bottles += 1;
-                sale.RevenueCents += price;
-            }
-            else
-            {
-                state.Month.Sales.Add(new SaleRecord { FormulaId = offer.Formula.Id, Bottles = 1, RevenueCents = price });
-            }
+            RecordSale(state, offer.Formula.Id, price, cause == Causes.SalesShop ? SaleSource.Shop : SaleSource.WalkIn, premium);
+            Book(cause, offer.Formula.Id, price);
+            if (premium > 0) Book(Causes.SalesCraving, offer.Formula.Id, premium);
             return new Bought(offer.Formula.Id, lot.Id, lot.Components, lot.ProcessId, lot.Potency, lot.BadBatch);
         }
 
@@ -192,7 +267,7 @@ public static class Market
             if (offers.Count > 0 && rng.Chance(pBuy))
             {
                 double attachment = Math.Max(dep, c.Satisfaction);
-                int desired = IsRuined(c, content) ? 1 : 1 + (int)Math.Floor(attachment * market.BottlesPerAttachment);
+                int desired = BottlesWanted(c, content);
                 double budget = c.Profile.BaseWillingnessCents *
                     (market.BudgetBase + market.BudgetPerAttachment * attachment) *
                     (1 + dep);
@@ -206,11 +281,12 @@ public static class Market
                             state.Month.TurnedAwayByPrice += 1;
                         break;
                     }
-                    var b = Sell(offer, Causes.SalesShop);
+                    long premium = CravingPremiumCents(c, offer, content);
+                    var b = Sell(offer, Causes.SalesShop, premium);
                     if (b is null) break;
                     bought.Add(b);
-                    budget -= offer.Formula.PriceCents;
-                    spent += offer.Formula.PriceCents;
+                    budget -= offer.Formula.PriceCents + premium;
+                    spent += offer.Formula.PriceCents + premium;
                 }
             }
             c.DebtCents = Math.Max(0, c.DebtCents + spent - MeansCents(c, content));
@@ -229,7 +305,7 @@ public static class Market
         // new custom.
         OrdersFromAway(ctx);
 
-        WalkIns(ctx, offers, Sell);
+        WalkIns(ctx, offers, (o, cause) => Sell(o, cause, 0));
 
         foreach (var kv in revenue)
             Ledger.Adjust(state, Metrics.Cash, kv.Value.Cents, kv.Value.Cause, kv.Value.FormulaId);
@@ -295,19 +371,8 @@ public static class Market
             if (lot is null) break;
             allowance.Left -= 1;
             month.Delivered += 1;
-            state.Stats.BottlesSold += 1;
-            state.Stats.RevenueCents += price;
             revenue += price;
-            var sale = state.Month.Sales.Find(s => s.FormulaId == formula.Id);
-            if (sale is not null)
-            {
-                sale.Bottles += 1;
-                sale.RevenueCents += price;
-            }
-            else
-            {
-                state.Month.Sales.Add(new SaleRecord { FormulaId = formula.Id, Bottles = 1, RevenueCents = price });
-            }
+            RecordSale(state, formula.Id, price, cause == Causes.SalesPost ? SaleSource.Post : SaleSource.Wholesale);
             // A stranger of ordinary health, with no tolerance.
             if (!risk.TryGetValue(lot.Id, out var r))
             {
@@ -327,6 +392,7 @@ public static class Market
                     Segment = segment.Id,
                     Consumer = Consumers.Self,
                     Anonymous = true,
+                    Ailment = null,
                     Cause = DeathCauses.Overdose,
                     ProductImplicated = true,
                     FormulaId = null,
@@ -352,6 +418,7 @@ public static class Market
         callers["ward"] = rng.Int(0, cfg.Base + (int)Math.Floor(state.Player.Reputation * cfg.PerReputation));
         callers["newspaper"] = scratch.AdVisitors;
         callers["subscriptions"] = Math.Max(0, caps.GetOr("walk_in_bonus", 0));
+        callers["word"] = WordOfStrength(offers, content);
         foreach (var inv in Investments.Held(state, content))
             if (inv.WalkInsPerMonth > 0) callers[inv.Id] = inv.WalkInsPerMonth;
         int visitors = 0;
@@ -381,7 +448,9 @@ public static class Market
             double wtp = WillingnessToPay(buyer,
                 Pharmacology.Appeal(offer.Analysis, buyer.Tolerance, buyer.Profile, 0, claims), content);
             double hesitation = PriceHesitation(offer.Formula.PriceCents, wtp, content);
-            double pBuy = Math.Min(0.95, segment.Profile.BuyChance * (1 + 0.1 * claims)) * hesitation;
+            // A stranger who has heard what the ward says of the bottle thinks twice.
+            double pBuy = Math.Min(0.95, segment.Profile.BuyChance * (1 + 0.1 * claims)) * hesitation *
+                WardSystem.MemoryLoss(state, content.Config.Ward.WalkInLoss);
             if (!rng.Chance(pBuy)) continue;
             var bought = sell(offer, Causes.SalesWalkIn);
             if (bought is null) continue;
@@ -390,7 +459,8 @@ public static class Market
             content.ById.Ailments.TryGetValue(ailmentId, out var ailment);
             double relief = Pharmacology.ReliefScore(offer.Analysis, buyer.Tolerance, buyer.Profile) - (ailment?.Severity ?? 0);
             double reputationFactor = 0.5 + state.Player.Reputation / 50;
-            double pConvert = cfg.ConversionChance * (1 + 0.2 * claims) * reputationFactor;
+            double pConvert = cfg.ConversionChance * (1 + 0.2 * claims) * reputationFactor *
+                WardSystem.MemoryLoss(state, content.Config.Ward.ConversionLoss);
             if (relief > 0 && state.Customers.Count < capacity && rng.Chance(Math.Min(0.9, pConvert)))
             {
                 var customer = CustomersSystem.GenerateCustomer(state, content, rng, segment, ailmentId);

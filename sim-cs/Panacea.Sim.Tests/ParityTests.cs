@@ -14,7 +14,7 @@ namespace Panacea.Sim.Tests;
 public class ParityTests(ITestOutputHelper output)
 {
     private static readonly string[] Sections =
-        ["meta", "player", "lab", "marketing", "customers", "deaths", "scrutiny", "stats", "unlocks", "events", "timeline", "month"];
+        ["meta", "player", "lab", "marketing", "customers", "deaths", "ward", "scrutiny", "stats", "unlocks", "events", "timeline", "month"];
 
     public static IEnumerable<object[]> Runs => Fixtures.RunFiles();
 
@@ -26,6 +26,7 @@ public class ParityTests(ITestOutputHelper output)
         ["marketing"] = Hash.HashValue(s.Marketing),
         ["customers"] = Hash.HashValue(s.Customers),
         ["deaths"] = Hash.HashValue(s.Deaths),
+        ["ward"] = Hash.HashValue(s.Ward),
         ["scrutiny"] = Hash.HashValue(s.Scrutiny),
         ["stats"] = Hash.HashValue(s.Stats),
         ["unlocks"] = Hash.HashValue(s.Unlocks),

@@ -35,6 +35,7 @@ import {
   unlocksPhase,
 } from './systems/progression.ts';
 import { heatDecayPhase } from './systems/scrutiny.ts';
+import { wardPhase } from './systems/ward.ts';
 
 /**
  * Copy-on-write clone. Ledger and log entries are immutable once appended, so those arrays are
@@ -59,6 +60,7 @@ export const PHASES: readonly Phase[] = [
   advertisingPhase,
   salesPhase,
   bodyPhase,
+  wardPhase,
   expensesPhase,
   investmentsPhase,
   timelinePhase,
@@ -100,6 +102,7 @@ export function newGame(content: ContentPack, options: NewGameOptions): GameStat
     marketing: { adSpendCents: 0 },
     customers: [],
     deaths: [],
+    ward: { memory: 0, peakMemory: 0 },
     scrutiny: {
       heat: 0,
       peakHeat: 0,
@@ -125,6 +128,7 @@ export function newGame(content: ContentPack, options: NewGameOptions): GameStat
       startReputation: content.config.startingReputation,
       startNotoriety: 0,
       startHeat: 0,
+      startWardMemory: 0,
       startStockValueCents: 0,
       deltas: [],
       news: [],

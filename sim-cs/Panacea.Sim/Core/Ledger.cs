@@ -63,6 +63,7 @@ public static class Ledger
         StartReputation = state.Player.Reputation,
         StartNotoriety = state.Player.Notoriety,
         StartHeat = state.Scrutiny.Heat,
+        StartWardMemory = state.Ward.Memory,
         StartStockValueCents = stockValueCents,
     };
 
@@ -81,6 +82,8 @@ public static class Ledger
             NotorietyEnd = state.Player.Notoriety,
             HeatStart = m.StartHeat,
             HeatEnd = state.Scrutiny.Heat,
+            WardMemoryStart = m.StartWardMemory,
+            WardMemoryEnd = state.Ward.Memory,
             StockValueStartCents = m.StartStockValueCents,
             StockValueEndCents = stockValueCents,
             Deltas = m.Deltas,

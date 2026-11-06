@@ -91,6 +91,8 @@ public static class Causes
     public const string SalesWalkIn = "sales.walk_in";
     public const string SalesWholesale = "sales.wholesale";
     public const string SalesPost = "sales.post";
+    /// <summary>What craving regulars pay over the shelf price (Market.CravingPremiumCents).</summary>
+    public const string SalesCraving = "sales.craving";
     public const string Rent = "expense.rent";
     public const string Ingredients = "expense.ingredients";
     public const string Bottling = "expense.bottling";
@@ -113,7 +115,7 @@ public static class Causes
 
     public static readonly IReadOnlyList<string> All =
     [
-        SalesShop, SalesWalkIn, SalesWholesale, SalesPost, Rent, Ingredients, Bottling, Advertising, Bribe, Retainer,
+        SalesShop, SalesWalkIn, SalesWholesale, SalesPost, SalesCraving, Rent, Ingredients, Bottling, Advertising, Bribe, Retainer,
         Investment, Upkeep, Mishap, WordOfMouth, ReputationDrift, Complaints, Death, Inquest, HeatDecay,
         Claims, Event, Timeline, Unlock,
     ];

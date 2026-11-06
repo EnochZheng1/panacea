@@ -1,12 +1,15 @@
 import type { BuyerProfile, ContentPack, DrugClass, Orders } from '@panacea/content';
 import { CAUSES, type Cause } from '../core/causes.ts';
 import { adjust } from '../core/ledger.ts';
+import { DRUG_CLASSES } from '@panacea/content';
 import type {
   Bought,
   Customer,
   Formula,
   GameState,
   Phase,
+  SaleRecord,
+  SaleSource,
   TurnContext,
   WholesaleMonth,
 } from '../core/index.ts';
@@ -21,6 +24,7 @@ import {
 import { stockOf, takeBottle, totalStock } from './lab.ts';
 import { acuteDanger, appeal, overdoseChance, reliefScore, zeroTolerance } from './pharmacology.ts';
 import { recordDeath } from './scrutiny.ts';
+import { memoryLoss } from './ward.ts';
 
 /**
  * The shop's market (M1: one neighbourhood).
@@ -147,9 +151,93 @@ export const meansCents = (c: Customer, content: ContentPack): number =>
   content.config.market.meansPerMonth *
   (1 - content.config.market.meansLostToHabit * c.body.dependency);
 
-/** A regular who owes more than a month's means: one bottle at most, and a family that complains. */
+/**
+ * A regular who owes more than `ruinMonths` months' means: one bottle at most, and a family that
+ * complains. A habit can run up a long slate before it comes to that.
+ */
 export const isRuined = (c: Customer, content: ContentPack): boolean =>
-  c.debtCents > meansCents(c, content);
+  c.debtCents > content.config.market.ruinMonths * meansCents(c, content);
+
+/**
+ * The bottles a regular wants this month: one, and as many more as their attachment to the shop
+ * calls for. Satisfaction alone buys a bottle for the cupboard; a craving buys more, and more again
+ * as the dose stops working (tolerance), up to `habitBottlesMax` extra.
+ */
+export function bottlesWanted(c: Customer, content: ContentPack): number {
+  if (isRuined(c, content)) return 1;
+  const m = content.config.market;
+  const dep = c.body.dependency;
+  const tolerance = DRUG_CLASSES.reduce((sum, cls) => sum + c.body.tolerance[cls], 0);
+  const craving =
+    dep *
+    (m.bottlesPerAttachment + m.bottlesPerTolerance * Math.max(0, tolerance - m.toleranceFloor));
+  const liking = Math.max(dep, c.satisfaction) * m.bottlesPerAttachment;
+  return 1 + Math.floor(Math.min(m.habitBottlesMax, Math.max(liking, craving)));
+}
+
+/**
+ * What a regular who craves the bottle pays over its shelf price: a habit pays what it is asked,
+ * and something over to have a bottle kept back. Only for a bottle strong enough to make a habit
+ * (habit past `premiumHabitFloor`, the whole premium at `premiumHabitSpan` beyond it), and only
+ * while the regular still has the money (they owe less than `premiumDebtMonths` months' means). Up to
+ * `cravingPremium` × dependency of the price.
+ */
+export function cravingPremiumCents(c: Customer, offer: Offer, content: ContentPack): number {
+  const m = content.config.market;
+  if (c.body.dependency <= content.config.body.withdrawalThreshold) return 0;
+  if (c.debtCents > m.premiumDebtMonths * meansCents(c, content)) return 0;
+  const habit = offer.analysis.properties.habit;
+  const strength = Math.min(1, Math.max(0, (habit - m.premiumHabitFloor) / m.premiumHabitSpan));
+  return Math.round(offer.formula.priceCents * m.cravingPremium * c.body.dependency * strength);
+}
+
+/** Adds one bottle sold to the month's sales of its formula, under where it went. */
+export function recordSale(
+  state: GameState,
+  formulaId: string,
+  priceCents: number,
+  source: SaleSource,
+  premiumCents = 0,
+): void {
+  priceCents += premiumCents;
+  state.stats.bottlesSold += 1;
+  state.stats.revenueCents += priceCents;
+  let sale = state.month.sales.find((s) => s.formulaId === formulaId);
+  if (!sale) {
+    sale = {
+      formulaId,
+      bottles: 0,
+      revenueCents: 0,
+      shopBottles: 0,
+      shopRevenueCents: 0,
+      walkInBottles: 0,
+      walkInRevenueCents: 0,
+      wholesaleBottles: 0,
+      wholesaleRevenueCents: 0,
+      postBottles: 0,
+      postRevenueCents: 0,
+      cravingPremiumCents: 0,
+    };
+    state.month.sales.push(sale);
+  }
+  sale.bottles += 1;
+  sale.revenueCents += priceCents;
+  const bottles = `${source}Bottles` as const;
+  const revenue = `${source}RevenueCents` as const;
+  (sale as SaleRecord)[bottles] += 1;
+  (sale as SaleRecord)[revenue] += priceCents;
+  sale.cravingPremiumCents += premiumCents;
+}
+
+/**
+ * Callers drawn by word of a strong bottle (`callers.word`): the most habit-forming bottle on the
+ * shelf is talked about, and strangers come asking for the stuff that works.
+ */
+export function wordOfStrength(offers: readonly Offer[], content: ContentPack): number {
+  const { wordPerHabit, wordHabitFloor, wordHabitCap } = content.config.walkIns;
+  const habit = Math.max(0, ...offers.map((o) => o.analysis.properties.habit));
+  return Math.floor(wordPerHabit * Math.min(wordHabitCap, Math.max(0, habit - wordHabitFloor)));
+}
 
 const customerAsBuyer = (c: Customer): Buyer => ({
   profile: c.profile,
@@ -204,23 +292,20 @@ export const salesPhase: Phase = {
     const offers = currentOffers(state, content);
     const revenue = new Map<string, { cause: Cause; formulaId: string; cents: number }>();
 
-    const sell = (offer: Offer, cause: Cause) => {
+    const book = (cause: Cause, formulaId: string, cents: number) => {
+      const key = `${cause}|${formulaId}`;
+      const r = revenue.get(key) ?? { cause, formulaId, cents: 0 };
+      r.cents += cents;
+      revenue.set(key, r);
+    };
+    const sell = (offer: Offer, cause: Cause, premium = 0) => {
       const lot = takeBottle(state, offer.formula.id);
       if (!lot) return undefined;
       const price = offer.formula.priceCents;
-      state.stats.bottlesSold += 1;
-      state.stats.revenueCents += price;
-      const key = `${cause}|${offer.formula.id}`;
-      const r = revenue.get(key) ?? { cause, formulaId: offer.formula.id, cents: 0 };
-      r.cents += price;
-      revenue.set(key, r);
-      const sale = state.month.sales.find((s) => s.formulaId === offer.formula.id);
-      if (sale) {
-        sale.bottles += 1;
-        sale.revenueCents += price;
-      } else {
-        state.month.sales.push({ formulaId: offer.formula.id, bottles: 1, revenueCents: price });
-      }
+      const source = cause === CAUSES.salesShop ? 'shop' : 'walkIn';
+      recordSale(state, offer.formula.id, price, source, premium);
+      book(cause, offer.formula.id, price);
+      if (premium > 0) book(CAUSES.salesCraving, offer.formula.id, premium);
       const bought: Bought = {
         formulaId: offer.formula.id,
         lotId: lot.id,
@@ -249,9 +334,7 @@ export const salesPhase: Phase = {
       let spent = 0;
       if (offers.length > 0 && rng.chance(pBuy)) {
         const attachment = Math.max(dep, c.satisfaction);
-        const desired = isRuined(c, content)
-          ? 1
-          : 1 + Math.floor(attachment * market.bottlesPerAttachment);
+        const desired = bottlesWanted(c, content);
         let budget =
           c.profile.baseWillingnessCents *
           (market.budgetBase + market.budgetPerAttachment * attachment) *
@@ -270,11 +353,12 @@ export const salesPhase: Phase = {
             }
             break;
           }
-          const b = sell(offer, CAUSES.salesShop);
+          const premium = cravingPremiumCents(c, offer, content);
+          const b = sell(offer, CAUSES.salesShop, premium);
           if (!b) break;
           bought.push(b);
-          budget -= offer.formula.priceCents;
-          spent += offer.formula.priceCents;
+          budget -= offer.formula.priceCents + premium;
+          spent += offer.formula.priceCents + premium;
         }
       }
       c.debtCents = Math.max(0, c.debtCents + spent - meansCents(c, content));
@@ -306,11 +390,13 @@ function walkIns(
 ) {
   if (offers.length === 0) return;
   const { base, perReputation, conversionChance } = content.config.walkIns;
+  const ward = content.config.ward;
   const caps = state.player.capabilities;
   const callers = state.month.callers;
   callers['ward'] = rng.int(0, base + Math.floor(state.player.reputation * perReputation));
   callers['newspaper'] = scratch.adVisitors;
   callers['subscriptions'] = Math.max(0, caps['walk_in_bonus'] ?? 0);
+  callers['word'] = wordOfStrength(offers, content);
   for (const [id, n] of investmentWalkIns(state, content)) callers[id] = n;
   const visitors = Object.values(callers).reduce((a, b) => a + b, 0);
   // A rival's sale: a share of the callers whose bottle costs more than his go to him instead.
@@ -343,7 +429,11 @@ function walkIns(
       content,
     );
     const hesitation = priceHesitation(offer.formula.priceCents, wtp, content);
-    const pBuy = Math.min(0.95, segment.profile.buyChance * (1 + 0.1 * claims)) * hesitation;
+    // A stranger who has heard what the ward says of the bottle thinks twice.
+    const pBuy =
+      Math.min(0.95, segment.profile.buyChance * (1 + 0.1 * claims)) *
+      hesitation *
+      memoryLoss(state, ward.walkInLoss);
     if (!rng.chance(pBuy)) continue;
     const bought = sell(offer, CAUSES.salesWalkIn);
     if (!bought) continue;
@@ -353,7 +443,11 @@ function walkIns(
     const relief =
       reliefScore(offer.analysis, buyer.tolerance, buyer.profile) - (ailment?.severity ?? 0);
     const reputationFactor = 0.5 + state.player.reputation / 50;
-    const pConvert = conversionChance * (1 + 0.2 * claims) * reputationFactor;
+    const pConvert =
+      conversionChance *
+      (1 + 0.2 * claims) *
+      reputationFactor *
+      memoryLoss(state, ward.conversionLoss);
     if (relief > 0 && state.customers.length < capacity && rng.chance(Math.min(0.9, pConvert))) {
       const customer = generateCustomer(state, content, rng, segment, ailmentId);
       state.customers.push(customer);
@@ -425,16 +519,8 @@ function deliver(
     if (!lot) break;
     allowance.left -= 1;
     month.delivered += 1;
-    state.stats.bottlesSold += 1;
-    state.stats.revenueCents += price;
     revenue += price;
-    const sale = state.month.sales.find((s) => s.formulaId === formula.id);
-    if (sale) {
-      sale.bottles += 1;
-      sale.revenueCents += price;
-    } else {
-      state.month.sales.push({ formulaId: formula.id, bottles: 1, revenueCents: price });
-    }
+    recordSale(state, formula.id, price, cause === CAUSES.salesPost ? 'post' : 'wholesale');
     // A stranger of ordinary health, with no tolerance.
     let r = risk.get(lot.id);
     if (!r) {
@@ -455,6 +541,7 @@ function deliver(
         segment: segment.id,
         consumer: 'self',
         anonymous: true,
+        ailment: null,
         cause: 'overdose',
         productImplicated: true,
         formulaId: null,

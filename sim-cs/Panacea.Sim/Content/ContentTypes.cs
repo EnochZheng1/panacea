@@ -494,6 +494,13 @@ public sealed class WalkInsConfig
     public int Base { get; init; }
     public double PerReputation { get; init; }
     public double ConversionChance { get; init; }
+    /// <summary>
+    /// Word of a strong bottle brings callers of its own ("word"): ⌊WordPerHabit ×
+    /// clamp(habit − WordHabitFloor, 0, WordHabitCap)⌋ a month, by the most habit-forming bottle on the shelf.
+    /// </summary>
+    public double WordPerHabit { get; init; }
+    public double WordHabitFloor { get; init; }
+    public double WordHabitCap { get; init; }
 }
 
 public sealed class MarketConfig
@@ -502,6 +509,22 @@ public sealed class MarketConfig
     public double AppealPerWillingness { get; init; }
     public double WillingnessMax { get; init; }
     public double BottlesPerAttachment { get; init; }
+    /// <summary>
+    /// A craving regular's attachment for the extra bottles is dependency × (BottlesPerAttachment +
+    /// BottlesPerTolerance × total tolerance above ToleranceFloor), at most HabitBottlesMax extra.
+    /// </summary>
+    public double BottlesPerTolerance { get; init; }
+    public double ToleranceFloor { get; init; }
+    /// <summary>
+    /// A regular who craves a strong bottle pays over its price, up to CravingPremium × dependency of
+    /// it, while they owe less than PremiumDebtMonths months' means: in full for a bottle whose habit
+    /// is PremiumHabitFloor + PremiumHabitSpan or more, nothing at PremiumHabitFloor or less.
+    /// </summary>
+    public double CravingPremium { get; init; }
+    public double PremiumDebtMonths { get; init; }
+    public double PremiumHabitFloor { get; init; }
+    public double PremiumHabitSpan { get; init; }
+    public int HabitBottlesMax { get; init; }
     public double BudgetBase { get; init; }
     public double BudgetPerAttachment { get; init; }
     /// <summary>
@@ -509,6 +532,8 @@ public sealed class MarketConfig
     /// a regular who owes more than a month's means is ruined.
     /// </summary>
     public double MeansPerMonth { get; init; }
+    /// <summary>A regular who owes more than RuinMonths months' means is ruined.</summary>
+    public double RuinMonths { get; init; }
     /// <summary>The habit eats the means: they are multiplied by 1 − MeansLostToHabit × dependency.</summary>
     public double MeansLostToHabit { get; init; }
     /// <summary>
@@ -585,6 +610,39 @@ public sealed class ScrutinyConfig
     public required IReadOnlyList<string> BenignVerdicts { get; init; }
 }
 
+/// <summary>
+/// The ward's memory of harm (0..100), apart from the heat: what the neighbours say. Each month-end
+/// it fades to (1 − MemoryDecay) of itself, less MemoryDecayFlat, and the month's harms are added.
+/// </summary>
+public sealed class WardConfig
+{
+    public double MemoryDecay { get; init; }
+    public double MemoryDecayFlat { get; init; }
+    /// <summary>A regular's death the remedy caused, that looked it (an overdose or a wasting).</summary>
+    public double PerDeath { get; init; }
+    public double PerInfantDeath { get; init; }
+    /// <summary>A stranger found dead with the bottle (a walk-in, or a buyer by post).</summary>
+    public double PerStrangerDeath { get; init; }
+    /// <summary>A death that looked natural, but the remedy hastened.</summary>
+    public double PerHastenedDeath { get; init; }
+    /// <summary>Added for a death from a mis-measured batch.</summary>
+    public double PerBadBatchDeath { get; init; }
+    /// <summary>An inquest whose jury named the remedy.</summary>
+    public double PerVerdict { get; init; }
+    /// <summary>Added when the verdict came of a bribe found out.</summary>
+    public double PerExposedBribe { get; init; }
+    /// <summary>The Board of Health carried the bottles away.</summary>
+    public double PerSeizure { get; init; }
+    /// <summary>At a memory of 100, strangers at the counter buy this much less often…</summary>
+    public double WalkInLoss { get; init; }
+    /// <summary>…come back as regulars this much less often…</summary>
+    public double ConversionLoss { get; init; }
+    /// <summary>…and an undependent regular leaves with this chance a month. Scales with the memory.</summary>
+    public double LeaveChance { get; init; }
+    /// <summary>The months the observation counts what the ward remembers over.</summary>
+    public int RememberMonths { get; init; }
+}
+
 public sealed class Config
 {
     public required string ContentVersion { get; init; }
@@ -613,4 +671,5 @@ public sealed class Config
     public required BatchesConfig Batches { get; init; }
     public required BodyConfig Body { get; init; }
     public required ScrutinyConfig Scrutiny { get; init; }
+    public required WardConfig Ward { get; init; }
 }

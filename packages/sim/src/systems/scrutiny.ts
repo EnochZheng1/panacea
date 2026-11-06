@@ -4,6 +4,7 @@ import { adjust } from '../core/ledger.ts';
 import type { Rng } from '../core/rng.ts';
 import type { DeathCause, DeathRecord, GameState, InquestOutcome, Phase } from '../core/index.ts';
 import { claimBoldness, analyzeFormula } from './formula.ts';
+import { reportedCauseOf } from './ward.ts';
 
 /**
  * Scrutiny: heat, deaths and coroner's inquests.
@@ -23,6 +24,8 @@ export interface DeathInput {
   segment: string;
   consumer: 'self' | 'infant';
   anonymous: boolean;
+  /** The complaint they took the remedy for, if known. */
+  ailment: string | null;
   cause: DeathCause;
   productImplicated: boolean;
   formulaId: string | null;
@@ -47,6 +50,7 @@ export function recordDeath(
     turn: state.meta.turn,
     date: { ...state.meta.date },
     ...input,
+    reportedCause: reportedCauseOf(input.cause, input.segment, input.ailment, content),
     detectability:
       input.detectability ??
       (formula

@@ -58,6 +58,9 @@ public sealed class PaperFacts
     public int SoldLastMonth;
     /// <summary>The most bottles sold in any month before this one.</summary>
     public int BestSoldBefore;
+    /// <summary>What the ward remembers of the shop's harm (0–100), and its tally over the last year.</summary>
+    public double WardMemory;
+    public int RememberedDeaths, RememberedVerdicts, RememberedInfants;
     /// <summary>
     /// Callers who asked the price and left this month: walk-ins, and regulars come for their
     /// first bottle, who liked something on the shelf but would not pay what it cost (or went to a
@@ -100,7 +103,8 @@ public sealed class ProductFact
     public int Stock;
 }
 
-public sealed record SaleFact(string Product, int Bottles, long RevenueCents);
+/// <summary>A remedy's month: all its bottles, and of them the ones sold over the counter (regulars and callers); -1 if not known.</summary>
+public sealed record SaleFact(string Product, int Bottles, long RevenueCents, int CounterBottles = -1);
 
 public sealed class PersonFact
 {
@@ -118,6 +122,8 @@ public sealed class PersonFact
     public int Months = -1;
     /// <summary>How they looked across the counter the last time they came in.</summary>
     public string LastSeen = "";
+    /// <summary>For the dead: the cause as the ward and the register give it (overdose, wasting, ailment, old_age, natural).</summary>
+    public string Cause = "";
 }
 
 public sealed record InquestFact(PersonFact Person, string Outcome, string Verdict, string? Product);

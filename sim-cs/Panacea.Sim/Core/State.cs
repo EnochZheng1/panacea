@@ -20,6 +20,8 @@ public static class LeaveReasons
     public const string Dissatisfied = "dissatisfied";
     public const string Drifted = "drifted";
     public const string Bereaved = "bereaved";
+    /// <summary>An undependent regular who heard what the ward says of the bottle, and went elsewhere.</summary>
+    public const string Afraid = "afraid";
 }
 
 /// <summary>Inquest states of a death: none, pending, or an outcome (cleared, implicated, bribed).</summary>
@@ -37,6 +39,24 @@ public static class DeathCauses
     public const string Overdose = "overdose";
     public const string Poisoning = "poisoning";
     public const string Disease = "disease";
+    public const string Natural = "natural";
+}
+
+/// <summary>
+/// The cause of a death as the ward and the coroner's register give it, which the player sees
+/// (DeathRecord.ReportedCause). It never says whether the remedy hastened a death that looked natural.
+/// </summary>
+public static class ReportedCauses
+{
+    /// <summary>Found insensible after a dose (every overdose).</summary>
+    public const string Overdose = "overdose";
+    /// <summary>Wasted away, as from a slow poison (a load of metals).</summary>
+    public const string Wasting = "wasting";
+    /// <summary>Of the complaint they came in with (DeathRecord.Ailment).</summary>
+    public const string Ailment = "ailment";
+    /// <summary>An elderly customer, in the ordinary way.</summary>
+    public const string OldAge = "old_age";
+    /// <summary>Suddenly, of a fever going about, in the ordinary way.</summary>
     public const string Natural = "natural";
 }
 
@@ -174,12 +194,33 @@ public sealed class InvestmentHolding
     public int? EndsTurn { get; set; }
 }
 
+/// <summary>
+/// One formula's sales this month, with where the bottles went: to regulars at the counter (Shop),
+/// to strangers at the counter (WalkIn), to the druggists under contract (Wholesale) and by post
+/// (Post). The four splits sum to Bottles and RevenueCents.
+/// </summary>
 public sealed class SaleRecord
 {
     public required string FormulaId { get; set; }
     public int Bottles { get; set; }
     public long RevenueCents { get; set; }
+    public int ShopBottles { get; set; }
+    public long ShopRevenueCents { get; set; }
+    public int WalkInBottles { get; set; }
+    public long WalkInRevenueCents { get; set; }
+    public int WholesaleBottles { get; set; }
+    public long WholesaleRevenueCents { get; set; }
+    public int PostBottles { get; set; }
+    public long PostRevenueCents { get; set; }
+    /// <summary>
+    /// Of ShopRevenueCents, what regulars who crave the bottle paid over the shelf price: the counter
+    /// took ShopBottles × the price, and this besides.
+    /// </summary>
+    public long CravingPremiumCents { get; set; }
 }
+
+/// <summary>Where a bottle sold went (see <see cref="SaleRecord"/>).</summary>
+public enum SaleSource { Shop, WalkIn, Wholesale, Post }
 
 /// <summary>Running totals for the month in progress.</summary>
 public sealed class MonthInProgress
@@ -188,6 +229,7 @@ public sealed class MonthInProgress
     public double StartReputation { get; set; }
     public double StartNotoriety { get; set; }
     public double StartHeat { get; set; }
+    public double StartWardMemory { get; set; }
     /// <summary>What the stock was worth at cost when the month opened (see <see cref="Lab.StockValue"/>).</summary>
     public long StartStockValueCents { get; set; }
     public List<CausalDelta> Deltas { get; set; } = new();
@@ -224,6 +266,9 @@ public sealed class LedgerEntry
     public double NotorietyEnd { get; set; }
     public double HeatStart { get; set; }
     public double HeatEnd { get; set; }
+    /// <summary>What the ward remembered against the shop when the month opened and closed (0..100).</summary>
+    public double WardMemoryStart { get; set; }
+    public double WardMemoryEnd { get; set; }
     /// <summary>
     /// Ingredients on hand and bottles brewing or on the shelf, valued at cost, when the month
     /// opened and when it closed. Cash spent on stock is not lost: the books show it here.
@@ -363,8 +408,12 @@ public sealed class DeathRecord
     public required string Segment { get; set; }
     public required string Consumer { get; set; }
     public bool Anonymous { get; set; }
+    /// <summary>The complaint they took the remedy for, if known (a stranger by post: null).</summary>
+    public string? Ailment { get; set; }
     /// <summary>Truth (<see cref="DeathCauses"/>).</summary>
     public required string Cause { get; set; }
+    /// <summary>The cause as the ward gives it (<see cref="ReportedCauses"/>): visible to the player.</summary>
+    public required string ReportedCause { get; set; }
     /// <summary>Truth: did your product cause or hasten this death?</summary>
     public bool ProductImplicated { get; set; }
     public string? FormulaId { get; set; }
@@ -471,6 +520,17 @@ public sealed class ScrutinyState
     public int MonthsAtShutdownHeat { get; set; }
 }
 
+/// <summary>
+/// The ward's memory of harm: what the neighbours say of the shop, apart from the authorities'
+/// suspicion (ScrutinyState.Heat). See <see cref="WardSystem"/>.
+/// </summary>
+public sealed class WardState
+{
+    /// <summary>0..100</summary>
+    public double Memory { get; set; }
+    public double PeakMemory { get; set; }
+}
+
 public sealed class StatsState
 {
     public int BottlesSold { get; set; }
@@ -513,6 +573,8 @@ public sealed class GameState
     public required MarketingState Marketing { get; set; }
     public List<Customer> Customers { get; set; } = new();
     public List<DeathRecord> Deaths { get; set; } = new();
+    /// <summary>The ward's memory of harm (see <see cref="WardSystem"/>).</summary>
+    public WardState Ward { get; set; } = new();
     public required ScrutinyState Scrutiny { get; set; }
     public required StatsState Stats { get; set; }
     public required UnlocksState Unlocks { get; set; }

@@ -7,6 +7,8 @@ public sealed class DeathInput
     public required string Segment { get; init; }
     public required string Consumer { get; init; }
     public bool Anonymous { get; init; }
+    /// <summary>The complaint they took the remedy for, if known.</summary>
+    public string? Ailment { get; init; }
     public required string Cause { get; init; }
     public bool ProductImplicated { get; init; }
     public string? FormulaId { get; init; }
@@ -37,7 +39,9 @@ public static class Scrutiny
             Segment = input.Segment,
             Consumer = input.Consumer,
             Anonymous = input.Anonymous,
+            Ailment = input.Ailment,
             Cause = input.Cause,
+            ReportedCause = WardSystem.ReportedCauseOf(input.Cause, input.Segment, input.Ailment, content),
             ProductImplicated = input.ProductImplicated,
             FormulaId = input.FormulaId,
             BadBatch = input.BadBatch,

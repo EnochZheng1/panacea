@@ -85,30 +85,49 @@ move**, **a game that doesn't remember**, and **a long middle that doesn't chang
 - **The 1905–06 history run is strong.**
 - **No exceptions** in five games and the jump-ahead runs.
 
-## Next fixes, in order
+## Fixed after round 7
 
-1. **The still drawer.**
-   - Fixed-height lines above the buttons.
-   - The buttons in fixed slots.
-   - "ALL THREE STILLS" lighting every free still.
-   - The panel scrolls rather than clipping.
-2. **The ventures confirm in place.**
-   - Keep the scroll on rebuild.
-   - "Nothing down" on the button.
-3. **Memory and temptation.**
-   - The ward remembers: deaths and verdicts weigh on new customers and on the paper for months, with "THE WARD
-     REMEMBERS" leads and personal items.
-   - Poison pays more in the short run, so that reform costs something.
-   - Honest months get their own voice.
-4. **Headlines against the record.**
-   - "Record" against the best month so far.
-   - A record month outranks "customers gone".
-   - The brief separates outlays from losses.
-   - The first lead doesn't claim a price change.
-5. **The long arc.**
-   - Era changes to the masthead and the ads by decade.
-   - A career retrospective in the final edition: bottles sold, the dead, what was in the bottle, the verdicts.
-6. **The second remedy.**
-   - Tabs in the formula book.
-   - Sales attributed by remedy from the sim, not guessed.
-7. **Cause of death** on the card when it is known ("of the croup; your bottle not implicated").
+| Finding                                                   | Who                                           | Now                                                                                                                                                                                                                                                                                                                                                                                                     |
+| --------------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The still's buttons move; BOTH STILLS lights two of three | all five                                      | The buttons sit in fixed slots right under the bottles, and the batch's costs and lacks are set below them. A button with nothing to do stays in place, greyed. ALL THREE (or FOUR) STILLS lights every free still. With a larger copper the shelf prints more bottles a row and never grows past four rows                                                                                             |
+| The ventures confirm jumps                                | non-gamer, tycoon, board gamer, completionist | The sheet keeps its scroll when it is reset; checked by mouse in the driver, PRESS AGAIN stays at the same y. Nothing-down ventures say NOTHING DOWN                                                                                                                                                                                                                                                    |
+| The ward forgets                                          | satire                                        | Balance pass 7 (`balance-pass-7.md`): a 0–100 memory of harm, separate from suspicion, with a half-life of six months. It thins walk-ins and new regulars and frightens unhooked regulars away. The paper leads with "THE WARD REMEMBERS" ("THE TALK OF TEN DEATHS AND THIRTEEN CORONER'S VERDICTS GOES ON IN MULBERRY STREET"). New customers come warily. Those who leave in fear have their own copy |
+| Poison doesn't pay                                        | satire                                        | Craving regulars pay over the price for a strong bottle, a strong bottle brings callers on the word of its strength, and ruin is slower. The heavy line now leads at months 6–24 ($182 / $326 / $461 / $624 against honest $132–$320). It ends early in 55% of games and finishes far below honest play                                                                                                 |
+| Honest play has no voice                                  | satire                                        | "A CLEAN BOTTLE ON MULBERRY STREET" leads now and then after a year without a death laid at the shop's door                                                                                                                                                                                                                                                                                             |
+| Record headlines aren't records                           | satire, tycoon                                | A record must beat the best month so far                                                                                                                                                                                                                                                                                                                                                                |
+| The books "down" after an outlay                          | non-gamer                                     | The brief says how much of the fall was laid out on the business                                                                                                                                                                                                                                                                                                                                        |
+| "has put up his price" at the default price               | satire                                        | Only when the price went up                                                                                                                                                                                                                                                                                                                                                                             |
+| "not one of your regulars" beside "never missed a month"  | satire                                        | A death lead calls the dead a faithful regular only if they were; strangers have their own                                                                                                                                                                                                                                                                                                              |
+| Death beside the wrong customer                           | completionist, board gamer                    | He stands beside the gravest case shown, and the warning names the same                                                                                                                                                                                                                                                                                                                                 |
+| The endings don't look back                               | completionist                                 | The last edition prints A CAREER IN REVIEW under the lead: years, bottles, takings, the dead, the inquests and bought verdicts. In 1906 it adds THE NEW LABEL, what the Act makes the label declare ("Alcohol, 2 oz to the bottle; Opium, as laudanum, a quarter-ounce to the bottle") and what it doesn't ask after. The footer sums it up ("closed after 22 years: 7,780 bottles sold, 9 dead")       |
+| 1886–1905 doesn't change                                  | completionist                                 | The masthead, price and rate change by era: half-tones, the penny war, the reformers. Rival notices of their day: the cycle tonic, the Roentgen corset, radium, the motor nerve tonic. Twelve standing items of their decade: the wheel, the trolley, the Flatiron, Luna Park                                                                                                                           |
+| The second remedy is half supported                       | board gamer, tycoon                           | The formula book has a tab for each remedy. Every sale record carries its source split (shop, walk-in, wholesale, post), so The Trade reports each remedy's counter sales from the books                                                                                                                                                                                                                |
+| Deaths without a cause                                    | non-gamer                                     | Each death carries a reported cause (overdose, wasting, the ailment, old age, natural), derived from what the ward could know, never from the hidden truth. The memorial card says it ("Died of an overdose, the register says.")                                                                                                                                                                       |
+| Smaller                                                   | various                                       | The shop next door's $5 is "Upkeep of the ventures (rent, wages)". TRADE TALK names 600 bottles for the third still. One coppersmith (Elm street). Money has thousands separators. Callers "on the word of its strength"                                                                                                                                                                                |
+
+Checks: TS 121/121 and C# 102/102 (parity on 32 fixture games, regenerated), typecheck, lint, format, Godot build,
+`tools/check_cuts.py`.
+
+## Balance after the fixes (80 runs, `--seed r7b`; full report `balance-pass-7.md`)
+
+| Bot                              | Median final cash, before → after | Note                                                  |
+| -------------------------------- | --------------------------------- | ----------------------------------------------------- |
+| adaptive                         | $20.8k → $20.9k                   |                                                       |
+| sloppy                           | $15.7k → $15.6k                   |                                                       |
+| shopkeeper                       | $15.9k → $15.8k                   |                                                       |
+| cautious                         | $7.0k → $7.1k                     |                                                       |
+| greedy                           | $25.5k → $28.1k                   | p10 $5.7k, p90 $31.1k; 39% end early                  |
+| briber                           | $15.1k → $16.1k                   |                                                       |
+| heavy (the satire tester's line) | new                               | leads at months 6–24, then ends early in 55% of games |
+
+The exploit hunter's best line is 1.07× adaptive. Wealth and product deaths correlate at 0.02.
+
+## Still open
+
+- **The memory spares the heavy shop's most fragile customers.** It frightens off the untolerant ones, who are
+  the ones who overdose, so the heavy shop's regular deaths fall from 12 to 8 a game. That is plausible, but watch
+  it.
+- **The bottle engravings carry their own labels.**
+- **The still picture doesn't show more stills; the counter doesn't show growth.**
+- **The words a non-gamer couldn't decode** (peaky, assay, Kick, Lingers) need a glossary or plainer wording.
+- **None of the round-7 fixes has been played by hand.**

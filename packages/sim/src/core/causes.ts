@@ -7,6 +7,8 @@ export const CAUSES = {
   salesWalkIn: 'sales.walk_in',
   salesWholesale: 'sales.wholesale',
   salesPost: 'sales.post',
+  /** What craving regulars pay over the shelf price (see `cravingPremiumCents`). */
+  salesCraving: 'sales.craving',
   rent: 'expense.rent',
   ingredients: 'expense.ingredients',
   bottling: 'expense.bottling',

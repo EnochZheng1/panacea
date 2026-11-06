@@ -1,5 +1,11 @@
 import type { ContentPack, GameDate, Properties } from '@panacea/content';
-import type { DeathRecord, EndReason, GameState, LedgerEntry } from '../core/state.ts';
+import type {
+  DeathRecord,
+  EndReason,
+  GameState,
+  LedgerEntry,
+  ReportedCause,
+} from '../core/state.ts';
 import { customerCapacity } from '../systems/customers.ts';
 import {
   analyzeFormula,
@@ -32,6 +38,7 @@ import {
 } from '../systems/progression.ts';
 import { isRuined } from '../systems/market.ts';
 import { bribeCostCents, bribeExposureChance, INQUEST_EVENT_ID } from '../systems/scrutiny.ts';
+import { wardRemembers, type WardRemembers } from '../systems/ward.ts';
 
 /**
  * The machine API: what scripted bots and AI playtesters see and can do. `observe` returns only
@@ -74,6 +81,14 @@ export interface ObservedDeath {
   segment: string;
   consumer: 'self' | 'infant';
   anonymous: boolean;
+  /** The complaint they took the remedy for, if known (a stranger by post: null). */
+  ailment: string | null;
+  /**
+   * The cause as the ward and the coroner's register give it: `overdose`, `wasting` (as from a
+   * slow poison), `ailment` (of the complaint they came in with), `old_age` or `natural`. Whether
+   * the remedy hastened a death that looked natural is not shown.
+   */
+  reportedCause: ReportedCause;
   formulaId: string | null;
   inquest: DeathRecord['inquest'];
   verdict: string | null;
@@ -127,6 +142,14 @@ export interface Observation {
   reputation: number;
   notoriety: number;
   heat: number;
+  /**
+   * What the ward remembers against the shop, 0..100: the neighbours' memory of the harm the
+   * remedy did (not the authorities' suspicion, which is `heat`). It fades over most of a year,
+   * and while it lasts strangers buy less, few come back as regulars, and some regulars leave.
+   */
+  wardMemory: number;
+  /** What it remembers, counted over the last `months` months, for the paper. */
+  wardRemembers: WardRemembers;
   capabilities: Record<string, number>;
   /** Stills in the back room, lit or cold. */
   stills: number;
@@ -241,6 +264,8 @@ export function observe(state: GameState, content: ContentPack): Observation {
     reputation: state.player.reputation,
     notoriety: state.player.notoriety,
     heat: state.scrutiny.heat,
+    wardMemory: state.ward.memory,
+    wardRemembers: wardRemembers(state, content),
     capabilities: { ...state.player.capabilities },
     stills: Math.max(0, state.player.capabilities['stills'] ?? 0),
     stillsFree: stillsFree(state),
@@ -298,6 +323,8 @@ export function observe(state: GameState, content: ContentPack): Observation {
       segment: d.segment,
       consumer: d.consumer,
       anonymous: d.anonymous,
+      ailment: d.ailment,
+      reportedCause: d.reportedCause,
       formulaId: d.formulaId,
       inquest: d.inquest,
       verdict: d.verdict,

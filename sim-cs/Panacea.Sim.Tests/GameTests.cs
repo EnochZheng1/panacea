@@ -63,15 +63,17 @@ public class GameTests
     [Fact]
     public void EmbeddedContentLoads()
     {
-        Assert.Equal("0.6.0", C.Config.ContentVersion);
+        Assert.Equal("0.7.0", C.Config.ContentVersion);
         Assert.Equal(17, C.Ingredients.Count);
         Assert.Equal(3, C.Processes.Count);
         Assert.Equal(9, C.Unlocks.Count);
         Assert.Equal(48, C.Config.StillBottles);
+        Assert.Equal(0.12, C.Config.Ward.MemoryDecay);
+        Assert.Equal(1, C.Config.Market.CravingPremium);
         Assert.Equal(12, C.Events.Count);
         Assert.Equal(8, C.Timeline.Count);
         Assert.Equal(12, C.Regulars.Count);
-        Assert.Equal(200, C.Strings.Count);
+        Assert.Equal(201, C.Strings.Count);
         Assert.Equal(8, C.Investments.Count);
         Assert.Equal("narcotic_discount_pct", C.ById.Investments["laboratory"].Effects.OfType<CapabilityEffect>().Single().Id);
         Assert.Equal("system", C.ById.Events["inquest"].Trigger);
@@ -434,7 +436,7 @@ public class GameTests
     private static DeathRecord Death(double detectability, bool badBatch = false) => new()
     {
         Id = "death_x", Date = new GameDate(1885, 1), Name = "Mr. Test", Segment = "labourer",
-        Consumer = "self", Cause = "overdose", ProductImplicated = true, Detectability = detectability,
+        Consumer = "self", Cause = "overdose", ReportedCause = "overdose", ProductImplicated = true, Detectability = detectability,
         BadBatch = badBatch, Inquest = InquestStates.Pending,
     };
 
@@ -619,7 +621,7 @@ public class GameTests
             var d = new DeathRecord
             {
                 Id = "d", Date = s.Meta.Date, Name = "", Segment = "labourer", Consumer = Consumers.Self,
-                Cause = DeathCauses.Natural, Inquest = InquestStates.Pending, ProductImplicated = implicated,
+                Cause = DeathCauses.Natural, ReportedCause = ReportedCauses.Natural, Inquest = InquestStates.Pending, ProductImplicated = implicated,
                 Detectability = det, Boldness = 5,
             };
             double t = Scrutiny.ImplicationChance(s, d, "testify");
@@ -775,7 +777,7 @@ public class GameTests
             state.Deaths.Add(new DeathRecord
             {
                 Id = $"death_{i}", Date = state.Meta.Date, Name = "Mr. Test", Segment = "labourer", Consumer = Consumers.Self,
-                Cause = DeathCauses.Overdose, ProductImplicated = true, Detectability = 4, Inquest = InquestStates.Pending,
+                Cause = DeathCauses.Overdose, ReportedCause = ReportedCauses.Overdose, ProductImplicated = true, Detectability = 4, Inquest = InquestStates.Pending,
             });
             state.Events.Pending.Add(new PendingEvent { InstanceId = $"inq_{i}", EventId = "inquest", DrawnTurn = 0, DeathId = $"death_{i}" });
             long cost = Scrutiny.BribeCostCents(state, C);

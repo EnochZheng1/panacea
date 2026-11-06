@@ -1,5 +1,5 @@
 {
-  "contentVersion": "0.6.0",
+  "contentVersion": "0.7.0",
   "startDate": {
     "year": 1885,
     "month": 1
@@ -20,7 +20,10 @@
   "walkIns": {
     "base": 20,
     "perReputation": 0.2,
-    "conversionChance": 0.14
+    "conversionChance": 0.14,
+    "wordPerHabit": 3,
+    "wordHabitFloor": 3.5,
+    "wordHabitCap": 8
   },
   "maxRegulars": 30,
   "maxClaimsPerFormula": 4,
@@ -29,9 +32,17 @@
     "appealPerWillingness": 7,
     "willingnessMax": 2.5,
     "bottlesPerAttachment": 2.25,
+    "bottlesPerTolerance": 0.25,
+    "toleranceFloor": 2,
+    "cravingPremium": 1,
+    "premiumDebtMonths": 3,
+    "premiumHabitFloor": 4.5,
+    "premiumHabitSpan": 3,
+    "habitBottlesMax": 3,
     "budgetBase": 1.5,
     "budgetPerAttachment": 2,
     "meansPerMonth": 3.5,
+    "ruinMonths": 5,
     "meansLostToHabit": 0.35,
     "priceHesitation": 0.65,
     "hesitationMargin": 0.3,
@@ -89,6 +100,22 @@
       "misadventure"
     ],
     "shutdownGraceMonths": 2
+  },
+  "ward": {
+    "memoryDecay": 0.12,
+    "memoryDecayFlat": 0.2,
+    "perDeath": 6,
+    "perInfantDeath": 12,
+    "perStrangerDeath": 3,
+    "perHastenedDeath": 2,
+    "perBadBatchDeath": 4,
+    "perVerdict": 14,
+    "perExposedBribe": 8,
+    "perSeizure": 6,
+    "walkInLoss": 0.6,
+    "conversionLoss": 0.8,
+    "leaveChance": 0.1,
+    "rememberMonths": 12
   },
   "reputationBaseline": 15,
   "reputationDrift": 0.02

@@ -611,6 +611,43 @@
         ]
       },
       "raised": "The proprietor of {product} has put up his price to {price}, and his callers have put down their hats and left. He informs our reporter that a remedy cheaply sold is cheaply regarded, and that he would rather sell one bottle to a gentleman than three to the ward."
+    },
+    "remembers": {
+      "headline": ["THE WARD REMEMBERS", "MULBERRY STREET HAS NOT FORGOTTEN"],
+      "cut": "wc_death",
+      "cutline": "THE COUNTER, AS THE WARD SEES IT.",
+      "decks": [
+        "The Talk Goes On.",
+        "THE TALK OF {remembered_upper} GOES ON IN MULBERRY STREET; CALLERS CROSS THE ROAD.",
+        "Trade Is Not What It Was."
+      ],
+      "bodies": [
+        "The ward has a long memory, and {remembered} are in it. Mothers on Mulberry street keep their children from the shop window, and the proprietor of {product} finds his callers fewer and his regulars uneasy.",
+        "The talk of {remembered} has not died down. A woman who used to buy {product} by the dozen was seen pouring a bottle into the gutter, and two of her neighbors applauded.",
+        "Our reporter asked in the ward after {product}. He was told of {remembered}, at length, and of nothing else."
+      ],
+      "again": {
+        "headline": "THE WARD STILL REMEMBERS",
+        "decks": [
+          "The Talk Will Not Die.",
+          "THE TALK OF {remembered_upper} WILL NOT DIE; THE SHOP ON MULBERRY STREET IS AVOIDED."
+        ]
+      }
+    },
+    "clean": {
+      "headline": ["A CLEAN BOTTLE ON MULBERRY STREET", "THE WARD SPEAKS WELL OF A REMEDY"],
+      "cut": "wc_proprietor",
+      "cutline": "THE PROPRIETOR.—Unremarked.",
+      "decks": [
+        "No Inquest, No Scandal.",
+        "THE SHOP ON MULBERRY STREET SELLS {sold_upper} BOTTLES AND NO ONE IS THE WORSE FOR THEM.",
+        "The Trade Is Puzzled."
+      ],
+      "bodies": [
+        "The coroner has not had occasion to mention {product} in a twelvemonth. The trade regards this as eccentric, and the proprietor's rivals have taken to asking what he leaves out.",
+        "Mothers in the ward report that {product} does little and harms less, which in this street is a recommendation. The proprietor is said to be bored.",
+        "A year has passed without the shop on Mulberry street appearing in the deaths column. Our reporter, who had grown fond of the connection, called to ask whether the proprietor was unwell."
+      ]
     }
   },
   "infantLead": [
@@ -842,10 +879,10 @@
     "percolator": "a glass percolator, which the instrument maker keeps for a man who has run ten batches",
     "newspaper_ads": "space in these columns, which the Gazette sells to a man with a hundred dollars put by and a testimonial in print",
     "doctor_title": "the title of Doctor, which the ward allows a man in good standing, and Cincinnati allows anyone with fifty dollars",
-    "third_still": "a third copper, which the coppersmith keeps for a house that has sold a thousand bottles",
+    "third_still": "a third copper, which the coppersmith keeps for a house that has sold six hundred bottles",
     "coroner_fees": "an understanding with the coroner, which every proprietor comes to after his first inquest",
     "quality_control": "a chemist of his own, to be engaged after forty batches with a hundred dollars put by, or at once if a bad batch ever comes to light",
-    "larger_shop": "the cobbler's shop next door, which the landlord will let, at five dollars a month, to a proprietor with twenty-five regulars",
+    "larger_shop": "the cobbler's shop next door, which the landlord offers, at five dollars a month, to a proprietor with twenty-five regulars",
     "bulk_supplier": "terms from an importer on Pearl street, who gives them to a house that has brewed twenty-five batches"
   },
   "standingDated": [
@@ -959,7 +996,8 @@
     "newspaper": "by the Gazette",
     "subscriptions": "by the society",
     "branch_shop": "at the branch",
-    "almanac": "by the almanac"
+    "almanac": "by the almanac",
+    "word": "on the word of its strength"
   },
   "deathLeadStranger": [
     "{pronounCap} was not a regular at the shop on Mulberry street, so far as anyone there recalls, but a bottle of a certain remedy was found among {possessive} effects, and the neighbors have drawn their own conclusions.",
@@ -987,5 +1025,15 @@
       "priceNote": "Read by Every Reformer in the City.",
       "yearly": "$3.00 A YEAR."
     }
+  ],
+  "leftAfraid": [
+    "{name} has stopped coming to the shop, and has been heard to say why.",
+    "{name}, a customer of some months, now crosses Mulberry street rather than pass the shop.",
+    "{name} brought back a half-empty bottle and asked for nothing in exchange but the proprietor's silence."
+  ],
+  "joinedWary": [
+    "{name} has begun upon {product}, though the neighbors warned against it, and asks the proprietor to say nothing of it at home.",
+    "Despite the talk in the ward, {name} came in for a bottle, paid in coppers, and left by the side door.",
+    "{name} is a new customer, from another ward, where the talk has not yet reached."
   ]
 }

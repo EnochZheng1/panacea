@@ -356,6 +356,10 @@ public sealed class SimGame : IGame
 			StockValueStartCents = report?.StockValueStartCents ?? o.StockValue.TotalCents,
 		};
 		if (Ended) f.Career = Career(o);
+		f.WardMemory = o.WardMemory;
+		f.RememberedDeaths = o.WardRemembers.Deaths;
+		f.RememberedVerdicts = o.WardRemembers.Verdicts;
+		f.RememberedInfants = o.WardRemembers.InfantDeaths;
 		if (f.FirstEdition) f.Turn = 0;
 		else f.Turn = report!.Turn + 1;
 
@@ -423,7 +427,7 @@ public sealed class SimGame : IGame
 
 		string FormulaName(string? id) => o.Formulas.FirstOrDefault(x => x.Id == id)?.Name ?? "Dr. ——'s remedy";
 		foreach (var s in report.Sales.GroupBy(s => s.FormulaId))
-			f.Sales.Add(new SaleFact(FormulaName(s.Key), s.Sum(x => x.Bottles), s.Sum(x => x.RevenueCents)));
+			f.Sales.Add(new SaleFact(FormulaName(s.Key), s.Sum(x => x.Bottles), s.Sum(x => x.RevenueCents), s.Sum(x => x.ShopBottles + x.WalkInBottles)));
 
 		foreach (var n in report.News)
 		{
@@ -527,6 +531,8 @@ public sealed class SimGame : IGame
 		// the wholesale druggists' strangers die out of town, with no bottle of the shop's to name
 		OutOfTown = d.Anonymous && d.FormulaId == null,
 		Female = IsFemale(d.Name),
+		Cause = d.ReportedCause,
+		Ailment = d.Ailment != null ? _content.Text($"ailment.{d.Ailment}.name") : "",
 	});
 
 	private static bool IsFemale(string name) => name.StartsWith("Mrs.") || name.StartsWith("Miss") || name.StartsWith("Widow") || name.StartsWith("Mother");

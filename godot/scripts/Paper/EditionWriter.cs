@@ -157,7 +157,8 @@ public sealed class EditionWriter
         var usedJoined = new HashSet<string>();
         foreach (var p in f.Joined)
         {
-            var template = f.FirstEdition ? S(_copy, "regularsIntro") : PickUnused(f, "joined" + p.Id, _copy.GetProperty("joined"), usedJoined);
+            // while the ward remembers the deaths, a new customer comes in warily, if at all
+            var template = f.FirstEdition ? S(_copy, "regularsIntro") : PickUnused(f, "joined" + p.Id, _copy.GetProperty(f.WardMemory >= 35 ? "joinedWary" : "joined"), usedJoined);
             personal.Blocks.Add(new Block { Text = Fill(template, f, p, productName), Clip = PersonClip(f, p, "A NEW CUSTOMER", $"Looking for something for {p.Ailment.ToLowerInvariant()}.") });
         }
         var drifted = f.Left.Where(l => l.Reason == "drifted").ToList();
@@ -168,12 +169,13 @@ public sealed class EditionWriter
         }
         foreach (var l in f.Left.Where(l => drifted.Count <= 2 || l.Reason != "drifted"))
         {
-            var key = l.Reason switch { "recovered" => "leftRecovered", "dissatisfied" => "leftDissatisfied", "bereaved" => "leftBereaved", _ => "leftDrifted" };
+            var key = l.Reason switch { "recovered" => "leftRecovered", "dissatisfied" => "leftDissatisfied", "bereaved" => "leftBereaved", "afraid" => "leftAfraid", _ => "leftDrifted" };
             var why = l.Reason switch
             {
                 "recovered" => "Got better on their own. It happens; the trade does not advertise it.",
                 "dissatisfied" => "Felt it did nothing for them, and said so. Something stronger, or something cheaper, might have kept them.",
                 "bereaved" => "Someone in the household died. The family has no further need of the remedy.",
+                "afraid" => "Took fright at the talk of the deaths, and would not buy another bottle. The ward remembers.",
                 _ => "Simply stopped coming. Perhaps a rival's bottle; perhaps the price.",
             };
             personal.Blocks.Add(new Block { Text = Fill(Pick(f, key + l.Person.Id, _copy.GetProperty(key)), f, l.Person, productName), Clip = PersonClip(f, l.Person, "GONE FROM THE SHOP", why) });
@@ -238,12 +240,13 @@ public sealed class EditionWriter
             trade.Blocks.Add(new Block { Text = Pick(f, "nosales", _copy.GetProperty("tradeNoSales")), Clip = books });
         // the druggists out of town take theirs from the bottle the shop has most of: those are
         // reported under Wholesale, not as sold over the counter at the shelf price
-        // (and so are the almanac's post orders)
+        // (and so are the almanac's post orders): the counter's own count comes from the books
         var away = f.WholesaleDelivered + f.PostDelivered;
-        var wholesaleFrom = away > 0 ? f.Sales.OrderByDescending(x => x.Bottles).FirstOrDefault()?.Product : null;
+        var wholesaleFrom = away > 0 && f.Sales.Any(x => x.CounterBottles < 0) ? f.Sales.OrderByDescending(x => x.Bottles).FirstOrDefault()?.Product : null;
         foreach (var s0 in f.Sales)
         {
-            var s = s0.Product == wholesaleFrom ? s0 with { Bottles = Math.Max(0, s0.Bottles - away) } : s0;
+            var s = s0.CounterBottles >= 0 ? s0 with { Bottles = s0.CounterBottles }
+                : s0.Product == wholesaleFrom ? s0 with { Bottles = Math.Max(0, s0.Bottles - away) } : s0;
             if (s.Bottles == 0 && s0.Bottles > 0) continue;
             var price = f.Products.FirstOrDefault(p => p.Name == s.Product)?.PriceCents ?? 0;
             trade.Blocks.Add(new Block
@@ -521,6 +524,8 @@ public sealed class EditionWriter
         if (bribed != null) options.Add("bribed");
         if (f.CashCents < 0) options.Add("arrears");
         if (sold == 0) options.Add("nothing");
+        // the neighbors' memory of the deaths outranks a good month's trade
+        if (f.WardMemory >= 35 && f.RememberedDeaths + f.RememberedVerdicts + f.RememberedInfants > 0) options.Add("remembers");
         if (soldOut) options.Add("shortage");
         // the price drove callers off: say so, rather than blame the weather
         if (f.TurnedAwayByPrice >= 5 && f.TurnedAwayByPrice * 4 >= sold) options.Add("dear");
@@ -528,6 +533,8 @@ public sealed class EditionWriter
         if (slump && !soldOut) options.Add("dull");
         if (f.Joined.Count >= 3 || (f.Joined.Count >= 2 && f.Joined.Count > lost.Count)) options.Add("growing");
         if (lost.Count >= 2 && lost.Count > f.Joined.Count) options.Add("losing");
+        // an honest shop gets a word of its own now and then: a year without a death laid at its door
+        if (f.Turn >= 6 && f.Turn % 4 == 0 && f.WardMemory < 3 && f.RememberedDeaths + f.RememberedVerdicts + f.RememberedInfants == 0 && sold > 0) options.Add("clean");
         if (delta >= 0) options.Add("brisk");
         if (options.Count == 0) options.Add("dull");
         // never the same lead two editions running if the month offers another; the pressing
@@ -571,6 +578,8 @@ public sealed class EditionWriter
                 .Replace("{joined_upper}", Words(f.Joined.Count).ToUpperInvariant())
                 .Replace("{left_upper}", Words(lost.Count).ToUpperInvariant())
                 .Replace("{turned_upper}", Words(f.TurnedAwayByPrice).ToUpperInvariant())
+                .Replace("{remembered}", RememberedPhrase(f))
+                .Replace("{remembered_upper}", RememberedPhrase(f).ToUpperInvariant())
                 .Replace("{price}", Money(product.PriceCents));
         }
         return new Story
@@ -667,6 +676,16 @@ public sealed class EditionWriter
             sec.Blocks.Add(new Block { Lead = "THE NEW LABEL.—", Text = label });
         }
         return sec;
+    }
+
+    /// <summary>What the ward remembers, in a phrase: "three deaths and a coroner's verdict".</summary>
+    private static string RememberedPhrase(PaperFacts f)
+    {
+        var parts = new List<string>();
+        var deaths = f.RememberedDeaths + f.RememberedInfants;
+        if (deaths > 0) parts.Add($"{Words(deaths)} death{(deaths == 1 ? "" : "s")}");
+        if (f.RememberedVerdicts > 0) parts.Add(f.RememberedVerdicts == 1 ? "a coroner's verdict" : $"{Words(f.RememberedVerdicts)} coroner's verdicts");
+        return parts.Count == 0 ? "the talk" : string.Join(" and ", parts);
     }
 
     /// <summary>The death lead: one that calls the dead a faithful regular only for one who was.</summary>
@@ -843,6 +862,19 @@ public sealed class EditionWriter
                 });
                 if (!string.IsNullOrEmpty(p.LastSeen)) c.Lines.Add($"Last seen at the counter: {p.LastSeen}.");
             }
+        }
+        // the dead: the cause as the ward and the register give it, after who they were
+        if (p.Cause.Length > 0)
+        {
+            var ail = p.Ailment.ToLowerInvariant();
+            c.Lines.Add(p.Cause switch
+            {
+                "overdose" => "Died of an overdose, the register says.",
+                "wasting" => "Died of a wasting; the physician spoke of metals.",
+                "ailment" => ail.Length > 0 && !ail.StartsWith("a ", StringComparison.Ordinal) ? $"Died of the {ail} that brought {(p.Female ? "her" : "him")} to the shop." : "Died of the complaint that brought the family to the shop.",
+                "old_age" => "Died of old age, the register says.",
+                _ => "Died of natural causes, the register says.",
+            });
         }
         c.Lines.AddRange(extra);
         return c;

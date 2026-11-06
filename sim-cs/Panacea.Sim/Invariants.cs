@@ -99,6 +99,27 @@ public static class Invariants
                 v.Add($"ledger turn {e.Turn}: cash does not continue from the previous month");
         }
 
+        // Sales: every bottle and cent is under exactly one source (the shop, walk-ins, druggists, post).
+        var salesMonths = new List<(int Turn, List<SaleRecord> Sales)>();
+        if (state.Ledger.Count > 0) salesMonths.Add((state.Ledger[^1].Turn, state.Ledger[^1].Sales));
+        salesMonths.Add((meta.Turn, state.Month.Sales));
+        foreach (var (turn, sales) in salesMonths)
+        {
+            foreach (var x in sales)
+            {
+                int bottles = x.ShopBottles + x.WalkInBottles + x.WholesaleBottles + x.PostBottles;
+                long cents = x.ShopRevenueCents + x.WalkInRevenueCents + x.WholesaleRevenueCents + x.PostRevenueCents;
+                if (bottles != x.Bottles || cents != x.RevenueCents)
+                    v.Add($"turn {turn}: sales of \"{x.FormulaId}\" do not add up by source");
+                if (x.CravingPremiumCents < 0 || x.CravingPremiumCents > x.ShopRevenueCents)
+                    v.Add($"turn {turn}: sales of \"{x.FormulaId}\" have an impossible craving premium");
+            }
+        }
+
+        // The ward's memory
+        if (!(state.Ward.Memory >= 0 && state.Ward.Memory <= 100 + Eps)) v.Add($"ward memory out of range: {N(state.Ward.Memory)}");
+        if (state.Ward.PeakMemory + Eps < state.Ward.Memory) v.Add("ward memory above its peak");
+
         // Events
         int randomPending = 0;
         foreach (var p in state.Events.Pending)

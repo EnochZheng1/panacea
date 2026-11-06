@@ -282,7 +282,7 @@ describe('investments (balance passes 4 and 5)', () => {
     let s = setUp.state;
     s = act(s, { type: 'BrewBatch', formulaId, bottles: 30 });
     const { report } = endTurn(s, content);
-    expect(Object.keys(report.callers)).toEqual(['ward', 'newspaper', 'subscriptions']);
+    expect(Object.keys(report.callers)).toEqual(['ward', 'newspaper', 'subscriptions', 'word']);
     expect(report.callers['newspaper']).toBe(0);
   });
 });

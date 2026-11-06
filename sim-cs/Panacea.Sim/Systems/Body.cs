@@ -52,6 +52,7 @@ public static class BodySystem
                     Segment = seg.Id,
                     Consumer = consumer,
                     Anonymous = true,
+                    Ailment = w.AilmentId,
                     Cause = DeathCauses.Overdose,
                     ProductImplicated = true,
                     FormulaId = w.Bought.FormulaId,
@@ -99,6 +100,7 @@ public static class BodySystem
                 Segment = c.Segment,
                 Consumer = c.Consumer,
                 Anonymous = false,
+                Ailment = c.Ailment,
                 Cause = cause,
                 ProductImplicated = productImplicated,
                 FormulaId = lastFormula ?? RecentFormula(state, c),
@@ -209,6 +211,11 @@ public static class BodySystem
                  (c.LastPurchaseTurn is int last ? state.Meta.Turn - last : state.Meta.Turn - c.JoinedTurn) >= 3)
         {
             reason = LeaveReasons.Drifted;
+        }
+        else if (WardSystem.FrightenedAway(state, c, content, rng))
+        {
+            // a regular who is not hooked hears what the ward says of the bottle, and goes elsewhere
+            reason = LeaveReasons.Afraid;
         }
         if (reason is not null)
         {

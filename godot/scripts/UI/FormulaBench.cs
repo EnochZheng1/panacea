@@ -246,6 +246,9 @@ public partial class FormulaBench : HBoxContainer
 
 	private List<(string, double)> Recipe() => _order.Where(id => _recipe.GetValueOrDefault(id) > 0).Select(id => (id, _recipe[id])).ToList();
 
+	/// <summary>The price button that had the keyboard before the book was redrawn (0: none).</summary>
+	private int _focusPrice;
+
 	private void Refresh(bool animateFrom = false)
 	{
 		var d = _game.Desk();
@@ -316,10 +319,17 @@ public partial class FormulaBench : HBoxContainer
 			{
 				if (editing != null) _note = _game.SetPrice(editing.Id, Math.Max(1, editing.PriceCents + s));
 				else _price = Math.Max(1, _price + s);
+				// the keyboard stays on the button, so the next press steps the price again
+				_focusPrice = s;
 				Refresh();
 				Changed?.Invoke();
 			};
 			priceRow.AddChild(b);
+			if (_focusPrice == step)
+			{
+				_focusPrice = 0;
+				Callable.From(() => { if (IsInstanceValid(b) && b.IsInsideTree()) b.GrabFocus(); }).CallDeferred();
+			}
 		}
 		_actions.AddChild(priceRow);
 		if (editing != null)

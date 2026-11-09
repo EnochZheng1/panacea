@@ -481,10 +481,21 @@ public partial class ProofView : Control
 				foreach (var l in Print.Descendants<Label>(t)) l.AddThemeColorOverride("font_color", on ? Print.Paper : Print.Ink);
 				if (on) more.Text = about + (tags.Count > 1 ? "  (◀ ▶ for the next)" : "");
 			}
-			strip.FocusEntered += () => Mark(sel, true);
-			strip.FocusExited += () => { Mark(sel, false); more.Text = moreText; };
+			// a ring round the whole counter while it has the keyboard, as round any other stop
+			var ring = new ReferenceRect { EditorOnly = false, BorderColor = Print.Ink, BorderWidth = 3, Visible = false, MouseFilter = MouseFilterEnum.Ignore };
+			ring.SetAnchorsPreset(LayoutPreset.FullRect);
+			strip.AddChild(ring);
+			strip.FocusEntered += () => { ring.Visible = true; Mark(sel, true); };
+			strip.FocusExited += () => { ring.Visible = false; Mark(sel, false); more.Text = moreText; };
 			strip.GuiInput += ev =>
 			{
+				// Down leaves the counter for the next stop, as Tab does (the counter is the last thing on the page)
+				if (ev.IsActionPressed("ui_down"))
+				{
+					strip.FindNextValidFocus()?.GrabFocus();
+					strip.AcceptEvent();
+					return;
+				}
 				var step = ev.IsActionPressed("ui_right") ? 1 : ev.IsActionPressed("ui_left") ? -1 : 0;
 				if (step == 0) return;
 				Mark(sel, false);

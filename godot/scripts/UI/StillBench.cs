@@ -19,6 +19,8 @@ public partial class StillBench : HBoxContainer
 	/// <summary>The batch marked for each remedy. Kept from month to month: the proprietor's usual
 	/// batch is the one he marked last time, not the house default.</summary>
 	private static readonly Dictionary<string, int> _counts = new();
+	/// <summary>The still's size when each remedy's batch was last marked: a batch marked full grows with a larger copper.</summary>
+	private static readonly Dictionary<string, int> _countCap = new();
 	private bool _focusFire;
 	private string? _formula;
 	private string? _note;
@@ -101,7 +103,10 @@ public partial class StillBench : HBoxContainer
 		var cap = Math.Max(1, d.StillBottles);
 		max = Math.Min(max, cap);
 		var want = Math.Clamp(_counts.GetValueOrDefault(f.Id, max > 0 ? Math.Min(24, max) : 24), 0, cap);
+		// a batch marked at the old still's fill is marked at the new one's when the copper grows
+		if (_countCap.TryGetValue(f.Id, out var wasCap) && wasCap < cap && want >= wasCap) want = cap;
 		_counts[f.Id] = want;
+		_countCap[f.Id] = cap;
 		var n = Math.Min(want, max);
 
 		// the bottling shelf: a mark for every bottle the stock allows; click to choose the batch
@@ -181,10 +186,12 @@ public partial class StillBench : HBoxContainer
 		{
 			var all = want * free;
 			var (needsAll, costAll) = Shortfall(all);
+			// what the press costs in all: the stock ordered and the bottles and corks for every batch
+			var glassAll = all * d.BottleCostCents;
 			var which = free == 2 ? "BOTH STILLS" : $"ALL {EditionWriter.Words(free).ToUpperInvariant()} STILLS";
-			var many = Print.Button(costAll > 0 ? $"{which} · ORDER AND LIGHT {want} EACH · {EditionWriter.Money(costAll)}" : $"{which} · LIGHT {want} EACH", 12);
+			var many = Print.Button(costAll > 0 ? $"{which} · ORDER AND LIGHT {want} EACH · {EditionWriter.Money(costAll + glassAll)}" : $"{which} · LIGHT {want} EACH · {EditionWriter.Money(glassAll)}", 12);
 			many.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-			many.TooltipText = $"Every free still brews {f.Name}: orders what {all} bottles are short of, then lights {EditionWriter.Words(free)} stills of {want} bottles each.";
+			many.TooltipText = $"Every free still brews {f.Name}: orders what {all} bottles are short of{(costAll > 0 ? $" ({EditionWriter.Money(costAll)})" : "")}, then lights {EditionWriter.Words(free)} stills of {want} bottles each ({EditionWriter.Money(glassAll)} for bottles and corks).";
 			many.Pressed += () =>
 			{
 				string? err = null;

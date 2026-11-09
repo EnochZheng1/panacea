@@ -74,6 +74,8 @@ public sealed class SimGame : IGame
 	private bool _replaying;
 
 	private void Log(params string[] entry) { if (!_replaying) _log.Add(entry); }
+	/// <summary>How many actions the save holds: it changes whenever the player does something.</summary>
+	public int Actions => _log.Count;
 	private static string N(double v) => v.ToString("R", CultureInfo.InvariantCulture);
 	private static IEnumerable<string> Flat(IReadOnlyList<(string IngredientId, double Ounces)> c) => c.SelectMany(x => new[] { x.IngredientId, N(x.Ounces) });
 	private static List<(string, double)> Unflat(string[] e, int from)

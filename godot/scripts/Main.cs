@@ -90,7 +90,7 @@ public partial class Main : Control
 		var menu = InvertedButton("☰ MENU");
 		menu.AddThemeFontSizeOverride("font_size", 13);
 		menu.SizeFlagsVertical = SizeFlags.ShrinkCenter;
-		menu.FocusMode = FocusModeEnum.Click;
+		menu.FocusMode = FocusModeEnum.All;
 		menu.TooltipText = "The title page, the settings, and a way out. (Escape opens it too.)";
 		menu.Pressed += () => { if (!_pressing && _card == null) ShowPause(); };
 		row.AddChild(menu);
@@ -133,6 +133,8 @@ public partial class Main : Control
 		{
 			Settings.Load();
 			SyncSound();
+			// the shop on the books is laid out behind the title page, so the paper behind it is that shop's
+			if (SaveStore.Label() is { } l && l != "The business is closed.") LoadSaved();
 			ShowTitle();
 		}
 		else if (args.Contains("--title")) ShowTitle();
@@ -259,6 +261,7 @@ public partial class Main : Control
 	private void ShowTitle()
 	{
 		var c = new FrontCard(640);
+		if (_confirmNew) c.FocusAt = 1;
 		c.Title("PANACEA", 54);
 		c.Line("A business in patent medicines · New York, 1885–1906", 17);
 		c.Rule();
@@ -288,19 +291,20 @@ public partial class Main : Control
 		c.OnEscape = CloseCard;
 		c.Choice("☞  BACK TO THE SHOP", CloseCard, solid: true);
 		c.Choice("SETTINGS", () => ShowSettings(ShowPause));
-		c.Choice("SAVE, AND THE TITLE PAGE", () => { SaveNow(); ShowTitle(); });
+		c.Choice("SAVE, AND THE TITLE PAGE", () => { SaveNow(); _backdropIsSave = true; ShowTitle(); });
 		c.Choice("SAVE, AND QUIT", () => { SaveNow(); GetTree().Quit(); });
 		ShowCard(c);
 	}
 
-	private void ShowSettings(Action back)
+	private void ShowSettings(Action back, int focus = 2)
 	{
-		var c = new FrontCard(480);
+		var c = new FrontCard(480) { FocusAt = focus };
 		c.Title("SETTINGS", 30);
 		c.OnEscape = back;
-		c.Choice($"THE WINDOW: {(Settings.Fullscreen ? "FULL SCREEN" : "A WINDOW")}", () => { Settings.SetFullscreen(!Settings.Fullscreen); ShowSettings(back); }, "Press to change.");
-		c.Choice($"SOUND: {(Settings.Sound ? "ON" : "OFF")}", () => { Settings.SetSound(!Settings.Sound); SyncSound(); ShowSettings(back); }, "The press, the till, the paper.");
-		c.Choice("☜  BACK", back, solid: true);
+		// a toggle rebuilds the card with the keyboard still on it, so a second Enter toggles it back
+		c.Choice($"THE WINDOW: {(Settings.Fullscreen ? "FULL SCREEN" : "A WINDOW")}", () => { Settings.SetFullscreen(!Settings.Fullscreen); ShowSettings(back, 0); }, "Press to change.");
+		c.Choice($"SOUND: {(Settings.Sound ? "THE SHOP HEARD" : "HUSHED")}", () => { Settings.SetSound(!Settings.Sound); SyncSound(); ShowSettings(back, 1); }, "The press, the till, the paper. (The same switch as at the foot of the page.)");
+		c.Choice("☜  BACK", back);
 		ShowCard(c);
 	}
 
@@ -309,28 +313,57 @@ public partial class Main : Control
 	{
 		if (_dev || _game is not SimGame sg) return;
 		SaveStore.Write(sg.SaveJson());
+		_savedActions = sg.Actions;
+		_savedAt = Time.GetTicksMsec();
 	}
+
+	private int _savedActions = -1;
+	private ulong _savedAt;
+
+	/// <summary>
+	/// The month's work is kept as it is done, not only at the press: a reply to a letter, a batch, a
+	/// price, so a laptop shut mid-month loses nothing. At most one write a second and a half.
+	/// </summary>
+	private void SaveIfChanged()
+	{
+		if (_dev || _game is not SimGame sg || sg.Actions == _savedActions) return;
+		if (Time.GetTicksMsec() - _savedAt < 1500) return;
+		SaveNow();
+	}
+
+	/// <summary>Whether the shop on the table is the one on the books (so CONTINUE has only to lift the card).</summary>
+	private bool _backdropIsSave;
 
 	private void ContinueSaved()
 	{
+		if (_backdropIsSave || LoadSaved()) { CloseCard(); _backdropIsSave = false; }
+		else ShowTitle();
+	}
+
+	/// <summary>Lays out the saved shop on the table: the game replayed from its log, and its paper.</summary>
+	private bool LoadSaved()
+	{
 		var json = SaveStore.Read();
-		if (json == null) return;
+		if (json == null) return false;
+		EditionWriter writer;
 		using (var f = FileAccess.Open("res://data/paper.en.json", FileAccess.ModeFlags.Read))
-			_writer = new EditionWriter(f.GetAsText());
-		var writer = _writer;
+			writer = new EditionWriter(f.GetAsText());
 		var loaded = SimGame.Load(json, facts => writer.Write(facts));
-		if (loaded == null) { ShowTitle(); return; }
+		if (loaded == null) return false;
+		_writer = writer;
 		_game = loaded;
 		_desk.Bind(_game);
 		SetDesk(false, slide: false);
 		ShowEdition();
-		CloseCard();
+		_backdropIsSave = true;
+		return true;
 	}
 
 	/// <summary>A fresh shop: a new seed (the same one in a dev run), a fresh paper, the old save gone.</summary>
 	private void NewShop(string? seed)
 	{
 		if (!_dev) SaveStore.Delete();
+		_backdropIsSave = false;
 		using (var f = FileAccess.Open("res://data/paper.en.json", FileAccess.ModeFlags.Read))
 			_writer = new EditionWriter(f.GetAsText());
 		_game = SimGame.Start(seed ?? $"shop-{(long)Time.GetUnixTimeFromSystem()}-{GD.Randi() % 10000}");
@@ -352,6 +385,8 @@ public partial class Main : Control
 		var b = back == null ? "" : System.Text.Json.JsonSerializer.Serialize(back.Desk(), opt) + System.Text.Json.JsonSerializer.Serialize(back.Facts, opt);
 		GD.Print(a == b ? $"SAVETEST OK: {months} months, {json.Length} bytes" : "SAVETEST MISMATCH");
 	}
+
+	public override void _Process(double delta) => SaveIfChanged();
 
 	public override void _Notification(int what)
 	{

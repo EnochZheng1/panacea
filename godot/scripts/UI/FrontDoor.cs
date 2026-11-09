@@ -139,9 +139,17 @@ public partial class FrontCard : Control
 		return b;
 	}
 
+	/// <summary>The choice that takes the keyboard when the card opens (a card rebuilt after a toggle keeps it on the toggle).</summary>
+	public int FocusAt = -1;
+
 	public override void _Ready()
 	{
-		Callable.From(() => { if (IsInstanceValid(this)) _buttons.FirstOrDefault(b => !b.Disabled)?.GrabFocus(); }).CallDeferred();
+		Callable.From(() =>
+		{
+			if (!IsInstanceValid(this)) return;
+			var b = FocusAt >= 0 && FocusAt < _buttons.Count && !_buttons[FocusAt].Disabled ? _buttons[FocusAt] : _buttons.FirstOrDefault(x => !x.Disabled);
+			b?.GrabFocus();
+		}).CallDeferred();
 	}
 
 	public override void _Input(InputEvent e)
@@ -150,8 +158,9 @@ public partial class FrontCard : Control
 		// the card holds the keyboard: Tab and the arrows walk its choices, Escape backs out
 		if (e.IsActionPressed("ui_cancel"))
 		{
-			OnEscape?.Invoke();
+			// the escape may take this card out of the tree: mark the key handled first
 			GetViewport().SetInputAsHandled();
+			OnEscape?.Invoke();
 			return;
 		}
 		var next = e.IsActionPressed("ui_focus_next") || e.IsActionPressed("ui_down");

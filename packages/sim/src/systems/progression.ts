@@ -1,9 +1,10 @@
-import type { ContentPack, Effect, EventChoice } from '@panacea/content';
+import type { ContentPack, Effect, EventChoice, GameEvent } from '@panacea/content';
 import { CAUSES } from '../core/causes.ts';
 import { compareDates } from '../core/date.ts';
 import type { GameState, PendingEvent, Phase, Rng } from '../core/index.ts';
 import { applyEffects } from './effects.ts';
 import { investmentProgress, isHeld } from './investments.ts';
+import { letterTrust } from './market.ts';
 import {
   evaluateRequirement,
   requirementProgress,
@@ -241,9 +242,27 @@ export function resolveEvent(
       return error;
     }
   }
-  applyEffects(state, choice.effects, CAUSES.event, ev.id);
+  applyEffects(state, creditedEffects(state, content, ev, choice.effects), CAUSES.event, ev.id);
   state.month.news.push({ kind: 'event_resolved', eventId: ev.id, choiceId: choice.id, auto });
   return null;
+}
+
+/**
+ * The effects of a reply to a letter as the ward credits them: standing earned by a kindness is
+ * scaled by how far the ward takes the shop at its word (`letterTrust`), as a letter's callers
+ * are. Standing lost is lost in full.
+ */
+export function creditedEffects(
+  state: GameState,
+  content: ContentPack,
+  ev: GameEvent,
+  effects: readonly Effect[],
+): Effect[] {
+  if (ev.trigger !== 'random') return [...effects];
+  const trust = letterTrust(state, content);
+  return effects.map((e) =>
+    e.type === 'reputation' && e.delta > 0 ? { ...e, delta: e.delta * trust } : e,
+  );
 }
 
 /** Resolves every pending event with its default (or first available) choice. */

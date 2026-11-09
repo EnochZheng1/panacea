@@ -58,6 +58,8 @@ export type Requirement =
   | { type: 'inquests'; atLeast: number }
   | { type: 'regulars'; atLeast: number }
   | { type: 'date'; from: GameDate }
+  /** The month of the year is one of these (1–12): a letter that comes at Christmas or in July. */
+  | { type: 'season'; months: number[] }
   | { type: 'flag'; id: string }
   | { type: 'unlocked'; id: string }
   | { type: 'all'; of: Requirement[] }
@@ -76,6 +78,10 @@ export const RequirementSchema: z.ZodType<Requirement> = z.lazy(() =>
     z.strictObject({ type: z.literal('inquests'), atLeast: z.number().int() }),
     z.strictObject({ type: z.literal('regulars'), atLeast: z.number().int() }),
     z.strictObject({ type: z.literal('date'), from: GameDateSchema }),
+    z.strictObject({
+      type: z.literal('season'),
+      months: z.array(z.number().int().min(1).max(12)).min(1),
+    }),
     z.strictObject({ type: z.literal('flag'), id: IdSchema }),
     z.strictObject({ type: z.literal('unlocked'), id: IdSchema }),
     z.strictObject({ type: z.literal('all'), of: z.array(RequirementSchema).min(1) }),
@@ -533,6 +539,11 @@ export const ConfigSchema = z.strictObject({
     heatPerComplaint: z.number().min(0),
     /** At this heat the authorities move against you… */
     shutdownHeat: z.number().positive(),
+    /**
+     * A letter's correspondent sends this much fewer callers at the heat that shuts the shop (more
+     * than 1: nobody, some way before it). Also scales the standing a reply to a letter earns.
+     */
+    letterCallerLoss: z.number().min(0),
     /** …and close the shop if it stays there this many consecutive months. */
     shutdownGraceMonths: z.number().int().min(1),
     inquestBaseChance: z.number().min(0).max(1),
@@ -584,6 +595,11 @@ export const ConfigSchema = z.strictObject({
     conversionLoss: z.number().min(0).max(1),
     /** …and an undependent regular leaves with this chance a month. Scales with the memory. */
     leaveChance: z.number().min(0).max(1),
+    /**
+     * At a memory of 100, a letter's correspondent sends this much fewer callers (`callers_*`), and
+     * a reply to a letter earns this much less standing.
+     */
+    letterCallerLoss: z.number().min(0).max(1),
     /** The months the observation counts what the ward remembers over (`wardRemembers`). */
     rememberMonths: z.number().int().min(1),
   }),

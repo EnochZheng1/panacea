@@ -47,6 +47,8 @@ export function evaluateRequirement(
       if (now >= target) return { met: true, progress: 1 };
       return { met: false, progress: Math.max(0, (now - start) / Math.max(1, target - start)) };
     }
+    case 'season':
+      return binary(req.months.includes(state.meta.date.month));
     case 'flag':
       return binary(state.player.flags[req.id] === true);
     case 'unlocked':
@@ -179,6 +181,10 @@ export function requirementProgress(
       const have = dateIndex(state.meta.date);
       const need = dateIndex(req.from);
       return [{ kind: 'date', id: null, sense: 'atLeast', have, need, met: have >= need, via }];
+    }
+    case 'season': {
+      const met = req.months.includes(state.meta.date.month);
+      return [{ kind: 'season', id: null, sense: 'atLeast', have: met ? 1 : 0, need: 1, met, via }];
     }
     default: {
       const have = countFor(req, state) as number;

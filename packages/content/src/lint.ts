@@ -166,7 +166,15 @@ export function lintContent(pack: ContentPack): ContentIssue[] {
         warn(file, path, `flag "${r.id}" is never set by any content, so this can never be met`);
       }
     });
-  pack.unlocks.forEach((u, i) => checkRequirement('unlocks', `${i}.requirement`, u.requirement));
+  // A season comes round every year, so it can only time a letter, never hold back progress.
+  const noSeason = (file: string, path: string, req: Requirement) =>
+    walkRequirement(req, (r) => {
+      if (r.type === 'season') error(file, path, 'a season is only a condition for a letter');
+    });
+  pack.unlocks.forEach((u, i) => {
+    checkRequirement('unlocks', `${i}.requirement`, u.requirement);
+    noSeason('unlocks', `${i}.requirement`, u.requirement);
+  });
   pack.events.forEach((ev, i) => {
     if (ev.condition) checkRequirement('events', `${i}.condition`, ev.condition);
     ev.choices.forEach((c, j) => {
@@ -177,6 +185,8 @@ export function lintContent(pack: ContentPack): ContentIssue[] {
   pack.investments.forEach((x, i) => {
     if (x.requires) checkRequirement('investments', `${i}.requires`, x.requires);
     if (x.lostWhen) checkRequirement('investments', `${i}.lostWhen`, x.lostWhen);
+    if (x.requires) noSeason('investments', `${i}.requires`, x.requires);
+    if (x.lostWhen) noSeason('investments', `${i}.lostWhen`, x.lostWhen);
     x.effects.forEach((e, j) => {
       if (e.type === 'capability' && e.months !== undefined) {
         error('investments', `${i}.effects.${j}`, 'investment capabilities last while it is held');

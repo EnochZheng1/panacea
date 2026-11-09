@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Panacea.Sim.Tests;
 
-/// <summary>Events pass 1 (packages/sim/test/letters.test.ts): a fair draw, the ward's memory, a letter's callers.</summary>
+/// <summary>Events passes 1 and 2 (packages/sim/test/letters.test.ts): a fair draw, seasons, the ward's memory, a letter's callers.</summary>
 public class LettersTests
 {
     private static readonly ContentPack C = Fixtures.Content;
@@ -91,6 +91,75 @@ public class LettersTests
     }
 
     [Fact]
+    public void ThePostBringsASeasonalLetterOnlyInItsMonths()
+    {
+        var a = Letters(1)[0];
+        var season = new SeasonRequirement([12, 1]);
+        var pack = WithEvents([new GameEvent { Id = a.Id, Condition = season, Chance = 1, Choices = a.Choices }]);
+        var s = Fresh("season");
+        var months = new List<int>();
+        for (int m = 1; m <= 12; m++)
+        {
+            s.Events.Pending.Clear();
+            s.Meta.Date = new GameDate(1890, m);
+            Assert.Equal(m is 12 or 1, Requirements.Evaluate(season, s, pack).Met);
+            Progression.DrawEvents(s, pack, Rng.FromSeed($"season-{m}"));
+            if (s.Events.Pending.Count > 0) months.Add(m);
+        }
+        Assert.Equal([1, 12], months.ToArray());
+    }
+
+    [Fact]
+    public void ALettersCallersAreFewerWhenTheWardRemembersOrTheBoardSuspects()
+    {
+        var s = Fresh("trust");
+        s.Scrutiny.Heat = 0;
+        s.Ward.Memory = 0;
+        Effects.Apply(s, [new CapabilityEffect("callers_wheelmen", 6, null)], "event");
+        Effects.Apply(s, [new CapabilityEffect("callers_bazaar", 4)], "event");
+        Effects.Apply(s, [new CapabilityEffect("callers_portrait", 1)], "event");
+        Assert.Equal(1, Market.LetterTrust(s, C));
+        // the ward remembers: half the word is given
+        s.Ward.Memory = 50;
+        Assert.Equal(0.5, Market.LetterTrust(s, C), 9);
+        Assert.Equal([("bazaar", 2), ("portrait", 1), ("wheelmen", 3)], Market.LetterCallers(s, C).ToArray());
+        // and the Board suspects it: at a fifth of the way to shutting it, 1 − 1.5 × 0.2 of that
+        Assert.Equal(1.5, C.Config.Scrutiny.LetterCallerLoss);
+        s.Scrutiny.Heat = 20;
+        Assert.Equal(0.35, Market.LetterTrust(s, C), 9);
+        Assert.Equal([("bazaar", 1), ("wheelmen", 2)], Market.LetterCallers(s, C).ToArray());
+        // a ward that remembers everything sends nobody on a letter's word
+        s.Scrutiny.Heat = 0;
+        s.Ward.Memory = 100;
+        Assert.Empty(Market.LetterCallers(s, C));
+        // nor for a shop two-thirds of the way to being shut
+        s.Ward.Memory = 0;
+        s.Scrutiny.Heat = 70;
+        Assert.Equal(0, Market.LetterTrust(s, C));
+        Assert.Empty(Market.LetterCallers(s, C));
+    }
+
+    [Fact]
+    public void TheStandingAReplyEarnsIsCreditedAsFarAsTheWardTrustsTheShopAndTakenInFull()
+    {
+        var s = Fresh("credit");
+        var letter = C.ById.Events["parish_bazaar"];
+        var inquest = C.ById.Events["inquest"];
+        Effect[] effects = [new MetricEffect(Metrics.Reputation, 2), new MetricEffect(Metrics.Reputation, -1), new CashEffect(-300)];
+        s.Scrutiny.Heat = 0;
+        s.Ward.Memory = 0;
+        Assert.Equal(effects, Progression.CreditedEffects(s, C, letter, effects).ToArray());
+        s.Scrutiny.Heat = 20;
+        s.Ward.Memory = 50;
+        Assert.Equal(0.35, Market.LetterTrust(s, C), 9);
+        Assert.Equal(
+            [new MetricEffect(Metrics.Reputation, 2 * Market.LetterTrust(s, C)), new MetricEffect(Metrics.Reputation, -1), new CashEffect(-300)],
+            Progression.CreditedEffects(s, C, letter, effects).ToArray());
+        // the coroner's notice is not a letter of the ward's
+        Assert.Equal(effects, Progression.CreditedEffects(s, C, inquest, effects).ToArray());
+    }
+
+    [Fact]
     public void ALetterNudgesTheWardMemoryWithinItsBoundsAndRaisesItsPeak()
     {
         var s = Fresh("memory");
@@ -114,7 +183,8 @@ public class LettersTests
         Effects.Apply(s, [new CapabilityEffect("callers_wheelmen", 6, 12)], "event");
         Effects.Apply(s, [new CapabilityEffect("callers_bazaar", 4)], "event");
         Effects.Apply(s, [new CapabilityEffect("callers_fountain", 0)], "event");
-        Assert.Equal([("bazaar", 4), ("wheelmen", 6)], Market.LetterCallers(s).ToArray());
+        s.Scrutiny.Heat = 0;
+        Assert.Equal([("bazaar", 4), ("wheelmen", 6)], Market.LetterCallers(s, C).ToArray());
 
         var (made, r) = Game.ApplyAction(s, new CreateFormula("T", Tonic, "simple_mix", 60), C);
         Assert.True(r.Ok);

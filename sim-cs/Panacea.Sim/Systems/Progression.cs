@@ -112,6 +112,11 @@ public static class Requirements
                 int need = Dates.Index(d.From);
                 return [new ConditionProgress("date", null, "atLeast", have, need, have >= need, via)];
             }
+            case SeasonRequirement season:
+            {
+                bool met = season.Months.Contains(state.Meta.Date.Month);
+                return [new ConditionProgress("season", null, "atLeast", met ? 1 : 0, 1, met, via)];
+            }
             case AtLeastRequirement r:
             {
                 double have = CountFor(r, state);
@@ -150,6 +155,8 @@ public static class Requirements
                 if (now >= target) return new RequirementStatus(true, 1);
                 return new RequirementStatus(false, Math.Max(0, (double)(now - start) / Math.Max(1, target - start)));
             }
+            case SeasonRequirement season:
+                return Binary(season.Months.Contains(state.Meta.Date.Month));
             case FlagRequirement f:
                 return Binary(state.Player.Flags.TryGetValue(f.Id, out var flag) && flag);
             case UnlockedRequirement u:
@@ -428,9 +435,23 @@ public static class Progression
                 return error;
             }
         }
-        Effects.Apply(state, choice.Effects, Causes.Event, ev.Id);
+        Effects.Apply(state, CreditedEffects(state, content, ev, choice.Effects), Causes.Event, ev.Id);
         state.Month.News.Add(new EventResolvedNews(ev.Id, choice.Id, auto));
         return null;
+    }
+
+    /// <summary>
+    /// The effects of a reply to a letter as the ward credits them (progression.ts creditedEffects):
+    /// standing earned by a kindness is scaled by how far the ward takes the shop at its word
+    /// (<see cref="Market.LetterTrust"/>), as a letter's callers are. Standing lost is lost in full.
+    /// </summary>
+    public static List<Effect> CreditedEffects(GameState state, ContentPack content, GameEvent ev, IReadOnlyList<Effect> effects)
+    {
+        if (ev.Trigger != "random") return effects.ToList();
+        double trust = Market.LetterTrust(state, content);
+        return effects.Select(e => e is MetricEffect { Metric: Metrics.Reputation, Delta: > 0 } m
+            ? m with { Delta = m.Delta * trust }
+            : e).ToList();
     }
 
     /// <summary>Resolves every pending event with its default (or first available) choice.</summary>

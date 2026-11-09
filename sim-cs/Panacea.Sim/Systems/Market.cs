@@ -410,20 +410,36 @@ public static class Market
     /// <summary>
     /// Callers a letter's arrangement sends to the counter (market.ts letterCallers): a capability
     /// "callers_&lt;source&gt;" (the wheelmen's club, the parish bazaar) brings that many strangers a
-    /// month, counted under that source, in the ordinal order of the capability ids.
+    /// month, counted under that source, in the ordinal order of the capability ids. They come on
+    /// someone's word, scaled by <see cref="LetterTrust"/> and rounded.
     /// </summary>
-    public static List<(string Source, int Callers)> LetterCallers(GameState state)
+    public static List<(string Source, int Callers)> LetterCallers(GameState state, ContentPack content)
     {
         var caps = state.Player.Capabilities;
+        double trust = LetterTrust(state, content);
         var ids = caps.Keys.Where(k => k.StartsWith(CallersPrefix, StringComparison.Ordinal)).ToList();
         ids.Sort(string.CompareOrdinal);
         var list = new List<(string, int)>();
         foreach (var id in ids)
         {
             int n = caps.GetOr(id, 0);
-            if (n > 0) list.Add((id[CallersPrefix.Length..], n));
+            int sent = (int)Math.Floor(n * trust + 0.5);
+            if (sent > 0) list.Add((id[CallersPrefix.Length..], sent));
         }
         return list;
+    }
+
+    /// <summary>
+    /// How far the ward takes the shop at a letter's word, 0..1 (market.ts letterTrust): how readily
+    /// a correspondent sends people to it, and how much standing a kindness earns. Lessened by the
+    /// ward's memory of harm (Ward.LetterCallerLoss at a memory of 100) and by suspicion
+    /// (Scrutiny.LetterCallerLoss at the heat that shuts the shop).
+    /// </summary>
+    public static double LetterTrust(GameState state, ContentPack content)
+    {
+        var scrutiny = content.Config.Scrutiny;
+        double suspicion = Math.Min(1, Math.Max(0, state.Scrutiny.Heat / scrutiny.ShutdownHeat));
+        return WardSystem.MemoryLoss(state, content.Config.Ward.LetterCallerLoss) * Math.Max(0, 1 - scrutiny.LetterCallerLoss * suspicion);
     }
 
     private static void WalkIns(TurnContext ctx, List<Offer> offers, Func<Offer, string, Bought?> sell)
@@ -442,7 +458,7 @@ public static class Market
         callers["word"] = WordOfStrength(offers, content);
         foreach (var inv in Investments.Held(state, content))
             if (inv.WalkInsPerMonth > 0) callers[inv.Id] = inv.WalkInsPerMonth;
-        foreach (var (source, n) in LetterCallers(state)) callers[source] = n;
+        foreach (var (source, n) in LetterCallers(state, content)) callers[source] = n;
         int visitors = 0;
         foreach (var kv in callers) visitors += kv.Value;
         // A rival's sale: a share of the callers whose bottle costs more than his go to him instead.

@@ -85,6 +85,12 @@ public sealed record DateRequirement(GameDate From) : Requirement
     public override string Type => "date";
 }
 
+/// <summary>The month of the year is one of these (1–12): a letter that comes at Christmas or in July.</summary>
+public sealed record SeasonRequirement(IReadOnlyList<int> Months) : Requirement
+{
+    public override string Type => "season";
+}
+
 public sealed record FlagRequirement(string Id) : Requirement
 {
     public override string Type => "flag";
@@ -127,6 +133,7 @@ internal sealed class RequirementConverter : JsonConverter<Requirement>
             "reputation" or "notoriety" or "bottlesSold" or "batchesBrewed" or "heat" or "deaths"
                 or "inquests" or "regulars" => new AtLeastRequirement(type, e.GetProperty("atLeast").GetDouble()),
             "date" => new DateRequirement(e.GetProperty("from").Deserialize<GameDate>(options)!),
+            "season" => new SeasonRequirement(e.GetProperty("months").EnumerateArray().Select(x => x.GetInt32()).ToList()),
             "flag" => new FlagRequirement(e.GetProperty("id").GetString()!),
             "unlocked" => new UnlockedRequirement(e.GetProperty("id").GetString()!),
             "all" => new AllRequirement(e.GetProperty("of").EnumerateArray().Select(x => Parse(x, options)).ToList()),
@@ -148,6 +155,10 @@ internal sealed class RequirementConverter : JsonConverter<Requirement>
             case DateRequirement d:
                 writer.WritePropertyName("from");
                 JsonSerializer.Serialize(writer, d.From, options);
+                break;
+            case SeasonRequirement season:
+                writer.WritePropertyName("months");
+                JsonSerializer.Serialize(writer, season.Months, options);
                 break;
             case FlagRequirement f:
                 writer.WriteString("id", f.Id);
@@ -605,6 +616,9 @@ public sealed class ScrutinyConfig
     public double HeatPerAnonymousDeath { get; init; }
     public double HeatPerComplaint { get; init; }
     public double ShutdownHeat { get; init; }
+    /// <summary>A letter's correspondent sends this much fewer callers at the heat that shuts the shop
+    /// (more than 1: nobody, some way before it). Also scales the standing a reply to a letter earns.</summary>
+    public double LetterCallerLoss { get; init; }
     public int ShutdownGraceMonths { get; init; }
     public double InquestBaseChance { get; init; }
     public long BribeBaseCents { get; init; }
@@ -650,6 +664,9 @@ public sealed class WardConfig
     public double ConversionLoss { get; init; }
     /// <summary>…and an undependent regular leaves with this chance a month. Scales with the memory.</summary>
     public double LeaveChance { get; init; }
+    /// <summary>At a memory of 100, a letter's correspondent sends this much fewer callers ("callers_*"),
+    /// and a reply to a letter earns this much less standing.</summary>
+    public double LetterCallerLoss { get; init; }
     /// <summary>The months the observation counts what the ward remembers over.</summary>
     public int RememberMonths { get; init; }
 }

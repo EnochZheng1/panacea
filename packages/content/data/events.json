@@ -4997,6 +4997,10 @@
           {
             "type": "heat",
             "delta": 1
+          },
+          {
+            "type": "setFlag",
+            "id": "apprentice_served"
           }
         ]
       },
@@ -5582,6 +5586,4529 @@
             "delta": 3
           }
         ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "clerk_applies",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1889,
+            "month": 1
+          }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "date",
+            "from": {
+              "year": 1905,
+              "month": 1
+            }
+          }
+        },
+        {
+          "type": "batchesBrewed",
+          "atLeast": 20
+        },
+        {
+          "type": "cash",
+          "atLeastCents": 3000
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "flag",
+            "id": "clerk_engaged"
+          }
+        }
+      ]
+    },
+    "chance": 0.05,
+    "once": true,
+    "choices": [
+      {
+        "id": "engage",
+        "effects": [
+          {
+            "type": "capability",
+            "id": "retainer_cents",
+            "delta": 300,
+            "months": 24
+          },
+          {
+            "type": "capability",
+            "id": "ingredient_discount_pct",
+            "delta": 5,
+            "months": 24
+          },
+          {
+            "type": "setFlag",
+            "id": "clerk_engaged"
+          }
+        ]
+      },
+      {
+        "id": "decline",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "clerk_books",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "flag",
+          "id": "clerk_engaged"
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "flag",
+            "id": "clerk_books_done"
+          }
+        }
+      ]
+    },
+    "chance": 0.1,
+    "once": true,
+    "choices": [
+      {
+        "id": "dun_him",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": 540
+          },
+          {
+            "type": "heat",
+            "delta": 2
+          },
+          {
+            "type": "setFlag",
+            "id": "clerk_books_done"
+          }
+        ]
+      },
+      {
+        "id": "let_him_be",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": 340
+          },
+          {
+            "type": "setFlag",
+            "id": "clerk_books_done"
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "clerk_leaves",
+    "condition": {
+      "type": "flag",
+      "id": "clerk_books_done"
+    },
+    "chance": 0.04,
+    "once": true,
+    "choices": [
+      {
+        "id": "hire_cousin",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -200
+          },
+          {
+            "type": "capability",
+            "id": "retainer_cents",
+            "delta": 300,
+            "months": 24
+          },
+          {
+            "type": "capability",
+            "id": "ingredient_discount_pct",
+            "delta": 5,
+            "months": 24
+          },
+          {
+            "type": "clearFlag",
+            "id": "clerk_engaged"
+          }
+        ]
+      },
+      {
+        "id": "character_only",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -200
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          },
+          {
+            "type": "clearFlag",
+            "id": "clerk_engaged"
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "lodge_invite",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1886,
+            "month": 1
+          }
+        },
+        {
+          "type": "regulars",
+          "atLeast": 8
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "flag",
+            "id": "lodge_member"
+          }
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "join",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -500
+          },
+          {
+            "type": "capability",
+            "id": "retainer_cents",
+            "delta": 25
+          },
+          {
+            "type": "capability",
+            "id": "callers_lodge",
+            "delta": 1
+          },
+          {
+            "type": "setFlag",
+            "id": "lodge_member"
+          }
+        ]
+      },
+      {
+        "id": "decline",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "lodge_brother",
+    "condition": {
+      "type": "flag",
+      "id": "lodge_member"
+    },
+    "chance": 0.06,
+    "cooldownMonths": 48,
+    "choices": [
+      {
+        "id": "slate",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -300
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "one_bottle",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -50
+          }
+        ]
+      },
+      {
+        "id": "refuse",
+        "effects": [
+          {
+            "type": "reputation",
+            "delta": -1
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "lodge_supper",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "flag",
+          "id": "lodge_member"
+        },
+        {
+          "type": "season",
+          "months": [1, 2]
+        }
+      ]
+    },
+    "chance": 0.2,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "punch",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -400
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          },
+          {
+            "type": "capability",
+            "id": "callers_lodge",
+            "delta": 2,
+            "months": 2
+          }
+        ]
+      },
+      {
+        "id": "ticket",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -150
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "regrets",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -100
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "apprentice_exam",
+    "condition": {
+      "type": "flag",
+      "id": "apprentice_served"
+    },
+    "chance": 0.05,
+    "cooldownMonths": 24,
+    "choices": [
+      {
+        "id": "keep_him",
+        "effects": [
+          {
+            "type": "capability",
+            "id": "retainer_cents",
+            "delta": 600,
+            "months": 12
+          },
+          {
+            "type": "capability",
+            "id": "quality_control",
+            "delta": 1,
+            "months": 12
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          },
+          {
+            "type": "heat",
+            "delta": 1
+          },
+          {
+            "type": "clearFlag",
+            "id": "apprentice_served"
+          }
+        ]
+      },
+      {
+        "id": "let_him_go",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -100
+          },
+          {
+            "type": "clearFlag",
+            "id": "apprentice_served"
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "carrier_address",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 12
+          }
+        },
+        {
+          "type": "season",
+          "months": [12, 1]
+        }
+      ]
+    },
+    "chance": 0.2,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "dollar",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -100
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          },
+          {
+            "type": "wardMemory",
+            "delta": -1
+          }
+        ]
+      },
+      {
+        "id": "quarter",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -25
+          }
+        ]
+      },
+      {
+        "id": "nothing",
+        "effects": [
+          {
+            "type": "reputation",
+            "delta": -1
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "holiday_goods",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1886,
+            "month": 10
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 300
+        },
+        {
+          "type": "season",
+          "months": [10, 11]
+        }
+      ]
+    },
+    "chance": 0.14,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "order_case",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -500
+          },
+          {
+            "type": "capability",
+            "id": "callers_holiday",
+            "delta": 3,
+            "months": 2
+          }
+        ]
+      },
+      {
+        "id": "decline",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "ward_turkeys",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 11
+          }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "date",
+            "from": {
+              "year": 1906,
+              "month": 1
+            }
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 150
+        },
+        {
+          "type": "season",
+          "months": [11, 12]
+        }
+      ]
+    },
+    "chance": 0.2,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "subscribe",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -500
+          },
+          {
+            "type": "heat",
+            "delta": -2
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "cough_syrup",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -200
+          },
+          {
+            "type": "heat",
+            "delta": -1
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "parish",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -100
+          },
+          {
+            "type": "heat",
+            "delta": 1
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "lent_pledge",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1886,
+            "month": 2
+          }
+        },
+        {
+          "type": "regulars",
+          "atLeast": 6
+        },
+        {
+          "type": "season",
+          "months": [2, 3]
+        }
+      ]
+    },
+    "chance": 0.2,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "medicine",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": 100
+          },
+          {
+            "type": "heat",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "it_counts",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -100
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "keep_out",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "easter_complexion",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 3
+          }
+        },
+        {
+          "type": "season",
+          "months": [3, 4]
+        }
+      ]
+    },
+    "chance": 0.2,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "cold_cream",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -20
+          },
+          {
+            "type": "wardMemory",
+            "delta": -1
+          }
+        ]
+      },
+      {
+        "id": "wafers",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": 50
+          },
+          {
+            "type": "heat",
+            "delta": 2
+          }
+        ]
+      },
+      {
+        "id": "lemon",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "moving_day",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 4
+          }
+        },
+        {
+          "type": "regulars",
+          "atLeast": 6
+        },
+        {
+          "type": "season",
+          "months": [4]
+        }
+      ]
+    },
+    "chance": 0.2,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "send_it",
+        "effects": [
+          {
+            "type": "capability",
+            "id": "retainer_cents",
+            "delta": 25,
+            "months": 12
+          },
+          {
+            "type": "wardMemory",
+            "delta": -1
+          }
+        ]
+      },
+      {
+        "id": "name_druggist",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "moving_debts",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 5
+          }
+        },
+        {
+          "type": "regulars",
+          "atLeast": 8
+        },
+        {
+          "type": "season",
+          "months": [5]
+        }
+      ]
+    },
+    "chance": 0.16,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "hand_over",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": 400
+          },
+          {
+            "type": "reputation",
+            "delta": -1
+          },
+          {
+            "type": "wardMemory",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "write_off",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "summer_fans",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1886,
+            "month": 5
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 200
+        },
+        {
+          "type": "season",
+          "months": [5, 6]
+        }
+      ]
+    },
+    "chance": 0.14,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "order_fans",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -400
+          },
+          {
+            "type": "capability",
+            "id": "callers_fans",
+            "delta": 2,
+            "months": 3
+          }
+        ]
+      },
+      {
+        "id": "decline",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "summer_syrups",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1886,
+            "month": 6
+          }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "date",
+            "from": {
+              "year": 1898,
+              "month": 1
+            }
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 300
+        },
+        {
+          "type": "season",
+          "months": [6, 7]
+        }
+      ]
+    },
+    "chance": 0.14,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "behind_counter",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -200
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          },
+          {
+            "type": "wardMemory",
+            "delta": -1
+          }
+        ]
+      },
+      {
+        "id": "on_counter",
+        "effects": [
+          {
+            "type": "heat",
+            "delta": 1
+          },
+          {
+            "type": "wardMemory",
+            "delta": 1
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "fourth_of_july",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 6
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 100
+        },
+        {
+          "type": "season",
+          "months": [6]
+        }
+      ]
+    },
+    "chance": 0.2,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "two_dollars",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -200
+          },
+          {
+            "type": "capability",
+            "id": "callers_fourth",
+            "delta": 2,
+            "months": 1
+          }
+        ]
+      },
+      {
+        "id": "open_door",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -100
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          },
+          {
+            "type": "wardMemory",
+            "delta": -1
+          }
+        ]
+      },
+      {
+        "id": "shutters",
+        "effects": [
+          {
+            "type": "reputation",
+            "delta": -1
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "excursion",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 6
+          }
+        },
+        {
+          "type": "regulars",
+          "atLeast": 6
+        },
+        {
+          "type": "season",
+          "months": [6, 7]
+        }
+      ]
+    },
+    "chance": 0.14,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "give_box",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -200
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "programme",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -150
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          },
+          {
+            "type": "heat",
+            "delta": 1
+          },
+          {
+            "type": "capability",
+            "id": "callers_excursion",
+            "delta": 2,
+            "months": 1
+          }
+        ]
+      },
+      {
+        "id": "regrets",
+        "effects": [
+          {
+            "type": "reputation",
+            "delta": -1
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "snow_sidewalk",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 12
+          }
+        },
+        {
+          "type": "season",
+          "months": [12, 1, 2]
+        }
+      ]
+    },
+    "chance": 0.12,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "hire_boy",
+        "effects": [
+          {
+            "type": "capability",
+            "id": "retainer_cents",
+            "delta": 25,
+            "months": 3
+          }
+        ]
+      },
+      {
+        "id": "lady_bottle",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -30
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "thaw",
+        "effects": [
+          {
+            "type": "heat",
+            "delta": 1
+          },
+          {
+            "type": "reputation",
+            "delta": -1
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "coal_dealer",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 10
+          }
+        },
+        {
+          "type": "batchesBrewed",
+          "atLeast": 6
+        },
+        {
+          "type": "season",
+          "months": [10, 11]
+        }
+      ]
+    },
+    "chance": 0.14,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "now",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -400
+          }
+        ]
+      },
+      {
+        "id": "bucket",
+        "effects": [
+          {
+            "type": "capability",
+            "id": "retainer_cents",
+            "delta": 100,
+            "months": 5
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "calendar_printer",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1886,
+            "month": 9
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 300
+        },
+        {
+          "type": "season",
+          "months": [9, 10, 11]
+        }
+      ]
+    },
+    "chance": 0.1,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "order",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -600
+          },
+          {
+            "type": "capability",
+            "id": "callers_calendar",
+            "delta": 1,
+            "months": 12
+          }
+        ]
+      },
+      {
+        "id": "decline",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "cloudburst",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 7
+          }
+        },
+        {
+          "type": "batchesBrewed",
+          "atLeast": 6
+        },
+        {
+          "type": "season",
+          "months": [7, 8]
+        }
+      ]
+    },
+    "chance": 0.08,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "pump",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -400
+          }
+        ]
+      },
+      {
+        "id": "wait",
+        "effects": [
+          {
+            "type": "capability",
+            "id": "ingredient_discount_pct",
+            "delta": -10,
+            "months": 2
+          },
+          {
+            "type": "heat",
+            "delta": 1
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "school_prize",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1887,
+            "month": 6
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 500
+        },
+        {
+          "type": "season",
+          "months": [6]
+        }
+      ]
+    },
+    "chance": 0.2,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "physiology",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -150
+          },
+          {
+            "type": "wardMemory",
+            "delta": -1
+          }
+        ]
+      },
+      {
+        "id": "penmanship",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -100
+          }
+        ]
+      },
+      {
+        "id": "regrets",
+        "effects": [
+          {
+            "type": "reputation",
+            "delta": -1
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "choir_lozenges",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 11
+          }
+        },
+        {
+          "type": "season",
+          "months": [11, 12]
+        }
+      ]
+    },
+    "chance": 0.12,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "horehound",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -50
+          },
+          {
+            "type": "wardMemory",
+            "delta": -1
+          }
+        ]
+      },
+      {
+        "id": "strongest",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -50
+          },
+          {
+            "type": "reputation",
+            "delta": -1
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          },
+          {
+            "type": "capability",
+            "id": "callers_choir",
+            "delta": 2,
+            "months": 1
+          }
+        ]
+      },
+      {
+        "id": "regrets",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "target_excursion",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 7
+          }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "date",
+            "from": {
+              "year": 1896,
+              "month": 1
+            }
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 150
+        },
+        {
+          "type": "season",
+          "months": [7, 8, 9]
+        }
+      ]
+    },
+    "chance": 0.1,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "silver_cup",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -400
+          },
+          {
+            "type": "heat",
+            "delta": -1
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "case_of_tonic",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -200
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          },
+          {
+            "type": "heat",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "shutters",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -300
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "labor_day",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1887,
+            "month": 8
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 150
+        },
+        {
+          "type": "season",
+          "months": [8]
+        }
+      ]
+    },
+    "chance": 0.1,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "close",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -150
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "lemonade",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": 150
+          },
+          {
+            "type": "reputation",
+            "delta": -1
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "slate_credit",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 4
+          }
+        },
+        {
+          "type": "regulars",
+          "atLeast": 6
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "slate",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -60
+          },
+          {
+            "type": "wardMemory",
+            "delta": -1
+          }
+        ]
+      },
+      {
+        "id": "half",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -30
+          }
+        ]
+      },
+      {
+        "id": "cash",
+        "effects": [
+          {
+            "type": "reputation",
+            "delta": -1
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "wrong_bottle",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 6
+          }
+        },
+        {
+          "type": "batchesBrewed",
+          "atLeast": 6
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "apologise",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -60
+          }
+        ]
+      },
+      {
+        "id": "poison_labels",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -200
+          },
+          {
+            "type": "heat",
+            "delta": -1
+          }
+        ]
+      },
+      {
+        "id": "syrup_only",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -30
+          },
+          {
+            "type": "reputation",
+            "delta": -1
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "horse_order",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 6
+          }
+        },
+        {
+          "type": "batchesBrewed",
+          "atLeast": 6
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "sell_gallon",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": 250
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "veterinary",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "thanks_note",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 4
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 100
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "sample",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -30
+          },
+          {
+            "type": "capability",
+            "id": "callers_neighbours",
+            "delta": 1,
+            "months": 3
+          }
+        ]
+      },
+      {
+        "id": "thank_her",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "window_ball",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 4
+          }
+        },
+        {
+          "type": "cash",
+          "atLeastCents": 1000
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "nickels",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -100
+          },
+          {
+            "type": "wardMemory",
+            "delta": -1
+          }
+        ]
+      },
+      {
+        "id": "send_bill",
+        "effects": [
+          {
+            "type": "reputation",
+            "delta": -1
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "bad_note",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 4
+          }
+        },
+        {
+          "type": "cash",
+          "atLeastCents": 2000
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "describe",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -200
+          },
+          {
+            "type": "heat",
+            "delta": -1
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "stand_loss",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -200
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "bottle_boys",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1886,
+            "month": 1
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 500
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "washed",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": 200
+          }
+        ],
+        "default": true
+      },
+      {
+        "id": "unwashed",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": 300
+          },
+          {
+            "type": "heat",
+            "delta": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ship_chest",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 6
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 300
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "tonic",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": 400
+          },
+          {
+            "type": "heat",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "dispensatory",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": 150
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "theatre_order",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1886,
+            "month": 1
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 300
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "coloured_water",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -20
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          },
+          {
+            "type": "capability",
+            "id": "callers_lyceum",
+            "delta": 2,
+            "months": 2
+          }
+        ]
+      },
+      {
+        "id": "own_tonic",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -60
+          },
+          {
+            "type": "notoriety",
+            "delta": 2
+          },
+          {
+            "type": "heat",
+            "delta": 1
+          },
+          {
+            "type": "capability",
+            "id": "callers_lyceum",
+            "delta": 3,
+            "months": 2
+          }
+        ]
+      },
+      {
+        "id": "decline",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "history_book",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 6
+          }
+        },
+        {
+          "type": "cash",
+          "atLeastCents": 5000
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "engraving",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -800
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          },
+          {
+            "type": "notoriety",
+            "delta": 2
+          },
+          {
+            "type": "capability",
+            "id": "callers_history",
+            "delta": 1,
+            "months": 12
+          }
+        ]
+      },
+      {
+        "id": "sketch",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -300
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "decline",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "fire_insurance",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 6
+          }
+        },
+        {
+          "type": "batchesBrewed",
+          "atLeast": 10
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "double",
+        "effects": [
+          {
+            "type": "capability",
+            "id": "retainer_cents",
+            "delta": 50,
+            "months": 12
+          }
+        ]
+      },
+      {
+        "id": "move_barrel",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -100
+          },
+          {
+            "type": "heat",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "lapse",
+        "effects": [
+          {
+            "type": "capability",
+            "id": "rent_extra_cents",
+            "delta": 50,
+            "months": 6
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "charity_appeal",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 6
+          }
+        },
+        {
+          "type": "cash",
+          "atLeastCents": 2000
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "give",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -100
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "sergeant",
+        "effects": [
+          {
+            "type": "heat",
+            "delta": -1
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "stove",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "doctor_counter",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1886,
+            "month": 1
+          }
+        },
+        {
+          "type": "regulars",
+          "atLeast": 8
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "send_cases",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -200
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "sharp_reply",
+        "effects": [
+          {
+            "type": "reputation",
+            "delta": 1
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          },
+          {
+            "type": "heat",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "ignore",
+        "effects": [
+          {
+            "type": "heat",
+            "delta": 2
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "tonic_taste",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 9
+          }
+        },
+        {
+          "type": "regulars",
+          "atLeast": 10
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "free_bottle",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -40
+          }
+        ]
+      },
+      {
+        "id": "taste_batches",
+        "effects": [
+          {
+            "type": "capability",
+            "id": "retainer_cents",
+            "delta": 100,
+            "months": 3
+          },
+          {
+            "type": "capability",
+            "id": "quality_control",
+            "delta": 1,
+            "months": 3
+          }
+        ]
+      },
+      {
+        "id": "say_nothing",
+        "effects": [
+          {
+            "type": "reputation",
+            "delta": -1
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "child_errand",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1886,
+            "month": 1
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 300
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "fill_jug",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": 50
+          },
+          {
+            "type": "heat",
+            "delta": 2
+          },
+          {
+            "type": "wardMemory",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "send_home",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -100
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "carboy",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 6
+          }
+        },
+        {
+          "type": "batchesBrewed",
+          "atLeast": 8
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "lawyer",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": 100
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          },
+          {
+            "type": "capability",
+            "id": "ingredient_discount_pct",
+            "delta": -5,
+            "months": 6
+          }
+        ]
+      },
+      {
+        "id": "pay",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -300
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "label_printer",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 6
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 200
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "soak_off",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -100
+          }
+        ]
+      },
+      {
+        "id": "leave_them",
+        "effects": [
+          {
+            "type": "notoriety",
+            "delta": 1
+          },
+          {
+            "type": "capability",
+            "id": "callers_curses",
+            "delta": 2,
+            "months": 1
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "jobber_rival",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1886,
+            "month": 1
+          }
+        },
+        {
+          "type": "batchesBrewed",
+          "atLeast": 12
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "trial",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -500
+          },
+          {
+            "type": "capability",
+            "id": "ingredient_discount_pct",
+            "delta": 8,
+            "months": 6
+          }
+        ]
+      },
+      {
+        "id": "stay",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "neighbour_fire",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 6
+          }
+        },
+        {
+          "type": "regulars",
+          "atLeast": 6
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "send_all",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -300
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          },
+          {
+            "type": "wardMemory",
+            "delta": -2
+          }
+        ]
+      },
+      {
+        "id": "at_cost",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -100
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "sympathy",
+        "effects": [
+          {
+            "type": "reputation",
+            "delta": -1
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "agent_paint",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1888,
+            "month": 1
+          }
+        },
+        {
+          "type": "batchesBrewed",
+          "atLeast": 10
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "estate_green",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -400
+          }
+        ]
+      },
+      {
+        "id": "own_colours",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -600
+          },
+          {
+            "type": "capability",
+            "id": "callers_sign",
+            "delta": 1,
+            "months": 12
+          }
+        ]
+      },
+      {
+        "id": "ignore",
+        "effects": [
+          {
+            "type": "capability",
+            "id": "rent_extra_cents",
+            "delta": 50,
+            "months": 12
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "agent_noxious",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1890,
+            "month": 1
+          }
+        },
+        {
+          "type": "batchesBrewed",
+          "atLeast": 20
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "in_writing",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -150
+          }
+        ]
+      },
+      {
+        "id": "let_them_sue",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -200
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "ignore",
+        "effects": [
+          {
+            "type": "heat",
+            "delta": 2
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "boy_measles",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1886,
+            "month": 1
+          }
+        },
+        {
+          "type": "batchesBrewed",
+          "atLeast": 6
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "pay_both",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -100
+          },
+          {
+            "type": "wardMemory",
+            "delta": -1
+          }
+        ]
+      },
+      {
+        "id": "joseph",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -50
+          }
+        ]
+      },
+      {
+        "id": "do_without",
+        "effects": [
+          {
+            "type": "reputation",
+            "delta": -1
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "wedding_punch",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 6
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 200
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "three_gallons",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": 400
+          },
+          {
+            "type": "heat",
+            "delta": 2
+          }
+        ]
+      },
+      {
+        "id": "port",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -50
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "decline",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "perfume_copy",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1888,
+            "month": 1
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 500
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "essence_of_paris",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": 300
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "plain_label",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": 150
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "sealer",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 6
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 200
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "adjust",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -100
+          }
+        ]
+      },
+      {
+        "id": "look_again",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -25
+          },
+          {
+            "type": "heat",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "dispute",
+        "effects": [
+          {
+            "type": "heat",
+            "delta": 2
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "night_bell",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 6
+          }
+        },
+        {
+          "type": "regulars",
+          "atLeast": 8
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "put_in_bell",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -200
+          },
+          {
+            "type": "wardMemory",
+            "delta": -1
+          },
+          {
+            "type": "capability",
+            "id": "callers_night_bell",
+            "delta": 1,
+            "months": 12
+          }
+        ]
+      },
+      {
+        "id": "shop_hours",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "jury_duty",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 6
+          }
+        },
+        {
+          "type": "batchesBrewed",
+          "atLeast": 6
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "clerk",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -100
+          },
+          {
+            "type": "heat",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "serve",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -200
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "pedestal_fund",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 6
+          }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "date",
+            "from": {
+              "year": 1885,
+              "month": 9
+            }
+          }
+        }
+      ]
+    },
+    "chance": 0.5,
+    "once": true,
+    "choices": [
+      {
+        "id": "box_and_dollar",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -100
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          },
+          {
+            "type": "capability",
+            "id": "callers_pedestal",
+            "delta": 1,
+            "months": 2
+          }
+        ]
+      },
+      {
+        "id": "box_and_dime",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -10
+          },
+          {
+            "type": "capability",
+            "id": "callers_pedestal",
+            "delta": 1,
+            "months": 2
+          }
+        ]
+      },
+      {
+        "id": "decline",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "centennial_1889",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1889,
+            "month": 3
+          }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "date",
+            "from": {
+              "year": 1889,
+              "month": 5
+            }
+          }
+        }
+      ]
+    },
+    "chance": 0.5,
+    "once": true,
+    "choices": [
+      {
+        "id": "dress_shop",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -280
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "washington",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -20
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          },
+          {
+            "type": "capability",
+            "id": "callers_centennial",
+            "delta": 2,
+            "months": 1
+          }
+        ]
+      },
+      {
+        "id": "nothing",
+        "effects": [
+          {
+            "type": "reputation",
+            "delta": -1
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "trade_cards",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1885,
+            "month": 3
+          }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "date",
+            "from": {
+              "year": 1893,
+              "month": 1
+            }
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 150
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "order_cards",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -300
+          },
+          {
+            "type": "capability",
+            "id": "callers_cards",
+            "delta": 2,
+            "months": 3
+          }
+        ]
+      },
+      {
+        "id": "decline",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "census_1890",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1890,
+            "month": 6
+          }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "date",
+            "from": {
+              "year": 1890,
+              "month": 8
+            }
+          }
+        },
+        {
+          "type": "batchesBrewed",
+          "atLeast": 6
+        }
+      ]
+    },
+    "chance": 0.5,
+    "once": true,
+    "choices": [
+      {
+        "id": "truthfully",
+        "effects": [
+          {
+            "type": "reputation",
+            "delta": 1
+          },
+          {
+            "type": "heat",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "chemist",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "columbus_1892",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1892,
+            "month": 9
+          }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "date",
+            "from": {
+              "year": 1892,
+              "month": 11
+            }
+          }
+        },
+        {
+          "type": "regulars",
+          "atLeast": 6
+        }
+      ]
+    },
+    "chance": 0.5,
+    "once": true,
+    "choices": [
+      {
+        "id": "lanterns",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -100
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "march",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -200
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          },
+          {
+            "type": "wardMemory",
+            "delta": -1
+          }
+        ]
+      },
+      {
+        "id": "own_lamp",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "fair_medal_1893",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1893,
+            "month": 2
+          }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "date",
+            "from": {
+              "year": 1893,
+              "month": 11
+            }
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 800
+        }
+      ]
+    },
+    "chance": 0.1,
+    "once": true,
+    "choices": [
+      {
+        "id": "buy_medal",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -800
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          },
+          {
+            "type": "capability",
+            "id": "callers_medal",
+            "delta": 2,
+            "months": 6
+          }
+        ]
+      },
+      {
+        "id": "decline",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "phonograph",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1891,
+            "month": 1
+          }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "date",
+            "from": {
+              "year": 1900,
+              "month": 1
+            }
+          }
+        },
+        {
+          "type": "cash",
+          "atLeastCents": 5000
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "record",
+        "effects": [
+          {
+            "type": "capability",
+            "id": "retainer_cents",
+            "delta": 300,
+            "months": 6
+          },
+          {
+            "type": "capability",
+            "id": "callers_phonograph",
+            "delta": 3,
+            "months": 6
+          }
+        ]
+      },
+      {
+        "id": "decline",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "settlement_nurse",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1893,
+            "month": 9
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 1000
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "tell_her",
+        "effects": [
+          {
+            "type": "reputation",
+            "delta": 1
+          },
+          {
+            "type": "heat",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "small_bottle",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -100
+          },
+          {
+            "type": "wardMemory",
+            "delta": -1
+          }
+        ]
+      },
+      {
+        "id": "trade_secret",
+        "effects": [
+          {
+            "type": "wardMemory",
+            "delta": 1
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "antitoxin_1895",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1895,
+            "month": 1
+          }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "date",
+            "from": {
+              "year": 1900,
+              "month": 1
+            }
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 500
+        }
+      ]
+    },
+    "chance": 0.08,
+    "once": true,
+    "choices": [
+      {
+        "id": "send_them",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -200
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          },
+          {
+            "type": "wardMemory",
+            "delta": -1
+          }
+        ]
+      },
+      {
+        "id": "keep_card",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": 200
+          },
+          {
+            "type": "heat",
+            "delta": 3
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "white_wings",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1895,
+            "month": 6
+          }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "date",
+            "from": {
+              "year": 1899,
+              "month": 1
+            }
+          }
+        }
+      ]
+    },
+    "chance": 0.08,
+    "once": true,
+    "choices": [
+      {
+        "id": "three_barrels",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -150
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "tip_cartman",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -25
+          },
+          {
+            "type": "heat",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "leave_it",
+        "effects": [
+          {
+            "type": "heat",
+            "delta": 2
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "bicycle_boy",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1895,
+            "month": 4
+          }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "date",
+            "from": {
+              "year": 1902,
+              "month": 1
+            }
+          }
+        },
+        {
+          "type": "regulars",
+          "atLeast": 10
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "store_wheel",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -800
+          },
+          {
+            "type": "capability",
+            "id": "callers_wheel",
+            "delta": 1,
+            "months": 24
+          }
+        ]
+      },
+      {
+        "id": "canal_street",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -500
+          },
+          {
+            "type": "heat",
+            "delta": 1
+          },
+          {
+            "type": "capability",
+            "id": "callers_wheel",
+            "delta": 1,
+            "months": 24
+          }
+        ]
+      },
+      {
+        "id": "walk",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "x_rays_1896",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1896,
+            "month": 3
+          }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "date",
+            "from": {
+              "year": 1898,
+              "month": 1
+            }
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 500
+        }
+      ]
+    },
+    "chance": 0.1,
+    "once": true,
+    "choices": [
+      {
+        "id": "accept",
+        "effects": [
+          {
+            "type": "notoriety",
+            "delta": 1
+          },
+          {
+            "type": "heat",
+            "delta": 1
+          },
+          {
+            "type": "capability",
+            "id": "callers_rays",
+            "delta": 4,
+            "months": 1
+          }
+        ]
+      },
+      {
+        "id": "decline",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "gold_clause_1896",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1896,
+            "month": 8
+          }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "date",
+            "from": {
+              "year": 1896,
+              "month": 11
+            }
+          }
+        },
+        {
+          "type": "batchesBrewed",
+          "atLeast": 10
+        }
+      ]
+    },
+    "chance": 0.4,
+    "once": true,
+    "choices": [
+      {
+        "id": "sign_gold",
+        "effects": [
+          {
+            "type": "reputation",
+            "delta": -1
+          }
+        ]
+      },
+      {
+        "id": "silver_card",
+        "effects": [
+          {
+            "type": "capability",
+            "id": "ingredient_discount_pct",
+            "delta": -10,
+            "months": 4
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "say_nothing",
+        "effects": [
+          {
+            "type": "capability",
+            "id": "ingredient_discount_pct",
+            "delta": -10,
+            "months": 4
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "raines_law",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1896,
+            "month": 6
+          }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "date",
+            "from": {
+              "year": 1901,
+              "month": 1
+            }
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 800
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 60,
+    "choices": [
+      {
+        "id": "half_shares",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": 250
+          },
+          {
+            "type": "heat",
+            "delta": 2
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "decline",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "school_inspector",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1897,
+            "month": 6
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 500
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "at_cost",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -50
+          },
+          {
+            "type": "wardMemory",
+            "delta": -1
+          }
+        ]
+      },
+      {
+        "id": "nursery_lotion",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": 300
+          },
+          {
+            "type": "reputation",
+            "delta": -1
+          }
+        ]
+      },
+      {
+        "id": "usual_profit",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": 100
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "consolidation_1898",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1897,
+            "month": 12
+          }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "date",
+            "from": {
+              "year": 1898,
+              "month": 4
+            }
+          }
+        },
+        {
+          "type": "batchesBrewed",
+          "atLeast": 6
+        }
+      ]
+    },
+    "chance": 0.35,
+    "once": true,
+    "choices": [
+      {
+        "id": "pay_dollar",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -100
+          }
+        ]
+      },
+      {
+        "id": "district_leader",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -200
+          },
+          {
+            "type": "heat",
+            "delta": -2
+          }
+        ]
+      },
+      {
+        "id": "wait",
+        "effects": [
+          {
+            "type": "heat",
+            "delta": 2
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "war_stamps_1898",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1898,
+            "month": 6
+          }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "date",
+            "from": {
+              "year": 1898,
+              "month": 9
+            }
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 500
+        }
+      ]
+    },
+    "chance": 0.5,
+    "once": true,
+    "choices": [
+      {
+        "id": "stamp_all",
+        "effects": [
+          {
+            "type": "capability",
+            "id": "retainer_cents",
+            "delta": 50,
+            "months": 24
+          }
+        ]
+      },
+      {
+        "id": "steam_them",
+        "effects": [
+          {
+            "type": "capability",
+            "id": "retainer_cents",
+            "delta": 15,
+            "months": 24
+          },
+          {
+            "type": "heat",
+            "delta": 3
+          }
+        ]
+      },
+      {
+        "id": "no_stamps",
+        "effects": [
+          {
+            "type": "heat",
+            "delta": 4
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "telephone",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1896,
+            "month": 1
+          }
+        },
+        {
+          "type": "cash",
+          "atLeastCents": 20000
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "flag",
+            "id": "telephone"
+          }
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "install",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -1000
+          },
+          {
+            "type": "capability",
+            "id": "retainer_cents",
+            "delta": 100
+          },
+          {
+            "type": "capability",
+            "id": "callers_telephone",
+            "delta": 2
+          },
+          {
+            "type": "setFlag",
+            "id": "telephone"
+          }
+        ]
+      },
+      {
+        "id": "decline",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "liquid_air",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1899,
+            "month": 4
+          }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "date",
+            "from": {
+              "year": 1901,
+              "month": 7
+            }
+          }
+        },
+        {
+          "type": "cash",
+          "atLeastCents": 10000
+        }
+      ]
+    },
+    "chance": 0.08,
+    "once": true,
+    "choices": [
+      {
+        "id": "testimonial",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": 300
+          },
+          {
+            "type": "heat",
+            "delta": 2
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "decline",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "subway_digging",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1900,
+            "month": 6
+          }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "date",
+            "from": {
+              "year": 1904,
+              "month": 1
+            }
+          }
+        },
+        {
+          "type": "batchesBrewed",
+          "atLeast": 10
+        }
+      ]
+    },
+    "chance": 0.1,
+    "once": true,
+    "choices": [
+      {
+        "id": "plank",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -200
+          }
+        ]
+      },
+      {
+        "id": "wait",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -100
+          },
+          {
+            "type": "reputation",
+            "delta": -1
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "smallpox_1901",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1901,
+            "month": 12
+          }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "date",
+            "from": {
+              "year": 1902,
+              "month": 4
+            }
+          }
+        }
+      ]
+    },
+    "chance": 0.4,
+    "once": true,
+    "choices": [
+      {
+        "id": "post_notice",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -50
+          },
+          {
+            "type": "reputation",
+            "delta": 1
+          },
+          {
+            "type": "wardMemory",
+            "delta": -1
+          }
+        ]
+      },
+      {
+        "id": "preventive",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": 400
+          },
+          {
+            "type": "heat",
+            "delta": 4
+          }
+        ]
+      },
+      {
+        "id": "neither",
+        "effects": [
+          {
+            "type": "heat",
+            "delta": 1
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "trading_stamps",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1901,
+            "month": 1
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 2000
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "give_stamps",
+        "effects": [
+          {
+            "type": "capability",
+            "id": "retainer_cents",
+            "delta": 200,
+            "months": 12
+          },
+          {
+            "type": "capability",
+            "id": "callers_stamps",
+            "delta": 2,
+            "months": 12
+          }
+        ]
+      },
+      {
+        "id": "decline",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "motorist",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1902,
+            "month": 4
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 1000
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "benzine",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": 200
+          },
+          {
+            "type": "heat",
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "for_the_road",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": 260
+          },
+          {
+            "type": "heat",
+            "delta": 1
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          },
+          {
+            "type": "capability",
+            "id": "callers_motorists",
+            "delta": 1,
+            "months": 3
+          }
+        ]
+      },
+      {
+        "id": "send_for_horse",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "postcards",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1903,
+            "month": 1
+          }
+        },
+        {
+          "type": "cash",
+          "atLeastCents": 10000
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "cards",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -500
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          },
+          {
+            "type": "capability",
+            "id": "callers_postcards",
+            "delta": 2,
+            "months": 6
+          }
+        ]
+      },
+      {
+        "id": "decline",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "electric_sign",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1902,
+            "month": 6
+          }
+        },
+        {
+          "type": "cash",
+          "atLeastCents": 30000
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "flag",
+            "id": "electric_sign"
+          }
+        }
+      ]
+    },
+    "chance": 0.035,
+    "cooldownMonths": 54,
+    "choices": [
+      {
+        "id": "install",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -2000
+          },
+          {
+            "type": "capability",
+            "id": "retainer_cents",
+            "delta": 100
+          },
+          {
+            "type": "capability",
+            "id": "callers_lights",
+            "delta": 2
+          },
+          {
+            "type": "setFlag",
+            "id": "electric_sign"
+          }
+        ]
+      },
+      {
+        "id": "decline",
+        "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "nickelodeon",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1906,
+            "month": 1
+          }
+        },
+        {
+          "type": "cash",
+          "atLeastCents": 5000
+        }
+      ]
+    },
+    "chance": 0.12,
+    "once": true,
+    "choices": [
+      {
+        "id": "slide",
+        "effects": [
+          {
+            "type": "capability",
+            "id": "retainer_cents",
+            "delta": 100,
+            "months": 6
+          },
+          {
+            "type": "capability",
+            "id": "callers_pictures",
+            "delta": 3,
+            "months": 6
+          }
+        ]
+      },
+      {
+        "id": "decline",
+        "effects": [],
         "default": true
       }
     ]

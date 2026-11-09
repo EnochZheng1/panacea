@@ -3,8 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { newScratch, Rng, type GameState } from '../src/index.ts';
 import { applyEffects } from '../src/systems/effects.ts';
 import { productionPhase } from '../src/systems/lab.ts';
-import { letterCallers, salesPhase } from '../src/systems/market.ts';
-import { drawEvents } from '../src/systems/progression.ts';
+import { letterCallers, letterTrust, salesPhase } from '../src/systems/market.ts';
+import { creditedEffects, drawEvents } from '../src/systems/progression.ts';
+import { evaluateRequirement } from '../src/systems/requirements.ts';
 import { act, content, roomFor, start, TONIC } from './helpers.ts';
 
 /** `n` random letters that could all come this month, each certain to be drawn if reached. */
@@ -96,9 +97,85 @@ describe('the post (drawEvents)', () => {
     }
     expect(seen.size).toBeGreaterThan(40);
   });
+
+  it('brings a seasonal letter only in its months', () => {
+    const [a] = letters(1);
+    const pack = withEvents([{ ...a!, condition: { type: 'season', months: [12, 1] } }]);
+    const s = fresh('season');
+    const months: number[] = [];
+    for (let m = 1; m <= 12; m++) {
+      s.events.pending = [];
+      s.meta.date = { year: 1890, month: m };
+      expect(evaluateRequirement({ type: 'season', months: [12, 1] }, s, pack).met).toBe(
+        m === 12 || m === 1,
+      );
+      drawEvents(s, pack, Rng.fromSeed(`season-${m}`));
+      if (s.events.pending.length > 0) months.push(m);
+    }
+    expect(months).toEqual([1, 12]);
+  });
 });
 
 describe('letter effects', () => {
+  it("sends fewer of a letter's callers when the ward remembers harm or the Board suspects", () => {
+    const s = start('trust');
+    s.scrutiny.heat = 0;
+    s.ward.memory = 0;
+    applyEffects(s, [{ type: 'capability', id: 'callers_wheelmen', delta: 6 }], 'event');
+    applyEffects(s, [{ type: 'capability', id: 'callers_bazaar', delta: 4 }], 'event');
+    applyEffects(s, [{ type: 'capability', id: 'callers_portrait', delta: 1 }], 'event');
+    expect(letterTrust(s, content)).toBe(1);
+    // the ward remembers: half the word is given
+    s.ward.memory = 50;
+    expect(letterTrust(s, content)).toBeCloseTo(0.5);
+    expect(letterCallers(s, content)).toEqual([
+      ['bazaar', 2],
+      ['portrait', 1],
+      ['wheelmen', 3],
+    ]);
+    // and the Board suspects it: at a fifth of the way to shutting it, 1 − 1.5 × 0.2 of that
+    expect(content.config.scrutiny.letterCallerLoss).toBe(1.5);
+    s.scrutiny.heat = 20;
+    expect(letterTrust(s, content)).toBeCloseTo(0.35);
+    expect(letterCallers(s, content)).toEqual([
+      ['bazaar', 1],
+      ['wheelmen', 2],
+    ]);
+    // a ward that remembers everything sends nobody on a letter's word
+    s.scrutiny.heat = 0;
+    s.ward.memory = 100;
+    expect(letterCallers(s, content)).toEqual([]);
+    // nor for a shop two-thirds of the way to being shut
+    s.ward.memory = 0;
+    s.scrutiny.heat = 70;
+    expect(letterTrust(s, content)).toBe(0);
+    expect(letterCallers(s, content)).toEqual([]);
+  });
+
+  it('credits the standing a reply earns as far as the ward trusts the shop, and takes it in full', () => {
+    const s = start('credit');
+    const letter = content.byId.events.get('parish_bazaar')!;
+    const inquest = content.byId.events.get('inquest')!;
+    const effects = [
+      { type: 'reputation' as const, delta: 2 },
+      { type: 'reputation' as const, delta: -1 },
+      { type: 'cash' as const, deltaCents: -300 },
+    ];
+    s.scrutiny.heat = 0;
+    s.ward.memory = 0;
+    expect(creditedEffects(s, content, letter, effects)).toEqual(effects);
+    s.scrutiny.heat = 20;
+    s.ward.memory = 50;
+    expect(letterTrust(s, content)).toBeCloseTo(0.35);
+    expect(creditedEffects(s, content, letter, effects)).toEqual([
+      { type: 'reputation', delta: 2 * letterTrust(s, content) },
+      { type: 'reputation', delta: -1 },
+      { type: 'cash', deltaCents: -300 },
+    ]);
+    // the coroner's notice is not a letter of the ward's
+    expect(creditedEffects(s, content, inquest, effects)).toEqual(effects);
+  });
+
   it('nudges the ward memory within 0–100, and raises its peak', () => {
     const s = start('memory');
     applyEffects(s, [{ type: 'wardMemory', delta: 30 }], 'event');
@@ -123,7 +200,8 @@ describe('letter effects', () => {
     );
     applyEffects(s, [{ type: 'capability', id: 'callers_bazaar', delta: 4 }], 'event');
     applyEffects(s, [{ type: 'capability', id: 'callers_fountain', delta: 0 }], 'event');
-    expect(letterCallers(s)).toEqual([
+    s.scrutiny.heat = 0;
+    expect(letterCallers(s, content)).toEqual([
       ['bazaar', 4],
       ['wheelmen', 6],
     ]);

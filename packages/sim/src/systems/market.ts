@@ -388,17 +388,36 @@ const CALLERS_PREFIX = 'callers_';
 /**
  * Callers a letter's arrangement sends to the counter: a capability `callers_<source>` (the
  * wheelmen's club, the parish bazaar) brings that many strangers a month, counted under that
- * source, in the ordinal order of the capability ids.
+ * source, in the ordinal order of the capability ids. They come on someone's word: the rector's,
+ * the club captain's, the doctor's. A ward that remembers harm and a shop the Board suspects make
+ * that word harder to give, so the callers are scaled by both (`letterTrust`) and rounded.
  */
-export function letterCallers(state: GameState): [string, number][] {
+export function letterCallers(state: GameState, content: ContentPack): [string, number][] {
   const caps = state.player.capabilities;
+  const trust = letterTrust(state, content);
   const out: [string, number][] = [];
   for (const id of Object.keys(caps).sort()) {
     if (!id.startsWith(CALLERS_PREFIX)) continue;
     const n = caps[id] ?? 0;
-    if (n > 0) out.push([id.slice(CALLERS_PREFIX.length), n]);
+    const sent = Math.floor(n * trust + 0.5);
+    if (sent > 0) out.push([id.slice(CALLERS_PREFIX.length), sent]);
   }
   return out;
+}
+
+/**
+ * How far the ward takes the shop at a letter's word, 0..1: how readily a correspondent sends
+ * people to it, and how much standing a kindness earns. Lessened by the ward's memory of harm
+ * (`ward.letterCallerLoss` at a memory of 100) and by suspicion (`scrutiny.letterCallerLoss` at
+ * the heat that shuts the shop; at 1.5, nobody vouches for a shop two-thirds of the way there).
+ */
+export function letterTrust(state: GameState, content: ContentPack): number {
+  const { shutdownHeat, letterCallerLoss } = content.config.scrutiny;
+  const suspicion = Math.min(1, Math.max(0, state.scrutiny.heat / shutdownHeat));
+  return (
+    memoryLoss(state, content.config.ward.letterCallerLoss) *
+    Math.max(0, 1 - letterCallerLoss * suspicion)
+  );
 }
 
 function walkIns(
@@ -416,7 +435,7 @@ function walkIns(
   callers['subscriptions'] = Math.max(0, caps['walk_in_bonus'] ?? 0);
   callers['word'] = wordOfStrength(offers, content);
   for (const [id, n] of investmentWalkIns(state, content)) callers[id] = n;
-  for (const [id, n] of letterCallers(state)) callers[id] = n;
+  for (const [id, n] of letterCallers(state, content)) callers[id] = n;
   const visitors = Object.values(callers).reduce((a, b) => a + b, 0);
   // A rival's sale: a share of the callers whose bottle costs more than his go to him instead.
   const rivalShare = Math.min(100, caps['rival_share_pct'] ?? 0) / 100;

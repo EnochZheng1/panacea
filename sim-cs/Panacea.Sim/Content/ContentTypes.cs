@@ -214,6 +214,15 @@ public sealed record SeizeStockEffect : Effect
     public override string Type => "seizeStock";
 }
 
+/// <summary>
+/// Nudges the ward's memory of harm (0–100; see <c>WardSystem</c>): a sermon or a kind notice that
+/// helps the street forget, a story that reminds it.
+/// </summary>
+public sealed record WardMemoryEffect(double Delta) : Effect
+{
+    public override string Type => "wardMemory";
+}
+
 /// <summary>Resolves the coroner's inquest attached to a system event: testify, silent or bribe.</summary>
 public sealed record InquestEffect(string Approach) : Effect
 {
@@ -236,6 +245,7 @@ internal sealed class EffectConverter : JsonConverter<Effect>
             "capability" => new CapabilityEffect(e.GetProperty("id").GetString()!, e.GetProperty("delta").GetInt32(),
                 e.TryGetProperty("months", out var months) ? months.GetInt32() : null),
             "seizeStock" => new SeizeStockEffect(),
+            "wardMemory" => new WardMemoryEffect(e.GetProperty("delta").GetDouble()),
             "inquest" => new InquestEffect(e.GetProperty("approach").GetString()!),
             _ => throw new JsonException($"unknown effect type \"{type}\""),
         };
@@ -256,6 +266,7 @@ internal sealed class EffectConverter : JsonConverter<Effect>
                 writer.WriteNumber("delta", c.Delta);
                 if (c.Months is int months) writer.WriteNumber("months", months);
                 break;
+            case WardMemoryEffect w: writer.WriteNumber("delta", w.Delta); break;
             case InquestEffect i: writer.WriteString("approach", i.Approach); break;
         }
         writer.WriteEndObject();

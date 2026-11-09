@@ -405,6 +405,27 @@ public static class Market
         if (revenue > 0) Ledger.Adjust(state, Metrics.Cash, revenue, cause, investmentId);
     }
 
+    private const string CallersPrefix = "callers_";
+
+    /// <summary>
+    /// Callers a letter's arrangement sends to the counter (market.ts letterCallers): a capability
+    /// "callers_&lt;source&gt;" (the wheelmen's club, the parish bazaar) brings that many strangers a
+    /// month, counted under that source, in the ordinal order of the capability ids.
+    /// </summary>
+    public static List<(string Source, int Callers)> LetterCallers(GameState state)
+    {
+        var caps = state.Player.Capabilities;
+        var ids = caps.Keys.Where(k => k.StartsWith(CallersPrefix, StringComparison.Ordinal)).ToList();
+        ids.Sort(string.CompareOrdinal);
+        var list = new List<(string, int)>();
+        foreach (var id in ids)
+        {
+            int n = caps.GetOr(id, 0);
+            if (n > 0) list.Add((id[CallersPrefix.Length..], n));
+        }
+        return list;
+    }
+
     private static void WalkIns(TurnContext ctx, List<Offer> offers, Func<Offer, string, Bought?> sell)
     {
         var state = ctx.State;
@@ -421,6 +442,7 @@ public static class Market
         callers["word"] = WordOfStrength(offers, content);
         foreach (var inv in Investments.Held(state, content))
             if (inv.WalkInsPerMonth > 0) callers[inv.Id] = inv.WalkInsPerMonth;
+        foreach (var (source, n) in LetterCallers(state)) callers[source] = n;
         int visitors = 0;
         foreach (var kv in callers) visitors += kv.Value;
         // A rival's sale: a share of the callers whose bottle costs more than his go to him instead.

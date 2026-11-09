@@ -200,6 +200,10 @@ public static class Effects
                     state.Month.News.Add(new StockSeizedNews(bottles));
                     break;
                 }
+                case WardMemoryEffect w:
+                    state.Ward.Memory = Math.Min(100, Math.Max(0, state.Ward.Memory + w.Delta));
+                    state.Ward.PeakMemory = Math.Max(state.Ward.PeakMemory, state.Ward.Memory);
+                    break;
                 case InquestEffect:
                     // Needs the event's context; handled by ResolveEvent.
                     break;
@@ -342,19 +346,36 @@ public static class Progression
     private static bool IsRandomPending(PendingEvent p, ContentPack content) =>
         !(content.ById.Events.TryGetValue(p.EventId, out var ev) && ev.Trigger == "system");
 
-    /// <summary>Draws this month's random events into The Post. System events (inquests) don't count.</summary>
+    /// <summary>
+    /// Draws this month's random events into The Post. System events (inquests) don't count.
+    /// Every random event that could come this month (its condition holds, it is not already
+    /// waiting, not spent if once-only, not cooling down) is put in a seeded shuffle, and then each
+    /// in turn is drawn with its own chance until the month's post is full, so no event crowds out
+    /// another by its place in the content file.
+    /// </summary>
     public static void DrawEvents(GameState state, ContentPack content, Rng rng)
     {
-        int max = content.Config.MaxEventsPerMonth;
+        int room = content.Config.MaxEventsPerMonth - state.Events.Pending.Count(p => IsRandomPending(p, content));
+        if (room <= 0) return;
+        var eligible = new List<GameEvent>();
         foreach (var ev in content.Events)
         {
             if (ev.Trigger != "random" || ev.Condition is null) continue;
-            if (state.Events.Pending.Count(p => IsRandomPending(p, content)) >= max) break;
             if (state.Events.Pending.Any(p => p.EventId == ev.Id)) continue;
-            int times = state.Events.TimesDrawn.GetOr(ev.Id, 0);
-            if (ev.Once && times > 0) continue;
+            if (ev.Once && state.Events.TimesDrawn.GetOr(ev.Id, 0) > 0) continue;
             if (state.Events.LastDrawn.TryGetValue(ev.Id, out int last) && state.Meta.Turn - last < ev.CooldownMonths) continue;
             if (!Requirements.Evaluate(ev.Condition, state, content).Met) continue;
+            eligible.Add(ev);
+        }
+        // Fisher–Yates, from the end.
+        for (int i = eligible.Count - 1; i > 0; i--)
+        {
+            int j = rng.Int(0, i);
+            (eligible[i], eligible[j]) = (eligible[j], eligible[i]);
+        }
+        foreach (var ev in eligible)
+        {
+            if (room <= 0) break;
             if (!rng.Chance(ev.Chance)) continue;
             state.Events.Pending.Add(new PendingEvent
             {
@@ -363,7 +384,8 @@ public static class Progression
                 DrawnTurn = state.Meta.Turn,
             });
             state.Events.LastDrawn[ev.Id] = state.Meta.Turn;
-            state.Events.TimesDrawn[ev.Id] = times + 1;
+            state.Events.TimesDrawn[ev.Id] = state.Events.TimesDrawn.GetOr(ev.Id, 0) + 1;
+            room--;
         }
     }
 

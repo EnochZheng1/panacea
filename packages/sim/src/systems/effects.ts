@@ -30,6 +30,12 @@ export function applyEffects(
         state.month.news.push({ kind: 'stock_seized', bottles });
         break;
       }
+      case 'wardMemory': {
+        const ward = state.ward;
+        ward.memory = Math.min(100, Math.max(0, ward.memory + e.delta));
+        ward.peakMemory = Math.max(ward.peakMemory, ward.memory);
+        break;
+      }
       case 'inquest':
         // Needs the event's context; handled by resolveEvent (see progression.ts).
         break;

@@ -383,6 +383,24 @@ export const salesPhase: Phase = {
   },
 };
 
+const CALLERS_PREFIX = 'callers_';
+
+/**
+ * Callers a letter's arrangement sends to the counter: a capability `callers_<source>` (the
+ * wheelmen's club, the parish bazaar) brings that many strangers a month, counted under that
+ * source, in the ordinal order of the capability ids.
+ */
+export function letterCallers(state: GameState): [string, number][] {
+  const caps = state.player.capabilities;
+  const out: [string, number][] = [];
+  for (const id of Object.keys(caps).sort()) {
+    if (!id.startsWith(CALLERS_PREFIX)) continue;
+    const n = caps[id] ?? 0;
+    if (n > 0) out.push([id.slice(CALLERS_PREFIX.length), n]);
+  }
+  return out;
+}
+
 function walkIns(
   { state, content, rng, scratch }: TurnContext,
   offers: Offer[],
@@ -398,6 +416,7 @@ function walkIns(
   callers['subscriptions'] = Math.max(0, caps['walk_in_bonus'] ?? 0);
   callers['word'] = wordOfStrength(offers, content);
   for (const [id, n] of investmentWalkIns(state, content)) callers[id] = n;
+  for (const [id, n] of letterCallers(state)) callers[id] = n;
   const visitors = Object.values(callers).reduce((a, b) => a + b, 0);
   // A rival's sale: a share of the callers whose bottle costs more than his go to him instead.
   const rivalShare = Math.min(100, caps['rival_share_pct'] ?? 0) / 100;

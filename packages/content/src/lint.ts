@@ -181,7 +181,7 @@ export function lintContent(pack: ContentPack): ContentIssue[] {
       if (e.type === 'capability' && e.months !== undefined) {
         error('investments', `${i}.effects.${j}`, 'investment capabilities last while it is held');
       }
-      if (e.type === 'inquest' || e.type === 'seizeStock') {
+      if (e.type === 'inquest' || e.type === 'seizeStock' || e.type === 'wardMemory') {
         error('investments', `${i}.effects.${j}`, `"${e.type}" is not an investment effect`);
       }
     });

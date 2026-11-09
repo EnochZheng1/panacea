@@ -106,7 +106,10 @@ export const EffectSchema = z.discriminatedUnion('type', [
   z.strictObject({ type: z.literal('heat'), delta: z.number() }),
   z.strictObject({ type: z.literal('setFlag'), id: IdSchema }),
   z.strictObject({ type: z.literal('clearFlag'), id: IdSchema }),
-  /** Adds to a capability; with `months`, only for that many month-ends, then it reverts. */
+  /**
+   * Adds to a capability; with `months`, only for that many month-ends, then it reverts. A
+   * capability `callers_<source>` sends that many callers a month to the counter, under `source`.
+   */
   z.strictObject({
     type: z.literal('capability'),
     id: IdSchema,
@@ -115,6 +118,11 @@ export const EffectSchema = z.discriminatedUnion('type', [
   }),
   /** Authorities confiscate every bottle on the shelf. */
   z.strictObject({ type: z.literal('seizeStock') }),
+  /**
+   * Nudges the ward's memory of harm (0–100; see the sim's ward system): a sermon or a kind
+   * notice that helps the street forget, a story that reminds it.
+   */
+  z.strictObject({ type: z.literal('wardMemory'), delta: z.number() }),
   /** Resolves the coroner's inquest attached to a system event (see the sim's scrutiny system). */
   z.strictObject({
     type: z.literal('inquest'),

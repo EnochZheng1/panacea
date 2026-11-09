@@ -147,18 +147,36 @@ const compareOrdinal = (a: string, b: string): number => (a < b ? -1 : a > b ? 1
 const isRandomPending = (p: PendingEvent, content: ContentPack) =>
   content.byId.events.get(p.eventId)?.trigger !== 'system';
 
-/** Draws this month's random events into The Post. System events (inquests) don't count. */
+/**
+ * Draws this month's random events into The Post. System events (inquests) don't count.
+ *
+ * Every random event that could come this month (its condition holds, it is not already waiting,
+ * not spent if once-only, not cooling down) is put in a seeded shuffle, and then each in turn is
+ * drawn with its own chance until the month's post is full. So no event crowds out another by
+ * its place in the content file.
+ */
 export function drawEvents(state: GameState, content: ContentPack, rng: Rng): void {
-  const max = content.config.maxEventsPerMonth;
-  for (const ev of content.events) {
-    if (ev.trigger !== 'random' || !ev.condition) continue;
-    if (state.events.pending.filter((p) => isRandomPending(p, content)).length >= max) break;
-    if (state.events.pending.some((p) => p.eventId === ev.id)) continue;
-    const times = state.events.timesDrawn[ev.id] ?? 0;
-    if (ev.once && times > 0) continue;
+  let room =
+    content.config.maxEventsPerMonth -
+    state.events.pending.filter((p) => isRandomPending(p, content)).length;
+  if (room <= 0) return;
+  const eligible = content.events.filter((ev) => {
+    if (ev.trigger !== 'random' || !ev.condition) return false;
+    if (state.events.pending.some((p) => p.eventId === ev.id)) return false;
+    if (ev.once && (state.events.timesDrawn[ev.id] ?? 0) > 0) return false;
     const last = state.events.lastDrawn[ev.id];
-    if (last !== undefined && state.meta.turn - last < ev.cooldownMonths) continue;
-    if (!evaluateRequirement(ev.condition, state, content).met) continue;
+    if (last !== undefined && state.meta.turn - last < ev.cooldownMonths) return false;
+    return evaluateRequirement(ev.condition, state, content).met;
+  });
+  // Fisher–Yates, from the end.
+  for (let i = eligible.length - 1; i > 0; i--) {
+    const j = rng.int(0, i);
+    const t = eligible[i]!;
+    eligible[i] = eligible[j]!;
+    eligible[j] = t;
+  }
+  for (const ev of eligible) {
+    if (room <= 0) break;
     if (!rng.chance(ev.chance)) continue;
     state.events.pending.push({
       instanceId: `event_${state.meta.nextId++}`,
@@ -166,7 +184,8 @@ export function drawEvents(state: GameState, content: ContentPack, rng: Rng): vo
       drawnTurn: state.meta.turn,
     });
     state.events.lastDrawn[ev.id] = state.meta.turn;
-    state.events.timesDrawn[ev.id] = times + 1;
+    state.events.timesDrawn[ev.id] = (state.events.timesDrawn[ev.id] ?? 0) + 1;
+    room--;
   }
 }
 

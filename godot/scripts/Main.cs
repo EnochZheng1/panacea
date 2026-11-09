@@ -124,6 +124,11 @@ public partial class Main : Control
 		_dev = args.Any(a => a is "--shot" or "--play" or "--driver" or "--screen" or "--drawer" or "--clip" or "--fake" or "--pour" or "--hover" or "--autopress" or "--seed")
 			// --player: a driven run that takes the player's path (the title page, real saves)
 			&& !args.Contains("--player");
+		if (Arg("--profile", "") is { Length: > 0 } profile && profile.All(c => char.IsLetterOrDigit(c) || c is '-' or '_'))
+		{
+			SaveStore.PathName = $"user://panacea-{profile}.save";
+			Settings.PathName = $"user://settings-{profile}.cfg";
+		}
 		if (!_dev)
 		{
 			Settings.Load();

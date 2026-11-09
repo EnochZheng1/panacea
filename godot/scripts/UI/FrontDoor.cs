@@ -8,7 +8,8 @@ namespace Panacea.UI;
 /// <summary>The one save: the game as its seed and its log of actions (see SimGame.SaveJson).</summary>
 public static class SaveStore
 {
-	private const string PathName = "user://panacea.save";
+	/// <summary>The save's file; --profile NAME gives a run its own (several testers on one machine).</summary>
+	public static string PathName = "user://panacea.save";
 
 	public static bool Exists => FileAccess.FileExists(PathName);
 
@@ -53,7 +54,7 @@ public static class SaveStore
 /// <summary>The player's settings, kept between sessions: the window and the sound.</summary>
 public static class Settings
 {
-	private const string PathName = "user://settings.cfg";
+	public static string PathName = "user://settings.cfg";
 	public static bool Fullscreen { get; private set; }
 	public static bool Sound { get; private set; } = true;
 

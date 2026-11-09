@@ -55,8 +55,56 @@ public static class Requirements
         "deaths" => state.Deaths.Count,
         "inquests" => state.Scrutiny.InquestsHeld,
         "regulars" => state.Customers.Count,
+        "months" => state.Meta.Turn,
         _ => throw new InvalidOperationException($"unknown requirement \"{r.Kind}\""),
     };
+
+    /// <summary>Months since the letter last came, or null if it never has.</summary>
+    private static int? MonthsSince(GameState state, string eventId) =>
+        state.Events.LastDrawn.TryGetValue(eventId, out int last) ? state.Meta.Turn - last : null;
+
+    /// <summary>
+    /// The shop's remedy, as its correspondents know it (requirements.ts shopRemedy): the bottle it
+    /// sold most of last month (the first in the books, on a tie), else the newest in the formula
+    /// book; null before there is one.
+    /// </summary>
+    public static Formula? ShopRemedy(GameState state)
+    {
+        string? best = null;
+        int most = 0;
+        if (state.Ledger.Count > 0)
+            foreach (var s in state.Ledger[^1].Sales)
+                if (s.Bottles > most)
+                {
+                    most = s.Bottles;
+                    best = s.FormulaId;
+                }
+        var formulas = state.Lab.Formulas;
+        return formulas.Find(f => f.Id == best) ?? (formulas.Count > 0 ? formulas[^1] : null);
+    }
+
+    /// <summary>Fluid ounces per bottle of the formula's ingredients of one drug class.</summary>
+    public static double DrugOunces(Formula formula, string drugClass, ContentPack content)
+    {
+        double oz = 0;
+        foreach (var c in formula.Components)
+            if (content.ById.Ingredients.TryGetValue(c.IngredientId, out var ing) && ing.DrugClass == drugClass)
+                oz += c.Amount;
+        return oz;
+    }
+
+    private static bool RemedyHolds(Requirement req, GameState state, ContentPack content)
+    {
+        var remedy = ShopRemedy(state);
+        if (remedy is null) return false;
+        return req switch
+        {
+            RemedyHabitRequirement h => Formulas.Analyze(remedy.Components, remedy.ProcessId, content).Properties.Habit >= h.AtLeast,
+            RemedyDrugRequirement d => DrugOunces(remedy, d.DrugClass, content) >= d.AtLeastOz,
+            RemedyClaimRequirement c => remedy.Claims.Contains(c.Id),
+            _ => throw new InvalidOperationException($"unknown requirement {req.Type}"),
+        };
+    }
 
     /// <summary>
     /// The leaves of a requirement as progress lines, in content order (requirements.ts
@@ -117,6 +165,18 @@ public static class Requirements
                 bool met = season.Months.Contains(state.Meta.Date.Month);
                 return [new ConditionProgress("season", null, "atLeast", met ? 1 : 0, 1, met, via)];
             }
+            case SinceRequirement since:
+            {
+                int? months = MonthsSince(state, since.Event);
+                bool met = months is int m && m >= since.AtLeast;
+                return [new ConditionProgress("since", since.Event, "atLeast", months ?? 0, since.AtLeast, met, via)];
+            }
+            case RemedyHabitRequirement or RemedyDrugRequirement or RemedyClaimRequirement:
+            {
+                bool met = RemedyHolds(req, state, content);
+                string? id = req switch { RemedyClaimRequirement c => c.Id, RemedyDrugRequirement d => d.DrugClass, _ => null };
+                return [new ConditionProgress(req.Type, id, "atLeast", met ? 1 : 0, 1, met, via)];
+            }
             case AtLeastRequirement r:
             {
                 double have = CountFor(r, state);
@@ -144,6 +204,7 @@ public static class Requirements
                     "deaths" => state.Deaths.Count,
                     "inquests" => state.Scrutiny.InquestsHeld,
                     "regulars" => state.Customers.Count,
+                    "months" => state.Meta.Turn,
                     _ => throw new InvalidOperationException($"unknown requirement \"{r.Kind}\""),
                 };
                 return Ratio(value, r.AtLeast);
@@ -157,6 +218,10 @@ public static class Requirements
             }
             case SeasonRequirement season:
                 return Binary(season.Months.Contains(state.Meta.Date.Month));
+            case SinceRequirement since:
+                return MonthsSince(state, since.Event) is int months ? Ratio(months, since.AtLeast) : Binary(false);
+            case RemedyHabitRequirement or RemedyDrugRequirement or RemedyClaimRequirement:
+                return Binary(RemedyHolds(req, state, content));
             case FlagRequirement f:
                 return Binary(state.Player.Flags.TryGetValue(f.Id, out var flag) && flag);
             case UnlockedRequirement u:
@@ -353,12 +418,21 @@ public static class Progression
     private static bool IsRandomPending(PendingEvent p, ContentPack content) =>
         !(content.ById.Events.TryGetValue(p.EventId, out var ev) && ev.Trigger == "system");
 
+    /// <summary>Whether a condition waits on another letter (a "since", not under a "not"): a follow-up.</summary>
+    public static bool WaitsOnLetter(Requirement req) => req switch
+    {
+        SinceRequirement => true,
+        AllRequirement all => all.Of.Any(WaitsOnLetter),
+        AnyRequirement any => any.Of.Any(WaitsOnLetter),
+        _ => false,
+    };
+
     /// <summary>
     /// Draws this month's random events into The Post. System events (inquests) don't count.
     /// Every random event that could come this month (its condition holds, it is not already
     /// waiting, not spent if once-only, not cooling down) is put in a seeded shuffle, and then each
     /// in turn is drawn with its own chance until the month's post is full, so no event crowds out
-    /// another by its place in the content file.
+    /// another by its place in the content file. Follow-ups (WaitsOnLetter) are tried first.
     /// </summary>
     public static void DrawEvents(GameState state, ContentPack content, Rng rng)
     {
@@ -380,7 +454,10 @@ public static class Progression
             int j = rng.Int(0, i);
             (eligible[i], eligible[j]) = (eligible[j], eligible[i]);
         }
-        foreach (var ev in eligible)
+        // A follow-up (a letter that waits on another) is drawn before fresh letters, in the
+        // shuffled order of each, so a correspondent's next letter is not crowded out of a full post.
+        var ordered = eligible.Where(ev => WaitsOnLetter(ev.Condition!)).Concat(eligible.Where(ev => !WaitsOnLetter(ev.Condition!)));
+        foreach (var ev in ordered)
         {
             if (room <= 0) break;
             if (!rng.Chance(ev.Chance)) continue;

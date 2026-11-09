@@ -150,8 +150,8 @@
     "condition": {
       "type": "date",
       "from": {
-        "year": 1886,
-        "month": 1
+        "year": 1885,
+        "month": 6
       }
     },
     "chance": 0.1,
@@ -264,8 +264,17 @@
   {
     "id": "customer_wants_stronger",
     "condition": {
-      "type": "regulars",
-      "atLeast": 10
+      "type": "all",
+      "of": [
+        {
+          "type": "regulars",
+          "atLeast": 10
+        },
+        {
+          "type": "remedyHabit",
+          "atLeast": 1
+        }
+      ]
     },
     "chance": 0.1,
     "cooldownMonths": 30,
@@ -296,10 +305,14 @@
       "type": "all",
       "of": [
         {
-          "type": "date",
-          "from": {
-            "year": 1885,
-            "month": 6
+          "type": "flag",
+          "id": "feeney_nearby"
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "flag",
+            "id": "feeney_closed"
           }
         },
         {
@@ -534,11 +547,15 @@
         {
           "type": "batchesBrewed",
           "atLeast": 3
+        },
+        {
+          "type": "season",
+          "months": [2, 3, 4]
         }
       ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "pay_slater",
@@ -604,8 +621,8 @@
         }
       ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "accept",
@@ -664,8 +681,8 @@
         }
       ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "donate_dozen",
@@ -736,6 +753,10 @@
         {
           "type": "bottlesSold",
           "atLeast": 100
+        },
+        {
+          "type": "season",
+          "months": [5, 6, 7]
         }
       ]
     },
@@ -914,13 +935,13 @@
             "type": "date",
             "from": {
               "year": 1888,
-              "month": 5
+              "month": 4
             }
           }
         }
       ]
     },
-    "chance": 0.8,
+    "chance": 0.85,
     "once": true,
     "choices": [
       {
@@ -1055,8 +1076,8 @@
         }
       ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "sign",
@@ -1105,11 +1126,15 @@
         {
           "type": "bottlesSold",
           "atLeast": 300
+        },
+        {
+          "type": "season",
+          "months": [2, 3, 4]
         }
       ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "sign_on",
@@ -1134,10 +1159,24 @@
   {
     "id": "medicine_show_returns",
     "condition": {
-      "type": "flag",
-      "id": "show_on_road"
+      "type": "all",
+      "of": [
+        {
+          "type": "flag",
+          "id": "show_on_road"
+        },
+        {
+          "type": "season",
+          "months": [9, 10, 11]
+        },
+        {
+          "type": "since",
+          "event": "medicine_show_offer",
+          "atLeast": 5
+        }
+      ]
     },
-    "chance": 0.15,
+    "chance": 0.5,
     "cooldownMonths": 12,
     "choices": [
       {
@@ -1202,10 +1241,14 @@
         {
           "type": "regulars",
           "atLeast": 6
+        },
+        {
+          "type": "season",
+          "months": [4, 5, 6, 7, 8]
         }
       ]
     },
-    "chance": 0.05,
+    "chance": 0.1,
     "once": true,
     "choices": [
       {
@@ -1244,10 +1287,20 @@
   {
     "id": "kehoe_more",
     "condition": {
-      "type": "flag",
-      "id": "kehoe_syrup"
+      "type": "all",
+      "of": [
+        {
+          "type": "flag",
+          "id": "kehoe_syrup"
+        },
+        {
+          "type": "since",
+          "event": "kehoe_thanks",
+          "atLeast": 2
+        }
+      ]
     },
-    "chance": 0.12,
+    "chance": 0.35,
     "once": true,
     "choices": [
       {
@@ -1307,10 +1360,20 @@
   {
     "id": "kehoe_last",
     "condition": {
-      "type": "flag",
-      "id": "kehoe_stronger"
+      "type": "all",
+      "of": [
+        {
+          "type": "flag",
+          "id": "kehoe_stronger"
+        },
+        {
+          "type": "since",
+          "event": "kehoe_more",
+          "atLeast": 2
+        }
+      ]
     },
-    "chance": 0.12,
+    "chance": 0.35,
     "once": true,
     "choices": [
       {
@@ -1382,10 +1445,20 @@
   {
     "id": "kehoe_well",
     "condition": {
-      "type": "flag",
-      "id": "kehoe_dispensary"
+      "type": "all",
+      "of": [
+        {
+          "type": "flag",
+          "id": "kehoe_dispensary"
+        },
+        {
+          "type": "since",
+          "event": "kehoe_thanks",
+          "atLeast": 3
+        }
+      ]
     },
-    "chance": 0.08,
+    "chance": 0.3,
     "once": true,
     "choices": [
       {
@@ -1533,10 +1606,14 @@
         {
           "type": "bottlesSold",
           "atLeast": 250
+        },
+        {
+          "type": "season",
+          "months": [6, 7, 8, 9]
         }
       ]
     },
-    "chance": 0.05,
+    "chance": 0.1,
     "once": true,
     "choices": [
       {
@@ -1578,11 +1655,13 @@
           "id": "ward_friend"
         },
         {
-          "type": "date",
-          "from": {
-            "year": 1887,
-            "month": 1
-          }
+          "type": "season",
+          "months": [10]
+        },
+        {
+          "type": "since",
+          "event": "ward_boss_favor",
+          "atLeast": 1
         },
         {
           "type": "not",
@@ -1596,7 +1675,7 @@
         }
       ]
     },
-    "chance": 0.1,
+    "chance": 0.8,
     "once": true,
     "choices": [
       {
@@ -1655,11 +1734,16 @@
           "id": "feeney_nearby"
         },
         {
-          "type": "date",
-          "from": {
-            "year": 1886,
-            "month": 6
+          "type": "not",
+          "requirement": {
+            "type": "flag",
+            "id": "feeney_closed"
           }
+        },
+        {
+          "type": "since",
+          "event": "rival_shop_opens",
+          "atLeast": 2
         },
         {
           "type": "not",
@@ -1673,11 +1757,11 @@
         },
         {
           "type": "batchesBrewed",
-          "atLeast": 10
+          "atLeast": 6
         }
       ]
     },
-    "chance": 0.05,
+    "chance": 0.3,
     "once": true,
     "choices": [
       {
@@ -1706,10 +1790,20 @@
   {
     "id": "feeney_copy",
     "condition": {
-      "type": "flag",
-      "id": "feeney_has_receipt"
+      "type": "all",
+      "of": [
+        {
+          "type": "flag",
+          "id": "feeney_has_receipt"
+        },
+        {
+          "type": "since",
+          "event": "feeney_boy",
+          "atLeast": 2
+        }
+      ]
     },
-    "chance": 0.15,
+    "chance": 0.35,
     "once": true,
     "choices": [
       {
@@ -1800,12 +1894,17 @@
           "id": "feeney_copied"
         },
         {
+          "type": "since",
+          "event": "feeney_copy",
+          "atLeast": 2
+        },
+        {
           "type": "bottlesSold",
           "atLeast": 600
         }
       ]
     },
-    "chance": 0.06,
+    "chance": 0.3,
     "once": true,
     "choices": [
       {
@@ -1848,6 +1947,10 @@
           {
             "type": "clearFlag",
             "id": "feeney_copied"
+          },
+          {
+            "type": "setFlag",
+            "id": "feeney_closed"
           }
         ]
       },
@@ -1881,12 +1984,17 @@
           "id": "promised_stronger"
         },
         {
+          "type": "since",
+          "event": "customer_wants_stronger",
+          "atLeast": 2
+        },
+        {
           "type": "regulars",
           "atLeast": 8
         }
       ]
     },
-    "chance": 0.06,
+    "chance": 0.3,
     "once": true,
     "choices": [
       {
@@ -1958,11 +2066,15 @@
             "year": 1885,
             "month": 6
           }
+        },
+        {
+          "type": "season",
+          "months": [6, 7, 8, 9, 10]
         }
       ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "close_account",
@@ -2041,8 +2153,8 @@
         }
       ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "install",
@@ -2087,8 +2199,8 @@
         }
       ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "shake_hands",
@@ -2151,8 +2263,8 @@
         }
       ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "wire_window",
@@ -2264,19 +2376,29 @@
   {
     "id": "reporter_proofs",
     "condition": {
-      "type": "any",
+      "type": "all",
       "of": [
         {
-          "type": "flag",
-          "id": "reporter_paid"
+          "type": "any",
+          "of": [
+            {
+              "type": "flag",
+              "id": "reporter_paid"
+            },
+            {
+              "type": "flag",
+              "id": "reporter_refused"
+            }
+          ]
         },
         {
-          "type": "flag",
-          "id": "reporter_refused"
+          "type": "since",
+          "event": "reporter_calls",
+          "atLeast": 2
         }
       ]
     },
-    "chance": 0.15,
+    "chance": 0.4,
     "once": true,
     "choices": [
       {
@@ -2360,10 +2482,20 @@
   {
     "id": "reporter_kind",
     "condition": {
-      "type": "flag",
-      "id": "reporter_shown"
+      "type": "all",
+      "of": [
+        {
+          "type": "flag",
+          "id": "reporter_shown"
+        },
+        {
+          "type": "since",
+          "event": "reporter_calls",
+          "atLeast": 2
+        }
+      ]
     },
-    "chance": 0.2,
+    "chance": 0.4,
     "once": true,
     "choices": [
       {
@@ -2419,15 +2551,33 @@
           "id": "stowe_lie"
         },
         {
-          "type": "date",
-          "from": {
-            "year": 1888,
-            "month": 1
-          }
+          "type": "since",
+          "event": "stowe_tract",
+          "atLeast": 3
+        },
+        {
+          "type": "any",
+          "of": [
+            {
+              "type": "remedyDrug",
+              "drugClass": "alcohol",
+              "atLeastOz": 0.5
+            },
+            {
+              "type": "remedyDrug",
+              "drugClass": "opiate",
+              "atLeastOz": 0.01
+            },
+            {
+              "type": "remedyDrug",
+              "drugClass": "cocaine",
+              "atLeastOz": 0.01
+            }
+          ]
         }
       ]
     },
-    "chance": 0.08,
+    "chance": 0.3,
     "once": true,
     "choices": [
       {
@@ -2498,15 +2648,13 @@
           "id": "stowe_truth"
         },
         {
-          "type": "date",
-          "from": {
-            "year": 1890,
-            "month": 1
-          }
+          "type": "since",
+          "event": "stowe_tract",
+          "atLeast": 3
         }
       ]
     },
-    "chance": 0.08,
+    "chance": 0.3,
     "once": true,
     "choices": [
       {
@@ -2590,8 +2738,8 @@
         }
       ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "join",
@@ -2639,10 +2787,15 @@
               "month": 6
             }
           }
+        },
+        {
+          "type": "since",
+          "event": "proprietary_invite",
+          "atLeast": 2
         }
       ]
     },
-    "chance": 0.08,
+    "chance": 0.3,
     "once": true,
     "choices": [
       {
@@ -2687,7 +2840,7 @@
             "type": "date",
             "from": {
               "year": 1892,
-              "month": 12
+              "month": 11
             }
           }
         }
@@ -2790,7 +2943,7 @@
           "type": "date",
           "from": {
             "year": 1893,
-            "month": 8
+            "month": 9
           }
         },
         {
@@ -2798,8 +2951,8 @@
           "requirement": {
             "type": "date",
             "from": {
-              "year": 1895,
-              "month": 1
+              "year": 1894,
+              "month": 3
             }
           }
         },
@@ -2809,7 +2962,7 @@
         }
       ]
     },
-    "chance": 0.12,
+    "chance": 0.3,
     "once": true,
     "choices": [
       {
@@ -2850,7 +3003,7 @@
           "type": "date",
           "from": {
             "year": 1893,
-            "month": 6
+            "month": 8
           }
         },
         {
@@ -2858,8 +3011,8 @@
           "requirement": {
             "type": "date",
             "from": {
-              "year": 1894,
-              "month": 7
+              "year": 1893,
+              "month": 11
             }
           }
         },
@@ -2869,7 +3022,7 @@
         }
       ]
     },
-    "chance": 0.15,
+    "chance": 0.45,
     "once": true,
     "choices": [
       {
@@ -3010,14 +3163,23 @@
           "requirement": {
             "type": "date",
             "from": {
-              "year": 1897,
-              "month": 5
+              "year": 1896,
+              "month": 9
             }
           }
+        },
+        {
+          "type": "season",
+          "months": [5, 6, 7, 8]
+        },
+        {
+          "type": "remedyDrug",
+          "drugClass": "alcohol",
+          "atLeastOz": 1
         }
       ]
     },
-    "chance": 0.15,
+    "chance": 0.3,
     "once": true,
     "choices": [
       {
@@ -3094,8 +3256,8 @@
         }
       ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "club_price",
@@ -3136,7 +3298,7 @@
           "requirement": {
             "type": "date",
             "from": {
-              "year": 1902,
+              "year": 1900,
               "month": 1
             }
           }
@@ -3147,8 +3309,8 @@
         }
       ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "take_cards",
@@ -3260,8 +3422,8 @@
         }
       ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "observations",
@@ -3376,10 +3538,19 @@
               "month": 1
             }
           }
+        },
+        {
+          "type": "season",
+          "months": [1, 2, 3]
+        },
+        {
+          "type": "since",
+          "event": "lexow_subpoena",
+          "atLeast": 12
         }
       ]
     },
-    "chance": 0.15,
+    "chance": 0.3,
     "once": true,
     "choices": [
       {
@@ -3449,7 +3620,7 @@
           "type": "date",
           "from": {
             "year": 1898,
-            "month": 4
+            "month": 5
           }
         },
         {
@@ -3458,7 +3629,7 @@
             "type": "date",
             "from": {
               "year": 1898,
-              "month": 9
+              "month": 7
             }
           }
         }
@@ -3527,7 +3698,7 @@
             "type": "date",
             "from": {
               "year": 1898,
-              "month": 12
+              "month": 9
             }
           }
         },
@@ -3537,7 +3708,7 @@
         }
       ]
     },
-    "chance": 0.3,
+    "chance": 0.4,
     "once": true,
     "choices": [
       {
@@ -3574,10 +3745,6 @@
       "type": "all",
       "of": [
         {
-          "type": "flag",
-          "id": "army_certificate"
-        },
-        {
           "type": "date",
           "from": {
             "year": 1898,
@@ -3589,14 +3756,23 @@
           "requirement": {
             "type": "date",
             "from": {
-              "year": 1900,
-              "month": 1
+              "year": 1899,
+              "month": 3
             }
           }
+        },
+        {
+          "type": "flag",
+          "id": "army_certificate"
+        },
+        {
+          "type": "since",
+          "event": "army_contract",
+          "atLeast": 3
         }
       ]
     },
-    "chance": 0.25,
+    "chance": 0.45,
     "once": true,
     "choices": [
       {
@@ -3683,7 +3859,6 @@
       ]
     },
     "chance": 0.06,
-    "cooldownMonths": 48,
     "choices": [
       {
         "id": "send_drops",
@@ -3712,7 +3887,8 @@
         ],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "testimonial_broker",
@@ -3732,8 +3908,8 @@
         }
       ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "buy_hundred",
@@ -3834,8 +4010,8 @@
         }
       ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "sell_letters",
@@ -3890,6 +4066,11 @@
               "month": 10
             }
           }
+        },
+        {
+          "type": "since",
+          "event": "soda_fountain_offer",
+          "atLeast": 2
         }
       ]
     },
@@ -4010,8 +4191,8 @@
         }
       ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "partner",
@@ -4042,14 +4223,26 @@
   {
     "id": "tenement_dept",
     "condition": {
-      "type": "date",
-      "from": {
-        "year": 1902,
-        "month": 3
-      }
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1902,
+            "month": 3
+          }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "flag",
+            "id": "fireproofed"
+          }
+        }
+      ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "fireproof",
@@ -4061,6 +4254,10 @@
           {
             "type": "reputation",
             "delta": 1
+          },
+          {
+            "type": "setFlag",
+            "id": "fireproofed"
           }
         ]
       },
@@ -4187,6 +4384,10 @@
           {
             "type": "notoriety",
             "delta": 2
+          },
+          {
+            "type": "setFlag",
+            "id": "radio_active"
           }
         ]
       },
@@ -4207,7 +4408,6 @@
       }
     },
     "chance": 0.06,
-    "cooldownMonths": 48,
     "choices": [
       {
         "id": "settle",
@@ -4238,7 +4438,8 @@
         ],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "subway_signs",
@@ -4377,6 +4578,11 @@
             "year": 1903,
             "month": 1
           }
+        },
+        {
+          "type": "since",
+          "event": "reporter_proofs",
+          "atLeast": 12
         }
       ]
     },
@@ -4534,6 +4740,11 @@
               "month": 7
             }
           }
+        },
+        {
+          "type": "since",
+          "event": "proprietary_invite",
+          "atLeast": 1
         }
       ]
     },
@@ -4607,6 +4818,11 @@
               "month": 7
             }
           }
+        },
+        {
+          "type": "since",
+          "event": "red_clause",
+          "atLeast": 1
         }
       ]
     },
@@ -4722,6 +4938,11 @@
               "month": 7
             }
           }
+        },
+        {
+          "type": "since",
+          "event": "stowe_tract",
+          "atLeast": 12
         }
       ]
     },
@@ -4910,11 +5131,18 @@
         {
           "type": "batchesBrewed",
           "atLeast": 8
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "flag",
+            "id": "still_piped"
+          }
         }
       ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "put_up_pipe",
@@ -4926,6 +5154,10 @@
           {
             "type": "reputation",
             "delta": 1
+          },
+          {
+            "type": "setFlag",
+            "id": "still_piped"
           }
         ]
       },
@@ -4977,7 +5209,6 @@
       ]
     },
     "chance": 0.06,
-    "cooldownMonths": 48,
     "choices": [
       {
         "id": "take_him_on",
@@ -5009,7 +5240,8 @@
         "effects": [],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "sign_painter",
@@ -5033,11 +5265,18 @@
             "type": "flag",
             "id": "gilt_sign"
           }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "flag",
+            "id": "sign_touched"
+          }
         }
       ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "gilt_sign",
@@ -5069,6 +5308,10 @@
             "id": "callers_sign",
             "delta": 1,
             "months": 24
+          },
+          {
+            "type": "setFlag",
+            "id": "sign_touched"
           }
         ]
       },
@@ -5104,8 +5347,8 @@
         }
       ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "consideration",
@@ -5117,6 +5360,10 @@
           {
             "type": "setFlag",
             "id": "paid_police"
+          },
+          {
+            "type": "setFlag",
+            "id": "lynch_book"
           }
         ]
       },
@@ -5251,11 +5498,16 @@
         {
           "type": "bottlesSold",
           "atLeast": 500
+        },
+        {
+          "type": "remedyDrug",
+          "drugClass": "alcohol",
+          "atLeastOz": 1
         }
       ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "pay_tax",
@@ -5317,8 +5569,8 @@
         }
       ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "hire_cart",
@@ -5373,8 +5625,8 @@
         }
       ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "sit_for_it",
@@ -5427,8 +5679,8 @@
         }
       ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "buy_space",
@@ -5494,8 +5746,8 @@
         }
       ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "agree",
@@ -5538,11 +5790,15 @@
         {
           "type": "bottlesSold",
           "atLeast": 500
+        },
+        {
+          "type": "remedyHabit",
+          "atLeast": 1
         }
       ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "no_boys",
@@ -5675,10 +5931,19 @@
             "type": "flag",
             "id": "clerk_books_done"
           }
+        },
+        {
+          "type": "since",
+          "event": "clerk_applies",
+          "atLeast": 3
+        },
+        {
+          "type": "season",
+          "months": [7, 8, 9, 10, 11, 12]
         }
       ]
     },
-    "chance": 0.1,
+    "chance": 0.4,
     "once": true,
     "choices": [
       {
@@ -5717,10 +5982,24 @@
   {
     "id": "clerk_leaves",
     "condition": {
-      "type": "flag",
-      "id": "clerk_books_done"
+      "type": "all",
+      "of": [
+        {
+          "type": "flag",
+          "id": "clerk_books_done"
+        },
+        {
+          "type": "since",
+          "event": "clerk_books",
+          "atLeast": 4
+        },
+        {
+          "type": "season",
+          "months": [2, 3, 4, 5]
+        }
+      ]
     },
-    "chance": 0.04,
+    "chance": 0.25,
     "once": true,
     "choices": [
       {
@@ -5793,8 +6072,8 @@
         }
       ]
     },
-    "chance": 0.035,
-    "cooldownMonths": 60,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "join",
@@ -5829,11 +6108,20 @@
   {
     "id": "lodge_brother",
     "condition": {
-      "type": "flag",
-      "id": "lodge_member"
+      "type": "all",
+      "of": [
+        {
+          "type": "flag",
+          "id": "lodge_member"
+        },
+        {
+          "type": "since",
+          "event": "lodge_invite",
+          "atLeast": 3
+        }
+      ]
     },
-    "chance": 0.06,
-    "cooldownMonths": 48,
+    "chance": 0.25,
     "choices": [
       {
         "id": "slate",
@@ -5867,7 +6155,8 @@
         ],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "lodge_supper",
@@ -5880,12 +6169,17 @@
         },
         {
           "type": "season",
-          "months": [1, 2]
+          "months": [12, 1]
+        },
+        {
+          "type": "since",
+          "event": "lodge_invite",
+          "atLeast": 1
         }
       ]
     },
     "chance": 0.2,
-    "cooldownMonths": 54,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "punch",
@@ -5934,10 +6228,24 @@
   {
     "id": "apprentice_exam",
     "condition": {
-      "type": "flag",
-      "id": "apprentice_served"
+      "type": "all",
+      "of": [
+        {
+          "type": "flag",
+          "id": "apprentice_served"
+        },
+        {
+          "type": "since",
+          "event": "apprentice",
+          "atLeast": 10
+        },
+        {
+          "type": "season",
+          "months": [4, 5, 6]
+        }
+      ]
     },
-    "chance": 0.05,
+    "chance": 0.5,
     "cooldownMonths": 24,
     "choices": [
       {
@@ -5998,13 +6306,22 @@
           }
         },
         {
+          "type": "not",
+          "requirement": {
+            "type": "date",
+            "from": {
+              "year": 1896,
+              "month": 1
+            }
+          }
+        },
+        {
           "type": "season",
-          "months": [12, 1]
+          "months": [12]
         }
       ]
     },
-    "chance": 0.2,
-    "cooldownMonths": 54,
+    "chance": 0.3,
     "choices": [
       {
         "id": "dollar",
@@ -6042,7 +6359,8 @@
         ],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "holiday_goods",
@@ -6067,7 +6385,7 @@
       ]
     },
     "chance": 0.14,
-    "cooldownMonths": 54,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "order_case",
@@ -6119,12 +6437,12 @@
         },
         {
           "type": "season",
-          "months": [11, 12]
+          "months": [11]
         }
       ]
     },
-    "chance": 0.2,
-    "cooldownMonths": 54,
+    "chance": 0.35,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "subscribe",
@@ -6195,11 +6513,15 @@
         {
           "type": "season",
           "months": [2, 3]
+        },
+        {
+          "type": "remedyDrug",
+          "drugClass": "alcohol",
+          "atLeastOz": 1
         }
       ]
     },
     "chance": 0.2,
-    "cooldownMonths": 54,
     "choices": [
       {
         "id": "medicine",
@@ -6232,7 +6554,8 @@
         "effects": [],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "easter_complexion",
@@ -6248,12 +6571,11 @@
         },
         {
           "type": "season",
-          "months": [3, 4]
+          "months": [2, 3]
         }
       ]
     },
     "chance": 0.2,
-    "cooldownMonths": 54,
     "choices": [
       {
         "id": "cold_cream",
@@ -6286,7 +6608,8 @@
         "effects": [],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "moving_day",
@@ -6307,11 +6630,14 @@
         {
           "type": "season",
           "months": [4]
+        },
+        {
+          "type": "months",
+          "atLeast": 12
         }
       ]
     },
     "chance": 0.2,
-    "cooldownMonths": 54,
     "choices": [
       {
         "id": "send_it",
@@ -6333,7 +6659,8 @@
         "effects": [],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "moving_debts",
@@ -6354,11 +6681,15 @@
         {
           "type": "season",
           "months": [5]
+        },
+        {
+          "type": "months",
+          "atLeast": 12
         }
       ]
     },
     "chance": 0.16,
-    "cooldownMonths": 54,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "hand_over",
@@ -6407,7 +6738,7 @@
       ]
     },
     "chance": 0.14,
-    "cooldownMonths": 54,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "order_fans",
@@ -6464,7 +6795,7 @@
       ]
     },
     "chance": 0.14,
-    "cooldownMonths": 54,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "behind_counter",
@@ -6522,7 +6853,7 @@
       ]
     },
     "chance": 0.2,
-    "cooldownMonths": 54,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "two_dollars",
@@ -6591,7 +6922,7 @@
       ]
     },
     "chance": 0.14,
-    "cooldownMonths": 54,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "give_box",
@@ -6660,7 +6991,7 @@
       ]
     },
     "chance": 0.12,
-    "cooldownMonths": 54,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "hire_boy",
@@ -6725,7 +7056,7 @@
       ]
     },
     "chance": 0.14,
-    "cooldownMonths": 54,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "now",
@@ -6773,7 +7104,7 @@
       ]
     },
     "chance": 0.1,
-    "cooldownMonths": 54,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "order",
@@ -6867,12 +7198,12 @@
         },
         {
           "type": "season",
-          "months": [6]
+          "months": [5]
         }
       ]
     },
     "chance": 0.2,
-    "cooldownMonths": 54,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "physiology",
@@ -6922,12 +7253,12 @@
         },
         {
           "type": "season",
-          "months": [11, 12]
+          "months": [11]
         }
       ]
     },
-    "chance": 0.12,
-    "cooldownMonths": 54,
+    "chance": 0.2,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "horehound",
@@ -7005,7 +7336,7 @@
       ]
     },
     "chance": 0.1,
-    "cooldownMonths": 54,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "silver_cup",
@@ -7076,7 +7407,7 @@
       ]
     },
     "chance": 0.1,
-    "cooldownMonths": 54,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "close",
@@ -7122,11 +7453,18 @@
         {
           "type": "regulars",
           "atLeast": 6
+        },
+        {
+          "type": "months",
+          "atLeast": 9
+        },
+        {
+          "type": "season",
+          "months": [11, 12, 1, 2]
         }
       ]
     },
     "chance": 0.035,
-    "cooldownMonths": 54,
     "choices": [
       {
         "id": "slate",
@@ -7160,7 +7498,8 @@
         ],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "wrong_bottle",
@@ -7181,7 +7520,6 @@
       ]
     },
     "chance": 0.035,
-    "cooldownMonths": 54,
     "choices": [
       {
         "id": "apologise",
@@ -7219,7 +7557,8 @@
         ],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "horse_order",
@@ -7240,7 +7579,6 @@
       ]
     },
     "chance": 0.035,
-    "cooldownMonths": 60,
     "choices": [
       {
         "id": "sell_gallon",
@@ -7260,7 +7598,8 @@
         "effects": [],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "thanks_note",
@@ -7277,11 +7616,14 @@
         {
           "type": "bottlesSold",
           "atLeast": 100
+        },
+        {
+          "type": "season",
+          "months": [3, 4, 5]
         }
       ]
     },
     "chance": 0.035,
-    "cooldownMonths": 54,
     "choices": [
       {
         "id": "sample",
@@ -7295,6 +7637,10 @@
             "id": "callers_neighbours",
             "delta": 1,
             "months": 3
+          },
+          {
+            "type": "setFlag",
+            "id": "quaid_sister"
           }
         ]
       },
@@ -7303,7 +7649,8 @@
         "effects": [],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "window_ball",
@@ -7320,11 +7667,14 @@
         {
           "type": "cash",
           "atLeastCents": 1000
+        },
+        {
+          "type": "season",
+          "months": [4, 5, 6, 7, 8, 9]
         }
       ]
     },
     "chance": 0.035,
-    "cooldownMonths": 60,
     "choices": [
       {
         "id": "nickels",
@@ -7349,7 +7699,8 @@
         ],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "bad_note",
@@ -7370,7 +7721,6 @@
       ]
     },
     "chance": 0.035,
-    "cooldownMonths": 60,
     "choices": [
       {
         "id": "describe",
@@ -7386,6 +7736,10 @@
           {
             "type": "notoriety",
             "delta": 1
+          },
+          {
+            "type": "setFlag",
+            "id": "counterfeit_described"
           }
         ]
       },
@@ -7399,7 +7753,8 @@
         ],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "bottle_boys",
@@ -7419,8 +7774,8 @@
         }
       ]
     },
-    "chance": 0.035,
-    "cooldownMonths": 60,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "washed",
@@ -7466,7 +7821,6 @@
       ]
     },
     "chance": 0.035,
-    "cooldownMonths": 60,
     "choices": [
       {
         "id": "tonic",
@@ -7491,7 +7845,8 @@
         ],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "theatre_order",
@@ -7512,7 +7867,6 @@
       ]
     },
     "chance": 0.035,
-    "cooldownMonths": 60,
     "choices": [
       {
         "id": "coloured_water",
@@ -7561,7 +7915,8 @@
         "effects": [],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "history_book",
@@ -7582,7 +7937,6 @@
       ]
     },
     "chance": 0.035,
-    "cooldownMonths": 60,
     "choices": [
       {
         "id": "engraving",
@@ -7629,7 +7983,8 @@
         "effects": [],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "fire_insurance",
@@ -7649,8 +8004,8 @@
         }
       ]
     },
-    "chance": 0.035,
-    "cooldownMonths": 60,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "double",
@@ -7708,8 +8063,8 @@
         }
       ]
     },
-    "chance": 0.035,
-    "cooldownMonths": 60,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "give",
@@ -7763,7 +8118,6 @@
       ]
     },
     "chance": 0.035,
-    "cooldownMonths": 60,
     "choices": [
       {
         "id": "send_cases",
@@ -7805,7 +8159,8 @@
         ],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "tonic_taste",
@@ -7826,7 +8181,6 @@
       ]
     },
     "chance": 0.035,
-    "cooldownMonths": 54,
     "choices": [
       {
         "id": "free_bottle",
@@ -7864,7 +8218,8 @@
         ],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "child_errand",
@@ -7881,11 +8236,15 @@
         {
           "type": "bottlesSold",
           "atLeast": 300
+        },
+        {
+          "type": "remedyDrug",
+          "drugClass": "alcohol",
+          "atLeastOz": 1
         }
       ]
     },
     "chance": 0.035,
-    "cooldownMonths": 60,
     "choices": [
       {
         "id": "fill_jug",
@@ -7918,7 +8277,8 @@
         ],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "carboy",
@@ -7935,11 +8295,14 @@
         {
           "type": "batchesBrewed",
           "atLeast": 8
+        },
+        {
+          "type": "season",
+          "months": [12, 1, 2]
         }
       ]
     },
     "chance": 0.035,
-    "cooldownMonths": 60,
     "choices": [
       {
         "id": "lawyer",
@@ -7970,7 +8333,8 @@
         ],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "label_printer",
@@ -7987,11 +8351,23 @@
         {
           "type": "bottlesSold",
           "atLeast": 200
+        },
+        {
+          "type": "any",
+          "of": [
+            {
+              "type": "remedyClaim",
+              "id": "cures_consumption"
+            },
+            {
+              "type": "remedyClaim",
+              "id": "cures_everything"
+            }
+          ]
         }
       ]
     },
     "chance": 0.035,
-    "cooldownMonths": 60,
     "choices": [
       {
         "id": "soak_off",
@@ -8018,7 +8394,8 @@
         ],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "jobber_rival",
@@ -8038,8 +8415,8 @@
         }
       ]
     },
-    "chance": 0.035,
-    "cooldownMonths": 60,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "trial",
@@ -8082,7 +8459,6 @@
       ]
     },
     "chance": 0.035,
-    "cooldownMonths": 60,
     "choices": [
       {
         "id": "send_all",
@@ -8124,7 +8500,8 @@
         ],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "agent_paint",
@@ -8141,11 +8518,18 @@
         {
           "type": "batchesBrewed",
           "atLeast": 10
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "flag",
+            "id": "shopfront_painted"
+          }
         }
       ]
     },
-    "chance": 0.035,
-    "cooldownMonths": 60,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "estate_green",
@@ -8153,6 +8537,10 @@
           {
             "type": "cash",
             "deltaCents": -400
+          },
+          {
+            "type": "setFlag",
+            "id": "shopfront_painted"
           }
         ]
       },
@@ -8168,6 +8556,10 @@
             "id": "callers_sign",
             "delta": 1,
             "months": 12
+          },
+          {
+            "type": "setFlag",
+            "id": "shopfront_painted"
           }
         ]
       },
@@ -8200,11 +8592,18 @@
         {
           "type": "batchesBrewed",
           "atLeast": 20
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "flag",
+            "id": "noxious_agreed"
+          }
         }
       ]
     },
-    "chance": 0.035,
-    "cooldownMonths": 60,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "in_writing",
@@ -8212,6 +8611,10 @@
           {
             "type": "cash",
             "deltaCents": -150
+          },
+          {
+            "type": "setFlag",
+            "id": "noxious_agreed"
           }
         ]
       },
@@ -8263,7 +8666,6 @@
       ]
     },
     "chance": 0.035,
-    "cooldownMonths": 60,
     "choices": [
       {
         "id": "pay_both",
@@ -8297,7 +8699,8 @@
         ],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "wedding_punch",
@@ -8318,7 +8721,6 @@
       ]
     },
     "chance": 0.035,
-    "cooldownMonths": 60,
     "choices": [
       {
         "id": "three_gallons",
@@ -8351,7 +8753,8 @@
         "effects": [],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "perfume_copy",
@@ -8372,7 +8775,6 @@
       ]
     },
     "chance": 0.035,
-    "cooldownMonths": 60,
     "choices": [
       {
         "id": "essence_of_paris",
@@ -8397,7 +8799,8 @@
         ],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "sealer",
@@ -8417,8 +8820,8 @@
         }
       ]
     },
-    "chance": 0.035,
-    "cooldownMonths": 60,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "adjust",
@@ -8473,7 +8876,6 @@
       ]
     },
     "chance": 0.035,
-    "cooldownMonths": 60,
     "choices": [
       {
         "id": "put_in_bell",
@@ -8499,7 +8901,8 @@
         "effects": [],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "jury_duty",
@@ -8519,8 +8922,8 @@
         }
       ]
     },
-    "chance": 0.035,
-    "cooldownMonths": 60,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "clerk",
@@ -8569,13 +8972,13 @@
             "type": "date",
             "from": {
               "year": 1885,
-              "month": 9
+              "month": 8
             }
           }
         }
       ]
     },
-    "chance": 0.5,
+    "chance": 0.6,
     "once": true,
     "choices": [
       {
@@ -8718,8 +9121,8 @@
         }
       ]
     },
-    "chance": 0.035,
-    "cooldownMonths": 54,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "order_cards",
@@ -8812,7 +9215,7 @@
             "type": "date",
             "from": {
               "year": 1892,
-              "month": 11
+              "month": 10
             }
           }
         },
@@ -8822,7 +9225,7 @@
         }
       ]
     },
-    "chance": 0.5,
+    "chance": 0.8,
     "once": true,
     "choices": [
       {
@@ -8913,6 +9316,10 @@
             "id": "callers_medal",
             "delta": 2,
             "months": 6
+          },
+          {
+            "type": "setFlag",
+            "id": "gold_medal_1893"
           }
         ]
       },
@@ -8951,8 +9358,8 @@
         }
       ]
     },
-    "chance": 0.035,
-    "cooldownMonths": 54,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "record",
@@ -8993,11 +9400,18 @@
         {
           "type": "bottlesSold",
           "atLeast": 1000
+        },
+        {
+          "type": "season",
+          "months": [3, 4, 5, 6, 7, 8, 9]
+        },
+        {
+          "type": "remedyHabit",
+          "atLeast": 1
         }
       ]
     },
     "chance": 0.035,
-    "cooldownMonths": 54,
     "choices": [
       {
         "id": "tell_her",
@@ -9035,7 +9449,8 @@
         ],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "antitoxin_1895",
@@ -9054,7 +9469,7 @@
           "requirement": {
             "type": "date",
             "from": {
-              "year": 1900,
+              "year": 1897,
               "month": 1
             }
           }
@@ -9065,7 +9480,7 @@
         }
       ]
     },
-    "chance": 0.08,
+    "chance": 0.15,
     "once": true,
     "choices": [
       {
@@ -9118,14 +9533,14 @@
           "requirement": {
             "type": "date",
             "from": {
-              "year": 1899,
+              "year": 1898,
               "month": 1
             }
           }
         }
       ]
     },
-    "chance": 0.08,
+    "chance": 0.1,
     "once": true,
     "choices": [
       {
@@ -9195,7 +9610,6 @@
       ]
     },
     "chance": 0.035,
-    "cooldownMonths": 54,
     "choices": [
       {
         "id": "store_wheel",
@@ -9236,7 +9650,8 @@
         "effects": [],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "x_rays_1896",
@@ -9255,8 +9670,8 @@
           "requirement": {
             "type": "date",
             "from": {
-              "year": 1898,
-              "month": 1
+              "year": 1896,
+              "month": 10
             }
           }
         },
@@ -9266,7 +9681,7 @@
         }
       ]
     },
-    "chance": 0.1,
+    "chance": 0.2,
     "once": true,
     "choices": [
       {
@@ -9393,11 +9808,15 @@
         {
           "type": "bottlesSold",
           "atLeast": 800
+        },
+        {
+          "type": "remedyDrug",
+          "drugClass": "alcohol",
+          "atLeastOz": 1
         }
       ]
     },
     "chance": 0.035,
-    "cooldownMonths": 60,
     "choices": [
       {
         "id": "half_shares",
@@ -9421,7 +9840,8 @@
         "effects": [],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "school_inspector",
@@ -9441,8 +9861,8 @@
         }
       ]
     },
-    "chance": 0.035,
-    "cooldownMonths": 54,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "at_cost",
@@ -9490,8 +9910,8 @@
         {
           "type": "date",
           "from": {
-            "year": 1897,
-            "month": 12
+            "year": 1898,
+            "month": 1
           }
         },
         {
@@ -9510,7 +9930,7 @@
         }
       ]
     },
-    "chance": 0.35,
+    "chance": 0.5,
     "once": true,
     "choices": [
       {
@@ -9641,8 +10061,8 @@
         }
       ]
     },
-    "chance": 0.035,
-    "cooldownMonths": 54,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "install",
@@ -9872,8 +10292,8 @@
         }
       ]
     },
-    "chance": 0.035,
-    "cooldownMonths": 54,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "give_stamps",
@@ -9918,7 +10338,6 @@
       ]
     },
     "chance": 0.035,
-    "cooldownMonths": 54,
     "choices": [
       {
         "id": "benzine",
@@ -9961,7 +10380,8 @@
         "effects": [],
         "default": true
       }
-    ]
+    ],
+    "once": true
   },
   {
     "id": "postcards",
@@ -9981,8 +10401,8 @@
         }
       ]
     },
-    "chance": 0.035,
-    "cooldownMonths": 54,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "cards",
@@ -10035,8 +10455,8 @@
         }
       ]
     },
-    "chance": 0.035,
-    "cooldownMonths": 54,
+    "chance": 0.07,
+    "cooldownMonths": 36,
     "choices": [
       {
         "id": "install",
@@ -10109,6 +10529,261 @@
       {
         "id": "decline",
         "effects": [],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "burglary_book",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "flag",
+          "id": "lynch_book"
+        },
+        {
+          "type": "since",
+          "event": "burglary",
+          "atLeast": 2
+        }
+      ]
+    },
+    "chance": 0.35,
+    "once": true,
+    "choices": [
+      {
+        "id": "subscribe",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -500
+          },
+          {
+            "type": "heat",
+            "delta": -3
+          },
+          {
+            "type": "clearFlag",
+            "id": "lynch_book"
+          }
+        ]
+      },
+      {
+        "id": "out_of_the_book",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -200
+          },
+          {
+            "type": "heat",
+            "delta": 1
+          },
+          {
+            "type": "clearFlag",
+            "id": "paid_police"
+          },
+          {
+            "type": "clearFlag",
+            "id": "lynch_book"
+          }
+        ]
+      },
+      {
+        "id": "for_the_till",
+        "effects": [
+          {
+            "type": "heat",
+            "delta": 2
+          },
+          {
+            "type": "clearFlag",
+            "id": "lynch_book"
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "thanks_sister",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "flag",
+          "id": "quaid_sister"
+        },
+        {
+          "type": "since",
+          "event": "thanks_note",
+          "atLeast": 2
+        }
+      ]
+    },
+    "chance": 0.35,
+    "once": true,
+    "choices": [
+      {
+        "id": "another",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -30
+          },
+          {
+            "type": "capability",
+            "id": "callers_neighbours",
+            "delta": 1,
+            "months": 4
+          },
+          {
+            "type": "clearFlag",
+            "id": "quaid_sister"
+          }
+        ]
+      },
+      {
+        "id": "sell_one",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": 50
+          },
+          {
+            "type": "clearFlag",
+            "id": "quaid_sister"
+          }
+        ]
+      },
+      {
+        "id": "believe_him",
+        "effects": [
+          {
+            "type": "wardMemory",
+            "delta": -1
+          },
+          {
+            "type": "clearFlag",
+            "id": "quaid_sister"
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "bad_note_trial",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "flag",
+          "id": "counterfeit_described"
+        },
+        {
+          "type": "since",
+          "event": "bad_note",
+          "atLeast": 2
+        }
+      ]
+    },
+    "chance": 0.35,
+    "once": true,
+    "choices": [
+      {
+        "id": "attend",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -100
+          },
+          {
+            "type": "heat",
+            "delta": -1
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          },
+          {
+            "type": "clearFlag",
+            "id": "counterfeit_described"
+          }
+        ]
+      },
+      {
+        "id": "not_sure",
+        "effects": [
+          {
+            "type": "heat",
+            "delta": 1
+          },
+          {
+            "type": "clearFlag",
+            "id": "counterfeit_described"
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "carrier_address_new",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "date",
+          "from": {
+            "year": 1896,
+            "month": 12
+          }
+        },
+        {
+          "type": "season",
+          "months": [12]
+        }
+      ]
+    },
+    "chance": 0.3,
+    "once": true,
+    "choices": [
+      {
+        "id": "dollar",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -100
+          },
+          {
+            "type": "notoriety",
+            "delta": 1
+          },
+          {
+            "type": "wardMemory",
+            "delta": -1
+          }
+        ]
+      },
+      {
+        "id": "quarter",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -25
+          }
+        ]
+      },
+      {
+        "id": "nothing",
+        "effects": [
+          {
+            "type": "reputation",
+            "delta": -1
+          }
+        ],
         "default": true
       }
     ]

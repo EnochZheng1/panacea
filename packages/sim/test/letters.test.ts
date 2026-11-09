@@ -1,11 +1,17 @@
 import type { ContentPack, GameEvent } from '@panacea/content';
 import { describe, expect, it } from 'vitest';
-import { newScratch, Rng, type GameState } from '../src/index.ts';
+import {
+  newScratch,
+  Rng,
+  type GameState,
+  type LedgerEntry,
+  type SaleRecord,
+} from '../src/index.ts';
 import { applyEffects } from '../src/systems/effects.ts';
 import { productionPhase } from '../src/systems/lab.ts';
 import { letterCallers, letterTrust, salesPhase } from '../src/systems/market.ts';
-import { creditedEffects, drawEvents } from '../src/systems/progression.ts';
-import { evaluateRequirement } from '../src/systems/requirements.ts';
+import { creditedEffects, drawEvents, waitsOnLetter } from '../src/systems/progression.ts';
+import { evaluateRequirement, shopRemedy } from '../src/systems/requirements.ts';
 import { act, content, roomFor, start, TONIC } from './helpers.ts';
 
 /** `n` random letters that could all come this month, each certain to be drawn if reached. */
@@ -113,6 +119,92 @@ describe('the post (drawEvents)', () => {
       if (s.events.pending.length > 0) months.push(m);
     }
     expect(months).toEqual([1, 12]);
+  });
+
+  it('waits for the shop to be old enough, and for the letter a follow-up answers', () => {
+    const s = fresh('months');
+    s.meta.turn = 11;
+    expect(evaluateRequirement({ type: 'months', atLeast: 12 }, s, content)).toEqual({
+      met: false,
+      progress: 11 / 12,
+    });
+    s.meta.turn = 12;
+    expect(evaluateRequirement({ type: 'months', atLeast: 12 }, s, content).met).toBe(true);
+
+    const since = { type: 'since', event: 'burglary', atLeast: 2 } as const;
+    expect(evaluateRequirement(since, s, content).met).toBe(false); // never came
+    s.events.lastDrawn['burglary'] = 11;
+    expect(evaluateRequirement(since, s, content).met).toBe(false); // a month ago
+    s.events.lastDrawn['burglary'] = 10;
+    expect(evaluateRequirement(since, s, content).met).toBe(true);
+    expect(waitsOnLetter({ type: 'all', of: [{ type: 'flag', id: 'x' }, since] })).toBe(true);
+    expect(waitsOnLetter({ type: 'not', requirement: since })).toBe(false);
+    expect(waitsOnLetter({ type: 'flag', id: 'x' })).toBe(false);
+  });
+
+  it('draws a follow-up before fresh letters when the post is full', () => {
+    const many = letters(12);
+    const follow = {
+      ...letters(1)[0]!,
+      id: 'follow_up',
+      condition: { type: 'since' as const, event: 'letter_0', atLeast: 0 },
+    };
+    const pack = withEvents([...many, follow]);
+    for (let i = 0; i < 50; i++) {
+      const s = fresh(`follow-${i}`);
+      s.events.lastDrawn['letter_0'] = -5;
+      s.events.timesDrawn['letter_0'] = 1;
+      drawEvents(s, pack, Rng.fromSeed(`follow-${i}`));
+      expect(s.events.pending.map((p) => p.eventId)).toContain('follow_up');
+    }
+  });
+
+  it("knows the shop's remedy: what is in it, how habit-forming it is, and its label", () => {
+    let s = fresh('remedy');
+    const habit = { type: 'remedyHabit', atLeast: 1 } as const;
+    const spirit = { type: 'remedyDrug', drugClass: 'alcohol', atLeastOz: 2 } as const;
+    const opiate = { type: 'remedyDrug', drugClass: 'opiate', atLeastOz: 0.01 } as const;
+    const label = { type: 'remedyClaim', id: 'soothes_nerves' } as const;
+    expect(shopRemedy(s)).toBeNull();
+    for (const r of [habit, spirit, opiate, label]) {
+      expect(evaluateRequirement(r, s, content).met).toBe(false);
+    }
+    const plain = [
+      { ingredientId: 'grain_alcohol', amount: 1 },
+      { ingredientId: 'valerian', amount: 1 },
+      { ingredientId: 'water', amount: 6 },
+    ];
+    s = act(s, {
+      type: 'CreateFormula',
+      name: 'Plain',
+      components: plain,
+      processId: 'simple_mix',
+      priceCents: 50,
+      claims: ['soothes_nerves'],
+    });
+    s = act(s, {
+      type: 'CreateFormula',
+      name: 'Strong',
+      components: TONIC,
+      processId: 'simple_mix',
+      priceCents: 50,
+      claims: [],
+    });
+    const [plainId, strongId] = s.lab.formulas.map((f) => f.id);
+    // nothing sold yet: the newest in the formula book
+    expect(shopRemedy(s)?.id).toBe(strongId);
+    expect(evaluateRequirement(habit, s, content).met).toBe(true);
+    expect(evaluateRequirement(spirit, s, content).met).toBe(true);
+    expect(evaluateRequirement(opiate, s, content).met).toBe(true);
+    expect(evaluateRequirement(label, s, content).met).toBe(false);
+    // the bottle the shop sold most of last month
+    const sold = (formulaId: string, bottles: number) => ({ formulaId, bottles }) as SaleRecord;
+    s.ledger.push({ sales: [sold(strongId!, 3), sold(plainId!, 9)] } as LedgerEntry);
+    expect(shopRemedy(s)?.id).toBe(plainId);
+    expect(evaluateRequirement(habit, s, content).met).toBe(false);
+    expect(evaluateRequirement(spirit, s, content).met).toBe(false);
+    expect(evaluateRequirement(opiate, s, content).met).toBe(false);
+    expect(evaluateRequirement(label, s, content).met).toBe(true);
   });
 });
 

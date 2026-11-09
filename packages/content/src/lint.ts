@@ -165,11 +165,20 @@ export function lintContent(pack: ContentPack): ContentIssue[] {
       if (r.type === 'flag' && !producedFlags.has(r.id)) {
         warn(file, path, `flag "${r.id}" is never set by any content, so this can never be met`);
       }
+      if (r.type === 'since' && pack.byId.events.get(r.event)?.trigger !== 'random') {
+        error(file, path, `waits on "${r.event}", which is not a letter`);
+      }
+      if (r.type === 'remedyClaim' && !pack.byId.claims.has(r.id)) {
+        error(file, path, `references unknown claim "${r.id}"`);
+      }
     });
-  // A season comes round every year, so it can only time a letter, never hold back progress.
+  // A season comes round every year, and the remedy and the post change from month to month, so
+  // these can only time a letter, never hold back progress.
+  const LETTER_ONLY = new Set(['season', 'since', 'remedyHabit', 'remedyDrug', 'remedyClaim']);
   const noSeason = (file: string, path: string, req: Requirement) =>
     walkRequirement(req, (r) => {
-      if (r.type === 'season') error(file, path, 'a season is only a condition for a letter');
+      if (LETTER_ONLY.has(r.type))
+        error(file, path, `"${r.type}" is only a condition for a letter`);
     });
   pack.unlocks.forEach((u, i) => {
     checkRequirement('unlocks', `${i}.requirement`, u.requirement);

@@ -33,7 +33,7 @@ public partial class LettersDesk : VBoxContainer
 		["inquest"] = new("OFFICE OF THE CORONER", "City and County of New-York · Centre Street", "By order of the Coroner, J. DUFFY, Clerk", "seal_coroner",
 			"Served at the shop by a boy from Centre street.", "Sir,—",
 			"You are hereby notified that a jury will sit this month upon the death of {name}, who is said to have been a customer of yours. The Coroner will hear any evidence you may wish to give as to the composition of your preparations. The Coroner's time is valuable, as is his good opinion."),
-		["grateful_letter"] = new("", "Mulberry Street, top floor, rear", "Your grateful servant, a customer", "",
+		["grateful_letter"] = new("", "Top floor, rear", "Your grateful servant, a customer", "",
 			"In a careful hand, on good paper bought for the purpose.", "Dear Doctor,—",
 			"Three physicians gave me up, and your tonic gave me back. I am a new woman and my husband says he hardly knows me. If my words would be of use to other sufferers, you have my leave to put them in the papers, with my name, which I should like spelled correctly."),
 		["diploma_mill"] = new("THE ECLECTIC MEDICAL COLLEGE OF OHIO", "Diplomas Conferred by Post · Cincinnati", "J. T. MARSH, M.D. (Hon.), Registrar", "seal_college",
@@ -279,7 +279,7 @@ public partial class LettersDesk : VBoxContainer
 			"On ruled school paper, in the hand that marks the copybooks.", "Sir,—", ""),
 		["choir_lozenges"] = new("ST. URSULA'S CHAPEL", "Mott Street · The Choir · Rehearsals Thursdays", "A. PEMBERTON, Organist & Choirmaster", "",
 			"On the back of a page of the alto part.", "Dear Sir,—", ""),
-		["target_excursion"] = new("THE FLYNN GUARD", "Fourth Annual Target Excursion & Picnic · Headquarters, Kelly's", "T. COSGROVE, Captain", "",
+		["target_excursion"] = new("THE FLYNN GUARD", "Annual Target Excursion & Picnic · Headquarters, Kelly's", "T. COSGROVE, Captain", "",
 			"Brought by two of the Guard, in sashes, who admired the window.", "Friend,—", ""),
 		["labor_day"] = new("THE UNITED TRADES OF THE SIXTH WARD", "Delegates' Rooms over the Harmony Hall · Meetings Sundays", "For the Delegates, J. RAFFERTY, Recording Secretary", "",
 			"With the card for the window, printed in red.", "Dear Sir,—", ""),
@@ -309,7 +309,7 @@ public partial class LettersDesk : VBoxContainer
 			"A printed appeal. The sergeant at the station-house says the Reverend was in the Tombs at Easter, under another name.", "Dear Friend,—", ""),
 		["doctor_counter"] = new("J. A. RUTLEDGE, M.D.", "Physician to the Out-Door Poor · Hours at the Dispensary 12 to 2", "J. A. RUTLEDGE, M.D.", "",
 			"On a dispensary prescription blank, both sides.", "Sir,—", ""),
-		["tonic_taste"] = new("", "Elizabeth Street, first floor, rear", "Your customer these four years, P. HAGGERTY", "",
+		["tonic_taste"] = new("", "Elizabeth Street, first floor, rear", "Your customer, and your predecessor's, P. HAGGERTY", "",
 			"On the back of the tonic's own label, soaked off the bottle.", "Sir,—", ""),
 		["child_errand"] = new("", "Baxter Street, the rear house", "J. MCKEON", "",
 			"A pencilled note, brought by a girl of eight with a tin jug.", "", ""),
@@ -390,6 +390,16 @@ public partial class LettersDesk : VBoxContainer
 		["nickelodeon"] = new("THE BIJOU THEATRE OF ANIMATED PICTURES", "Five Cents · Formerly the Cigar Store, Next Door", "per M. LEVITT, Manager", "",
 			"With two tickets, and a lantern slide of a stranger's bakery.", "Dear Sir,—", ""),
 		// (end of events pass 2)
+		// the letters fix of round 8: follow-ups, and a new carrier
+		["burglary_book"] = new("", "The station-house, Elizabeth Street", "P. LYNCH, Detective Sergeant", "",
+			"Left by the same detective, who did not look at the window this time.", "Sir,—", ""),
+		["thanks_sister"] = new("", "Elizabeth Street, second floor, rear", "Respectfully, Mrs. B. GARRITY", "",
+			"With your sample bottle, empty, and rinsed.", "Dear Sir,—", ""),
+		["bad_note_trial"] = new("UNITED STATES SECRET SERVICE", "New-York District · The Post Office Building", "per J. A. BRADEN, Operative", "",
+			"Served by the operative himself, who had your description of the man in his notebook.", "Sir,—", ""),
+		["carrier_address_new"] = new("THE CARRIER OF THE BOWERY GAZETTE", "Respectfully presents his Annual Address to his Patrons", "Your Carrier, J. DOWD (brother of the last)", "",
+			"A printed sheet of verses, with a bicycle at the top and the new carrier's name inked in.", "", ""),
+		// (end of the letters fix)
 	};
 
 	/// <summary>What each answer to the coroner risks, said plainly under the slip.</summary>
@@ -696,7 +706,7 @@ public partial class LettersDesk : VBoxContainer
 		["horse_order.veterinary"] = "Costs nothing.",
 		["thanks_note.sample"] = "30c, and about one more caller a month for three months.",
 		["thanks_note.thank_her"] = "Costs nothing.",
-		["window_ball.nickels"] = "$2 for the glazier now; about $1 comes back in nickels before the summer. The talk in the ward softens a little.",
+		["window_ball.nickels"] = "$2 for the glazier now; about $1 comes back in nickels, a Saturday at a time. The talk in the ward softens a little.",
 		["window_ball.send_bill"] = "He pays it, somehow; standing −1.",
 		["bad_note.describe"] = "The $2 is gone; suspicion −1, but your name is in the court report: you become a little better known.",
 		["bad_note.stand_loss"] = "The $2 is gone.",
@@ -819,6 +829,19 @@ public partial class LettersDesk : VBoxContainer
 		["nickelodeon.slide"] = "$1 a month for six months, and about three more callers a month.",
 		["nickelodeon.decline"] = "Costs nothing.",
 		// (end of events pass 2)
+		// the letters fix of round 8
+		["burglary_book.subscribe"] = "$5; suspicion −3. Your name stays in the book.",
+		["burglary_book.out_of_the_book"] = "$2, and your name comes out of this book; the sergeant tells the station-house why: suspicion +1.",
+		["burglary_book.for_the_till"] = "Suspicion +2: the Captain does not forget, either way.",
+		["thanks_sister.another"] = "30c, and about one more caller a month for four months: Mr. Garrity tells his street it does nothing.",
+		["thanks_sister.sell_one"] = "About 50c.",
+		["thanks_sister.believe_him"] = "The talk in the ward softens a little: an honest druggist is a curiosity.",
+		["bad_note_trial.attend"] = "About $1 of trade lost, net of the fee; suspicion −1, and your name is in the court report: you become a little better known.",
+		["bad_note_trial.not_sure"] = "Suspicion +1: the Service notes a witness who forgets.",
+		["carrier_address_new.dollar"] = "$1; the verses make you a little better known, and the talk in the ward softens a little.",
+		["carrier_address_new.quarter"] = "25c.",
+		["carrier_address_new.nothing"] = "Standing −1: the boy has a route, and a mouth.",
+		// (end of the letters fix)
 	};
 
 	/// <summary>Where a printed letter is dated from, when it is not New-York.</summary>

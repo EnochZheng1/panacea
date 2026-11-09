@@ -1,4 +1,4 @@
-import type { ContentPack, Effect, EventChoice, GameEvent } from '@panacea/content';
+import type { ContentPack, Effect, EventChoice, GameEvent, Requirement } from '@panacea/content';
 import { CAUSES } from '../core/causes.ts';
 import { compareDates } from '../core/date.ts';
 import type { GameState, PendingEvent, Phase, Rng } from '../core/index.ts';
@@ -148,13 +148,26 @@ const compareOrdinal = (a: string, b: string): number => (a < b ? -1 : a > b ? 1
 const isRandomPending = (p: PendingEvent, content: ContentPack) =>
   content.byId.events.get(p.eventId)?.trigger !== 'system';
 
+/** Whether a condition waits on another letter (a `since`, not under a `not`): a follow-up. */
+export function waitsOnLetter(req: Requirement): boolean {
+  switch (req.type) {
+    case 'since':
+      return true;
+    case 'all':
+    case 'any':
+      return req.of.some(waitsOnLetter);
+    default:
+      return false;
+  }
+}
+
 /**
  * Draws this month's random events into The Post. System events (inquests) don't count.
  *
  * Every random event that could come this month (its condition holds, it is not already waiting,
  * not spent if once-only, not cooling down) is put in a seeded shuffle, and then each in turn is
  * drawn with its own chance until the month's post is full. So no event crowds out another by
- * its place in the content file.
+ * its place in the content file. Follow-ups (`waitsOnLetter`) are tried before fresh letters.
  */
 export function drawEvents(state: GameState, content: ContentPack, rng: Rng): void {
   let room =
@@ -176,7 +189,13 @@ export function drawEvents(state: GameState, content: ContentPack, rng: Rng): vo
     eligible[i] = eligible[j]!;
     eligible[j] = t;
   }
-  for (const ev of eligible) {
+  // A follow-up (a letter that waits on another) is drawn before fresh letters, in the shuffled
+  // order of each, so a correspondent's next letter is not crowded out of a full post.
+  const ordered = [
+    ...eligible.filter((ev) => waitsOnLetter(ev.condition!)),
+    ...eligible.filter((ev) => !waitsOnLetter(ev.condition!)),
+  ];
+  for (const ev of ordered) {
     if (room <= 0) break;
     if (!rng.chance(ev.chance)) continue;
     state.events.pending.push({

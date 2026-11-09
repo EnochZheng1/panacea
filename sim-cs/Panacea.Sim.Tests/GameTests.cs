@@ -63,17 +63,17 @@ public class GameTests
     [Fact]
     public void EmbeddedContentLoads()
     {
-        Assert.Equal("0.9.0", C.Config.ContentVersion);
+        Assert.Equal("0.10.0", C.Config.ContentVersion);
         Assert.Equal(17, C.Ingredients.Count);
         Assert.Equal(3, C.Processes.Count);
         Assert.Equal(9, C.Unlocks.Count);
         Assert.Equal(48, C.Config.StillBottles);
         Assert.Equal(0.12, C.Config.Ward.MemoryDecay);
         Assert.Equal(1, C.Config.Market.CravingPremium);
-        Assert.Equal(172, C.Events.Count);
+        Assert.Equal(176, C.Events.Count);
         Assert.Equal(8, C.Timeline.Count);
         Assert.Equal(12, C.Regulars.Count);
-        Assert.Equal(914, C.Strings.Count);
+        Assert.Equal(933, C.Strings.Count);
         Assert.Equal(8, C.Investments.Count);
         Assert.Equal("narcotic_discount_pct", C.ById.Investments["laboratory"].Effects.OfType<CapabilityEffect>().Single().Id);
         Assert.Equal("system", C.ById.Events["inquest"].Trigger);

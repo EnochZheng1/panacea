@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Panacea.Sim.Tests;
 
-/// <summary>Events passes 1 and 2 (packages/sim/test/letters.test.ts): a fair draw, seasons, the ward's memory, a letter's callers.</summary>
+/// <summary>Events passes 1 and 2 and the round-8 letters fix (packages/sim/test/letters.test.ts): a fair draw, seasons, follow-ups, the shop's age and remedy, the ward's memory, a letter's callers.</summary>
 public class LettersTests
 {
     private static readonly ContentPack C = Fixtures.Content;
@@ -107,6 +107,78 @@ public class LettersTests
             if (s.Events.Pending.Count > 0) months.Add(m);
         }
         Assert.Equal([1, 12], months.ToArray());
+    }
+
+    [Fact]
+    public void ALetterWaitsForTheShopsAgeAndForTheLetterItFollows()
+    {
+        var s = Fresh("months");
+        s.Meta.Turn = 11;
+        var age = new AtLeastRequirement("months", 12);
+        Assert.Equal(new RequirementStatus(false, 11.0 / 12), Requirements.Evaluate(age, s, C));
+        s.Meta.Turn = 12;
+        Assert.True(Requirements.Evaluate(age, s, C).Met);
+
+        var since = new SinceRequirement("burglary", 2);
+        Assert.False(Requirements.Evaluate(since, s, C).Met); // never came
+        s.Events.LastDrawn["burglary"] = 11;
+        Assert.False(Requirements.Evaluate(since, s, C).Met); // a month ago
+        s.Events.LastDrawn["burglary"] = 10;
+        Assert.True(Requirements.Evaluate(since, s, C).Met);
+        Assert.True(Progression.WaitsOnLetter(new AllRequirement([new FlagRequirement("x"), since])));
+        Assert.False(Progression.WaitsOnLetter(new NotRequirement(since)));
+        Assert.False(Progression.WaitsOnLetter(new FlagRequirement("x")));
+    }
+
+    [Fact]
+    public void ThePostDrawsAFollowUpBeforeFreshLetters()
+    {
+        var many = Letters(12);
+        var follow = new GameEvent { Id = "follow_up", Condition = new SinceRequirement("letter_0", 0), Chance = 1, Choices = many[0].Choices };
+        var pack = WithEvents([.. many, follow]);
+        for (int i = 0; i < 50; i++)
+        {
+            var s = Fresh($"follow-{i}");
+            s.Events.LastDrawn["letter_0"] = -5;
+            s.Events.TimesDrawn["letter_0"] = 1;
+            Progression.DrawEvents(s, pack, Rng.FromSeed($"follow-{i}"));
+            Assert.Contains(s.Events.Pending, p => p.EventId == "follow_up");
+        }
+    }
+
+    [Fact]
+    public void ALetterKnowsTheShopsRemedy()
+    {
+        var s = Fresh("remedy");
+        var habit = new RemedyHabitRequirement(1);
+        var spirit = new RemedyDrugRequirement("alcohol", 2);
+        var opiate = new RemedyDrugRequirement("opiate", 0.01);
+        var label = new RemedyClaimRequirement("soothes_nerves");
+        Assert.Null(Requirements.ShopRemedy(s));
+        foreach (var r in new Requirement[] { habit, spirit, opiate, label }) Assert.False(Requirements.Evaluate(r, s, C).Met);
+        s.Lab.Formulas.Add(new Formula
+        {
+            Id = "plain", Name = "Plain", ProcessId = "simple_mix", Claims = ["soothes_nerves"],
+            Components = [new("grain_alcohol", 1), new("valerian", 1), new("water", 6)],
+        });
+        s.Lab.Formulas.Add(new Formula { Id = "strong", Name = "Strong", ProcessId = "simple_mix", Components = [.. Tonic] });
+        // nothing sold yet: the newest in the formula book
+        Assert.Equal("strong", Requirements.ShopRemedy(s)!.Id);
+        Assert.True(Requirements.Evaluate(habit, s, C).Met);
+        Assert.True(Requirements.Evaluate(spirit, s, C).Met);
+        Assert.True(Requirements.Evaluate(opiate, s, C).Met);
+        Assert.False(Requirements.Evaluate(label, s, C).Met);
+        // the bottle the shop sold most of last month
+        s.Ledger.Add(new LedgerEntry
+        {
+            Date = s.Meta.Date,
+            Sales = [new SaleRecord { FormulaId = "strong", Bottles = 3 }, new SaleRecord { FormulaId = "plain", Bottles = 9 }],
+        });
+        Assert.Equal("plain", Requirements.ShopRemedy(s)!.Id);
+        Assert.False(Requirements.Evaluate(habit, s, C).Met);
+        Assert.False(Requirements.Evaluate(spirit, s, C).Met);
+        Assert.False(Requirements.Evaluate(opiate, s, C).Met);
+        Assert.True(Requirements.Evaluate(label, s, C).Met);
     }
 
     [Fact]

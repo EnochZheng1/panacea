@@ -359,7 +359,7 @@ describe('scrutiny', () => {
   });
 
   it('being implicated hurts reputation and raises heat; surviving any inquest unlocks the coroner', () => {
-    let s = withInquest(true, 50);
+    let s = withInquest(true, 50, 'inq2');
     s.scrutiny.heat = 50;
     s.month.startHeat = 50;
     s = act(s, { type: 'ResolveEvent', instanceId: 'inq_1', choiceId: 'stay_silent' });
@@ -373,8 +373,10 @@ describe('scrutiny', () => {
 
   it('the authorities close the shop after heat stays at the limit through the grace period', () => {
     // Heat that never fades, so it stays pinned at the limit.
+    // No letters either: a letter's reply (the Board's fine, the League's donation) lowers it.
     const noDecay: ContentPack = {
       ...content,
+      events: content.events.filter((e) => e.trigger === 'system'),
       config: {
         ...content.config,
         scrutiny: {
@@ -386,6 +388,7 @@ describe('scrutiny', () => {
       },
     };
     const s = start('heat');
+    s.events.pending = [];
     s.scrutiny.heat = 100;
     s.month.startHeat = 100;
     s.player.cashCents = 1_000_000;

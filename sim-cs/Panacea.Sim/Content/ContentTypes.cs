@@ -91,6 +91,33 @@ public sealed record SeasonRequirement(IReadOnlyList<int> Months) : Requirement
     public override string Type => "season";
 }
 
+/// <summary>
+/// The letter <paramref name="Event"/> has come, and at least <paramref name="AtLeast"/> months ago. A
+/// letter whose condition waits on another letter this way is a follow-up: it is drawn before fresh letters.
+/// </summary>
+public sealed record SinceRequirement(string Event, int AtLeast) : Requirement
+{
+    public override string Type => "since";
+}
+
+/// <summary>The shop's remedy (Requirements.ShopRemedy) assays at least this habit per bottle.</summary>
+public sealed record RemedyHabitRequirement(double AtLeast) : Requirement
+{
+    public override string Type => "remedyHabit";
+}
+
+/// <summary>The shop's remedy holds at least this many fluid ounces per bottle of one drug class.</summary>
+public sealed record RemedyDrugRequirement(string DrugClass, double AtLeastOz) : Requirement
+{
+    public override string Type => "remedyDrug";
+}
+
+/// <summary>The shop's remedy carries this claim on its label.</summary>
+public sealed record RemedyClaimRequirement(string Id) : Requirement
+{
+    public override string Type => "remedyClaim";
+}
+
 public sealed record FlagRequirement(string Id) : Requirement
 {
     public override string Type => "flag";
@@ -131,9 +158,13 @@ internal sealed class RequirementConverter : JsonConverter<Requirement>
         {
             "cash" => new AtLeastRequirement(type, e.GetProperty("atLeastCents").GetDouble()),
             "reputation" or "notoriety" or "bottlesSold" or "batchesBrewed" or "heat" or "deaths"
-                or "inquests" or "regulars" => new AtLeastRequirement(type, e.GetProperty("atLeast").GetDouble()),
+                or "inquests" or "regulars" or "months" => new AtLeastRequirement(type, e.GetProperty("atLeast").GetDouble()),
             "date" => new DateRequirement(e.GetProperty("from").Deserialize<GameDate>(options)!),
             "season" => new SeasonRequirement(e.GetProperty("months").EnumerateArray().Select(x => x.GetInt32()).ToList()),
+            "since" => new SinceRequirement(e.GetProperty("event").GetString()!, e.GetProperty("atLeast").GetInt32()),
+            "remedyHabit" => new RemedyHabitRequirement(e.GetProperty("atLeast").GetDouble()),
+            "remedyDrug" => new RemedyDrugRequirement(e.GetProperty("drugClass").GetString()!, e.GetProperty("atLeastOz").GetDouble()),
+            "remedyClaim" => new RemedyClaimRequirement(e.GetProperty("id").GetString()!),
             "flag" => new FlagRequirement(e.GetProperty("id").GetString()!),
             "unlocked" => new UnlockedRequirement(e.GetProperty("id").GetString()!),
             "all" => new AllRequirement(e.GetProperty("of").EnumerateArray().Select(x => Parse(x, options)).ToList()),
@@ -159,6 +190,20 @@ internal sealed class RequirementConverter : JsonConverter<Requirement>
             case SeasonRequirement season:
                 writer.WritePropertyName("months");
                 JsonSerializer.Serialize(writer, season.Months, options);
+                break;
+            case SinceRequirement since:
+                writer.WriteString("event", since.Event);
+                writer.WriteNumber("atLeast", since.AtLeast);
+                break;
+            case RemedyHabitRequirement rh:
+                writer.WriteNumber("atLeast", rh.AtLeast);
+                break;
+            case RemedyDrugRequirement rd:
+                writer.WriteString("drugClass", rd.DrugClass);
+                writer.WriteNumber("atLeastOz", rd.AtLeastOz);
+                break;
+            case RemedyClaimRequirement rc:
+                writer.WriteString("id", rc.Id);
                 break;
             case FlagRequirement f:
                 writer.WriteString("id", f.Id);

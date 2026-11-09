@@ -1,6 +1,7 @@
-import type { ContentPack, Requirement } from '@panacea/content';
+import type { ContentPack, DrugClass, Requirement } from '@panacea/content';
 import { dateIndex } from '../core/date.ts';
-import type { GameState } from '../core/state.ts';
+import type { Formula, GameState } from '../core/state.ts';
+import { analyzeFormula } from './formula.ts';
 
 export interface RequirementStatus {
   met: boolean;
@@ -49,6 +50,16 @@ export function evaluateRequirement(
     }
     case 'season':
       return binary(req.months.includes(state.meta.date.month));
+    case 'months':
+      return ratio(state.meta.turn, req.atLeast);
+    case 'since': {
+      const months = monthsSince(state, req.event);
+      return months === null ? binary(false) : ratio(months, req.atLeast);
+    }
+    case 'remedyHabit':
+    case 'remedyDrug':
+    case 'remedyClaim':
+      return binary(remedyHolds(req, state, content));
     case 'flag':
       return binary(state.player.flags[req.id] === true);
     case 'unlocked':
@@ -70,6 +81,58 @@ export function evaluateRequirement(
 }
 
 const binary = (met: boolean): RequirementStatus => ({ met, progress: met ? 1 : 0 });
+
+/** Months since the letter last came, or null if it never has. */
+function monthsSince(state: GameState, eventId: string): number | null {
+  const last = state.events.lastDrawn[eventId];
+  return last === undefined ? null : state.meta.turn - last;
+}
+
+/**
+ * The shop's remedy, as its correspondents know it: the bottle it sold most of last month (the
+ * first in the books, on a tie), else the newest in the formula book; null before there is one.
+ */
+export function shopRemedy(state: GameState): Formula | null {
+  const last = state.ledger[state.ledger.length - 1];
+  let best: string | null = null;
+  let most = 0;
+  for (const s of last?.sales ?? []) {
+    if (s.bottles > most) {
+      most = s.bottles;
+      best = s.formulaId;
+    }
+  }
+  const formulas = state.lab.formulas;
+  return formulas.find((f) => f.id === best) ?? formulas[formulas.length - 1] ?? null;
+}
+
+/** Fluid ounces per bottle of the formula's ingredients of one drug class. */
+export function drugOunces(formula: Formula, drugClass: DrugClass, content: ContentPack): number {
+  let oz = 0;
+  for (const c of formula.components) {
+    if (content.byId.ingredients.get(c.ingredientId)?.drugClass === drugClass) oz += c.amount;
+  }
+  return oz;
+}
+
+function remedyHolds(
+  req: Extract<Requirement, { type: 'remedyHabit' | 'remedyDrug' | 'remedyClaim' }>,
+  state: GameState,
+  content: ContentPack,
+): boolean {
+  const remedy = shopRemedy(state);
+  if (!remedy) return false;
+  switch (req.type) {
+    case 'remedyHabit':
+      return (
+        analyzeFormula(remedy.components, remedy.processId, content).properties.habit >= req.atLeast
+      );
+    case 'remedyDrug':
+      return drugOunces(remedy, req.drugClass, content) >= req.atLeastOz;
+    case 'remedyClaim':
+      return remedy.claims.includes(req.id);
+  }
+}
 
 /**
  * One condition of a requirement, as numbers a progress line can print: "1,120 of 1,500 bottles
@@ -117,6 +180,8 @@ function countFor(req: Requirement, state: GameState): number | null {
       return state.scrutiny.inquestsHeld;
     case 'regulars':
       return state.customers.length;
+    case 'months':
+      return state.meta.turn;
     default:
       return null;
   }
@@ -186,9 +251,25 @@ export function requirementProgress(
       const met = req.months.includes(state.meta.date.month);
       return [{ kind: 'season', id: null, sense: 'atLeast', have: met ? 1 : 0, need: 1, met, via }];
     }
+    case 'since': {
+      const months = monthsSince(state, req.event);
+      const met = months !== null && months >= req.atLeast;
+      const have = months ?? 0;
+      return [
+        { kind: 'since', id: req.event, sense: 'atLeast', have, need: req.atLeast, met, via },
+      ];
+    }
+    case 'remedyHabit':
+    case 'remedyDrug':
+    case 'remedyClaim': {
+      const met = remedyHolds(req, state, content);
+      const id =
+        req.type === 'remedyClaim' ? req.id : req.type === 'remedyDrug' ? req.drugClass : null;
+      return [{ kind: req.type, id, sense: 'atLeast', have: met ? 1 : 0, need: 1, met, via }];
+    }
     default: {
       const have = countFor(req, state) as number;
-      const need = req.type === 'cash' ? req.atLeastCents : req.atLeast;
+      const need = req.type === 'cash' ? req.atLeastCents : (req as { atLeast: number }).atLeast;
       const met = need <= 0 || have >= need;
       return [{ kind: req.type, id: null, sense: 'atLeast', have, need, met, via }];
     }

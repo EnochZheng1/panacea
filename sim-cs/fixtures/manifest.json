@@ -1,5 +1,5 @@
 {
-  "contentVersion": "0.9.0",
+  "contentVersion": "0.10.0",
   "runs": [
     {
       "file": "runs/greedy-parity-1.json.gz",
@@ -7,9 +7,9 @@
       "options": {
         "seed": "parity-1"
       },
-      "turns": 247,
-      "endReason": "shut_down",
-      "finalHash": "1c026d0d61d95e"
+      "turns": 264,
+      "endReason": "timeline_end",
+      "finalHash": "0d705aee4d4570"
     },
     {
       "file": "runs/briber-parity-1.json.gz",
@@ -19,7 +19,7 @@
       },
       "turns": 264,
       "endReason": "timeline_end",
-      "finalHash": "094d1655fceaea"
+      "finalHash": "0135d538aa4304"
     },
     {
       "file": "runs/adaptive-parity-1.json.gz",
@@ -29,7 +29,7 @@
       },
       "turns": 264,
       "endReason": "timeline_end",
-      "finalHash": "1db47492f5e48d"
+      "finalHash": "0bb57a18c4f7a4"
     },
     {
       "file": "runs/mercurial-parity-1.json.gz",
@@ -37,9 +37,9 @@
       "options": {
         "seed": "parity-1"
       },
-      "turns": 128,
-      "endReason": "bankrupt",
-      "finalHash": "066ebbeab02066"
+      "turns": 264,
+      "endReason": "timeline_end",
+      "finalHash": "07b6aae2071d11"
     },
     {
       "file": "runs/shopkeeper-parity-1.json.gz",
@@ -49,7 +49,7 @@
       },
       "turns": 264,
       "endReason": "timeline_end",
-      "finalHash": "0df964ec7f3e6a"
+      "finalHash": "1a2bccf1c90e1b"
     },
     {
       "file": "runs/sloppy-parity-1.json.gz",
@@ -59,7 +59,7 @@
       },
       "turns": 264,
       "endReason": "timeline_end",
-      "finalHash": "045728bbb0a6d7"
+      "finalHash": "189100ffc1b654"
     },
     {
       "file": "runs/heavy-parity-1.json.gz",
@@ -67,9 +67,9 @@
       "options": {
         "seed": "parity-1"
       },
-      "turns": 198,
-      "endReason": "shut_down",
-      "finalHash": "0e2a32ba0e95fc"
+      "turns": 264,
+      "endReason": "timeline_end",
+      "finalHash": "1f2f839a49d272"
     },
     {
       "file": "runs/random-parity-1.json.gz",
@@ -77,9 +77,9 @@
       "options": {
         "seed": "parity-1"
       },
-      "turns": 27,
+      "turns": 22,
       "endReason": "bankrupt",
-      "finalHash": "1a55410fef767c"
+      "finalHash": "0bd472001781cf"
     },
     {
       "file": "runs/greedy-parity-2.json.gz",
@@ -87,9 +87,9 @@
       "options": {
         "seed": "parity-2"
       },
-      "turns": 264,
-      "endReason": "timeline_end",
-      "finalHash": "02dac0d9fb4e9a"
+      "turns": 73,
+      "endReason": "shut_down",
+      "finalHash": "0c70ef73967be9"
     },
     {
       "file": "runs/briber-parity-2.json.gz",
@@ -99,7 +99,7 @@
       },
       "turns": 264,
       "endReason": "timeline_end",
-      "finalHash": "076dbcabd3f3e5"
+      "finalHash": "056f702a5d5405"
     },
     {
       "file": "runs/adaptive-parity-2.json.gz",
@@ -109,7 +109,7 @@
       },
       "turns": 264,
       "endReason": "timeline_end",
-      "finalHash": "0e0f389f31fc55"
+      "finalHash": "0e34b9cbcc053b"
     },
     {
       "file": "runs/mercurial-parity-2.json.gz",
@@ -119,7 +119,7 @@
       },
       "turns": 264,
       "endReason": "timeline_end",
-      "finalHash": "0188424efb8255"
+      "finalHash": "092cf5d9e37a3b"
     },
     {
       "file": "runs/shopkeeper-parity-2.json.gz",
@@ -129,7 +129,7 @@
       },
       "turns": 264,
       "endReason": "timeline_end",
-      "finalHash": "1ecd15d3f37c0b"
+      "finalHash": "0b82bb49f0f8f3"
     },
     {
       "file": "runs/sloppy-parity-2.json.gz",
@@ -139,7 +139,7 @@
       },
       "turns": 264,
       "endReason": "timeline_end",
-      "finalHash": "19883a5b6c9f39"
+      "finalHash": "11ee71143bb173"
     },
     {
       "file": "runs/heavy-parity-2.json.gz",
@@ -147,9 +147,9 @@
       "options": {
         "seed": "parity-2"
       },
-      "turns": 246,
-      "endReason": "shut_down",
-      "finalHash": "140a3f87812aff"
+      "turns": 264,
+      "endReason": "timeline_end",
+      "finalHash": "02c17eb528ed69"
     },
     {
       "file": "runs/random-parity-2.json.gz",
@@ -157,9 +157,9 @@
       "options": {
         "seed": "parity-2"
       },
-      "turns": 18,
+      "turns": 28,
       "endReason": "bankrupt",
-      "finalHash": "0677d845b52e03"
+      "finalHash": "0580e8e1432971"
     },
     {
       "file": "runs/greedy-parity-3.json.gz",
@@ -168,9 +168,9 @@
         "seed": "parity-3",
         "backgroundId": "showman"
       },
-      "turns": 264,
-      "endReason": "timeline_end",
-      "finalHash": "04df90889c1a2d"
+      "turns": 245,
+      "endReason": "shut_down",
+      "finalHash": "03edbe5d35dd71"
     },
     {
       "file": "runs/briber-parity-3.json.gz",
@@ -181,7 +181,7 @@
       },
       "turns": 264,
       "endReason": "timeline_end",
-      "finalHash": "176d31a52ba2cd"
+      "finalHash": "01bc1d69ae9b39"
     },
     {
       "file": "runs/adaptive-parity-3.json.gz",
@@ -192,7 +192,7 @@
       },
       "turns": 264,
       "endReason": "timeline_end",
-      "finalHash": "003bd3b00d65d0"
+      "finalHash": "1f509a912824b3"
     },
     {
       "file": "runs/mercurial-parity-3.json.gz",
@@ -201,9 +201,9 @@
         "seed": "parity-3",
         "backgroundId": "showman"
       },
-      "turns": 101,
-      "endReason": "bankrupt",
-      "finalHash": "033155e318ded3"
+      "turns": 264,
+      "endReason": "timeline_end",
+      "finalHash": "0b2b9652c505bc"
     },
     {
       "file": "runs/shopkeeper-parity-3.json.gz",
@@ -214,7 +214,7 @@
       },
       "turns": 264,
       "endReason": "timeline_end",
-      "finalHash": "04e83b2144e7dc"
+      "finalHash": "0994ebca467570"
     },
     {
       "file": "runs/sloppy-parity-3.json.gz",
@@ -225,7 +225,7 @@
       },
       "turns": 264,
       "endReason": "timeline_end",
-      "finalHash": "09f64fb4a14b5a"
+      "finalHash": "102bb6d6bb697c"
     },
     {
       "file": "runs/heavy-parity-3.json.gz",
@@ -234,9 +234,9 @@
         "seed": "parity-3",
         "backgroundId": "showman"
       },
-      "turns": 67,
-      "endReason": "shut_down",
-      "finalHash": "1db875aae65324"
+      "turns": 264,
+      "endReason": "timeline_end",
+      "finalHash": "0a0cdb99f12311"
     },
     {
       "file": "runs/random-parity-3.json.gz",
@@ -247,7 +247,7 @@
       },
       "turns": 7,
       "endReason": "bankrupt",
-      "finalHash": "0a77e1a87e5be7"
+      "finalHash": "0127b662a7c156"
     },
     {
       "file": "runs/greedy-hunt-3.json.gz",
@@ -255,9 +255,9 @@
       "options": {
         "seed": "hunt-3"
       },
-      "turns": 264,
-      "endReason": "timeline_end",
-      "finalHash": "0f28d5265eebae"
+      "turns": 123,
+      "endReason": "shut_down",
+      "finalHash": "0dd185b87d2770"
     },
     {
       "file": "runs/briber-hunt-3.json.gz",
@@ -267,7 +267,7 @@
       },
       "turns": 264,
       "endReason": "timeline_end",
-      "finalHash": "0dfca984be66ff"
+      "finalHash": "05bd4a129b4ae2"
     },
     {
       "file": "runs/adaptive-hunt-3.json.gz",
@@ -277,7 +277,7 @@
       },
       "turns": 264,
       "endReason": "timeline_end",
-      "finalHash": "1bdda7736eb011"
+      "finalHash": "13b9119f116f4f"
     },
     {
       "file": "runs/mercurial-hunt-3.json.gz",
@@ -287,7 +287,7 @@
       },
       "turns": 264,
       "endReason": "timeline_end",
-      "finalHash": "1a0a12f07f9ad6"
+      "finalHash": "165f87de2e7571"
     },
     {
       "file": "runs/shopkeeper-hunt-3.json.gz",
@@ -297,7 +297,7 @@
       },
       "turns": 264,
       "endReason": "timeline_end",
-      "finalHash": "021f9bd60bc45f"
+      "finalHash": "0a220c44f8dec7"
     },
     {
       "file": "runs/sloppy-hunt-3.json.gz",
@@ -307,7 +307,7 @@
       },
       "turns": 264,
       "endReason": "timeline_end",
-      "finalHash": "0cb5e1dee22b93"
+      "finalHash": "14a0d3dac60fdd"
     },
     {
       "file": "runs/heavy-hunt-3.json.gz",
@@ -317,7 +317,7 @@
       },
       "turns": 264,
       "endReason": "timeline_end",
-      "finalHash": "065b3c24de0818"
+      "finalHash": "18b78d1525cbff"
     },
     {
       "file": "runs/random-hunt-3.json.gz",
@@ -327,7 +327,7 @@
       },
       "turns": 14,
       "endReason": "bankrupt",
-      "finalHash": "19dbe4c4267c98"
+      "finalHash": "053e6452ec9f51"
     }
   ]
 }

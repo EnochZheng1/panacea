@@ -60,6 +60,21 @@ export type Requirement =
   | { type: 'date'; from: GameDate }
   /** The month of the year is one of these (1–12): a letter that comes at Christmas or in July. */
   | { type: 'season'; months: number[] }
+  /** The shop has traded at least this many months (0 in its first month). */
+  | { type: 'months'; atLeast: number }
+  /**
+   * The letter `event` has come, and at least `atLeast` months ago. A letter whose condition
+   * waits on another letter this way is a follow-up: it is drawn before fresh letters.
+   */
+  | { type: 'since'; event: string; atLeast: number }
+  /**
+   * What the shop's remedy is, as its correspondents know it (the bottle it sold most of last
+   * month, else the newest in the formula book): its habit per bottle as assayed, the fluid
+   * ounces per bottle of one drug class, or a claim on its label.
+   */
+  | { type: 'remedyHabit'; atLeast: number }
+  | { type: 'remedyDrug'; drugClass: DrugClass; atLeastOz: number }
+  | { type: 'remedyClaim'; id: string }
   | { type: 'flag'; id: string }
   | { type: 'unlocked'; id: string }
   | { type: 'all'; of: Requirement[] }
@@ -82,6 +97,19 @@ export const RequirementSchema: z.ZodType<Requirement> = z.lazy(() =>
       type: z.literal('season'),
       months: z.array(z.number().int().min(1).max(12)).min(1),
     }),
+    z.strictObject({ type: z.literal('months'), atLeast: z.number().int().min(0) }),
+    z.strictObject({
+      type: z.literal('since'),
+      event: IdSchema,
+      atLeast: z.number().int().min(0),
+    }),
+    z.strictObject({ type: z.literal('remedyHabit'), atLeast: z.number() }),
+    z.strictObject({
+      type: z.literal('remedyDrug'),
+      drugClass: z.enum(DRUG_CLASSES),
+      atLeastOz: z.number().min(0),
+    }),
+    z.strictObject({ type: z.literal('remedyClaim'), id: IdSchema }),
     z.strictObject({ type: z.literal('flag'), id: IdSchema }),
     z.strictObject({ type: z.literal('unlocked'), id: IdSchema }),
     z.strictObject({ type: z.literal('all'), of: z.array(RequirementSchema).min(1) }),

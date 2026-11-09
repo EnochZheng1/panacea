@@ -52,6 +52,10 @@ public sealed class PaperFacts
     public long StockValueStartCents;
     /// <summary>The nearest things the shop can earn, with how far along it is (0..1).</summary>
     public List<(string Id, string Name, double Progress)> Prospects = new();
+    /// <summary>Prospects the shop has earned but must still take up (the shop next door, offered in VENTURES).</summary>
+    public HashSet<string> ProspectsReady = new();
+    /// <summary>For a prospect, the count it waits on, in figures ("112 of 200 bottles sold").</summary>
+    public Dictionary<string, string> ProspectCounts = new();
     /// <summary>The customer whose grateful letter was printed, if it was printed this month.</summary>
     public PersonFact? Testimonial;
     /// <summary>Bottles sold the month before, so the paper can tell a slump from a steady trade.</summary>
@@ -90,6 +94,8 @@ public sealed class PaperFacts
     /// <summary>Bottles sent by post to the almanac's readers this month, and what they brought.</summary>
     public int PostDelivered;
     public long PostRevenueCents;
+    /// <summary>Flags the paper prints: gold_medal_1893 and radio_active (lines on the shop's notice), feeney_closed.</summary>
+    public HashSet<string> Flags = new();
 }
 
 public sealed class ProductFact
@@ -101,6 +107,10 @@ public sealed class ProductFact
     public long? PrevPriceCents;
     public List<string> ClaimNames = new();
     public int Stock;
+    /// <summary>The bottle as the formula bench assays it (Kick, Calm, Habit, Danger, Lingers).</summary>
+    public double Kick, Calm, Habit, Danger, Accumulation;
+    /// <summary>What a bottle costs to make at today's prices: ingredients and bottling.</summary>
+    public long UnitCostCents;
 }
 
 /// <summary>A remedy's month: all its bottles, and of them the ones sold over the counter (regulars and callers); -1 if not known.</summary>
@@ -124,6 +134,10 @@ public sealed class PersonFact
     public string LastSeen = "";
     /// <summary>For the dead: the cause as the ward and the register give it (overdose, wasting, ailment, old_age, natural).</summary>
     public string Cause = "";
+    /// <summary>For the dead: the remedy whose bottle was theirs, if the shop's.</summary>
+    public string? Product;
+    /// <summary>Asking for the remedy by name, or shaking for want of it, when last seen.</summary>
+    public bool Craving;
 }
 
 public sealed record InquestFact(PersonFact Person, string Outcome, string Verdict, string? Product);

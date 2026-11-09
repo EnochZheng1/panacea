@@ -270,7 +270,10 @@ public sealed class SimGame : IGame
 			// also be the name on the testimonial if it is printed
 			if (e.EventId == "grateful_letter")
 			{
-				_gratefulWriter ??= o.Customers.FirstOrDefault(c => c.Name.StartsWith("Mrs.", StringComparison.Ordinal) && c.Mood == "delighted")?.Id
+				// "I am a new woman": a Mrs. whose remedy is for herself, not for a teething infant
+				_gratefulWriter ??= o.Customers.FirstOrDefault(c => c.Name.StartsWith("Mrs.", StringComparison.Ordinal) && c.Consumer != "infant" && c.Mood == "delighted")?.Id
+					?? o.Customers.FirstOrDefault(c => c.Name.StartsWith("Mrs.", StringComparison.Ordinal) && c.Consumer != "infant")?.Id
+					?? o.Customers.FirstOrDefault(c => c.Name.StartsWith("Mrs.", StringComparison.Ordinal) && c.Mood == "delighted")?.Id
 					?? o.Customers.FirstOrDefault(c => c.Name.StartsWith("Mrs.", StringComparison.Ordinal))?.Id;
 				letter.From = o.Customers.FirstOrDefault(c => c.Id == _gratefulWriter)?.Name;
 			}
@@ -435,6 +438,9 @@ public sealed class SimGame : IGame
 			StockValueStartCents = report?.StockValueStartCents ?? o.StockValue.TotalCents,
 		};
 		if (Ended) f.Career = Career(o);
+		// what the shop's letters have bought it that the paper prints: a medal, a licence, a rival's shop
+		foreach (var flag in new[] { "gold_medal_1893", "radio_active", "feeney_closed" })
+			if (_state.Player.Flags.TryGetValue(flag, out var on) && on) f.Flags.Add(flag);
 		f.WardMemory = o.WardMemory;
 		f.RememberedDeaths = o.WardRemembers.Deaths;
 		f.RememberedVerdicts = o.WardRemembers.Verdicts;
@@ -452,6 +458,12 @@ public sealed class SimGame : IGame
 				PrevPriceCents = _lastPrice.TryGetValue(p.Id, out var lp) ? lp : null,
 				Stock = p.Stock,
 				ClaimNames = p.Claims.Select(c => _content.Text($"claim.{c}.name")).ToList(),
+				Kick = p.Properties.Kick,
+				Calm = p.Properties.Calm,
+				Habit = p.Properties.Habit,
+				Danger = p.Properties.AcuteToxicity,
+				Accumulation = p.Properties.Accumulation,
+				UnitCostCents = (long)Math.Ceiling(p.UnitCostCents),
 			});
 		}
 		foreach (var i in o.Ingredients.Where(i => i.CostPerUnitCents > 0).OrderByDescending(i => i.CostPerUnitCents).Take(4))
@@ -486,13 +498,42 @@ public sealed class SimGame : IGame
 
 		// what the trade says the shop is near to: the next things it can earn
 		foreach (var u in o.NextUnlocks.OrderByDescending(u => u.Progress).Take(2))
-			f.Prospects.Add((u.Id, _content.Text($"unlock.{u.Id}.name"), u.Progress));
+		{
+			// an unlock that waits on a venture's flag (the shop next door) is as near as that
+			// venture is; once the venture is on offer, the shop has only to take it up
+			var progress = u.Progress;
+			var conds = _content.Unlocks.FirstOrDefault(x => x.Id == u.Id) is { } unlock ? Requirements.Progress(unlock.Requirement, _state, _content) : new List<ConditionProgress>();
+			foreach (var c in conds.Where(c => !c.Met && c.Kind == "flag" && c.Id != null))
+			{
+				var venture = _content.Investments.FirstOrDefault(i => i.Effects.OfType<SetFlagEffect>().Any(e => e.Id == c.Id));
+				if (venture == null) continue;
+				if (venture.Requires == null || Requirements.Evaluate(venture.Requires, _state, _content).Met) f.ProspectsReady.Add(u.Id);
+				else
+				{
+					progress = Requirements.Evaluate(venture.Requires, _state, _content).Progress;
+					conds = Requirements.Progress(venture.Requires, _state, _content);
+				}
+			}
+			f.Prospects.Add((u.Id, _content.Text($"unlock.{u.Id}.name"), progress));
+			if (conds.FirstOrDefault(c => !c.Met && c.Kind is "bottlesSold" or "batchesBrewed" or "regulars" or "cash") is { } open)
+			{
+				static string N(double x) => ((long)Math.Floor(x)).ToString("N0", CultureInfo.InvariantCulture);
+				f.ProspectCounts[u.Id] = open.Kind switch
+				{
+					"bottlesSold" => $"{N(open.Have)} of {N(open.Need)} bottles sold",
+					"batchesBrewed" => $"{N(open.Have)} of {N(open.Need)} batches run",
+					"regulars" => $"{N(open.Have)} of {N(open.Need)} regulars",
+					_ => $"{EditionWriter.Money((long)open.Have)} of {EditionWriter.Money((long)open.Need)} put by",
+				};
+			}
+		}
 
 		// a printed testimonial appears in the next edition, once
 		if (!_testimonialPrinted && _state.Player.Flags.TryGetValue("testimonial_received", out var printed) && printed && report != null)
 		{
 			_testimonialPrinted = true;
 			var writer = o.Customers.FirstOrDefault(c => c.Id == _gratefulWriter)
+				?? o.Customers.FirstOrDefault(c => c.Mood == "delighted" && c.Consumer != "infant" && c.Name.StartsWith("Mrs.", StringComparison.Ordinal))
 				?? o.Customers.FirstOrDefault(c => c.Mood == "delighted" && c.Name.StartsWith("Mrs.", StringComparison.Ordinal))
 				?? o.Customers.FirstOrDefault(c => IsFemale(c.Name)) ?? o.Customers.FirstOrDefault();
 			if (writer != null) f.Testimonial = Person(writer);
@@ -583,6 +624,7 @@ public sealed class SimGame : IGame
 		if (!_known.TryGetValue(p.Name, out var r)) return p;
 		p.Months = r.MonthsAsCustomer;
 		p.LastSeen = Describe(r);
+		p.Craving = r.Craving || r.Withdrawal;
 		if (string.IsNullOrEmpty(p.Segment)) p.Segment = r.Segment;
 		if (string.IsNullOrEmpty(p.Ailment)) p.Ailment = r.Ailment;
 		return p;
@@ -597,6 +639,7 @@ public sealed class SimGame : IGame
 		Infant = c.Consumer == "infant",
 		Female = IsFemale(c.Name),
 		Months = c.MonthsAsCustomer,
+		Craving = c.Craving || c.Withdrawal,
 		LastSeen = Describe(new Regular { Looks = c.Looks, Mood = c.Mood, Craving = c.Craving, Withdrawal = c.Withdrawal }),
 	};
 
@@ -611,6 +654,7 @@ public sealed class SimGame : IGame
 		OutOfTown = d.Anonymous && d.FormulaId == null,
 		Female = IsFemale(d.Name),
 		Cause = d.ReportedCause,
+		Product = d.FormulaId == null ? null : _state.Lab.Formulas.Find(x => x.Id == d.FormulaId)?.Name,
 		Ailment = d.Ailment != null ? _content.Text($"ailment.{d.Ailment}.name") : "",
 	});
 

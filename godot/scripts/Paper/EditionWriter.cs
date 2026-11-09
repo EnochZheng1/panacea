@@ -12,7 +12,7 @@ namespace Panacea.Paper;
 /// data/paper.en.json. Deterministic: the same facts always produce the same paper (variant
 /// choices are hashed from the seed, turn and item), and it never touches the simulation's RNG.
 /// </summary>
-public sealed class EditionWriter
+public sealed partial class EditionWriter
 {
     private readonly JsonElement _copy;
 
@@ -58,20 +58,15 @@ public sealed class EditionWriter
         e.Lead = WriteLead(f, product);
         // the last edition looks back over the whole career, under the lead
         if (f.Ended && f.Career is { } career) e.LeadFoot.Add(CareerReview(f, career, product?.Name ?? "Dr. ——'s remedies"));
-        // standing matter, for the make-up to balance the columns with. The pool is shuffled once a
-        // game and read on, Rotation items an edition, so nothing is reprinted for several weeks.
-        // Seasonal items (oysters, skating, the heat) are passed over out of their months, and an
-        // item of the day (the Statue, the General's funeral) runs once, in the first edition of
-        // its window that this game reaches, ahead of everything else.
-        var pool = _copy.GetProperty("standing").EnumerateArray()
-            .Select(x => x.ValueKind == JsonValueKind.String
-                ? (Text: x.GetString() ?? "", Months: (int[]?)null, From: 0, To: 9999)
-                : (Text: x.GetProperty("text").GetString() ?? "", Months: x.TryGetProperty("months", out var ms) ? ms.EnumerateArray().Select(m => m.GetInt32()).ToArray() : null,
-                   From: x.TryGetProperty("from", out var fy) ? fy.GetInt32() : 0, To: x.TryGetProperty("to", out var ty) ? ty.GetInt32() : 9999))
-            // items of a decade (the bicycle, the trolley, the motor-car) only in their years
-            .Where(x => x.From <= f.Year && f.Year <= x.To)
-            .Select(x => (x.Text, x.Months))
-            .OrderBy(x => Hash(f.Seed, 0, x.Text)).ToList();
+        // standing matter, for the make-up to balance the columns with. The make-up sets at most
+        // twelve paragraphs (EditionView.Balance), so the writer hands it twelve and counts them all
+        // as printed: the memory then lives in the writer alone, and a saved game replayed through
+        // it comes back with the same memory. Prose items (the jokes) are taken the longest
+        // unprinted first, among those of the year and the season; around them the routine news
+        // of the day (ships in, the forecast, the police court, the ball game, the week's deaths,
+        // a fire), made fresh each edition from the year's ships, clubs and courts. An item of
+        // the day (the Statue, the General's funeral) runs once, in the first edition of its
+        // window that this game reaches, ahead of everything else.
         var nowIdx = f.Year * 12 + f.Month - 1;
         var startIdx = nowIdx - Math.Max(0, f.Turn);
         static int Idx(string t) => int.Parse(t[..4]) * 12 + int.Parse(t[5..7]) - 1;
@@ -83,23 +78,16 @@ public sealed class EditionWriter
                 return Math.Max(a, startIdx) == nowIdx && nowIdx <= b;
             })
             .Select(x => x.GetProperty("text").GetString() ?? "").ToList();
-        // the items the paper has gone longest without printing, in the game's shuffled order; the
-        // page reports back which it set (it takes twelve to twenty), so the next edition reads on
-        // from there rather than from a guess. The month's list is kept for the second writing.
         if (!_standingFor.TryGetValue(f.Turn, out var picked))
         {
-            picked = pool
-                .Select((x, i) => (x.Text, x.Months, Order: (i - f.Turn * Rotation % pool.Count + pool.Count) % pool.Count))
-                .Where(x => x.Months == null || x.Months.Contains(f.Month))
-                .OrderBy(x => _printed.TryGetValue(x.Text, out var at) ? at : int.MinValue)
-                .ThenBy(x => x.Order)
-                .Take(24).Select(x => x.Text).ToList();
+            picked = Standing(f, Math.Max(0, StandingSlots - dated.Count));
             _standingFor[f.Turn] = picked;
         }
         var turn = f.Turn;
         e.Standing = dated.Concat(picked).ToList();
         var keys = e.Standing.ToList();
-        e.Printed = i => { if (i >= 0 && i < keys.Count) _printed[keys[i]] = turn; };
+        // (already counted when picked: the page's report changes nothing the writer relies on)
+        e.Printed = i => { if (i >= 0 && i < keys.Count && _proseStanding.Contains(keys[i])) _printed[keys[i]] = Math.Max(turn, _printed.GetValueOrDefault(keys[i], int.MinValue)); };
 
         // ---- left column: the consequences ----
         if (f.Deaths.Count > 0)
@@ -108,7 +96,7 @@ public sealed class EditionWriter
             foreach (var d in f.Deaths)
             {
                 var key = d.OutOfTown ? "outOfTown" : d.Anonymous ? "deathAnonymous" : d.Infant ? "deathInfant" : "deathSelf";
-                var text = Fill(Pick(f, key + d.Id, _copy.GetProperty(key)), f, d, productName);
+                var text = Fill(Pick(f, key + d.Id, _copy.GetProperty(key), DeathCond(f, d)), f, d, productName);
                 SplitLead(text, out var lead, out var rest);
                 var q = f.Inquests.FirstOrDefault(x => x.Person.Id == d.Id);
                 var extra = new List<string>();
@@ -158,7 +146,7 @@ public sealed class EditionWriter
         foreach (var p in f.Joined)
         {
             // while the ward remembers the deaths, a new customer comes in warily, if at all
-            var template = f.FirstEdition ? S(_copy, "regularsIntro") : PickUnused(f, "joined" + p.Id, _copy.GetProperty(f.WardMemory >= 35 ? "joinedWary" : "joined"), usedJoined);
+            var template = f.FirstEdition ? S(_copy, "regularsIntro") : PickUnused(f, "joined" + p.Id, _copy.GetProperty(f.WardMemory >= 35 ? "joinedWary" : "joined"), usedJoined, PersonCond(f, p));
             personal.Blocks.Add(new Block { Text = Fill(template, f, p, productName), Clip = PersonClip(f, p, "A NEW CUSTOMER", $"Looking for something for {p.Ailment.ToLowerInvariant()}.") });
         }
         var drifted = f.Left.Where(l => l.Reason == "drifted").ToList();
@@ -178,7 +166,7 @@ public sealed class EditionWriter
                 "afraid" => "Took fright at the talk of the deaths, and would not buy another bottle. The ward remembers.",
                 _ => "Simply stopped coming. Perhaps a rival's bottle; perhaps the price.",
             };
-            personal.Blocks.Add(new Block { Text = Fill(Pick(f, key + l.Person.Id, _copy.GetProperty(key)), f, l.Person, productName), Clip = PersonClip(f, l.Person, "GONE FROM THE SHOP", why) });
+            personal.Blocks.Add(new Block { Text = Fill(PickUnused(f, key + l.Person.Id, _copy.GetProperty(key), usedJoined, PersonCond(f, l.Person)), f, l.Person, productName), Clip = PersonClip(f, l.Person, "GONE FROM THE SHOP", why) });
         }
         if (personal.Blocks.Count > 0) e.Left.Add(personal);
 
@@ -186,7 +174,31 @@ public sealed class EditionWriter
         if (f.ShutdownMonthsLeft > 0)
             notices.Blocks.Add(new Block { Kind = BlockKind.Notice, Text = Fill(Pick(f, "shutdown", _copy.GetProperty("shutdown")), f, null, productName).Replace("{within}", f.ShutdownMonthsLeft == 1 ? "at the month's end" : $"in {Words(f.ShutdownMonthsLeft)} months") });
         foreach (var (prod, bottles) in f.BadBatches)
-            notices.Blocks.Add(new Block { Text = Fill(Pick(f, "bad", _copy.GetProperty("badBatch")), f, null, prod).Replace("{bottles}", bottles.ToString(CultureInfo.InvariantCulture)) });
+        {
+            // where the batch was spoiled, and what went down the gutter with it: the drugs were
+            // paid for when bought, so the loss is in the stock, not a line of its own in the books
+            var lab = f.Held.Any(h => h.Id == "laboratory");
+            var cost = Money(bottles * (f.Products.FirstOrDefault(p => p.Name == prod)?.UnitCostCents ?? 0));
+            notices.Blocks.Add(new Block
+            {
+                Text = Fill(Pick(f, "bad", _copy.GetProperty("badBatch"), c => c == "laboratory" && lab), f, null, prod)
+                    .Replace("{bottles}", bottles.ToString(CultureInfo.InvariantCulture))
+                    .Replace("{place_upper}", lab ? "AT THE LABORATORY" : "IN THE BACK ROOM")
+                    .Replace("{cost}", cost),
+                Clip = new Clipping
+                {
+                    Kicker = "A BAD BATCH",
+                    Title = prod,
+                    Cut = "wc_bottle_panacea",
+                    Lines =
+                    {
+                        $"{bottles} bottles came out of the still wrong, and your taster caught them before they reached the shelf.",
+                        $"About {cost} of drugs, glass and corks poured away. The drugs were paid for when bought, so the loss shows in the stock, not as a line in the books.",
+                        "Any batch may come out wrong; without the taster it would have been sold.",
+                    },
+                },
+            });
+        }
         if (f.BottlesSeized > 0)
             notices.Blocks.Add(new Block { Text = Fill(Pick(f, "seized", _copy.GetProperty("stockSeized")), f, null, productName).Replace("{bottles}", f.BottlesSeized.ToString(CultureInfo.InvariantCulture)) });
         if (f.Testimonial is { } tw)
@@ -195,7 +207,7 @@ public sealed class EditionWriter
             {
                 Kind = BlockKind.Notice,
                 Lead = "A TESTIMONIAL.—",
-                Text = $"\u201cThree physicians gave me up, and {productName} gave me back. I am a new woman.\u201d So writes {Misspell(tw.Name)}, of Mulberry street, top floor, rear, who asks that her name be spelled correctly.—Adv.",
+                Text = $"\u201cThree physicians gave me up, and {productName} gave me back. I am a new woman.\u201d So writes {Misspell(tw.Name)}, of {Home(f, tw)}, top floor, rear, who asks that her name be spelled correctly.—Adv.",
                 Clip = PersonClip(f, tw, "YOUR TESTIMONIAL", "Printed as she asked, very nearly.", f.CashCents >= 10000 ? "Standing in the ward rose; with $100 put by, the Gazette will sell you space from next month." : "Standing in the ward rose, and the Gazette will sell you space once you have $100 put by."),
             });
         }
@@ -203,19 +215,27 @@ public sealed class EditionWriter
         {
             var key = $"{id}.{change}";
             if (_copy.GetProperty("investmentNotices").TryGetProperty(key, out var said))
-                notices.Blocks.Add(new Block { Text = Fill(said.GetString() ?? "", f, null, productName), Clip = new Clipping { Kicker = "YOUR VENTURES", Title = name, Cut = "wc_proprietor", Lines = { change switch { "bought" => "Taken up this month.", "lapsed" => "Run out: it may be taken up again in the prospectus.", "lost" => "Lost: it is no longer yours.", _ => "An accident on the premises." } } } });
+                notices.Blocks.Add(new Block { Text = Fill(Pick(f, "venture" + key, said), f, null, productName), Clip = new Clipping { Kicker = "YOUR VENTURES", Title = name, Cut = "wc_proprietor", Lines = { change switch { "bought" => "Taken up this month.", "lapsed" => "Run out: it may be taken up again in the prospectus.", "lost" => "Lost: it is no longer yours.", _ => "An accident on the premises." } } } });
         }
         if (f.AdsLapsed)
             notices.Blocks.Add(new Block { Text = Fill(Pick(f, "lapsed", _copy.GetProperty("adsLapsed")), f, null, productName) });
         foreach (var (id, title, description) in f.Unlocks)
+        {
+            // the paper reports the trade's gossip about a third party; the cutting tells you plainly
+            // what came, that it came with the shop's experience (nothing was bought), and what it does
+            var clip = new Clipping { Kicker = "A NEW CAPABILITY", Title = title, Cut = "wc_proprietor" };
+            if (_copy.GetProperty("unlockClips").TryGetProperty(id, out var lines))
+                foreach (var line in lines.EnumerateArray()) clip.Lines.Add(Fill(line.GetString() ?? "", f, null, productName));
+            else clip.Lines.Add(description);
+            clip.Lines.Add("Earned this month, not bought. It is yours to use from the next.");
             notices.Blocks.Add(new Block
             {
-                // the paper reports the trade's gossip about a third party; the cutting tells you
                 Text = _copy.GetProperty("unlockNotices").TryGetProperty(id, out var said)
                     ? Fill(said.GetString() ?? "", f, null, productName)
                     : Pick(f, "unlock", _copy.GetProperty("unlock")).Replace("{title}", title.ToUpperInvariant()).Replace("{description}", description),
-                Clip = new Clipping { Kicker = "A NEW CAPABILITY", Title = title, Cut = "wc_proprietor", Lines = { description, "Earned this month. It is yours to use from the next." } },
+                Clip = clip,
             });
+        }
         if (notices.Blocks.Count > 0) e.Left.Add(notices);
 
         // a quiet month still fills the column: the classifieds
@@ -223,13 +243,13 @@ public sealed class EditionWriter
         if (used < 6)
         {
             var wants = new Section { Title = S(sec, "classified") };
-            var all = _copy.GetProperty("classifieds");
-            var n = all.GetArrayLength();
-            // the wants the paper has gone longest without printing, none twice in an edition
-            var list = Enumerable.Range(0, n).Select(i => all[i].GetString() ?? "").ToList();
+            // the Gazette's own wants, of the year, the longest unprinted first, none twice in an
+            // edition; between them the plain wants of the day, made fresh for the year
+            var list = Opts(_copy.GetProperty("classifieds"), f);
             var usedWants = new HashSet<string>();
-            for (var i = 0; i < Math.Min(n, 6 - used + 1); i++)
-                wants.Blocks.Add(new Block { Text = Fresh(f, "wants" + i, list, usedWants) });
+            var count = Math.Min(list.Count, 6 - used + 1);
+            for (var i = 0; i < count; i++)
+                wants.Blocks.Add(new Block { Text = i % 2 == 1 && _copy.TryGetProperty("wantsRoutine", out _) ? PlainWant(f, i) : Fresh(f, "wants" + i, list, usedWants) });
             e.Left.Add(wants);
         }
 
@@ -243,6 +263,7 @@ public sealed class EditionWriter
         // (and so are the almanac's post orders): the counter's own count comes from the books
         var away = f.WholesaleDelivered + f.PostDelivered;
         var wholesaleFrom = away > 0 && f.Sales.Any(x => x.CounterBottles < 0) ? f.Sales.OrderByDescending(x => x.Bottles).FirstOrDefault()?.Product : null;
+        var usedSales = new HashSet<string>();
         foreach (var s0 in f.Sales)
         {
             var s = s0.CounterBottles >= 0 ? s0 with { Bottles = s0.CounterBottles }
@@ -251,7 +272,7 @@ public sealed class EditionWriter
             var price = f.Products.FirstOrDefault(p => p.Name == s.Product)?.PriceCents ?? 0;
             trade.Blocks.Add(new Block
             {
-                Text = Pick(f, "sales" + s.Product, _copy.GetProperty("tradeSales"))
+                Text = PickUnused(f, "sales" + s.Product, _copy.GetProperty("tradeSales"), usedSales)
                     .Replace("{product}", s.Product)
                     .Replace("{bottles}", s.Bottles.ToString(CultureInfo.InvariantCulture))
                     .Replace("{price}", Money(price))
@@ -264,13 +285,38 @@ public sealed class EditionWriter
         }
         if (f.Prospects.Count > 0 && !f.FirstEdition)
         {
-            // gossip that says what the next thing is and what it takes, as the trade would put it
-            string Near(double p) => p >= 0.75 ? "very near to" : p >= 0.4 ? "halfway to" : "some way yet from";
-            var hints = _copy.GetProperty("prospectHints");
+            // gossip that says what the next thing is and what it takes, as the trade would put it,
+            // with the count it waits on; a thing already earned and only waiting to be taken up
+            // (the shop next door, offered in the ventures) is said to be waiting
             var x = f.Prospects[0];
-            var what = hints.TryGetProperty(x.Id, out var h) ? h.GetString() ?? "" : x.Name.Trim('"').ToLowerInvariant();
-            trade.Blocks.Add(new Block { Text = $"TRADE TALK.—The proprietor is said to be {Near(x.Progress)} {what}." });
+            // the trade talks of a thing when it changes, and every few months while it waits:
+            // not the same gossip in every edition
+            string Band(double p) => p >= 0.75 ? "near" : p >= 0.4 ? "half" : "far";
+            var said = (x.Id, f.ProspectsReady.Contains(x.Id) ? "ready" : Band(x.Progress));
+            var lastSaid = _talk.Where(k => k.Key < f.Turn).OrderByDescending(k => k.Key).Select(k => ((int Turn, (string, string) Said)?)(k.Key, k.Value)).FirstOrDefault();
+            var talk = lastSaid is not { } ls || ls.Said != said || f.Turn - ls.Turn >= 4;
+            if (talk) _talk[f.Turn] = said;
+            string text = "";
+            if (!talk) { }
+            else if (f.ProspectsReady.Contains(x.Id) && _copy.GetProperty("prospectReady").TryGetProperty(x.Id, out var ready))
+                text = Pick(f, "ready" + x.Id, ready);
+            else
+            {
+                string Near(double p) => p >= 0.75 ? "very near to" : p >= 0.4 ? "halfway to" : "some way yet from";
+                var what = _copy.GetProperty("prospectHints").TryGetProperty(x.Id, out var h) ? Pick(f, "hint" + x.Id, h) : x.Name.Trim('"').ToLowerInvariant();
+                var count = f.ProspectCounts.TryGetValue(x.Id, out var cnt) ? $" ({cnt} so far)" : "";
+                text = Pick(f, "tradeTalk", _copy.GetProperty("tradeTalk")).Replace("{near}", Near(x.Progress)).Replace("{what}", what + count);
+            }
+            if (text.Length > 0) trade.Blocks.Add(new Block { Text = Fill(text, f, null, productName) });
         }
+        // what the shop's letters bought it, set in type with the claims (the Chicago medal, the radium
+        // licence), and news in the trade, once, in the edition it first appears
+        var honours = _copy.GetProperty("honours");
+        var marks = honours.EnumerateObject().Where(h => f.Flags.Contains(h.Name)).Select(h => S(h.Value, "mark")).ToList();
+        _flagsAt[f.Turn] = f.Flags;
+        var before = _flagsAt.Where(k => k.Key < f.Turn).OrderByDescending(k => k.Key).Select(k => k.Value).FirstOrDefault() ?? new HashSet<string>();
+        foreach (var h in honours.EnumerateObject().Where(h => f.Flags.Contains(h.Name) && !before.Contains(h.Name) && !f.FirstEdition))
+            trade.Blocks.Add(new Block { Text = Fill(S(h.Value, "trade"), f, null, productName) });
         var stockDelta = f.StockValueCents - f.StockValueStartCents;
         if (!f.FirstEdition && f.StockValueCents > 0)
             trade.Blocks.Add(new Block { Text = $"Stock on the shelf and in the jars, at cost: {Money(f.StockValueCents)}" + (Math.Abs(stockDelta) >= 100 ? $" ({(stockDelta > 0 ? "up" : "down")} {Money(Math.Abs(stockDelta))} on the month)." : "."), Clip = books });
@@ -315,7 +361,7 @@ public sealed class EditionWriter
                 Kind = BlockKind.Ad,
                 Mid = tier >= 3 ? "THE WONDER OF THE AGE!" : "",
                 Head = product.Name.ToUpperInvariant(),
-                Text = product.ClaimNames.Count > 0 ? string.Join(" · ", product.ClaimNames).ToUpperInvariant() : "FOR ALL COMPLAINTS",
+                Text = string.Join(" · ", (product.ClaimNames.Count > 0 ? product.ClaimNames.Select(c => c.ToUpperInvariant()) : new[] { "FOR ALL COMPLAINTS" }).Concat(marks)),
                 Fine = tier >= 2 ? $"{Money(product.PriceCents)} the bottle, at the shop on Mulberry street." : "",
                 Cut = tier >= 2 ? "wc_bottle_panacea" : "",
                 Clip = new Clipping
@@ -332,6 +378,7 @@ public sealed class EditionWriter
                 },
             });
         }
+        if (product != null && tier > 0 && marks.Count > 0) ads.Blocks[^1].Clip!.Lines.Insert(2, "Also set in type, by right: " + string.Join("; ", marks) + ".");
         // the rival advertisements of the day: the bicycle tonic in the nineties, radium after 1903
         var rivals = _copy.GetProperty("rivals").EnumerateArray()
             .Where(r => (!r.TryGetProperty("from", out var a) || a.GetInt32() <= f.Year) && (!r.TryGetProperty("to", out var b) || b.GetInt32() >= f.Year))
@@ -425,13 +472,19 @@ public sealed class EditionWriter
         var local = f.Deaths.Where(x => !x.OutOfTown).ToList();
         if (local.Count >= 3)
         {
+            // the bottles are blamed only where a bottle could be: a register that says overdose or
+            // a wasting, or a remedy with harm in it; otherwise the joke is that there is nothing to find
+            var sick = _copy.GetProperty("sickly");
+            var risky = local.Any(x => PersonCond(f, x)("risky"));
+            Func<string, bool> cond = c => c == "risky" && risky;
+            string N(string t) => t.Replace("{n_upper}", Words(local.Count).ToUpperInvariant()).Replace("{n}", Words(local.Count));
             return new Story
             {
-                Headline = "A SICKLY SEASON",
-                Decks = new List<string> { "The Ward Mourns.", $"{Words(local.Count).ToUpperInvariant()} DEATHS IN THE WARD THIS MONTH; UNDERTAKERS REPORT A BRISK TRADE." },
+                Headline = N(Pick(f, "sickly.head", sick.GetProperty("headline"), cond)),
+                Decks = sick.GetProperty("decks").EnumerateArray().Select((x, i) => N(Deck(f, "sickly.deck" + i, x, cond))).ToList(),
                 Cut = "wc_death",
                 Cutline = "A GENTLEMAN SEEN IN THE NEIGHBORHOOD.",
-                Body = "The deaths column runs long this month. Physicians attribute the trouble to the weather, the water and the foreign element, in that order. Nobody has thought to look at the bottles.",
+                Body = N(Pick(f, "sickly.body", sick.GetProperty("bodies"), cond)),
                 Clip = BooksClip(f),
             };
         }
@@ -440,10 +493,23 @@ public sealed class EditionWriter
         {
             var rn = _copy.GetProperty("readingNotice");
             var subject = f.Enthusiasts.FirstOrDefault();
-            var headline = product.ClaimNames.Count > 0 ? product.ClaimNames[0].ToUpperInvariant() + "!" : "NEVER FELT BETTER!";
-            var decks = rn.GetProperty("decks").EnumerateArray().Select(x => x.GetString() ?? "").ToList();
-            if (subject == null) decks = new List<string> { decks[0], decks[2] };
-            var body = subject != null ? Pick(f, "rn", rn.GetProperty("bodies")) : S(rn, "fallbackBody");
+            // the claims set in type take turns at the head of the notice, under a frame of the month's
+            var claim = product.ClaimNames.Count > 0 ? Fresh(f, "rn.claim", product.ClaimNames) : null;
+            var frame = rn.TryGetProperty("headlines", out var frames)
+                ? Pick(f, "rn.head", frames, c => c == "claim" && claim != null)
+                : "{claim}!";
+            if (claim == null && frame.Contains("{claim}")) frame = "NEVER FELT BETTER!";
+            var headline = frame.Replace("{claim}", claim?.ToUpperInvariant() ?? "").Replace("{product_upper}", product.Name.ToUpperInvariant());
+            Func<string, bool> cond = c => c switch
+            {
+                "habit" => product.Habit >= 1,
+                "drug" => product.Kick >= 2 || product.Calm >= 2,
+                "subject" => subject != null,
+                _ => false,
+            };
+            var decks = rn.GetProperty("decks").EnumerateArray().Select((x, i) => Deck(f, "rn.deck" + i, x, cond))
+                .Where(x => subject != null || !x.Contains("{name}")).ToList();
+            var body = subject != null ? Pick(f, "rn", rn.GetProperty("bodies"), cond) : Pick(f, "rnf", rn.GetProperty("fallbackBody"), cond);
             var street = Home(f, subject);
             string Sub(string s) => Fill(s, f, subject, product.Name)
                 .Replace("{street_upper}", street.ToUpperInvariant())
@@ -469,15 +535,12 @@ public sealed class EditionWriter
                 Headline = d.Anonymous ? $"FOUND DEAD IN {street.ToUpperInvariant()}"
                     : d.Infant ? $"THE {SplitName(d.Name).Surname.ToUpperInvariant()} INFANT"
                     : $"DEATH OF {ShortName(d).ToUpperInvariant()}",
-                Decks = new List<string>
-                {
-                    d.Infant && !d.Anonymous ? "An Infant Taken." : "In the Ward.",
-                    d.Anonymous ? "A GREEN BOTTLE WAS FOUND NEAR THE BODY. THE CORONER HAS BEEN INFORMED." : $"{Who(f, d).ToUpperInvariant()}, WELL KNOWN AT THE SHOP ON MULBERRY STREET.",
-                },
+                Decks = _copy.GetProperty("deathDecks").GetProperty(d.Anonymous ? "anonymous" : d.Infant ? "infant" : "self").EnumerateArray()
+                    .Select((x, i) => Deck(f, "deathDeck" + i, x, PersonCond(f, d)).Replace("{who_upper}", Who(f, d).ToUpperInvariant())).ToList(),
                 Cut = d.Anonymous ? "wc_death" : CutFor(d),
                 Cutline = d.Anonymous ? "A GENTLEMAN SEEN IN THE NEIGHBORHOOD." : d.Infant ? $"THE MOTHER, {ShortName(d).ToUpperInvariant()}.—From a stock likeness." : $"{ShortName(d).ToUpperInvariant()}.—From a stock likeness.",
-                Body = d.Anonymous ? Pick(f, "unknownLead" + d.Id, _copy.GetProperty("unknownLead"))
-                    : d.Infant ? InfantLead(f, d)
+                Body = d.Anonymous ? Pick(f, "unknownLead" + d.Id, _copy.GetProperty("unknownLead"), PersonCond(f, d))
+                    : d.Infant ? Fill(InfantLead(f, d), f, d, product?.Name ?? "the remedy")
                     : Fill(DeathLead(f, d), f, d, product?.Name ?? "the remedy"),
                 Clip = PersonClip(f, d, "IN MEMORIAM", d.Infant && !d.Anonymous ? "The medicine was for an infant in the family's care." : "See the deaths column for the notice."),
             };
@@ -559,9 +622,23 @@ public sealed class EditionWriter
 
         var t = _copy.GetProperty("tradeLeads").GetProperty(kind);
         var head = again && t.TryGetProperty("again", out var follow) ? follow : t;
-        var bodies = t.GetProperty("bodies").EnumerateArray().Select(x => x.GetString() ?? "").ToList();
+        // the books in the headline are the books in the brief: up only if the cash is up
+        var cashDelta = f.CashCents - f.CashStartCents;
+        Func<string, bool> cond = c => c switch
+        {
+            "up" => cashDelta > 0,
+            "down" => cashDelta < 0,
+            "outlay" => f.InvestedCents > 0,
+            "subject" => subject != null,
+            // a regular who cannot do without it needs a remedy one cannot do without
+            "habit" => product.Habit >= 1,
+            "one" => sold == 1,
+            _ => false,
+        };
+        var bodies = Opts(t.GetProperty("bodies"), f, cond);
         // a body that names someone needs someone to name
         if (subject == null) bodies = bodies.Where(b => !b.Contains("{name}")).ToList();
+        if (bodies.Count == 0) bodies = Opts(t.GetProperty("bodies"), f, null).Where(b => !b.Contains("{name}")).ToList();
         var body = Fresh(f, "trade" + kind, bodies);
         // only a price that went up this month is said to have been put up
         if (kind == "dear" && product.PrevPriceCents is long was && was < product.PriceCents && t.TryGetProperty("raised", out var raised))
@@ -570,8 +647,6 @@ public sealed class EditionWriter
         {
             if (subject is { Infant: true } && kind == "bribed") x = x.Replace("{name}", "the infant child of {name}");
             x = x.Replace("{sold_upper} BOTTLES", sold == 1 ? "ONE BOTTLE" : "{sold_upper} BOTTLES");
-            // a good month whose takings went into a venture or a lease: the books are not up
-            if (books < 0) x = x.Replace("AND THE BOOKS WELL UP; THE PROPRIETOR ORDERS A NEW HAT", "AND THE TAKINGS PUT STRAIGHT BACK INTO THE BUSINESS");
             return Fill(x, f, subject, product.Name)
                 .Replace("{product_upper}", product.Name.ToUpperInvariant())
                 .Replace("{sold_upper}", Words(sold).ToUpperInvariant())
@@ -584,8 +659,8 @@ public sealed class EditionWriter
         }
         return new Story
         {
-            Headline = Sub(head.GetProperty("headline").ValueKind == JsonValueKind.Array ? Fresh(f, "headline" + kind + again, head.GetProperty("headline").EnumerateArray().Select(x => x.GetString() ?? "").ToList()) : S(head, "headline")),
-            Decks = head.GetProperty("decks").EnumerateArray().Select(x => Sub(x.GetString() ?? "")).ToList(),
+            Headline = Sub(Pick(f, "headline" + kind + again, head.GetProperty("headline"), cond)),
+            Decks = head.GetProperty("decks").EnumerateArray().Select((x, i) => Sub(Deck(f, $"deck{kind}{again}{i}", x, cond))).ToList(),
             Cut = kind is "growing" or "losing" && subject != null ? CutFor(subject) : S(t, "cut"),
             Cutline = kind is "growing" or "losing" && subject != null ? $"{ShortName(subject).ToUpperInvariant()}.—From a stock likeness." : S(t, "cutline"),
             Body = Sub(body),
@@ -688,30 +763,168 @@ public sealed class EditionWriter
         return parts.Count == 0 ? "the talk" : string.Join(" and ", parts);
     }
 
-    /// <summary>The death lead: one that calls the dead a faithful regular only for one who was.</summary>
+    /// <summary>
+    /// The death lead: one that calls the dead a faithful regular only for one who was, that
+    /// speaks of a habit only for a remedy that forms one (or a regular who was seen to crave it),
+    /// and that lays the death at the bottle only where the register or the bottle allows it.
+    /// </summary>
     private string DeathLead(PaperFacts f, PersonFact d)
     {
-        var all = _copy.GetProperty("deathLead").EnumerateArray().Select(x => x.GetString() ?? "").ToList();
-        if (d.Months >= 3) return Fresh(f, "deathLead" + d.Id, all);
-        var fit = all.Where(t => !t.Contains("regular", StringComparison.OrdinalIgnoreCase) && !t.Contains("never missed", StringComparison.Ordinal)).ToList();
-        if (d.Months < 0 || fit.Count == 0) fit = _copy.GetProperty("deathLeadStranger").EnumerateArray().Select(x => x.GetString() ?? "").ToList();
-        return Fresh(f, "deathLead" + d.Id, fit);
+        var cond = PersonCond(f, d);
+        if (d.Months < 0) return Pick(f, "deathLead" + d.Id, _copy.GetProperty("deathLeadStranger"), cond);
+        return Pick(f, "deathLead" + d.Id, _copy.GetProperty("deathLead"), cond);
     }
 
-    /// <summary>The infant lead: the one that quotes the label is printed only if the label said it.</summary>
-    private string InfantLead(PaperFacts f, PersonFact d)
+    /// <summary>The infant lead: the one that quotes the label only if the label said it, the quiet child only for a sedative.</summary>
+    private string InfantLead(PaperFacts f, PersonFact d) => Pick(f, "infantLead" + d.Id, _copy.GetProperty("infantLead"), PersonCond(f, d));
+
+    /// <summary>The remedy a person took: the one the register names, else the shop's chief remedy.</summary>
+    private static ProductFact? RemedyOf(PaperFacts f, PersonFact p) =>
+        (p.Product != null ? f.Products.FirstOrDefault(x => x.Name == p.Product) : null) ?? f.Products.FirstOrDefault();
+
+    /// <summary>
+    /// What the facts allow the paper to say of a person: "habit" (the remedy forms one, or they
+    /// were seen to crave it), "craving", "harm" (the register says overdose or a wasting), "risky"
+    /// (that, or a remedy with danger in it), "sedative" (a remedy that quiets), "drug" (one you
+    /// would feel), "regular" (three months or more), "known" (a customer at all), "stranger",
+    /// "oldage", "ailment", "teething" (the label promised it).
+    /// </summary>
+    private static Func<string, bool> PersonCond(PaperFacts f, PersonFact p)
     {
-        var all = _copy.GetProperty("infantLead").EnumerateArray().Select(x => x.GetString() ?? "").ToList();
-        var teething = f.Products.Any(p => p.ClaimNames.Any(c => c.Contains("teeth", StringComparison.OrdinalIgnoreCase) || c.Contains("teething", StringComparison.OrdinalIgnoreCase)));
-        var fit = all.Where(t => teething || !t.Contains("on the advice of the label", StringComparison.Ordinal)).ToList();
-        return Fresh(f, "infantLead" + d.Id, fit);
+        var r = RemedyOf(f, p);
+        var habitForming = (r?.Habit ?? 0) >= 1;
+        var harm = p.Cause is "overdose" or "wasting";
+        var risky = harm || (r != null && (r.Danger >= 0.8 || r.Accumulation >= 0.3));
+        // a quiet end, or high spirits at the last, are laid at a bottle only if it could have done it
+        var sedative = r != null && (r.Calm >= 2 || r.Habit >= 1) && risky;
+        return c => c switch
+        {
+            "habit" => habitForming || p.Craving,
+            "craving" => p.Craving || (r?.Habit ?? 0) >= 3,
+            "harm" => harm,
+            "risky" => risky,
+            "sedative" => sedative,
+            "drug" => sedative || ((r?.Kick ?? 0) >= 5 && risky),
+            "regular" => p.Months >= 3,
+            "known" => p.Months >= 1,
+            "stranger" => p.Months < 0,
+            "oldage" => p.Cause == "old_age",
+            "ailment" => p.Cause == "ailment",
+            "female" => p.Female,
+            "teething" => f.Products.Any(x => x.ClaimNames.Any(n => n.Contains("teeth", StringComparison.OrdinalIgnoreCase) || n.Contains("teething", StringComparison.OrdinalIgnoreCase))),
+            _ => false,
+        };
     }
+
+    private static Func<string, bool> DeathCond(PaperFacts f, PersonFact d) => PersonCond(f, d);
 
     /// <summary>Where each edition starts reading the shuffled standing matter, among items equally stale.</summary>
     private const int Rotation = 6;
+    /// <summary>The most paragraphs of standing matter the make-up sets on a page (EditionView.Balance).</summary>
+    private const int StandingSlots = 12;
+    /// <summary>Of those, how many are the routine news of the day rather than prose items.</summary>
+    private const int RoutineSlots = 6;
     /// <summary>When each item of standing matter was last set on a page, and each month's list.</summary>
     private readonly Dictionary<string, int> _printed = new();
     private readonly Dictionary<int, List<string>> _standingFor = new();
+    private readonly HashSet<string> _proseStanding = new();
+    /// <summary>The paper's flags at each edition, so a medal is news only in the edition it first appears.</summary>
+    private readonly Dictionary<int, HashSet<string>> _flagsAt = new();
+    /// <summary>Each edition whose trade column carried TRADE TALK, and what it talked of.</summary>
+    private readonly Dictionary<int, (string Id, string Band)> _talk = new();
+
+    /// <summary>"POLICE COURT.—…" → "POLICE COURT".</summary>
+    private static string Heading(string t)
+    {
+        var i = t.IndexOf(".—", StringComparison.Ordinal);
+        return i > 0 ? t[..i] : "";
+    }
+
+    /// <summary>
+    /// The month's standing matter: prose items the paper has gone longest without printing (in
+    /// the game's shuffled order among equals), no two under one heading, with the routine news
+    /// of the day set between them. Every prose item chosen is counted as printed this edition.
+    /// </summary>
+    private List<string> Standing(PaperFacts f, int slots)
+    {
+        var pool = _copy.GetProperty("standing").EnumerateArray()
+            .Where(x => x.ValueKind == JsonValueKind.String || Fits(x, f, null))
+            .Select(x => x.ValueKind == JsonValueKind.String ? x.GetString() ?? "" : x.GetProperty("text").GetString() ?? "")
+            .Distinct()
+            .OrderBy(x => Hash(f.Seed, 0, x)).ToList();
+        var ordered = pool
+            .Select((t, i) => (Text: t, Order: (i - f.Turn * Rotation % Math.Max(1, pool.Count) + pool.Count) % Math.Max(1, pool.Count)))
+            .OrderBy(x => _printed.TryGetValue(x.Text, out var at) ? at : int.MinValue)
+            .ThenBy(x => x.Order)
+            .Select(x => x.Text).ToList();
+        var routine = Routine(f);
+        var proseWant = Math.Max(0, slots - Math.Min(RoutineSlots, routine.Count));
+        var prose = new List<string>();
+        var heads = new HashSet<string>();
+        foreach (var t in ordered)
+        {
+            if (prose.Count >= proseWant) break;
+            var h = Heading(t);
+            if (h.Length > 0 && !heads.Add(h)) continue;
+            prose.Add(t);
+        }
+        // the routine news, unless a prose item already stands under its heading
+        var news = routine.Where(r => !heads.Contains(Heading(r))).Take(slots - prose.Count).ToList();
+        // a short month for routine news: more prose
+        foreach (var t in ordered)
+        {
+            if (prose.Count + news.Count >= slots) break;
+            if (prose.Contains(t)) continue;
+            var h = Heading(t);
+            if (h.Length > 0 && !heads.Add(h)) continue;
+            prose.Add(t);
+        }
+        foreach (var t in prose) { _printed[t] = f.Turn; _proseStanding.Add(t); }
+        // set the news between the prose, so a column is not all ships and weather
+        var list = new List<string>();
+        for (int i = 0, j = 0; i < prose.Count || j < news.Count;)
+        {
+            if (i < prose.Count) list.Add(prose[i++]);
+            if (j < news.Count && (list.Count % 2 == 1 || i >= prose.Count)) list.Add(news[j++]);
+        }
+        return list;
+    }
+
+    /// <summary>
+    /// The copy a list offers this edition: a string always; an entry {text, from, to, months, if}
+    /// only in its years and months, and only when its conditions hold of the facts.
+    /// </summary>
+    private static List<string> Opts(JsonElement options, PaperFacts f, Func<string, bool>? cond = null)
+    {
+        var list = new List<string>();
+        if (options.ValueKind == JsonValueKind.String) { list.Add(options.GetString() ?? ""); return list; }
+        foreach (var x in options.EnumerateArray())
+        {
+            if (x.ValueKind == JsonValueKind.String) list.Add(x.GetString() ?? "");
+            else if (Fits(x, f, cond)) list.Add(x.GetProperty("text").GetString() ?? "");
+        }
+        return list;
+    }
+
+    /// <summary>Whether an entry of copy suits this edition: its years, its months and its conditions ("habit", "!up").</summary>
+    private static bool Fits(JsonElement x, PaperFacts f, Func<string, bool>? cond)
+    {
+        if (x.ValueKind != JsonValueKind.Object) return true;
+        if (x.TryGetProperty("from", out var a) && a.ValueKind == JsonValueKind.Number && a.GetInt32() > f.Year) return false;
+        if (x.TryGetProperty("to", out var b) && b.ValueKind == JsonValueKind.Number && b.GetInt32() < f.Year) return false;
+        if (x.TryGetProperty("months", out var ms) && !ms.EnumerateArray().Any(m => m.GetInt32() == f.Month)) return false;
+        if (x.TryGetProperty("if", out var c))
+        {
+            var all = c.ValueKind == JsonValueKind.Array ? c.EnumerateArray().Select(y => y.GetString() ?? "").ToArray() : new[] { c.GetString() ?? "" };
+            foreach (var k in all)
+            {
+                var neg = k.StartsWith('!');
+                var holds = cond != null && cond(neg ? k[1..] : k);
+                if (holds == neg) return false;
+            }
+        }
+        return true;
+    }
 
     public static string Words(int n) => n switch
     {
@@ -953,14 +1166,29 @@ public sealed class EditionWriter
     }
 
     /// <summary>Like Pick, but never the same variant twice in one edition while others remain.</summary>
-    private string PickUnused(PaperFacts f, string key, JsonElement options, HashSet<string> used) =>
-        Fresh(f, key, options.EnumerateArray().Select(x => x.GetString() ?? "").ToList(), used);
+    private string PickUnused(PaperFacts f, string key, JsonElement options, HashSet<string> used, Func<string, bool>? cond = null) =>
+        Pick(f, key, options, cond, used);
 
-    private string Pick(PaperFacts f, string key, JsonElement options)
+    /// <summary>
+    /// The variant of a piece of copy for this edition: of those that suit the year, the month and
+    /// the facts (<paramref name="cond"/>), the one longest unprinted. If none suits, one that asks
+    /// nothing of the facts.
+    /// </summary>
+    private string Pick(PaperFacts f, string key, JsonElement options, Func<string, bool>? cond = null, HashSet<string>? used = null)
     {
         if (options.ValueKind == JsonValueKind.String) return options.GetString() ?? "";
-        return Fresh(f, key, options.EnumerateArray().Select(x => x.GetString() ?? "").ToList());
+        var list = Opts(options, f, cond);
+        if (list.Count == 0)
+            list = options.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.String || !x.TryGetProperty("if", out _))
+                .Select(x => x.ValueKind == JsonValueKind.String ? x.GetString() ?? "" : x.GetProperty("text").GetString() ?? "").ToList();
+        if (list.Count == 0)
+            list = options.EnumerateArray().Select(x => x.ValueKind == JsonValueKind.String ? x.GetString() ?? "" : x.GetProperty("text").GetString() ?? "").Take(1).ToList();
+        return Fresh(f, key, list, used);
     }
+
+    /// <summary>A deck line: fixed, or the freshest of its variants that suits the facts.</summary>
+    private string Deck(PaperFacts f, string key, JsonElement line, Func<string, bool>? cond = null) =>
+        line.ValueKind == JsonValueKind.String ? line.GetString() ?? "" : Pick(f, key, line, cond);
 
     /// <summary>When each piece of copy was last printed this game, and what each month's picks were.</summary>
     private readonly Dictionary<string, int> _lastUsed = new();

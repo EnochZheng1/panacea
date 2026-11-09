@@ -1,5 +1,6 @@
 import type { BuyerProfile, ContentPack, DrugClass, Orders } from '@panacea/content';
 import { CAUSES, type Cause } from '../core/causes.ts';
+import { exp, log } from '../core/dmath.ts';
 import { adjust } from '../core/ledger.ts';
 import { DRUG_CLASSES } from '@panacea/content';
 import type {
@@ -140,6 +141,50 @@ export function priceHesitation(
   if (h <= 0 || wtpCents <= 0) return 1;
   const headroom = 1 - priceCents / wtpCents;
   return 1 - h * Math.max(0, Math.min(1, 1 - headroom / hesitationMargin));
+}
+
+/**
+ * Whether the ward has households of this kind left to win (balance pass 8). The ward is so many
+ * households of each kind, in the proportions of the segments' weights: of every twenty-five, four
+ * are clerks' and one is well-to-do. A shop can be the regular shop of at most
+ * `wardShareSlack` × its capacity × that kind's share of them: a ward has only so many clerks, and
+ * fewer carriage folk, so a bottle priced for them alone cannot fill a shop with them.
+ */
+export function wardHasRoomFor(
+  state: GameState,
+  content: ContentPack,
+  segmentId: string,
+  capacity: number,
+): boolean {
+  const slack = content.config.walkIns.wardShareSlack;
+  if (slack <= 0) return true;
+  let total = 0;
+  for (const seg of content.segments) total += seg.weight;
+  const share = (content.byId.segments.get(segmentId)?.weight ?? 0) / total;
+  let have = 0;
+  for (const c of state.customers) if (c.segment === segmentId) have += 1;
+  return have < slack * capacity * share;
+}
+
+/** The habit a bottle's narcotics make: its opiates and its cocaine, not its spirits. */
+export const narcoticHabit = (a: FormulaAnalysis): number =>
+  a.byClass.opiate.habit + a.byClass.cocaine.habit;
+
+/**
+ * The chance a regular buys this month at the shelf price rather than make the last bottle do
+ * (balance pass 8). Up to what they can comfortably spend on a bottle, `dearAbove` × their usual
+ * price, they always do; above it the chance falls as (comfortable / price) ^ `dearElasticity`, so
+ * past a little over the ward's usual price every cent asked costs more than a cent of custom.
+ * Spirits are sold in every saloon; a narcotic is not: a bottle whose opiates or cocaine make a
+ * habit of `dearHabitHold` or more is found the money for at up to twice the comfortable price.
+ */
+export function dearness(c: Customer, offer: Offer, content: ContentPack): number {
+  const { dearAbove, dearElasticity, dearHabitHold } = content.config.market;
+  const hold = Math.min(1, narcoticHabit(offer.analysis) / dearHabitHold);
+  const comfortable = c.profile.baseWillingnessCents * dearAbove * (1 + hold);
+  const price = offer.formula.priceCents;
+  if (price <= comfortable || dearElasticity <= 0) return 1;
+  return exp(dearElasticity * log(comfortable / price));
 }
 
 /**
@@ -353,6 +398,15 @@ export const salesPhase: Phase = {
             }
             break;
           }
+          // A dear bottle: the regular asks the price and makes the last one do this month (they
+          // are counted with the callers who asked the price and went away).
+          if (k === 0) {
+            const keep = dearness(c, offer, content);
+            if (keep < 1 && !rng.chance(keep)) {
+              state.month.turnedAwayByPrice += 1;
+              break;
+            }
+          }
           const premium = cravingPremiumCents(c, offer, content);
           const b = sell(offer, CAUSES.salesShop, premium);
           if (!b) break;
@@ -486,7 +540,12 @@ function walkIns(
       (1 + 0.2 * claims) *
       reputationFactor *
       memoryLoss(state, ward.conversionLoss);
-    if (relief > 0 && state.customers.length < capacity && rng.chance(Math.min(0.9, pConvert))) {
+    if (
+      relief > 0 &&
+      state.customers.length < capacity &&
+      wardHasRoomFor(state, content, segment.id, capacity) &&
+      rng.chance(Math.min(0.9, pConvert))
+    ) {
       const customer = generateCustomer(state, content, rng, segment, ailmentId);
       state.customers.push(customer);
       state.stats.customersJoined += 1;

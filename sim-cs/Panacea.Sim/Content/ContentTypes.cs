@@ -568,6 +568,11 @@ public sealed class WalkInsConfig
     public double WordPerHabit { get; init; }
     public double WordHabitFloor { get; init; }
     public double WordHabitCap { get; init; }
+    /// <summary>
+    /// The ward is so many households of each kind (by segment weight): a shop keeps at most
+    /// WardShareSlack × its capacity × the kind's share of the ward of any one kind. 0: no limit.
+    /// </summary>
+    public double WardShareSlack { get; init; }
 }
 
 public sealed class MarketConfig
@@ -610,6 +615,15 @@ public sealed class MarketConfig
     /// </summary>
     public double PriceHesitation { get; init; }
     public double HesitationMargin { get; init; }
+    /// <summary>
+    /// A regular makes the last bottle do when it costs more than they can comfortably spend on one,
+    /// DearAbove × their usual price (twice that for a bottle whose narcotics make a habit of
+    /// DearHabitHold or more): above it they buy that month with chance
+    /// (comfortable / price) ^ DearElasticity.
+    /// </summary>
+    public double DearAbove { get; init; }
+    public double DearElasticity { get; init; }
+    public double DearHabitHold { get; init; }
     /// <summary>
     /// Orders from away are filled after the regulars have had theirs, from at most this share of
     /// what is left on the shelf; the walk-ins get the rest.

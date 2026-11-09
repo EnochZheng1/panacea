@@ -1,5 +1,5 @@
 {
-  "contentVersion": "0.10.0",
+  "contentVersion": "0.11.0",
   "startDate": {
     "year": 1885,
     "month": 1
@@ -23,7 +23,8 @@
     "conversionChance": 0.14,
     "wordPerHabit": 3,
     "wordHabitFloor": 3.5,
-    "wordHabitCap": 8
+    "wordHabitCap": 8,
+    "wardShareSlack": 3
   },
   "maxRegulars": 30,
   "maxClaimsPerFormula": 4,
@@ -46,6 +47,9 @@
     "meansLostToHabit": 0.35,
     "priceHesitation": 0.65,
     "hesitationMargin": 0.3,
+    "dearAbove": 1.15,
+    "dearElasticity": 1.5,
+    "dearHabitHold": 3,
     "ordersShelfShare": 0.5
   },
   "advertising": {

@@ -84,6 +84,44 @@ public static class Market
     }
 
     /// <summary>
+    /// Whether the ward has households of this kind left to win (market.ts wardHasRoomFor, balance
+    /// pass 8). The ward is so many households of each kind, in the proportions of the segments'
+    /// weights; a shop can be the regular shop of at most WardShareSlack × its capacity × that kind's
+    /// share of them: a ward has only so many clerks, and fewer carriage folk.
+    /// </summary>
+    public static bool WardHasRoomFor(GameState state, ContentPack content, string segmentId, int capacity)
+    {
+        double slack = content.Config.WalkIns.WardShareSlack;
+        if (slack <= 0) return true;
+        double total = 0;
+        foreach (var seg in content.Segments) total = total + seg.Weight;
+        double share = (content.ById.Segments.TryGetValue(segmentId, out var s) ? s.Weight : 0) / total;
+        int have = 0;
+        foreach (var c in state.Customers) if (c.Segment == segmentId) have += 1;
+        return have < slack * capacity * share;
+    }
+
+    /// <summary>The habit a bottle's narcotics make: its opiates and its cocaine, not its spirits.</summary>
+    public static double NarcoticHabit(FormulaAnalysis a) =>
+        a.ByClass[DrugClasses.Opiate].Habit + a.ByClass[DrugClasses.Cocaine].Habit;
+
+    /// <summary>
+    /// The chance a regular buys this month at the shelf price rather than make the last bottle do
+    /// (market.ts dearness, balance pass 8): 1 up to DearAbove × their usual price, falling as
+    /// (comfortable / price) ^ DearElasticity above it. A bottle whose narcotics make a habit of
+    /// DearHabitHold or more is found the money for at up to twice the comfortable price.
+    /// </summary>
+    public static double Dearness(Customer c, Offer offer, ContentPack content)
+    {
+        var m = content.Config.Market;
+        double hold = Math.Min(1, NarcoticHabit(offer.Analysis) / m.DearHabitHold);
+        double comfortable = c.Profile.BaseWillingnessCents * m.DearAbove * (1 + hold);
+        double price = offer.Formula.PriceCents;
+        if (price <= comfortable || m.DearElasticity <= 0) return 1;
+        return DMath.Exp(m.DearElasticity * DMath.Log(comfortable / price));
+    }
+
+    /// <summary>
     /// What a regular can afford to spend in a month, in cents. A habit eats into it: a craving
     /// regular loses work and wages to the bottle, so the more dependent they are, the less they have.
     /// </summary>
@@ -280,6 +318,16 @@ public static class Market
                         if (k == 0 && TurnedAwayByPrice(state, offers, CustomerAsBuyer(c), content))
                             state.Month.TurnedAwayByPrice += 1;
                         break;
+                    }
+                    // A dear bottle: the regular asks the price and makes the last one do this month.
+                    if (k == 0)
+                    {
+                        double keep = Dearness(c, offer, content);
+                        if (keep < 1 && !rng.Chance(keep))
+                        {
+                            state.Month.TurnedAwayByPrice += 1;
+                            break;
+                        }
                     }
                     long premium = CravingPremiumCents(c, offer, content);
                     var b = Sell(offer, Causes.SalesShop, premium);
@@ -499,7 +547,8 @@ public static class Market
             double reputationFactor = 0.5 + state.Player.Reputation / 50;
             double pConvert = cfg.ConversionChance * (1 + 0.2 * claims) * reputationFactor *
                 WardSystem.MemoryLoss(state, content.Config.Ward.ConversionLoss);
-            if (relief > 0 && state.Customers.Count < capacity && rng.Chance(Math.Min(0.9, pConvert)))
+            if (relief > 0 && state.Customers.Count < capacity &&
+                WardHasRoomFor(state, content, segment.Id, capacity) && rng.Chance(Math.Min(0.9, pConvert)))
             {
                 var customer = CustomersSystem.GenerateCustomer(state, content, rng, segment, ailmentId);
                 state.Customers.Add(customer);

@@ -63,13 +63,15 @@ public class GameTests
     [Fact]
     public void EmbeddedContentLoads()
     {
-        Assert.Equal("0.10.0", C.Config.ContentVersion);
+        Assert.Equal("0.11.0", C.Config.ContentVersion);
         Assert.Equal(17, C.Ingredients.Count);
         Assert.Equal(3, C.Processes.Count);
         Assert.Equal(9, C.Unlocks.Count);
         Assert.Equal(48, C.Config.StillBottles);
         Assert.Equal(0.12, C.Config.Ward.MemoryDecay);
         Assert.Equal(1, C.Config.Market.CravingPremium);
+        Assert.Equal(1.15, C.Config.Market.DearAbove);
+        Assert.Equal(3, C.Config.WalkIns.WardShareSlack);
         Assert.Equal(176, C.Events.Count);
         Assert.Equal(8, C.Timeline.Count);
         Assert.Equal(12, C.Regulars.Count);

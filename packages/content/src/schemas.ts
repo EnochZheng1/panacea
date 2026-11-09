@@ -461,6 +461,12 @@ export const ConfigSchema = z.strictObject({
     wordPerHabit: z.number().min(0),
     wordHabitFloor: z.number().min(0),
     wordHabitCap: z.number().min(0),
+    /**
+     * The ward is so many households of each kind: a stranger becomes a regular only while the shop
+     * has fewer than wardShareSlack × its capacity × the kind's share of the ward (by segment
+     * weight) regulars of that kind. 0: no limit.
+     */
+    wardShareSlack: z.number().min(0),
   }),
   market: z.strictObject({
     /**
@@ -515,6 +521,16 @@ export const ConfigSchema = z.strictObject({
      */
     priceHesitation: z.number().min(0).max(1),
     hesitationMargin: z.number().positive(),
+    /**
+     * A regular makes the last bottle do when the price is past what they can comfortably spend on
+     * one, dearAbove × their usual price: they buy that month with chance
+     * (comfortable price / price) ^ dearElasticity (1 at or below it). Spirits are sold in every
+     * saloon, a narcotic is not: the comfortable price is multiplied by 1 + min(1, the habit the
+     * bottle's opiates and cocaine make / dearHabitHold).
+     */
+    dearAbove: z.number().positive(),
+    dearElasticity: z.number().min(0),
+    dearHabitHold: z.number().positive(),
     /**
      * Orders from away (druggists, the post) are filled after the regulars have had theirs, from
      * at most this share of what is left on the shelf; the walk-ins get the rest.

@@ -110,7 +110,9 @@ export interface MonthInProgress {
   complaints: number;
   /**
    * Callers who asked the price and left: walk-ins, and regulars who came in for their first
-   * bottle, for whom some bottle on the shelf appealed but every one cost more than they would pay.
+   * bottle, for whom some bottle on the shelf appealed but every one cost more than they would pay;
+   * and regulars who found the bottle dearer than they could comfortably spend and made the last
+   * one do (see `dearness`).
    */
   turnedAwayByPrice: number;
   /**

@@ -93,6 +93,8 @@ public partial class ProofView : Control
 	private int _seenStills, _seenOffers;
 	/// <summary>Whom Death stands beside at the counter this month, if anyone.</summary>
 	private string? _deathBeside;
+	/// <summary>The regular Death stands beside, for the warning that says why.</summary>
+	private Regular? _deathRegular;
 
 	/// <summary>
 	/// The keyboard never stands nowhere: when an action takes away the focused control (the fire
@@ -221,7 +223,15 @@ public partial class ProofView : Control
 		var unansweredInquests = m.Letters.Count(l => l.Title.StartsWith("Inquest", StringComparison.Ordinal));
 		if (unansweredInquests > 0) warn.Add($"{Spell(unansweredInquests)} inquest{(unansweredInquests == 1 ? "" : "s")} unanswered: the coroner will proceed without you.");
 		else if (m.Letters.Count > 0) warn.Add($"{Spell(m.Letters.Count)} letter{(m.Letters.Count == 1 ? "" : "s")} unanswered: the usual reply will go out for you.");
-		if (_deathBeside != null) warn.Add($"Death waits at the counter beside {_deathBeside}.");
+		if (_deathRegular is { } dr)
+		{
+			// say why he stands there: what the frail customer looks like and how much they take
+			var how = dr.Looks == "gravely_ill" ? "gravely ill" : "poorly";
+			var took = dr.BottlesLastMonth > 0 ? $", {Spell(dr.BottlesLastMonth).ToLowerInvariant()} bottle{(dr.BottlesLastMonth == 1 ? "" : "s")} last month" : "";
+			var habit = dr.Withdrawal ? ", in want of the bottle" : dr.Craving ? ", craving it" : "";
+			var opiate = m.Formulas.Any(f => f.Components.Any(c => c.Ounces > 0 && m.Ingredients.FirstOrDefault(i => i.Id == c.IngredientId)?.DrugClass is "opiate" or "cocaine"));
+			warn.Add($"Death waits beside {dr.Name}: {how}{took}{habit}. {(opiate ? "Each strong bottle a frail customer takes may be the last; a milder recipe is safer." : "Frail customers die of their ailments and of age as well; the assay's danger says how much the bottle adds.")}");
+		}
 		var nothing = m.Formulas.Sum(f => f.Stock) == 0 && m.Brewing.Count == 0;
 		// the first month: say where to begin, in so many words
 		if (m.Formulas.Count == 0) warn.Add("Begin with the FORMULA book: pour a remedy and enter it. Then light THE STILL, and send the paper to press.");
@@ -404,6 +414,7 @@ public partial class ProofView : Control
 		// he stands beside the gravest case shown, and the warning names the same customer
 		var atRisk = shown.FirstOrDefault(r => r.Looks is "gravely_ill") ?? shown.FirstOrDefault(r => r.Looks is "poorly");
 		_deathBeside = atRisk?.Name;
+		_deathRegular = atRisk;
 		DeathPresent = atRisk != null;
 		var others = m.Regulars.Count - shown.Count;
 		var more = Print.Label(others > 0 ? $"and {Spell(others)} more regular{(others == 1 ? "" : "s")}" : m.Regulars.Count == 0 ? "No one has come in yet." : "", Print.FellIt, 13);
@@ -698,6 +709,18 @@ public partial class ProofView : Control
 		var brewing = m.Brewing.Sum(b => b.Bottles);
 		left.AddChild(Print.Label($"{stock} bottle{(stock == 1 ? "" : "s")} on the shelf", Print.Fell, 14));
 		left.AddChild(Print.Label(brewing > 0 ? $"{brewing} brewing" : m.StillsFree > 0 ? "the still is cold" : "the still is busy", Print.FellIt, 13));
+		// the regulars' health at a glance: where the next deaths will come from
+		var frail = new List<string>();
+		var grave = m.Regulars.Count(r => r.Looks == "gravely_ill");
+		var poorly = m.Regulars.Count(r => r.Looks == "poorly");
+		var craving = m.Regulars.Count(r => r.Craving || r.Withdrawal);
+		if (grave > 0) frail.Add($"{grave} gravely ill");
+		if (poorly > 0) frail.Add($"{poorly} poorly");
+		if (craving > 0) frail.Add($"{craving} craving");
+		var health = Print.Label(frail.Count > 0 ? string.Join(" · ", frail) : "the regulars look well", Print.FellIt, 13);
+		health.TooltipText = "How the regulars look across the counter. The gravely ill and the poorly are the ones who die: of their ailments, of age, or of a strong bottle taken once too often. Craving regulars take more bottles each month, and each one is another chance.";
+		health.MouseFilter = MouseFilterEnum.Pass;
+		left.AddChild(health);
 		grid.AddChild(left);
 		var books = new VBoxContainer();
 		books.AddThemeConstantOverride("separation", -2);

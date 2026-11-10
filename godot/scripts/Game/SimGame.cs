@@ -271,11 +271,8 @@ public sealed class SimGame : IGame
 			if (e.EventId == "grateful_letter")
 			{
 				// "I am a new woman": a Mrs. whose remedy is for herself, not for a teething infant
-				_gratefulWriter ??= o.Customers.FirstOrDefault(c => c.Name.StartsWith("Mrs.", StringComparison.Ordinal) && c.Consumer != "infant" && c.Mood == "delighted")?.Id
-					?? o.Customers.FirstOrDefault(c => c.Name.StartsWith("Mrs.", StringComparison.Ordinal) && c.Consumer != "infant")?.Id
-					?? o.Customers.FirstOrDefault(c => c.Name.StartsWith("Mrs.", StringComparison.Ordinal) && c.Mood == "delighted")?.Id
-					?? o.Customers.FirstOrDefault(c => c.Name.StartsWith("Mrs.", StringComparison.Ordinal))?.Id;
-				letter.From = o.Customers.FirstOrDefault(c => c.Id == _gratefulWriter)?.Name;
+				ChooseGratefulWriter(o);
+				letter.From = _gratefulPerson?.Name;
 			}
 			// the jury's odds, as the sim will roll them the moment the reply is sent
 			var record = e.DeathId == null ? null : _state.Deaths.Find(x => x.Id == e.DeathId);
@@ -418,6 +415,9 @@ public sealed class SimGame : IGame
 	private PaperFacts BuildFacts(LedgerEntry? report)
 	{
 		var o = Machine.Observe(_state, _content);
+		// a grateful letter's writer is chosen the month it arrives, before the reader sees it, so
+		// the letter, the testimonial and a replayed save all carry the same name
+		if (o.PendingEvents.Any(e => e.EventId == "grateful_letter")) ChooseGratefulWriter(o);
 		// the edition reports the month just closed; the first edition, the day the shop opened
 		var date = report?.Date ?? o.Date;
 		var f = new PaperFacts
@@ -475,11 +475,18 @@ public sealed class SimGame : IGame
 		{
 			f.CashStartCents = report.CashStartCents;
 			f.TurnedAwayByPrice = report.TurnedAwayByPrice;
-			// money laid out rather than lost to trade: ventures, a letter's price (the lease), bribes
+			// money laid out rather than lost to trade: ventures (a letter's outlay is booked as one), bribes, retainers; not trade given up to answer a letter
 			f.InvestedCents = -(long)Math.Round(report.Deltas.Where(x => x.Metric == "cash" && x.Amount < 0
-				&& x.Cause is "expense.investment" or "event" or "expense.bribe" or "expense.retainer").Sum(x => x.Amount));
+				&& x.Cause is "expense.investment" or "expense.bribe" or "expense.retainer").Sum(x => x.Amount));
 			foreach (var g in report.Deltas.Where(x => x.Metric == "cash").GroupBy(x => x.Cause))
+			{
 				f.CashLines.Add((_content.Text($"cause.{g.Key}"), (long)Math.Round(g.Sum(x => x.Amount))));
+				f.CashCauses.Add((g.Key, (long)Math.Round(g.Sum(x => x.Amount))));
+			}
+			// last month's takings, from the books, so the paper can tell a flat till from a quiet month
+			var prior = _state.Ledger.Count >= 2 ? _state.Ledger[^2] : null;
+			if (prior != null && prior.Turn == report.Turn - 1)
+				f.TakingsLastMonthCents = prior.Deltas.Where(x => x.Metric == "cash").GroupBy(x => x.Cause).Select(g => (long)Math.Round(g.Sum(x => x.Amount))).Where(x => x > 0).Sum();
 			foreach (var g in report.Deltas.Where(x => x.Metric == "heat").GroupBy(x => x.Cause))
 				f.HeatLines.Add((_content.Text($"cause.{g.Key}"), g.Sum(x => x.Amount)));
 		}
@@ -532,11 +539,14 @@ public sealed class SimGame : IGame
 		if (!_testimonialPrinted && _state.Player.Flags.TryGetValue("testimonial_received", out var printed) && printed && report != null)
 		{
 			_testimonialPrinted = true;
-			var writer = o.Customers.FirstOrDefault(c => c.Id == _gratefulWriter)
-				?? o.Customers.FirstOrDefault(c => c.Mood == "delighted" && c.Consumer != "infant" && c.Name.StartsWith("Mrs.", StringComparison.Ordinal))
-				?? o.Customers.FirstOrDefault(c => c.Mood == "delighted" && c.Name.StartsWith("Mrs.", StringComparison.Ordinal))
-				?? o.Customers.FirstOrDefault(c => IsFemale(c.Name)) ?? o.Customers.FirstOrDefault();
-			if (writer != null) f.Testimonial = Person(writer);
+			// the name under the testimonial is the name the letter was signed with, whether or not
+			// she still buys at the shop; only a letter nobody signed falls back on a regular
+			var still = o.Customers.FirstOrDefault(c => c.Id == _gratefulWriter);
+			if (still != null) f.Testimonial = Person(still);
+			else if (_gratefulPerson != null) f.Testimonial = _gratefulPerson;
+			else if ((o.Customers.FirstOrDefault(c => c.Mood == "delighted" && c.Consumer != "infant" && c.Name.StartsWith("Mrs.", StringComparison.Ordinal))
+				?? o.Customers.FirstOrDefault(c => IsFemale(c.Name) && c.Consumer != "infant") ?? o.Customers.FirstOrDefault()) is { } anyone)
+				f.Testimonial = Person(anyone);
 		}
 
 		if (report == null)
@@ -643,20 +653,46 @@ public sealed class SimGame : IGame
 		LastSeen = Describe(new Regular { Looks = c.Looks, Mood = c.Mood, Craving = c.Craving, Withdrawal = c.Withdrawal }),
 	};
 
-	private PersonFact Person(ObservedDeath d) => Remembered(new PersonFact
+	private PersonFact Person(ObservedDeath d)
 	{
-		Id = d.Id,
-		Name = d.Name,
-		Segment = d.Segment,
-		Infant = d.Consumer == "infant",
-		Anonymous = d.Anonymous,
-		// the wholesale druggists' strangers die out of town, with no bottle of the shop's to name
-		OutOfTown = d.Anonymous && d.FormulaId == null,
-		Female = IsFemale(d.Name),
-		Cause = d.ReportedCause,
-		Product = d.FormulaId == null ? null : _state.Lab.Formulas.Find(x => x.Id == d.FormulaId)?.Name,
-		Ailment = d.Ailment != null ? _content.Text($"ailment.{d.Ailment}.name") : "",
-	});
+		var p = Remembered(new PersonFact
+		{
+			Id = d.Id,
+			Name = d.Name,
+			Segment = d.Segment,
+			Infant = d.Consumer == "infant",
+			Anonymous = d.Anonymous,
+			// the wholesale druggists' strangers die out of town, with no bottle of the shop's to name
+			OutOfTown = d.Anonymous && d.FormulaId == null,
+			Female = IsFemale(d.Name),
+			Cause = d.ReportedCause,
+			Product = d.FormulaId == null ? null : _state.Lab.Formulas.Find(x => x.Id == d.FormulaId)?.Name,
+			Ailment = d.Ailment != null ? _content.Text($"ailment.{d.Ailment}.name") : "",
+		});
+		// an inquest decided on when the death happened waits in the letters: the paper says so,
+		// rather than an ominous "Yet." over every death
+		p.InquestPending = Machine.Observe(_state, _content).PendingEvents.Any(e => e.EventId == "inquest" && e.DeathId == d.Id);
+		return p;
+	}
+
+	/// <summary>
+	/// A grateful letter is written by a married customer of the shop, chosen once ("I am a new
+	/// woman": a Mrs. whose remedy is for herself, not for a teething infant), and remembered as she
+	/// was when she wrote it, so the testimonial names her even if she has since left the shop.
+	/// </summary>
+	private void ChooseGratefulWriter(Observation o)
+	{
+		if (_gratefulWriter != null) return;
+		var writer = o.Customers.FirstOrDefault(c => c.Name.StartsWith("Mrs.", StringComparison.Ordinal) && c.Consumer != "infant" && c.Mood == "delighted")
+			?? o.Customers.FirstOrDefault(c => c.Name.StartsWith("Mrs.", StringComparison.Ordinal) && c.Consumer != "infant")
+			?? o.Customers.FirstOrDefault(c => c.Name.StartsWith("Mrs.", StringComparison.Ordinal) && c.Mood == "delighted")
+			?? o.Customers.FirstOrDefault(c => c.Name.StartsWith("Mrs.", StringComparison.Ordinal));
+		if (writer == null) return;
+		_gratefulWriter = writer.Id;
+		_gratefulPerson = Person(writer);
+	}
+
+	private PersonFact? _gratefulPerson;
 
 	private static bool IsFemale(string name) => name.StartsWith("Mrs.") || name.StartsWith("Miss") || name.StartsWith("Widow") || name.StartsWith("Mother");
 }

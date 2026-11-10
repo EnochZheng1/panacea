@@ -56,7 +56,9 @@ public sealed partial class EditionWriter
         {
             var k = r.GetProperty(kind);
             var form = Pick(f, "routine." + kind + ".form", k.GetProperty("forms"), RoutineCond(f));
-            var tail = k.TryGetProperty("tails", out var tails) ? Pick(f, "routine." + kind + ".tail", tails, RoutineCond(f)) : "";
+            // the Gazette's remark closes the item only if it has not been made in two years: a
+            // plain item is better than a joke told twice
+            var tail = k.TryGetProperty("tails", out var tails) ? PickRested(f, "routine." + kind + ".tail", tails, RoutineCond(f)) ?? "" : "";
             var all = new Dictionary<string, string>(given ?? new Dictionary<string, string>()) { ["tail"] = Slots(f, "routine." + kind + ".t", tail, k, given) };
             return Slots(f, "routine." + kind, form, k, all).Replace("  ", " ").Trim();
         }
@@ -91,9 +93,19 @@ public sealed partial class EditionWriter
         var female = Roll(f, "pc.sex", 0, 3) == 0;
         var pc = r.GetProperty("police");
         var judge = f.Year >= 1895 ? "the Magistrate" : "the Justice";
+        // a given name and a surname from the same parish: the names come in families
+        var families = OfYear(pc.GetProperty("names"), f)
+            .SelectMany(x => Enumerable.Repeat(x, x.TryGetProperty("weight", out var w) ? w.GetInt32() : 1)).ToList();
+        var family = families[Roll(f, "pc.family", 0, families.Count - 1)];
+        var origin = S(family, "origin");
         list.Add(Item("police", new Dictionary<string, string>
         {
-            ["given"] = Pick(f, "routine.police.given" + (female ? "f" : "m"), pc.GetProperty(female ? "givenFemale" : "givenMale")),
+            ["given"] = Pick(f, "routine.police.given." + origin + (female ? "f" : "m"), family.GetProperty(female ? "female" : "male")),
+            ["surname"] = Pick(f, "routine.police.surname." + origin, family.GetProperty("surnames")),
+            // the spouse in the dock's story, and what the prisoner was before the bottle
+            ["spouse"] = female ? "husband" : "wife",
+            ["spouseObject"] = female ? "him" : "her",
+            ["man"] = female ? "woman" : "man",
             ["trade"] = Pick(f, "routine.police.trade" + (female ? "f" : "m"), pc.GetProperty(female ? "tradesFemale" : "tradesMale")),
             ["age"] = Roll(f, "pc.age", 19, 63).ToString(CultureInfo.InvariantCulture),
             ["judge"] = judge,
@@ -137,9 +149,8 @@ public sealed partial class EditionWriter
         // the week's deaths, as the Health Department gives them: the city grows, and in 1898
         // takes in Brooklyn; the summer kills the infants
         {
-            var basis = f.Year < 1898 ? 640 + years * 10 : 1180 + (f.Year - 1898) * 30;
-            var season = f.Month is 6 or 7 or 8 ? 1.35 : f.Month is 1 or 2 or 3 ? 1.12 : 1.0;
-            var n = (int)(basis * season * (0.92 + Roll(f, "mort", 0, 16) / 100.0));
+            // (the same figure THE MARKETS prices the coffins by)
+            var (n, _) = CityDeaths(f);
             var under5 = (int)(n * ((f.Month is 6 or 7 or 8 ? 0.46 : 0.36) - years * 0.003));
             var consumption = (int)(n * (0.11 + Roll(f, "mort.c", 0, 3) / 100.0));
             extra.Add(Item("mortality", new Dictionary<string, string>

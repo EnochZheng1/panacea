@@ -74,6 +74,10 @@ public sealed class PaperFacts
     /// <summary>Inquests whose bought verdict came out this month.</summary>
     public List<PersonFact> Exposed = new();
     public List<(string Label, long Cents)> CashLines = new();
+    /// <summary>The same lines by the ledger's cause ("expense.upkeep", "event"), so the paper can say where the money went.</summary>
+    public List<(string Cause, long Cents)> CashCauses = new();
+    /// <summary>What the counter, the post and the trade took the month before (null in the first months).</summary>
+    public long? TakingsLastMonthCents;
     public List<(string Label, double Amount)> HeatLines = new();
 
     /// <summary>Investments bought, run out, lost or burned this month: change is bought, lapsed, lost or mishap.</summary>
@@ -138,6 +142,8 @@ public sealed class PersonFact
     public string? Product;
     /// <summary>Asking for the remedy by name, or shaking for want of it, when last seen.</summary>
     public bool Craving;
+    /// <summary>For the dead: an inquest was called on the death and waits in the letters.</summary>
+    public bool InquestPending;
 }
 
 public sealed record InquestFact(PersonFact Person, string Outcome, string Verdict, string? Product);

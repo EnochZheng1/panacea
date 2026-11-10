@@ -9,18 +9,130 @@
     "yearly": "$4.00 A YEAR."
   },
   "weather": {
-    "1": ["Snow, with general coughing.", "Bitter cold. Consumptives advised to lay in a supply."],
-    "2": ["Sleet. Rheumatics complain.", "Fog. Good for business."],
-    "3": ["Raw winds. Coughs plentiful.", "Thaw, then otherwise."],
-    "4": ["Showers. Spirits low.", "Mild. The well recover, regrettably."],
-    "5": ["Fair. Melancholy general among the unemployed.", "Warm. Flies."],
-    "6": ["Close and damp. Dyspepsia prevalent.", "Hot. Nerves frayed in the tenements."],
-    "7": ["Heat. Cholera feared.", "Stifling. Infants fretful."],
-    "8": ["Heat continues. Infants very fretful.", "Thunder. Sleeplessness general."],
-    "9": ["Cooler. Catarrh returns with the children to school.", "Fair to middling."],
-    "10": ["Fog, with coughing.", "Damp. Neuralgia reported in Hester Street."],
-    "11": ["Raw. Coughs ripening nicely.", "Cold rain. Pine coffins advance."],
-    "12": ["Snow. Goodwill toward men, and toward the trade.", "Bitter. A good month for tonics."]
+    "1": [
+      "Snow, with general coughing.",
+      "Bitter cold. Consumptives advised to lay in a supply.",
+      "Hard frost. The ward's chests are tight, and so are its pockets.",
+      "Sleet. The cough remedies outsell the coal.",
+      {
+        "text": "Cold wave. Pine coffins advance.",
+        "if": "coffins_up"
+      },
+      "Clear and bitter. The pumps are frozen, the bitters are not.",
+      "Thaw, then freeze. Ankles broken, liniments sold."
+    ],
+    "2": [
+      "Sleet. Rheumatics complain.",
+      "Fog. Good for business.",
+      "Snow on snow. The streets uncleaned, the chests unsound.",
+      "Raw and grey. The almanacs burn well.",
+      {
+        "text": "Hard weather. Pine coffins advance.",
+        "if": "coffins_up"
+      },
+      "Slush to the ankle. Chilblains general."
+    ],
+    "3": [
+      "Raw winds. Coughs plentiful.",
+      "Thaw, then otherwise.",
+      "March winds. Hats lost, colds found.",
+      "Rain and mud. The spring tonics in the windows, the same as last year's.",
+      "Blustery. Bonnets airborne; physicians grounded.",
+      {
+        "text": "Late snow. Pine coffins advance.",
+        "if": "coffins_up"
+      }
+    ],
+    "4": [
+      "Showers. Spirits low.",
+      "Mild. The well recover, regrettably.",
+      "Fair, then fickle. Spring fever reported, and bottled.",
+      "Rain. Moving Day approaches; backs are being reserved.",
+      "Warmer. The overcoats to the pawnshop, the coughs left behind.",
+      "Damp. Rheumatism in the knees of the ward, and liniment in the windows."
+    ],
+    "5": [
+      "Fair. A good week for the lecturers on remedies, who lecture out of doors.",
+      "Warm. Flies.",
+      "Moving Day past. Backs strained, liniments sold.",
+      "Fine and warm. The soda fountains open, and so do the druggists' hearts.",
+      "Showers. The umbrella-menders and the cough-mixers both content.",
+      "Close. Spring tonics marked down, summer tonics marked up."
+    ],
+    "6": [
+      "Close and damp. Dyspepsia prevalent.",
+      "Hot. Nerves frayed in the tenements.",
+      "Sultry. The milk turns, and the syrups sell.",
+      "Thunder in the afternoons. Sleep scarce; sleeping drops plentiful.",
+      "Hot nights. The roofs full, the druggists open late.",
+      {
+        "text": "Heat. Pine coffins advance.",
+        "if": "coffins_up"
+      }
+    ],
+    "7": [
+      "Heat. Cholera feared.",
+      "Stifling. Infants fretful.",
+      "Fierce heat. The ice dear, the bitters cheap.",
+      "Hot and still. The Health Department posts cards; the druggists post bills.",
+      {
+        "text": "Heat unbroken. Pine coffins advance.",
+        "if": "coffins_up"
+      },
+      "Thunder, then steam. The ward sleeps on the fire-escapes."
+    ],
+    "8": [
+      "Heat continues. Infants very fretful.",
+      "Thunder. Sleeplessness general.",
+      "Dog days. The ward sweats; the druggist sweats less.",
+      "Close and wet. Summer complaint about, and summer cordials also.",
+      {
+        "text": "Dog days. Pine coffins advance.",
+        "if": "coffins_up"
+      },
+      "Cooler at night. The roofs empty; the cordials do not."
+    ],
+    "9": [
+      "Cooler. Catarrh returns with the children to school.",
+      "Fair to middling.",
+      "Equinoctial gales. Umbrellas turned, and stomachs.",
+      "Pleasant. Nothing to blame on the weather; the proprietors at a loss.",
+      "Fogs on the rivers. Coughs on the ferries.",
+      "Mild. The oysters back, and the dyspepsia with them."
+    ],
+    "10": [
+      "Fog, with coughing.",
+      "Damp. Neuralgia reported in Hester Street.",
+      "First frost. The cough remedies come up from the cellar.",
+      "Fair and crisp. The coal dealers grow cheerful.",
+      "Wet leaves, wet feet. Colds in the head, remedies in the window.",
+      {
+        "text": "Raw. Pine coffins advance.",
+        "if": "coffins_up"
+      }
+    ],
+    "11": [
+      "Raw. Coughs ripening nicely.",
+      {
+        "text": "Cold rain. Pine coffins advance.",
+        "if": "coffins_up"
+      },
+      "Cold rain. Overshoes and cough syrups in demand.",
+      "Grey and bitter. Coal up, spirits down.",
+      "First snow. The ward coughs in chorus.",
+      "Wind from the northwest. The chest protectors in the windows."
+    ],
+    "12": [
+      "Snow. Goodwill toward men, and toward the trade.",
+      "Bitter. A good month for tonics.",
+      "Slush. The holiday parcels wet, the holiday colds general.",
+      {
+        "text": "Cold snap. Pine coffins advance.",
+        "if": "coffins_up"
+      },
+      "Snow and wind. The skating good, the sprains better.",
+      "Hard frost. The coal dear, the cordials dearer."
+    ]
   },
   "streets": [
     "Mulberry street",
@@ -107,7 +219,7 @@
     },
     {
       "text": "{surname}.—{name}, {occupation}, of {street}, aged {age} years, after an illness the physicians could not account for, and did not try to.",
-      "if": "risky"
+      "if": ["risky", "!blameless"]
     }
   ],
   "deathInfant": [
@@ -183,7 +295,10 @@
     "THE COUNTER.—{name}, {occupation}, asked the proprietor on {weekday} whether {product} would do anything for {ailment}. The proprietor said it would do something for anything.",
     "{name}, of {street}, has started upon {product} for {ailment}, having been told by a physician that nothing could be done, and preferring to be told otherwise.",
     "{name}, {occupation}, of {street}, has begun upon {product} for {ailment}, on the strength of the bottle's color, which {pronoun} says looks medicinal.",
-    "{name} has been added to the callers at the shop on Mulberry street, having walked from {street} with {ailment} on a wet {weekday}, which {pronoun} considers proof of need.",
+    {
+      "text": "{name} has been added to the callers at the shop on Mulberry street, having walked from {street} with {ailment} on a wet {weekday}, which {pronoun} considers proof of need.",
+      "if": "away"
+    },
     "{name}, {occupation}, came in for {ailment} on {weekday} and was given a chair while the bottle was wrapped. {pronounCap} says the chair alone did some good."
   ],
   "leftRecovered": [
@@ -225,7 +340,7 @@
     "{name}, {occupation}, will be at home for some time, the family being in mourning."
   ],
   "badBatch": [
-    "{place_upper}.—{bottles} bottles of {product} came out wrong this month, and the taster poured them away before they reached the shelf. About {cost} went into the gutter of {street}, which is said to be unusually cheerful.",
+    "{place_upper}.—{bottles} bottles of {product} came out wrong this month, and the taster poured them away before they reached the shelf. About {cost} went into the gutter of Mulberry street, which is said to be unusually cheerful.",
     "{place_upper}.—The proprietor's taster found a batch of {product} spoiled, and {bottles} bottles were poured away: some {cost} in drugs and glass. The proprietor says the taster earned his wages this month, and wishes he had not.",
     "{place_upper}.—A batch of {product} came off the still wrong, and {bottles} bottles went down the drain, about {cost} of stock. The ward's cats, which drank from the gutter, are being watched.",
     "{place_upper}.—{bottles} bottles of {product} were found spoiled at the tasting and poured away, a loss of about {cost}. The proprietor blames the weather, the copper and the cork, and has kept the taster."
@@ -264,15 +379,24 @@
         "A Grateful Customer.",
         "From the Sixth Ward.",
         "A Case in Point.",
-        "Good News for Sufferers."
+        "Good News for Sufferers.",
+        "A Neighbor Speaks.",
+        "Well Again.",
+        "Another Case.",
+        "Read and Believe.",
+        "A True Account.",
+        "From the Lower Wards."
       ],
       [
-        "{name}, OF {street_upper}, RESTORED BY {product_upper}.",
-        "{name}, OF {street_upper}, SPEAKS OF {product_upper}.",
+        "{name_upper}, OF {street_upper}, RESTORED BY {product_upper}.",
+        "{name_upper}, OF {street_upper}, SPEAKS OF {product_upper}.",
         "A RESIDENT OF {street_upper} OWES ALL TO {product_upper}.",
-        "{name}, OF {street_upper}, TELLS WHAT {product_upper} DID.",
-        "THE CASE OF {name}, OF {street_upper}, AND {product_upper}.",
-        "{name}, OF {street_upper}, ADVISES A TRIAL OF {product_upper}."
+        "{name_upper}, OF {street_upper}, TELLS WHAT {product_upper} DID.",
+        "THE CASE OF {name_upper}, OF {street_upper}, AND {product_upper}.",
+        "{name_upper}, OF {street_upper}, ADVISES A TRIAL OF {product_upper}.",
+        "{name_upper}, OF {street_upper}, WILL SAY SO TO ANYONE.",
+        "{name_upper}, OF {street_upper}, GIVES THE CREDIT TO {product_upper}.",
+        "WHAT {name_upper}, OF {street_upper}, SAYS OF {product_upper}."
       ],
       [
         "The Neighbors Astonished.",
@@ -280,7 +404,13 @@
         "Others May Profit by the Example.",
         "Sold on Mulberry Street.",
         "The Proprietor Not Surprised.",
-        "Another Grateful Customer."
+        "Another Grateful Customer.",
+        "The Doctors Confounded.",
+        "No Charge for Reading.",
+        "The Ward May See for Itself.",
+        "Other Bottles Disappoint.",
+        "The Label Explains.",
+        "The Price Is Moderate."
       ]
     ],
     "bodies": [
@@ -300,7 +430,18 @@
         "text": "\"It goes straight to the spot,\" says {name}, {occupation}, of {product}, and declines to say which spot, but buys another bottle. For {ailment}, and much besides. {price} the bottle.—Adv.",
         "if": "drug"
       },
-      "{name}, of {street}, wishes the afflicted of the ward to know that {product} has done for {object} what three doctors could not, and at a third of the price of one. On sale at the shop on Mulberry street, {price}.—Adv."
+      "{name}, of {street}, wishes the afflicted of the ward to know that {product} has done for {object} what three doctors could not, and at a third of the price of one. On sale at the shop on Mulberry street, {price}.—Adv.",
+      "{name}, of {street}, had given up hope of {ailment} when a bottle of {product} was left at {possessive} door by a friend. \"I took it to oblige the friend,\" {pronoun} says, \"and I have been obliging him since.\" {price} the bottle, on Mulberry street.—Adv.",
+      "{name}, {occupation}, asks the Gazette to print that {product} has done what nothing else would for {ailment}. The Gazette has printed it, at the usual rate. On sale at the shop on Mulberry street, {price}.—Adv.",
+      "\"My neighbors did not know me,\" says {name} of {street}, of the change {product} made in {object}. The neighbors confirm it, and some of them have moved. {price} the bottle.—Adv.",
+      "{name}, who had suffered from {ailment} since the winter, began on {product} on a Tuesday and was at work, {pronoun} says, by the Thursday, which {possessive} employer confirms was a surprise. {price}, on Mulberry street.—Adv.",
+      "For {ailment}, {name} of {street} tried the dispensary, the doctor and the priest, in that order, and then {product}, which {pronoun} says should have come first. {price} the bottle.—Adv.",
+      "{name}, {occupation}, writes that {product} is the only remedy {pronoun} has ever finished. \"The others,\" {pronoun} says, \"I lost patience with.\" {price}, at the shop on Mulberry street.—Adv.",
+      {
+        "text": "{name} of {street} takes {product} morning and evening, and at noon when {pronoun} remembers, which {pronoun} says is always. For {ailment}. {price} the bottle.—Adv.",
+        "if": "habit"
+      },
+      "{name}, of {street}, was carried to the shop on Mulberry street and walked home, {pronoun} says, though the neighbors who carried {object} say it was the other way about. {price}.—Adv."
     ],
     "fallbackBody": [
       "{product} is purely vegetable, contains nothing injurious, and is recommended for infants, invalids and the aged. Sold at the shop on Mulberry street, {price} the bottle.—Adv.",
@@ -310,7 +451,13 @@
       "Thousands in the city take {product} and would take nothing else. Ask at the shop on Mulberry street for the pamphlet, and for a bottle. {price}.—Adv.",
       "Why suffer? {product} is prepared by a proprietor who has made a study of the complaints of the ward, and has a remedy for every one of them. {price} the bottle, on Mulberry street.—Adv.",
       "{product} is made fresh every month on the premises, from drugs of the first quality, and bottled under the proprietor's own eye. {price}. None genuine without the label.—Adv.",
-      "A single bottle of {product} will convince the most doubtful. Several of the most doubtful have bought a second. Sold at the shop on Mulberry street, {price}.—Adv."
+      "A single bottle of {product} will convince the most doubtful. Several of the most doubtful have bought a second. Sold at the shop on Mulberry street, {price}.—Adv.",
+      "{product} is sold only at the shop on Mulberry street, and the shop on Mulberry street is sold only on {product}. {price} the bottle.—Adv.",
+      "Doctors disagree; {product} does not. For every complaint, at every season, {price} the bottle, on Mulberry street.—Adv.",
+      "The proprietor of {product} will be glad to explain its action to anyone who calls, and to sell a bottle to anyone who does not understand the explanation. {price}.—Adv.",
+      "No home should be without {product}, and few in the ward now are. {price} the bottle, at the shop on Mulberry street.—Adv.",
+      "{product}, the remedy the ward asks for by name. Beware of imitations, which are cheaper. {price} the bottle.—Adv.",
+      "Prepared to a formula known only to the proprietor, who will not part with it, {product} is sold at {price} the bottle, on Mulberry street.—Adv."
     ],
     "headlines": [
       "{claim}!",
@@ -321,7 +468,53 @@
       "NEVER FELT BETTER!",
       "A REMARKABLE CURE",
       "WHAT {product_upper} DID",
-      "THE WARD ASTONISHED"
+      "THE WARD ASTONISHED",
+      {
+        "text": "{claim}, A NEIGHBOR SAYS",
+        "if": "claim"
+      },
+      {
+        "text": "{claim}: A CASE ON {street_upper}",
+        "if": ["claim", "subject"]
+      },
+      {
+        "text": "{claim}: THE WARD BEARS WITNESS",
+        "if": "claim"
+      },
+      {
+        "text": "{claim}, AS SWORN",
+        "if": "claim"
+      },
+      {
+        "text": "{claim}: NO EXAGGERATION",
+        "if": "claim"
+      },
+      {
+        "text": "{claim}: READ THIS",
+        "if": "claim"
+      },
+      {
+        "text": "{claim}: ANOTHER CASE",
+        "if": "claim"
+      },
+      {
+        "text": "{claim}, AND THE NEIGHBORS SAY SO",
+        "if": "claim"
+      },
+      {
+        "text": "A CURE IN {street_upper}",
+        "if": "subject"
+      },
+      "RESTORED!",
+      "SAVED BY A BOTTLE",
+      "THE DOCTORS WERE WRONG",
+      "A WONDER OF THE WARD",
+      "GOOD NEWS FOR THE AFFLICTED",
+      "WELL AGAIN",
+      {
+        "text": "A TESTIMONIAL FROM {street_upper}",
+        "if": "subject"
+      }
     ]
   },
   "tradeSales": [
@@ -350,61 +543,332 @@
     "The balance carried forward: {cash}."
   ],
   "markets": {
-    "lead": "Patent medicines, active.",
+    "lead": [
+      "Patent medicines, active.",
+      "Patent medicines, firm.",
+      "Patent medicines, active; testimonials plentiful.",
+      "Patent medicines, brisk.",
+      "Patent medicines, in demand; physicians quiet.",
+      "Patent medicines, strong.",
+      "Patent medicines, active; labels unchanged."
+    ],
+    "moves": {
+      "quoted": ["quoted"],
+      "up": ["firmer", "higher", "advancing", "stronger"],
+      "down": ["easier", "lower", "weaker", "declining"],
+      "steady": ["steady", "unchanged", "quiet", "nominal"]
+    },
+    "commodities": [
+      {
+        "name": "Opium",
+        "grade": "Turkey, ",
+        "unit": "the lb.",
+        "base": 360,
+        "eras": [
+          {
+            "from": 1890,
+            "base": 330
+          },
+          {
+            "from": 1898,
+            "base": 380
+          },
+          {
+            "from": 1903,
+            "base": 420
+          }
+        ],
+        "swing": 0.06
+      },
+      {
+        "name": "Quinine",
+        "grade": "sulphate, ",
+        "unit": "the oz.",
+        "base": 95,
+        "eras": [
+          {
+            "from": 1887,
+            "base": 55
+          },
+          {
+            "from": 1892,
+            "base": 30
+          },
+          {
+            "from": 1900,
+            "base": 26
+          }
+        ],
+        "swing": 0.05
+      },
+      {
+        "name": "Camphor",
+        "grade": "refined, ",
+        "unit": "the lb.",
+        "base": 28,
+        "eras": [
+          {
+            "from": 1899,
+            "base": 48
+          },
+          {
+            "from": 1903,
+            "base": 72
+          }
+        ],
+        "swing": 0.06
+      },
+      {
+        "name": "Cod-liver oil",
+        "grade": "Norwegian, ",
+        "unit": "the gallon",
+        "base": 110,
+        "swing": 0.08
+      },
+      {
+        "name": "Glycerine",
+        "grade": "",
+        "unit": "the lb.",
+        "base": 18,
+        "swing": 0.07
+      },
+      {
+        "name": "Spirits",
+        "grade": "high-proof, ",
+        "unit": "the gallon",
+        "base": 225,
+        "swing": 0.03
+      },
+      {
+        "name": "Gentian root",
+        "grade": "",
+        "unit": "the lb.",
+        "base": 12,
+        "swing": 0.09
+      },
+      {
+        "name": "Cocaine",
+        "grade": "muriate, ",
+        "unit": "the oz.",
+        "base": 400,
+        "from": 1886,
+        "eras": [
+          {
+            "from": 1890,
+            "base": 300
+          },
+          {
+            "from": 1897,
+            "base": 240
+          }
+        ],
+        "swing": 0.06
+      },
+      {
+        "name": "Coal",
+        "grade": "stove, ",
+        "unit": "the ton",
+        "base": 525,
+        "months": [10, 11, 12, 1, 2, 3],
+        "season": {
+          "12": 1.06,
+          "1": 1.1,
+          "2": 1.08
+        },
+        "spikes": [
+          {
+            "from": "1902-06",
+            "to": "1903-02",
+            "times": 2.6
+          }
+        ],
+        "swing": 0.04
+      },
+      {
+        "name": "Ice",
+        "grade": "",
+        "unit": "the hundredweight",
+        "base": 30,
+        "months": [5, 6, 7, 8, 9],
+        "season": {
+          "7": 1.15,
+          "8": 1.15
+        },
+        "spikes": [
+          {
+            "from": "1900-05",
+            "to": "1900-09",
+            "times": 1.8
+          }
+        ],
+        "swing": 0.06
+      }
+    ],
     "coffinsBase": 400,
+    "coffinsPerCityDeath": 0.25,
     "coffinsPerDeath": 15,
-    "lilies": ["Lilies, plentiful.", "Lilies, firm.", "Lilies, scarce."]
+    "lilies": [
+      [
+        "Lilies, plentiful.",
+        "Lilies, plentiful; the florists idle.",
+        "Lilies, quiet.",
+        "Lilies, easy.",
+        {
+          "text": "Lilies, dear for Easter.",
+          "months": [3, 4]
+        },
+        "Lilies, in fair supply.",
+        "Lilies, steady.",
+        "Lilies, unchanged; the florists hopeful."
+      ],
+      [
+        "Lilies, firm.",
+        "Lilies, firmer.",
+        "Lilies, in request.",
+        "Lilies, wanted.",
+        "Lilies, called for.",
+        "Lilies, moving."
+      ],
+      [
+        "Lilies, scarce.",
+        "Lilies, very scarce.",
+        "Lilies, not to be had on Mulberry street.",
+        "Lilies, bid for at the door."
+      ]
+    ],
+    "own": ["steady at", "unchanged at", "holding at", "quoted at", "firm at"]
   },
   "rivals": [
     {
       "head": "DR. GRIMSBY'S GALVANIC BELT",
       "mid": "RESTORES LOST VIGOR",
-      "body": "Worn next the skin. A Current of Health through every Nerve! Sent on thirty days' trial.",
-      "fine": "Wearers are requested not to stand in puddles."
+      "bodies": [
+        "Worn next the skin. A Current of Health through every Nerve! Sent on thirty days' trial.",
+        {
+          "text": "Now with Twice the Current! Worn next the skin by Gentlemen of Every Profession. Sent on thirty days' trial.",
+          "from": 1891
+        }
+      ],
+      "fines": [
+        "Wearers are requested not to stand in puddles.",
+        "The thirty days' trial is not refundable after the thirty days, or during them.",
+        "Not to be worn in a thunderstorm, in the bath, or near a magnet.",
+        "Dr. Grimsby regrets that he cannot answer letters asking what the belt is connected to.",
+        "Sizes up to fifty inches. Vigor in all sizes.",
+        {
+          "text": "Not to be worn on the trolley, the Company having complained.",
+          "from": 1893
+        }
+      ]
     },
     {
       "head": "MRS. PRUDENCE WHITTLE'S VEGETABLE COMPOUND",
       "mid": "LADIES!",
       "body": "Write to Mrs. Whittle in strictest confidence. She answers every letter personally.",
-      "fine": "Mrs. Whittle's correspondence continues brisk, notwithstanding her funeral in March.",
+      "fines": [
+        {
+          "text": "Mrs. Whittle's correspondence continues brisk, notwithstanding her funeral in 'eighty-three.",
+          "to": 1892
+        },
+        "Mrs. Whittle answers every letter personally, and has done so since her death without complaint.",
+        "Mrs. Whittle's portrait is on every bottle. She has not aged a day, and has some reason not to.",
+        "Her clerks, of whom there are forty, sign 'P. Whittle' in a fine round hand.",
+        {
+          "text": "Mrs. Whittle's correspondence continues brisk, notwithstanding her funeral ten years ago.",
+          "from": 1893,
+          "to": 1897
+        },
+        {
+          "text": "Mrs. Whittle has now answered a million letters, all but the first few from beyond the grave.",
+          "from": 1898
+        },
+        {
+          "text": "Mrs. Whittle's daughters carry on the correspondence, in her name and in her hand.",
+          "from": 1889
+        }
+      ],
       "cut": "stock_lady"
     },
     {
       "head": "MADAME DE LA ROSE'S ARSENICAL COMPLEXION WAFERS",
       "mid": "BEAUTY!",
       "body": "A Skin of Alabaster! Perfectly Safe! Ladies of Fashion take three daily.",
-      "fine": "Her complexion was the envy of all who attended the viewing.",
+      "fines": [
+        "Her complexion was the envy of all who attended the viewing.",
+        "Madame de la Rose is at home to callers on Tuesdays, under a veil.",
+        "Ladies are advised to take no more than three, and to make their wills before the fourth.",
+        "Endorsed by the leading ladies of the stage, two of whom are still on it.",
+        "Not to be left where the cat can get them, the cat having no complexion to lose.",
+        {
+          "text": "Now by the hundred, the dozen having proved too few for a lasting effect.",
+          "from": 1893
+        }
+      ],
       "cut": "wc_lady"
     },
     {
       "head": "PROF. AUGUSTUS BLOOM'S HAIR RESTORER",
       "mid": "BALDNESS CONQUERED",
       "body": "Rubbed on nightly, it raises hair on billiard balls. Testimonials from the Bald of Three Continents.",
-      "fine": "Do not apply to the face."
+      "fines": [
+        "Do not apply to the face.",
+        "Professor Bloom's own portrait was taken before his experiments began.",
+        "Ladies are cautioned against the eyebrows.",
+        "Not to be spilt on the carpet, which in the Professor's office is now six inches deep.",
+        "Testimonials from a gentleman of Philadelphia who is said to be unrecognised by his own wife."
+      ]
     },
     {
       "head": "PROFESSOR KLINE'S ELECTRIC LIVER PAD",
       "mid": "A MIRACLE OF SCIENCE",
       "body": "Laid upon the liver, it draws out bile, gloom and torpor by magnetism alone. No medicine required.",
-      "fine": "Not to be worn near the watch."
+      "fines": [
+        "Not to be worn near the watch.",
+        "The Professor has never seen a liver, but has been told where it is.",
+        "Wearers who cannot find the liver may wear it anywhere; it will find the liver.",
+        "Sold also as a chest protector, a back plaster and, in summer, a fan.",
+        "Beware of imitations, which also do nothing."
+      ]
     },
     {
       "head": "THE ANTI-FAT CORDIAL",
       "mid": "STOUTNESS CURED",
-      "body": "Reduces the figure by a pound a day without diet or exercise. Twelve ladies of Brooklyn have vanished entirely.",
-      "fine": "The proprietors are not responsible for vanished ladies."
+      "bodies": [
+        "Reduces the figure by a pound a day without diet or exercise. Twelve ladies of Brooklyn have vanished entirely.",
+        "Reduces the figure by a pound a day without diet or exercise. A gentleman of Hoboken is now in demand as a lightning-rod."
+      ],
+      "fines": [
+        "The proprietors are not responsible for vanished ladies.",
+        "Not to be taken by the thin, for fear of the consequences, or by the stout, for fear of the same.",
+        "Patrons are advised to stop when satisfied, and to send a friend to say so.",
+        "The proprietors, who are all three very stout, take no part in the business but the profits."
+      ]
     },
     {
       "head": "DR. ST. JOHN'S CONSUMPTION CURE",
       "mid": "A RIVAL OF REPUTE",
       "body": "Cures consumption in all its stages. Testimonials from every state in the Union, and several beyond it.",
-      "fine": "Several of the testimonials were received posthumously."
+      "fines": [
+        "Several of the testimonials were received posthumously.",
+        "Dr. St. John has cured more consumptives than any physician living, he says, and has never lost a patient he heard from again.",
+        "Not to be taken with a physician, the two being known to quarrel.",
+        "Large bottles one dollar; for the advanced stages, two bottles at once.",
+        "Dr. St. John considers the germ theory a foreign notion; his bottle is made in Jersey."
+      ]
     },
     {
       "head": "THE HYGEIA CYCLE TONIC",
       "mid": "FOR WHEELMEN",
       "body": "Restores the Nerve after a Century Run. Endorsed by Seven Clubs of the League of American Wheelmen, or their Secretaries.",
-      "fine": "Not to be taken while mounted.",
+      "fines": [
+        "Not to be taken while mounted.",
+        "A bottle fits the frame of any safety, and the frame of any wheelman.",
+        "The League has not endorsed it, and has written to say so; the Secretaries have.",
+        {
+          "text": "Endorsed by the scorchers of the Boulevard, who arrive before it takes effect.",
+          "from": 1895
+        }
+      ],
       "from": 1890,
       "to": 1900
     },
@@ -412,7 +876,15 @@
       "head": "PROFESSOR VOLTA'S ELECTRIC INSOLES",
       "mid": "WALK ON LIGHTNING",
       "body": "A Galvanic Current from Heel to Crown, for Rheumatism, Cold Feet and Low Spirits. Worn by the Crowned Heads of Europe.",
-      "fine": "The Crowned Heads have not been asked.",
+      "fines": [
+        "The Crowned Heads have not been asked.",
+        "Sold in pairs only; the Professor will not answer for a man who walks on one.",
+        "A gentleman of Newark who wore them in the rain walked to Philadelphia without meaning to.",
+        {
+          "text": "Not to be worn across the trolley tracks.",
+          "from": 1893
+        }
+      ],
       "from": 1890,
       "to": 1899
     },
@@ -420,7 +892,11 @@
       "head": "THE ROENTGEN CORSET",
       "mid": "SEE THROUGH YOUR TROUBLES",
       "body": "Constructed upon the principle of the New Photography. Corrects the Figure and Reveals the Liver.",
-      "fine": "The Liver is not included.",
+      "fines": [
+        "The Liver is not included.",
+        "Ladies are warned that the corset is not responsible for what it reveals.",
+        "Endorsed by the X-Ray Laboratories of Paris, which the proprietor has seen in a photograph."
+      ],
       "from": 1896,
       "to": 1903
     },
@@ -428,22 +904,85 @@
       "head": "RADIOLENE",
       "mid": "THE RADIUM TONIC",
       "body": "Liquid Sunshine, charged with the Wonder-Element of Madame Curie. Glows in the Bottle and in the Patient.",
-      "fine": "Keep from the photographic plates.",
+      "fines": [
+        "Keep from the photographic plates.",
+        "Each bottle certified to glow, by a gentleman who glows himself.",
+        "Not to be kept by the bed, patients having complained of the light.",
+        "Every bottle guaranteed to contain Radium, or a word very like it.",
+        {
+          "text": "Under the new law the label will declare its contents: Water, and Enthusiasm.",
+          "from": "1906-07"
+        }
+      ],
       "from": 1903
     },
     {
       "head": "DR. SPRY'S MOTOR NERVE TONIC",
       "mid": "FOR AUTOMOBILISTS",
       "body": "Steadies the Hand at Twenty Miles an Hour. Recommended to all who own, drive, or have been run down by a Motor-Car.",
-      "fine": "Twenty miles an hour is not recommended.",
+      "fines": [
+        "Twenty miles an hour is not recommended.",
+        "The Automobile Club does not endorse it, its members preferring to be run down by something else.",
+        "Sold at the garages, and at the police station, where the automobilists wait for their hearing.",
+        "Not to be confused with the gasoline, though the proprietor has."
+      ],
       "from": 1902
     },
     {
       "head": "THE PASTEUR PURE-MILK TABLETS",
       "mid": "A MODERN MARVEL",
       "body": "Dissolve one in the Baby's Milk and the Microbe Flees. Scientifically Proven upon a Large Number of Babies.",
-      "fine": "The number is not stated.",
+      "fines": [
+        "The number is not stated.",
+        "The Board of Health has tested the tablets and found them to be chalk. The proprietors say it is a very pure chalk.",
+        "The milk should be boiled as well, the proprietors concede, the tablets being a supplement to boiling.",
+        "Endorsed by a professor of Vienna, whose practice is chiefly in the advertising columns."
+      ],
       "from": 1893
+    },
+    {
+      "head": "TEXAS JACK WILDER'S PRAIRIE BITTERS",
+      "mid": "THE SECRET OF THE PLAINS",
+      "body": "Compounded from Herbs Known Only to the Red Man, and to Texas Jack, who Was Told. Sold from the Wagon and by All Druggists.",
+      "fines": [
+        "The Red Man has not been asked, and has not been paid.",
+        "Texas Jack learned the secret from a chief whose name he has forgotten and whose tribe he has mislaid.",
+        "Texas Jack has never been to Texas, but has seen a picture of it.",
+        "Bottled in Jersey City, from the Prairie."
+      ]
+    },
+    {
+      "head": "DR. HARTWELL'S CATARRH SNUFF",
+      "mid": "INSTANT RELIEF!",
+      "body": "A Pinch in each Nostril and the Catarrh is Forgotten, and so, for an Hour, is Everything Else.",
+      "fines": [
+        "Thousands of satisfied users ask for it by the box, and some by the hour.",
+        "Not habit-forming, the proprietor says, and says it again, very quickly.",
+        "The Board of Pharmacy has asked what is in it; Dr. Hartwell has asked the Board what is in theirs."
+      ],
+      "from": 1886
+    },
+    {
+      "head": "DR. ASHBY'S CRIMSON PELLETS FOR THE PALLID",
+      "mid": "PALE PEOPLE MADE PINK",
+      "body": "Make Pale People Pink, Pink People Rosy, and Rosy People Write to Us. Fifty Cents the Box.",
+      "fines": [
+        "A lady of Yonkers took the full course and now matches her curtains.",
+        "The pellets are the color of health; the proprietors have not been able to obtain the thing itself.",
+        "Pale people are asked to send their portraits, before and after; the after is colored by hand."
+      ],
+      "from": 1892
+    },
+    {
+      "head": "PROFESSOR MARVIN'S MAGIC LINIMENT",
+      "mid": "FREE CONCERT NIGHTLY",
+      "body": "Cures Rheumatism, Neuralgia, Lame Back and Melancholy. A Concert of Song from the Wagon, Every Evening, Free.",
+      "fines": [
+        "The songs are free; the liniment is extra, and so is leaving before the end.",
+        "Applied outwardly for the pain, and inwardly, the Professor says, for the singing.",
+        "The Professor's wagon is licensed as a concert, a pharmacy and, in two states, a nuisance."
+      ],
+      "to": 1898
     }
   ],
   "honours": {
@@ -495,7 +1034,7 @@
     "TO LET.—A front parlor, suitable for a physician, a dentist or a mesmerist. Previous tenant was all three.",
     "WANTED.—A BOY to stand in the shop window and grow. Must be small now.",
     {
-      "text": "PERSONAL.—Will the lady who bought a bottle of Elixir on Thursday and left her baby please return for the baby. The Elixir is paid for.",
+      "text": "PERSONAL.—Will the proprietor who left a crate of his Elixir on the steps of the Foundling Asylum on Thursday, for the babies, please call for the crate. The Sisters have the babies in hand.",
       "to": 1889
     },
     "FOR SALE.—Bottles, a gross, embossed CURE. Will scrape off for an extra cent.",
@@ -687,7 +1226,9 @@
       "headline": [
         "THE CORONER IS SATISFIED",
         "A VERDICT WITHOUT A BOTTLE",
-        "THE CORONER SITS ALONE"
+        "THE CORONER SITS ALONE",
+        "A QUICK VERDICT",
+        "THE CORONER'S NEW OVERCOAT"
       ],
       "cut": "wc_death",
       "cutline": "A GENTLEMAN LEAVING THE CORONER'S OFFICE.",
@@ -707,7 +1248,13 @@
       ]
     },
     "arrears": {
-      "headline": ["A SHOP IN ARREARS", "THE PROPRIETOR OWES", "BILLS ON MULBERRY STREET"],
+      "headline": [
+        "A SHOP IN ARREARS",
+        "THE PROPRIETOR OWES",
+        "BILLS ON MULBERRY STREET",
+        "THE CREDITORS CALL",
+        "IN THE RED ON MULBERRY STREET"
+      ],
       "cut": "wc_proprietor",
       "cutline": "THE PROPRIETOR.—Not at home to callers.",
       "decks": [
@@ -739,7 +1286,12 @@
       "headline": [
         "TRADE DULL ON MULBERRY STREET",
         "A SLOW MONTH FOR {product_upper}",
-        "FEW BUYERS ON MULBERRY STREET"
+        "FEW BUYERS ON MULBERRY STREET",
+        "A QUIET COUNTER ON MULBERRY STREET",
+        "THE BELL SELDOM RINGS",
+        "THE WARD PASSES BY",
+        "TRADE SLACK FOR {product_upper}",
+        "A THIN MONTH ON MULBERRY STREET"
       ],
       "cut": "wc_clerk",
       "cutline": "A CUSTOMER, UNDECIDED.",
@@ -772,10 +1324,19 @@
         "The bell over the shop door on Mulberry street rang so seldom this month that the proprietor oiled it, in case it had stuck.",
         "The proprietor of {product} spent the month in his doorway, looking up and down the street like a man waiting for a tram that has been discontinued.",
         "The proprietor of {product} has rearranged the window three times this month, putting the remedy first, then last, then in the middle. The ward walked past it in all three positions.",
-        "A slow month on Mulberry street. The proprietor spent it composing a new testimonial, and is said to be pleased with it."
+        "A slow month on Mulberry street. The proprietor spent it composing a new testimonial, and is said to be pleased with it.",
+        "Trade was thin at the shop on Mulberry street. The proprietor spent the slack hours writing to the newspapers about the ingratitude of the public, and the newspapers spent them not printing it.",
+        "The proprietor of {product} had a slow month, and filled it by arranging the bottles by height, then by color, then by price, which the ward found the least attractive.",
+        "A dull month for {product}. The proprietor says trade always falls off before it rises, and is waiting for the rise with his hat on."
       ],
       "again": {
-        "headline": ["TRADE STILL DULL", "ANOTHER SLOW MONTH ON MULBERRY STREET"],
+        "headline": [
+          "TRADE STILL DULL",
+          "ANOTHER SLOW MONTH ON MULBERRY STREET",
+          "STILL QUIET ON MULBERRY STREET",
+          "THE COUNTER STILL QUIET",
+          "NO PICK-UP FOR {product_upper}"
+        ],
         "decks": [
           ["The Dull Season Continues.", "Still Quiet on Mulberry Street.", "No Change."],
           [
@@ -790,7 +1351,9 @@
       "headline": [
         "NOT A BOTTLE SOLD",
         "AN IDLE MONTH ON MULBERRY STREET",
-        "NO TAKERS FOR {product_upper}"
+        "NO TAKERS FOR {product_upper}",
+        "THE COUNTER STANDS IDLE",
+        "THE BELL DOES NOT RING"
       ],
       "cut": "wc_proprietor",
       "cutline": "THE PROPRIETOR.—Waiting.",
@@ -819,42 +1382,107 @@
       }
     },
     "growing": {
-      "headline": ["NEW FACES AT THE COUNTER", "THE REMEDY FINDS FRIENDS", "THE COUNTER FILLS UP"],
+      "headline": [
+        "NEW FACES AT THE COUNTER",
+        "THE REMEDY FINDS FRIENDS",
+        "THE COUNTER FILLS UP",
+        "NEW CUSTOMERS ON MULBERRY STREET",
+        "STRANGERS AT THE COUNTER",
+        "THE WARD TAKES UP A REMEDY",
+        "MORE CALLERS THAN LAST MONTH",
+        "THE REMEDY WINS NEW FRIENDS",
+        "NEW NAMES IN THE PROPRIETOR'S BOOK",
+        "THE CUSTOM GROWS",
+        "WORD GETS ROUND THE WARD"
+      ],
       "cut": "wc_bottle_panacea",
       "cutline": "A BOTTLE.—From the engraver's stock.",
       "decks": [
-        ["The Ward Discovers a Remedy.", "A Remedy Catches On.", "Strangers at the Counter."],
+        [
+          "The Ward Discovers a Remedy.",
+          "A Remedy Catches On.",
+          "Strangers at the Counter.",
+          "New Names in the Book.",
+          "The Custom Grows.",
+          "Faces Not Seen Before.",
+          "The Neighbors Follow.",
+          "A Widening Circle."
+        ],
         [
           "{joined_upper} NEW CUSTOMERS CALL AT THE SHOP ON MULBERRY STREET.",
           "{joined_upper} NEW CALLERS THIS MONTH; THE PROPRIETOR LEARNS THEIR NAMES.",
-          "{joined_upper} MORE OF THE WARD TAKE UP THE REMEDY; THE NEIGHBORS ASK WHY."
+          "{joined_upper} MORE OF THE WARD TAKE UP THE REMEDY; THE NEIGHBORS ASK WHY.",
+          "{joined_upper} NEW CUSTOMERS THIS MONTH; THE PROPRIETOR BUYS A LARGER BOOK.",
+          "{joined_upper} NEW NAMES IN THE PROPRIETOR'S BOOK; THE OLD NAMES MAKE ROOM.",
+          "{joined_upper} MORE OF THE WARD COME TO THE COUNTER, MOSTLY ON A NEIGHBOR'S WORD.",
+          "THE SHOP ON MULBERRY STREET GAINS {joined_upper} REGULARS AND A REPUTATION."
         ],
-        ["Word Gets Round.", "The Neighbors Talk.", "The Bell Keeps Ringing."]
+        [
+          "Word Gets Round.",
+          "The Neighbors Talk.",
+          "The Bell Keeps Ringing.",
+          "The Bell Is Busier.",
+          "The Ward Talks.",
+          "A Second Chair Is Put Out.",
+          "Neighbors Bring Neighbors.",
+          "The Proprietor Learns Names."
+        ]
       ],
       "bodies": [
         "Word of {product} is going round the ward faster than the ailments it treats. Among this month's new customers is {name}, {occupation}, who heard of it from a neighbor and has not been the same since.",
         "{name} is the latest of the ward to take up {product}. {pronounCap} tells our reporter that {pronoun} cannot say exactly what it does, but that {pronoun} feels it doing it.",
         "New customers came to the shop on Mulberry street this month, among them {name}, who heard of the remedy from a neighbor and has been telling the neighbor about it since.",
         "New faces at the counter on Mulberry street this month, among them {name}, who came for a single bottle and stayed to hear the proprietor describe {possessive} symptoms better than {pronoun} could.",
-        "{name} is among this month's new customers. {pronounCap} came in on the word of a neighbor, and has already passed the word on to two more."
+        "{name} is among this month's new customers. {pronounCap} came in on the word of a neighbor, and has already passed the word on to two more.",
+        "{name}, {occupation}, is among this month's new customers at the shop on Mulberry street. {pronounCap} came on a neighbor's word and will stay on {possessive} own, {pronoun} says, if the remedy does as the neighbor said.",
+        "The proprietor's book of regulars has new names in it this month, among them {name}, who asked our reporter not to print it, and then spelled it for him.",
+        "New customers came to the counter this month in numbers the proprietor calls gratifying. {name}, one of them, calls it a long wait.",
+        "{name} has joined the regulars at the shop on Mulberry street, having tried, {pronoun} says, everything else on the street and on the Bowery too.",
+        "Among the month's new faces at the counter is {name}, {occupation}, who came in out of the rain and was sold a bottle before it stopped."
       ],
       "again": {
-        "headline": ["MORE NEW FACES", "THE COUNTER STILL FILLING"],
+        "headline": [
+          "MORE NEW FACES",
+          "THE COUNTER STILL FILLING",
+          "STILL MORE NEW FACES",
+          "THE CUSTOM GROWS AGAIN",
+          "THE BOOK OF REGULARS FILLS",
+          "NEW CALLERS ONCE MORE",
+          "THE WARD KEEPS COMING"
+        ],
         "decks": [
-          ["The Remedy Spreads.", "More Faces Yet.", "The Word Goes On."],
+          [
+            "The Remedy Spreads.",
+            "More Faces Yet.",
+            "The Word Goes On.",
+            "Still They Come.",
+            "Again New Names.",
+            "The Book Fills."
+          ],
           [
             {
               "text": "{joined_upper} MORE CUSTOMERS TAKE UP THE REMEDY; THE OLD ONES DO NOT LET GO.",
               "if": "habit"
             },
             "{joined_upper} MORE CUSTOMERS TAKE UP THE REMEDY; THE PROPRIETOR ORDERS MORE BOTTLES.",
-            "{joined_upper} MORE NEW CUSTOMERS; THE COUNTER IS CROWDED ON SATURDAYS."
+            "{joined_upper} MORE NEW CUSTOMERS; THE COUNTER IS CROWDED ON SATURDAYS.",
+            "{joined_upper} MORE NEW CUSTOMERS; THE COUNTER IS LENGTHENED IN THE PROPRIETOR'S IMAGINATION.",
+            "{joined_upper} MORE NAMES; THE PROPRIETOR HAS STOPPED SAYING THEY WILL NOT LAST.",
+            "{joined_upper} MORE OF THE WARD; THE STOOPS ARE SAID TO TALK OF LITTLE ELSE."
           ]
         ]
       }
     },
     "losing": {
-      "headline": ["CUSTOMERS DESERT A REMEDY", "OLD CUSTOMERS GONE ELSEWHERE"],
+      "headline": [
+        "CUSTOMERS DESERT A REMEDY",
+        "OLD CUSTOMERS GONE ELSEWHERE",
+        "EMPTY CHAIRS AT THE COUNTER",
+        "THE REGULARS THIN OUT",
+        "FAMILIAR FACES MISSING",
+        "THE WARD LOOKS ELSEWHERE",
+        "LESS CUSTOM ON MULBERRY STREET"
+      ],
       "cut": "wc_clerk",
       "cutline": "A FORMER CUSTOMER.—From a stock likeness.",
       "decks": [
@@ -870,10 +1498,18 @@
         "Several of the proprietor's regulars have stopped calling at the shop. Some have got better; some have found another bottle; the proprietor declines to say which he finds more insulting.",
         "The shop on Mulberry street is losing custom. {name}, lately a regular, tells our reporter that {pronoun} has given up the remedy, and feels about the same, and is saving the money.",
         "Several familiar faces were missing from the shop on Mulberry street this month, {name} among them. The proprietor says they will be back; their friends say they have found a cheaper remedy, or a doctor, or both.",
-        "Familiar faces have gone missing from the counter on Mulberry street. {name}, lately a regular, was seen on {weekday} carrying a bottle of another make, and did not look round."
+        "Familiar faces have gone missing from the counter on Mulberry street. {name}, lately a regular, was seen on {weekday} carrying a bottle of another make, and did not look round.",
+        "Several of the regulars have stopped calling at the shop on Mulberry street. The proprietor says they will be back when they are ill again, and is waiting for the weather to help him.",
+        "The proprietor of {product} has lost some of his regulars this month, and is said to have taken it personally, and then to have taken a bottle."
       ],
       "again": {
-        "headline": ["THE WARD DRIFTS AWAY", "MORE EMPTY PLACES AT THE COUNTER"],
+        "headline": [
+          "THE WARD DRIFTS AWAY",
+          "MORE EMPTY PLACES AT THE COUNTER",
+          "THE REGULARS STILL THINNING",
+          "MORE FAMILIAR FACES GONE",
+          "THE CUSTOM STILL FALLS"
+        ],
         "decks": [
           ["Custom Falls Off Again.", "Chairs Empty at the Counter.", "The Drift Continues."],
           [
@@ -888,7 +1524,21 @@
         "BRISK TRADE ON MULBERRY STREET",
         "TRADE BRISK IN THE SIXTH WARD",
         "A GOOD MONTH FOR {product_upper}",
-        "THE REMEDY SELLS"
+        "THE REMEDY SELLS",
+        "THE BELL KEEPS RINGING ON MULBERRY STREET",
+        "A BUSY COUNTER IN THE SIXTH WARD",
+        "PARCELS IN BROWN PAPER",
+        "THE WARD BUYS {product_upper}",
+        "MULBERRY STREET DOES A TRADE",
+        "CALLERS ALL DAY AT THE COUNTER",
+        "A FAIR MONTH FOR THE PROPRIETOR",
+        "THE TILL IS KEPT BUSY",
+        "THE REMEDY IN DEMAND",
+        "TRADE GOOD ON MULBERRY STREET",
+        "THE COUNTER IS NOT IDLE",
+        "{product_upper} GOES OUT BY THE DOOR",
+        "A LIVELY MONTH IN THE SHOP",
+        "THE WARD COMES TO MULBERRY STREET"
       ],
       "cut": "wc_bottle_panacea",
       "cutline": "A BOTTLE.—From the engraver's stock.",
@@ -899,7 +1549,16 @@
           "Parcels Leave the Shop.",
           "The Ward Buys.",
           "A Good Month.",
-          "Brown Paper Parcels."
+          "Brown Paper Parcels.",
+          "The Bell Rings.",
+          "Business Is Good.",
+          "A Busy Counter.",
+          "The Till Is Opened Often.",
+          "Callers All Day.",
+          "The Shop Keeps Late Hours.",
+          "A Trade in Coughs.",
+          "No Complaints at the Counter.",
+          "Corks and Brown Paper."
         ],
         [
           "{sold_upper} BOTTLES SOLD AT THE SHOP THIS MONTH; THE PROPRIETOR IS SATISFIED, AND SO, FOR NOW, IS THE WARD.",
@@ -912,7 +1571,25 @@
             "text": "{sold_upper} BOTTLES SOLD; THE TAKINGS GO STRAIGHT BACK INTO THE BUSINESS.",
             "if": ["!up", "outlay"]
           },
-          "{sold_upper} BOTTLES SOLD; CALLERS COME FROM AS FAR AS THE BOWERY."
+          "{sold_upper} BOTTLES SOLD; CALLERS COME FROM AS FAR AS THE BOWERY.",
+          "{sold_upper} BOTTLES SOLD; THE PROPRIETOR WRAPS THEM HIMSELF AND HUMS.",
+          "{sold_upper} BOTTLES ACROSS THE COUNTER; THE BOY WHO SWEEPS IS GIVEN A NICKEL.",
+          "{sold_upper} BOTTLES SOLD; THE PROPRIETOR IS SEEN TO SHAKE HANDS WITH THE LANDLORD.",
+          "THE SHOP SELLS {sold_upper} BOTTLES AND ORDERS MORE CORKS.",
+          {
+            "text": "{sold_upper} BOTTLES SOLD AND THE TILL HEAVIER; THE PROPRIETOR WALKS TO THE BANK BY DAYLIGHT.",
+            "if": "up"
+          },
+          {
+            "text": "{sold_upper} BOTTLES SOLD, AND WHAT THEY TOOK HAS GONE OUT AGAIN ON THE BUSINESS.",
+            "if": ["!up", "outlay"]
+          },
+          {
+            "text": "{sold_upper} BOTTLES SOLD, THOUGH THE TILL HAS LITTLE TO SHOW FOR IT.",
+            "if": ["!up", "!outlay"]
+          },
+          "{sold_upper} BOTTLES SOLD; THE WARD'S COUGHS ARE SAID TO BE NO WORSE.",
+          "{sold_upper} BOTTLES; THE PROPRIETOR HAS THE STEP SCRUBBED FOR THE CALLERS."
         ]
       ],
       "bodies": [
@@ -935,20 +1612,62 @@
           "text": "Business is good at the shop on Mulberry street, and the proprietor has put a little by. He tells our reporter that he will not spend it, which the landlord has noted.",
           "if": "up"
         },
-        "The callers at the shop on Mulberry street were so many on Saturday that two of them, waiting, recommended the remedy to each other, and both bought a second bottle."
+        "The callers at the shop on Mulberry street were so many on Saturday that two of them, waiting, recommended the remedy to each other, and both bought a second bottle.",
+        "The bell over the door on Mulberry street rang so steadily this month that the proprietor stopped hearing it, and had to be told by a customer that it was ringing for him.",
+        "Our reporter stood an hour at the counter and saw {product} sold to a clerk, a laborer, a grandmother and a policeman, who paid. The proprietor says the last was the remarkable one.",
+        "The proprietor of {product} has had a good month, and says so to everyone but the landlord.",
+        {
+          "text": "The shop on Mulberry street had a good month and the books show it. The proprietor has bought a second lamp for the counter, the better to see the money by.",
+          "if": "up"
+        },
+        {
+          "text": "Trade was good on Mulberry street, though the proprietor says the money has gone straight back into the shop, which is where he keeps his hopes as well.",
+          "if": "!up"
+        },
+        "A gentleman who keeps a rival shop on the Bowery stood across the street from the shop on Mulberry street on Saturday, counting the callers, and left before he had finished.",
+        "{product} sold steadily this month. The proprietor puts it down to the purity of the recipe; the ward, to the price; the druggist on the corner, to the devil.",
+        "The proprietor reports a brisk month and a sore wrist from the wrapping-paper, for which he has prescribed himself a bottle of his own and charged it to the business.",
+        {
+          "text": "Business is brisk on Mulberry street, where {name} tells our reporter that {pronoun} has bought a bottle a week since the spring, and would buy two if the proprietor would let {object}.",
+          "if": "habit"
+        },
+        "The proprietor of {product} had a steady month at the counter, and has begun to greet his regulars by name, which some of them find alarming.",
+        "A good month on Mulberry street. A rival proprietor sent his clerk to buy a bottle and see what was in it; the clerk came back with two, one for himself."
       ],
       "again": {
         "headline": [
           "TRADE HOLDS UP ON MULBERRY STREET",
           "A STEADY MONTH FOR {product_upper}",
-          "THE REMEDY KEEPS SELLING"
+          "THE REMEDY KEEPS SELLING",
+          "TRADE STILL GOOD ON MULBERRY STREET",
+          "THE BELL RINGS ON",
+          "ANOTHER BUSY MONTH FOR {product_upper}",
+          "THE COUNTER KEEPS BUSY",
+          "STILL SELLING ON MULBERRY STREET",
+          "THE WARD COMES BACK FOR MORE",
+          "NO LET-UP AT THE COUNTER",
+          "THE TRADE HOLDS ON MULBERRY STREET"
         ],
         "decks": [
-          ["Another Good Month.", "Business As Usual.", "Steady On."],
+          [
+            "Another Good Month.",
+            "Business As Usual.",
+            "Steady On.",
+            "Steady As She Goes.",
+            "The Trade Holds.",
+            "Again the Bell.",
+            "The Same Faces, and More.",
+            "Nothing Wanting."
+          ],
           [
             "{sold_upper} BOTTLES SOLD AGAIN; THE PROPRIETOR BEGINS TO SPEAK OF A SECOND SHOP.",
             "{sold_upper} BOTTLES SOLD; THE COUNTER IS NOT YET TIRED OF IT.",
-            "TRADE IN {product_upper} KEEPS UP; THE RIVALS ARE SAID TO BE STUDYING THE LABEL."
+            "TRADE IN {product_upper} KEEPS UP; THE RIVALS ARE SAID TO BE STUDYING THE LABEL.",
+            "{sold_upper} BOTTLES SOLD; THE PROPRIETOR HAS STOPPED COUNTING ALOUD.",
+            "{sold_upper} BOTTLES; THE SAME CALLERS AS LAST MONTH, AND A FEW MORE.",
+            "{sold_upper} BOTTLES SOLD; THE LANDLORD IS SAID TO BE THINKING ABOUT THE RENT.",
+            "THE SHOP SELLS {sold_upper} BOTTLES AGAIN, AND THE NEIGHBORS STOP REMARKING ON IT.",
+            "{sold_upper} BOTTLES; THE BOY IS KEPT ON FOR SATURDAYS."
           ]
         ]
       }
@@ -958,21 +1677,58 @@
         "THE SHELF BARE ON MULBERRY STREET",
         "NOT A BOTTLE LEFT IN THE WARD",
         "SOLD OUT ON MULBERRY STREET",
-        "THE REMEDY RUNS DRY"
+        "THE REMEDY RUNS DRY",
+        "NOT A BOTTLE TO BE HAD",
+        "THE LAST BOTTLE GOES",
+        "EMPTY SHELVES ON MULBERRY STREET",
+        "CALLERS TURNED AWAY",
+        "THE STILL CANNOT KEEP UP",
+        "A WANT OF {product_upper}",
+        "SOLD OUT BEFORE THE MONTH'S END",
+        "THE WARD ASKS FOR MORE",
+        "NOTHING LEFT TO SELL",
+        "THE SHELF GIVES OUT",
+        "MORE CALLERS THAN BOTTLES"
       ],
       "cut": "wc_bottle_panacea",
       "cutline": "A BOTTLE.—Not to be had for love or money.",
       "decks": [
-        ["Callers Turned Away.", "The Shelf Is Bare.", "Not a Bottle to Be Had."],
+        [
+          "Callers Turned Away.",
+          "The Shelf Is Bare.",
+          "Not a Bottle to Be Had.",
+          "Empty-Handed.",
+          "The Shelf Gives Out.",
+          "A Queue at the Door.",
+          "Callers Disappointed.",
+          "Nothing on the Shelf.",
+          "Too Few Bottles.",
+          "Demand Outruns the Still.",
+          "Come Back Monday."
+        ],
         [
           "EVERY BOTTLE OF {product_upper} SOLD BEFORE THE MONTH WAS OUT; THE WARD WAITS.",
           "THE SHOP ON MULBERRY STREET SELLS OUT BEFORE THE MONTH'S END; A QUEUE FORMS FOR THE NEXT BATCH.",
-          "{product_upper} NOT TO BE HAD BY THE LAST WEEK; DRUGGISTS ARE ASKED FOR IT BY NAME."
+          "{product_upper} NOT TO BE HAD BY THE LAST WEEK; DRUGGISTS ARE ASKED FOR IT BY NAME.",
+          "THE LAST BOTTLE OF {product_upper} SOLD IN THE THIRD WEEK; THE REST OF THE MONTH WAS APOLOGIES.",
+          "CALLERS FIND THE SHELF EMPTY; THE PROPRIETOR PROMISES A BATCH ON MONDAY.",
+          "{product_upper} GONE BY THE TWENTIETH; THE BELL RINGS AND THE PROPRIETOR HIDES IN THE BACK.",
+          "THE STILL WORKS DAY AND NIGHT, AND THE SHELF IS STILL BARE.",
+          "THE SHOP COULD HAVE SOLD MORE IF IT HAD HAD THEM, THE PROPRIETOR SAYS, AND FOR ONCE HE IS RIGHT.",
+          "{sold_upper} BOTTLES SOLD AND NOT ONE LEFT; THE CALLERS AFTER THEM GO HOME.",
+          "THE SHELF EMPTIES; CALLERS ARE TOLD TO COME BACK NEXT MONTH, AND SOME DO."
         ],
         [
           "The Proprietor Cannot Brew Fast Enough.",
           "More Next Month, He Says.",
-          "The Still Works Late."
+          "The Still Works Late.",
+          "A Second Still Is Spoken Of.",
+          "Next Month, He Promises.",
+          "The Copper Is Kept Hot.",
+          "Orders Taken on Slips.",
+          "Bigger Batches Wanted.",
+          "The Ward Is Patient.",
+          "The Proprietor Apologizes."
         ]
       ],
       "bodies": [
@@ -982,20 +1738,51 @@
         "By the third week the proprietor of {product} was selling the empty bottles, at a reduction, to those who said the smell alone did them good.",
         "A woman from Elizabeth street offered our reporter a quarter for his place in the queue at the shop, and on being told the shelf was bare, offered the quarter for the queue.",
         "The shop on Mulberry street put up its shutters on the twentieth, having nothing left to sell but advice. The advice was to come back next month, and it is said to be selling well.",
-        "The shelf on Mulberry street was bare by the twentieth, and the proprietor took orders on slips of paper for the next batch. Several of the slips were signed with a cross."
+        "The shelf on Mulberry street was bare by the twentieth, and the proprietor took orders on slips of paper for the next batch. Several of the slips were signed with a cross.",
+        "The shelf on Mulberry street was empty by the last week of the month, and the proprietor spent it explaining to callers that a bare shelf is a sign of quality.",
+        "Callers who came for {product} in the last days of the month were told there was none, and given a card with the date of the next batch. Several came back on the date, and one the day before.",
+        "The proprietor of {product} sold out, and says he could have sold half as many again if the still had kept up. The still has been spoken to.",
+        "A notice in the shop window on Mulberry street read SOLD OUT in the last week, a smaller notice under it MORE SOON, and a smaller one still, in pencil, PATIENCE.",
+        "Not a bottle of {product} was left by the month's end. A druggist of the Bowery who stocks something similar reports the best week he has had, and has sent the proprietor his thanks.",
+        "The shelf on Mulberry street gave out before the month did. The proprietor calls it the best kind of trouble a shop can have; his callers call it the worst kind of shop.",
+        "By the twentieth the proprietor of {product} was down to the bottles in the window, and sold those, and the window has been dressed since with an empty one.",
+        "The proprietor of {product} turned callers away in the last week of the month, and is said to have counted them as they went, as a man counts money dropped down a drain.",
+        "There was no {product} to be had on Mulberry street after the twentieth. The callers who came for it were sent to wait, and several are waiting still.",
+        "The shop's shelf was empty a week before the month was. The proprietor has been told by his callers, in several languages, what they think of a remedy that cannot be bought."
       ],
       "again": {
         "headline": [
           "STILL NO BOTTLES TO BE HAD",
           "SOLD OUT AGAIN ON MULBERRY STREET",
-          "THE WARD STILL WAITS FOR {product_upper}"
+          "THE WARD STILL WAITS FOR {product_upper}",
+          "SOLD OUT A SECOND MONTH",
+          "THE SHELF BARE AGAIN",
+          "STILL TOO FEW BOTTLES",
+          "THE STILL FALLS BEHIND AGAIN",
+          "AGAIN NOT A BOTTLE LEFT",
+          "THE WARD STILL ASKS FOR MORE",
+          "EMPTY SHELVES AGAIN ON MULBERRY STREET",
+          "THE QUEUE COMES BACK"
         ],
         "decks": [
-          ["The Shortage Continues.", "Still Sold Out.", "The Queue Returns."],
+          [
+            "The Shortage Continues.",
+            "Still Sold Out.",
+            "The Queue Returns.",
+            "Again Sold Out.",
+            "No Better This Month.",
+            "The Queue Again.",
+            "Bare Once More.",
+            "The Old Story."
+          ],
           [
             "THE SHELF ON MULBERRY STREET STILL BARE; THE WARD GROWS IMPATIENT.",
             "SOLD OUT A SECOND MONTH; THE CALLERS ASK WHETHER THE PROPRIETOR HAS HEARD OF A SECOND STILL.",
-            "THE LAST BOTTLE GONE BY THE THIRD WEEK AGAIN; A NOTICE IN THE WINDOW SAYS MORE ON MONDAY."
+            "THE LAST BOTTLE GONE BY THE THIRD WEEK AGAIN; A NOTICE IN THE WINDOW SAYS MORE ON MONDAY.",
+            "THE SHELF GIVES OUT AGAIN BEFORE THE MONTH; THE CALLERS KNOW THE NOTICE IN THE WINDOW BY HEART.",
+            "SOLD OUT AGAIN; A DRUGGIST OF THE BOWERY SENDS FLOWERS.",
+            "THE STILL WORKS LATE AGAIN AND FALLS SHORT AGAIN; THE WARD WAITS AGAIN.",
+            "AGAIN THE LAST BOTTLE GOES IN THE THIRD WEEK, AND AGAIN THE BELL RINGS FOR NOTHING."
           ]
         ]
       }
@@ -1004,12 +1791,26 @@
       "headline": [
         "A RECORD MONTH ON MULBERRY STREET",
         "THE BEST MONTH YET FOR {product_upper}",
-        "NEVER SO MANY BOTTLES SOLD"
+        "NEVER SO MANY BOTTLES SOLD",
+        "THE SHOP'S BEST MONTH",
+        "MORE BOTTLES THAN EVER",
+        "A MONTH TO REMEMBER ON MULBERRY STREET",
+        "THE BEST TRADE THE SHOP HAS SEEN",
+        "{product_upper} BREAKS ITS RECORD",
+        "NO MONTH LIKE IT"
       ],
       "cut": "wc_proprietor",
       "cutline": "THE PROPRIETOR.—Counting.",
       "decks": [
-        ["Trade Brisker Than Ever.", "A Banner Month.", "The Best Yet."],
+        [
+          "Trade Brisker Than Ever.",
+          "A Banner Month.",
+          "The Best Yet.",
+          "Never Better.",
+          "A New Mark.",
+          "The Record Falls.",
+          "The Counter's Best."
+        ],
         [
           {
             "text": "{sold_upper} BOTTLES SOLD, AND THE BOOKS WELL UP; THE PROPRIETOR ORDERS A NEW HAT.",
@@ -1038,9 +1839,29 @@
           {
             "text": "{sold_upper} BOTTLES SOLD; THE DRUGGIST'S BILL TAKES THE PROFIT, AND THE PROPRIETOR TAKES IT HARD.",
             "if": ["!up", "!outlay"]
+          },
+          {
+            "text": "{sold_upper} BOTTLES, THE MOST YET; THE PROPRIETOR HAS THE FIGURE PAINTED ON THE WINDOW.",
+            "if": "up"
+          },
+          {
+            "text": "{sold_upper} BOTTLES SOLD, THE MOST YET, AND THE PROFIT PUT TO WORK AT ONCE.",
+            "if": ["!up", "outlay"]
+          },
+          {
+            "text": "{sold_upper} BOTTLES, THE MOST YET, THOUGH THE NEXT MONTH'S DRUGS HAVE TAKEN THE PROFIT.",
+            "if": ["!up", "!outlay"]
           }
         ],
-        ["The Ward Pays.", "Rivals Inquire.", "The Neighbors Count the Parcels."]
+        [
+          "The Ward Pays.",
+          "Rivals Inquire.",
+          "The Neighbors Count the Parcels.",
+          "The Rivals Take Note.",
+          "The Undertaker Takes Note.",
+          "The Landlord Takes Note.",
+          "The Ward Is Impressed."
+        ]
       ],
       "bodies": [
         {
@@ -1061,11 +1882,24 @@
         {
           "text": "A record month for bottles on Mulberry street, though the books do not show it, the money having gone into drugs, glass and corks for the months to come. The proprietor says the jars are as good as a bank.",
           "if": ["!up", "!outlay"]
-        }
+        },
+        "The shop on Mulberry street sold more bottles of {product} this month than in any month before. The proprietor has framed the figure and hung it behind the counter, where the customers can see what they have done.",
+        "A record month at the shop on Mulberry street. The proprietor tells our reporter that he owes it all to his customers, and has raised nothing but his hopes.",
+        {
+          "text": "More bottles of {product} were sold this month than ever before, and the proprietor has the money to show for it, and has shown it, to the bank.",
+          "if": "up"
+        },
+        "Never have so many bottles of {product} gone over the counter in a month. The proprietor's rivals sent a boy to buy one, to see what was in it, and the boy has come back a customer."
       ]
     },
     "dear": {
-      "headline": ["TOO DEAR FOR THE WARD", "THE PRICE KEEPS CALLERS AWAY"],
+      "headline": [
+        "TOO DEAR FOR THE WARD",
+        "THE PRICE KEEPS CALLERS AWAY",
+        "THE WARD COUNTS ITS PENNIES",
+        "A DEAR BOTTLE ON MULBERRY STREET",
+        "THE PRICE CARD SPEAKS"
+      ],
       "cut": "wc_clerk",
       "cutline": "A CALLER WHO ASKED THE PRICE.",
       "decks": [
@@ -1084,7 +1918,12 @@
         "The card in the shop window on Mulberry street says {price}. The ward reads it, counts its change, and buys bread."
       ],
       "again": {
-        "headline": ["STILL TOO DEAR", "THE PRICE STILL KEEPS CALLERS AWAY"],
+        "headline": [
+          "STILL TOO DEAR",
+          "THE PRICE STILL KEEPS CALLERS AWAY",
+          "THE PENNIES STILL STAY HOME",
+          "THE CARD IN THE WINDOW STAYS UP"
+        ],
         "decks": [
           ["The Price Holds, and So Do the Pennies.", "No Reduction Offered.", "No Reduction."],
           [
@@ -1096,7 +1935,12 @@
       "raised": "The proprietor of {product} has put up his price to {price}, and his callers have put down their hats and left. He informs our reporter that a remedy cheaply sold is cheaply regarded, and that he would rather sell one bottle to a gentleman than three to the ward."
     },
     "remembers": {
-      "headline": ["THE WARD REMEMBERS", "MULBERRY STREET HAS NOT FORGOTTEN"],
+      "headline": [
+        "THE WARD REMEMBERS",
+        "MULBERRY STREET HAS NOT FORGOTTEN",
+        "THE STOOPS STILL TALK",
+        "THE WARD KEEPS COUNT"
+      ],
       "cut": "wc_death",
       "cutline": "THE COUNTER, AS THE WARD SEES IT.",
       "decks": [
@@ -1114,7 +1958,12 @@
         "Our reporter asked in the ward after {product}. He was told of {remembered}, at length, and of nothing else."
       ],
       "again": {
-        "headline": ["THE WARD STILL REMEMBERS", "MULBERRY STREET STILL TALKS"],
+        "headline": [
+          "THE WARD STILL REMEMBERS",
+          "MULBERRY STREET STILL TALKS",
+          "THE TALK GOES ON",
+          "THE WARD HAS NOT FORGOTTEN"
+        ],
         "decks": [
           ["The Talk Will Not Die.", "Still Remembered.", "The Ward Holds Its Grudge."],
           [
@@ -1128,23 +1977,55 @@
       "headline": [
         "A CLEAN BOTTLE ON MULBERRY STREET",
         "THE WARD SPEAKS WELL OF A REMEDY",
-        "NOTHING FOR THE CORONER"
+        "NOTHING FOR THE CORONER",
+        "NO INQUEST ON MULBERRY STREET",
+        "A REMEDY WITHOUT A VICTIM",
+        "THE CORONER HAS NOTHING TO SAY",
+        "A YEAR WITHOUT A FUNERAL",
+        "AN HONEST BOTTLE, SO FAR",
+        "THE UNDERTAKER IS NOT CALLED",
+        "THE BOTTLE THAT HURT NOBODY"
       ],
       "cut": "wc_proprietor",
       "cutline": "THE PROPRIETOR.—Unremarked.",
       "decks": [
-        ["No Inquest, No Scandal.", "A Quiet Year.", "The Coroner Unemployed."],
+        [
+          "No Inquest, No Scandal.",
+          "A Quiet Year.",
+          "The Coroner Unemployed.",
+          "Nothing to Report.",
+          "The Trade Is Mystified.",
+          "No Bottles in Evidence.",
+          "Unremarked by the Coroner."
+        ],
         [
           "THE SHOP ON MULBERRY STREET SELLS {sold_upper} BOTTLES AND NO ONE IS THE WORSE FOR THEM.",
           "A TWELVEMONTH WITHOUT A DEATH LAID AT THE SHOP'S DOOR; THE TRADE IS SUSPICIOUS.",
-          "{sold_upper} BOTTLES SOLD AND NOT ONE MENTIONED AT AN INQUEST; THE CORONER IS UNACQUAINTED WITH THE LABEL."
+          "{sold_upper} BOTTLES SOLD AND NOT ONE MENTIONED AT AN INQUEST; THE CORONER IS UNACQUAINTED WITH THE LABEL.",
+          "THE SHOP ON MULBERRY STREET SELLS {sold_upper} BOTTLES WITHOUT AN INQUEST; THE TRADE CALLS IT A WASTE OF A GOOD LABEL.",
+          "NOT A DEATH IN THE WARD LAID TO THE SHOP'S BOTTLE; THE UNDERTAKER CROSSES IT OFF HIS LIST.",
+          "{sold_upper} BOTTLES AND NOT ONE AT AN INQUEST; THE CORONER DOES NOT KNOW THE PROPRIETOR'S NAME.",
+          "THE PROPRIETOR'S REMEDY HAS HURT NOBODY IN A TWELVEMONTH; HIS RIVALS SUSPECT WATER."
         ],
-        ["The Trade Is Puzzled.", "Rivals Ask What He Leaves Out.", "The Proprietor Is Bored."]
+        [
+          "The Trade Is Puzzled.",
+          "Rivals Ask What He Leaves Out.",
+          "The Proprietor Is Bored.",
+          "The Coroner Looks Elsewhere.",
+          "The Undertaker Sighs.",
+          "A Dull Year for the Morgue.",
+          "The Ward Approves."
+        ]
       ],
       "bodies": [
         "The coroner has not had occasion to mention {product} in a twelvemonth. The trade regards this as eccentric, and the proprietor's rivals have taken to asking what he leaves out.",
         "Mothers in the ward report that {product} does little and harms less, which in this street is a recommendation. The proprietor is said to be bored.",
-        "A year has passed without the shop on Mulberry street appearing in the deaths column. Our reporter, who had grown fond of the connection, called to ask whether the proprietor was unwell."
+        "A year has passed without the shop on Mulberry street appearing in the deaths column. Our reporter, who had grown fond of the connection, called to ask whether the proprietor was unwell.",
+        "The shop on Mulberry street has gone a year without a word from the Coroner. The proprietor's rivals call it luck; the ward calls it the one shop on the street where it would buy for its children.",
+        "Nothing in the deaths column this twelvemonth has been laid at the door of {product}, which the trade finds hard to account for and the ward does not.",
+        "Asked how his remedy keeps out of the inquest reports, the proprietor of {product} said he left out what put the others in. The trade has asked him for a list.",
+        "A clean year on Mulberry street. The undertaker of the ward, who keeps a list of the shops worth watching, has taken the proprietor's name off it, and says he will miss him.",
+        "{product} does no great good, the ward says, and no harm at all, and in a year when its rivals have kept the Coroner busy, the ward has noticed."
       ]
     }
   },
@@ -1154,7 +2035,7 @@
       "if": ["teething", "sedative"]
     },
     {
-      "text": "The mother, who is a regular customer of a certain soothing syrup, informs the neighbors that the child slept through every night since Easter, and this last one also.",
+      "text": "The mother had given the child a soothing syrup every night since Easter, as the label directed, and the label had promised that it would sleep. The label kept its promise.",
       "if": "sedative"
     },
     {
@@ -1187,7 +2068,7 @@
     "doctor_title": "IN THE TRADE.—The proprietor of {product} is to be addressed henceforward as Doctor. He has a diploma to show it, and the ink on it is very nearly dry.",
     "coroner_fees": "IN THE TRADE.—It is said in Centre street that Coroner {coroner} is a practical man, and that proprietors who call on him before the jury sits seldom regret it.",
     "quality_control": "IN THE TRADE.—The proprietor of {product} has a taster now to try each batch before it is bottled. The position was advertised three times.",
-    "larger_shop": "IN THE TRADE.—The wall between the shop on Mulberry street and the cobbler's next door has been knocked through, making room for twenty more regulars. The landlord has put the rent up five dollars a month, and the cobbler is understood to have been consulted afterward.",
+    "larger_shop": "IN THE TRADE.—The wall between the shop on Mulberry street and the empty shop next door, the cobbler's until he went to Brooklyn, has been knocked through, making room for twenty more regulars. The landlord has put the rent up five dollars a month, and the cobbler, who left his last behind, has written to ask for it.",
     "bulk_supplier": "IN THE TRADE.—A drug importer on Pearl street has agreed to supply the proprietor of {product} at a discount, the house having brewed enough to be worth it. The importer asks no questions, and is asked none."
   },
   "deathLead": [
@@ -1197,7 +2078,7 @@
     },
     {
       "text": "The deceased had been taking a remedy of the neighborhood for some months, and was heard to say that {pronoun} had never felt better. The physician who signed the certificate did not ask what it was.",
-      "if": "risky"
+      "if": ["risky", "!blameless"]
     },
     {
       "text": "{pronounCap} was a familiar figure at the shop on Mulberry street, where {pronoun} was known as a customer who never missed a month. The proprietor speaks of {object} warmly, and in the past tense.",
@@ -1205,7 +2086,8 @@
     },
     {
       "text": "The deceased had taken a remedy of the neighborhood for some months. It did nothing to prevent the end and, the physician says, nothing to hasten it, which its proprietor regards as a testimonial.",
-      "if": "!risky"
+      "if": ["!risky", "!blamed"],
+      "physician": true
     },
     {
       "text": "{pronounCap} was of a great age, and had outlived most of {possessive} doctors and all of {possessive} remedies but the last. The proprietor of that one is said to be taking credit for the years.",
@@ -1213,15 +2095,17 @@
     },
     {
       "text": "The complaint that brought {object} to the shop on Mulberry street took its own course, the remedy having no say in it either way. The proprietor sends his condolences, and points out that the label never named the complaint.",
-      "if": ["ailment", "!risky"]
+      "if": ["ailment", "!risky", "!blamed"],
+      "physician": true
     },
     {
       "text": "{pronounCap} was at the counter every month, and is missed there. The proprietor, asked whether the remedy had done {object} any good, said that it had certainly done {object} no harm, and seemed to think this a novelty in the trade.",
-      "if": ["regular", "!risky"]
+      "if": ["regular", "!risky", "!blamed"]
     },
     {
       "text": "The physician who attended found the symptoms familiar, and the bottle on the mantel more familiar still. He has written to the coroner.",
-      "if": "harm"
+      "if": "harm",
+      "physician": true
     },
     {
       "text": "Neighbors say {pronoun} had grown very fond of a certain remedy, and toward the end could not get through a morning without it. The proprietor describes {object} as one of his most faithful customers.",
@@ -1230,10 +2114,43 @@
     {
       "text": "The family had sent for the physician too late and the priest just in time. A bottle from the shop on Mulberry street stood by the bed, half finished, and the family have put it away with {possessive} things.",
       "if": "!risky"
-    }
+    },
+    {
+      "text": "{pronounCap} bought {possessive} bottle at the shop on Mulberry street every week, the neighbors say, and toward the end every other day. The proprietor calls {object} a loyal customer, which is one word for it.",
+      "if": ["regular", "habit"]
+    },
+    {
+      "text": "{pronounCap} had lately taken a remedy of the ward on a neighbor's advice. The neighbor has not been available for comment.",
+      "if": ["known", "!blameless"]
+    },
+    {
+      "text": "The family say {pronoun} had been taking a remedy from the shop on Mulberry street, and the physician says it did nothing, good or bad, which the family find hard to forgive.",
+      "if": "blameless",
+      "physician": true
+    },
+    {
+      "text": "The deceased had been a regular at the shop on Mulberry street for some time. The proprietor speaks highly of {object}, and of the remedy, in that order.",
+      "if": "regular"
+    },
+    {
+      "text": "{pronounCap} had watched the ward change about {object} for a lifetime, and had taken every remedy it offered, the last of them from Mulberry street.",
+      "if": "oldage"
+    },
+    {
+      "text": "A bottle of a certain remedy stood on the shelf by the bed, and the physician who was called put it in his bag, which the family took to mean something.",
+      "if": ["risky", "!blameless"]
+    },
+    "{pronounCap} was known in the ward, and will be missed in it. The proprietor of a remedy on Mulberry street has sent a wreath, with his card on it, face up.",
+    "The funeral is from the late residence. A wreath came from the shop on Mulberry street with the proprietor's card, and a second card advertising the remedy, which the family have returned."
   ],
   "exposedLead": {
-    "headline": "THE CORONER'S ENVELOPE",
+    "headline": [
+      "THE CORONER'S ENVELOPE",
+      "A BOUGHT VERDICT",
+      "THE ENVELOPE COMES OUT",
+      "WHAT THE CORONER WAS PAID",
+      "AN INQUEST FOR SALE"
+    ],
     "cut": "wc_death",
     "cutline": "A GENTLEMAN WHO PAID THE CORONER'S FEE.",
     "decks": [
@@ -1281,7 +2198,7 @@
     },
     {
       "text": "SPORTING.—The Metropolitans beat the Brooklyns by eleven runs to four. The Brooklyns' pitcher had taken a tonic for his arm, and is said to have pitched with great confidence in the wrong direction.",
-      "months": [4, 5, 6, 7, 8, 9, 10],
+      "months": [4, 5, 6, 7, 8, 9],
       "to": 1887
     },
     "LOST.—A pocketbook, in a Third Avenue car, containing a pawn ticket and a prescription. The prescription is of no value to the finder.",
@@ -1301,7 +2218,7 @@
     "A CARD.—The undersigned has not been cured by any remedy whatever, and wishes it known, having been asked eleven times this week.",
     "WANTED.—A man with a good beard to stand in a window and be pointed at. Apply to the proprietor of a hair restorer.",
     "THE COURTS.—A suit by a customer against a proprietor of bitters, on the ground that they contained no bitters, was dismissed. The Judge found that nobody had expected them to.",
-    "FOUND.—On the steps of a church in Mott street, a basket containing a bottle of soothing syrup and nothing else. The police are inquiring for the rest.",
+    "FOUND.—On the steps of a church in Mott street, a basket of two dozen bottles of soothing syrup, left by a proprietor in hope of the Sexton's endorsement. The Sexton has given it to the Board of Health.",
     "STREET SCENE.—A sandwich man advertising a cure for consumption was taken ill at the corner of Canal street and carried home coughing, still advertising.",
     "MARKETS.—Butter firm, eggs easier, coal dear. Patent medicines, as always, cheaper to make than to buy.",
     "SPORTING.—At this office, a challenge: any man in the Sixth Ward may try the dumb-bells for a purse of five dollars. The purse has not been touched since Easter.",
@@ -1351,11 +2268,11 @@
       "months": [3, 4, 10, 11]
     },
     {
-      "text": "CHRISTMAS.—The stores on Grand street are lit till ten. A druggist advertises a tonic as the ideal present for a mother-in-law, and declines to say why.",
+      "text": "CHRISTMAS.—The stores on Grand street were lit till ten in the week before Christmas. A druggist advertised a tonic as the ideal present for a mother-in-law, and has declined to say why.",
       "months": [12]
     },
     {
-      "text": "NEW YEAR'S.—Gentlemen made their calls yesterday, two hundred houses apiece by some reports. The druggists open early today for headaches.",
+      "text": "NEW YEAR'S.—Gentlemen made their calls on New Year's Day, two hundred houses apiece by some reports, and the druggists opened early the next morning for the headaches.",
       "months": [1],
       "to": 1889
     },
@@ -1462,7 +2379,8 @@
     "THE LODGING HOUSES.—A seven-cent lodging house in the Bowery advertises a clean bed, a locker and a spoonful of tonic at bedtime. The tonic is said to account for the quiet of the house, and the locker for the lodgers' hopes.",
     {
       "text": "THE NEWSBOYS.—The Newsboys' Lodging House gave its dinner on Thursday to four hundred boys, who ate everything set before them and a good deal that was not. A proprietor of bitters sent a case, which the Superintendent sent back.",
-      "months": [11, 12]
+      "months": [11, 12],
+      "if": "thanksgiving_past"
     },
     "THE ASH BARRELS.—The Street Cleaning Department reports that the ash barrels of the Sixth Ward contain, besides ashes, a great many empty bottles, most of them green and every one of them claiming to cure something.",
     "A RUNAWAY.—A truck horse ran away in Canal street on Tuesday and was stopped by a druggist's sign, which it carried two blocks. The horse is unhurt. The sign, which promised strength, has been taken down.",
@@ -1478,8 +2396,8 @@
       "months": [6, 7, 8]
     },
     {
-      "text": "DECORATION DAY.—The veterans marched up Fifth avenue, fewer than last year. A druggist on Broadway displayed in his window a liniment 'as used in the late War,' and a bottle of it, he says, that was.",
-      "months": [5]
+      "text": "DECORATION DAY.—The veterans marched up Fifth avenue on Decoration Day, fewer than last year. A druggist on Broadway displayed in his window a liniment 'as used in the late War,' and a bottle of it, he says, that was.",
+      "months": [6]
     },
     {
       "text": "THE CIRCUS.—The circus is at the Garden, with three rings and an elephant said to take a tonic for its trunk. The proprietor of the tonic has asked the elephant for a testimonial, and been answered.",
@@ -1491,7 +2409,8 @@
     },
     {
       "text": "THANKSGIVING.—The ragamuffins were out on Thanksgiving Day in their fathers' coats and false faces, begging pennies from door to door. A druggist of the Bowery gave each a lozenge, and has had his window broken.",
-      "months": [11]
+      "months": [11],
+      "if": "thanksgiving_past"
     },
     {
       "text": "ST. PATRICK'S DAY.—The parade went up Fifth avenue in the rain, as usual, and so did the spectators. The druggists of the Sixth Ward report a heavy trade on the eighteenth, in the usual remedy for the usual complaint.",
@@ -1499,7 +2418,7 @@
     },
     {
       "text": "MOTT STREET.—The Chinese New Year was kept in Mott street with firecrackers, lilies and calls of ceremony. The merchants paid their debts before it, as is their custom; the druggists of Mulberry street, who keep no such custom, sent round their bills anyway.",
-      "months": [1, 2]
+      "months": [2]
     },
     "A WEDDING.—At a wedding in Ludlow street on Sunday the guests numbered three hundred and the chairs forty. A druggist was among the guests, and left early, with orders.",
     "THE DISPENSARY.—The free dispensary treated four hundred on Tuesday and turned away two hundred more. The druggists of the ward are said to have treated most of the two hundred, and charged them.",
@@ -1532,7 +2451,7 @@
       "months": [7, 8]
     },
     {
-      "text": "THE ROOFS.—The tenement roofs were full of sleepers on Saturday night, the rooms below being past bearing. A child rolled from a roof in Cherry street and was caught by a clothes-line, unhurt. The mother has given the child a soothing syrup for the fright, and the neighbors have given the clothes-line a vote of thanks.",
+      "text": "THE ROOFS.—The tenement roofs were full of sleepers on Saturday night, the rooms below being past bearing. A child rolled from a roof in Cherry street and was caught by a clothes-line, unhurt. A druggist of the street called with a soothing syrup for the fright, and was sent down the stairs again; the neighbors have given the clothes-line a vote of thanks.",
       "months": [7, 8]
     },
     {
@@ -2012,7 +2931,7 @@
       "months": [12, 1, 2, 3]
     },
     {
-      "text": "THE CITY.—The Health Department now seizes watered milk in Brooklyn as in Manhattan, the boroughs being one city. The milkman says the cows were taking a tonic and are much improved.",
+      "text": "THE CITY.—The Health Department now seizes watered milk in Brooklyn as in Manhattan, the boroughs being one city. The milkman says the cows have been on a tonic since consolidation, and are now Greater New York cows.",
       "from": 1898
     },
     {
@@ -2031,7 +2950,7 @@
     "THE DENTIST.—A painless dentist of the Bowery draws teeth to music, the band covering the patient. A druggist next door sells a remedy for the teeth that remain.",
     "THE BEER.—The brewers of the city have raised the price of the pail, and the druggists of the ward report the sale of bitters, which are not beer, up by the same amount.",
     "THE CORNER.—A man has stood at the corner of Grand street and the Bowery every day for a year, saying that the end of the world is at hand. A proprietor of the corner has asked him to add that a remedy is at hand also, and he has declined.",
-    "A LOST CHILD.—A child of four found wandering in Mulberry street was taken to the station house and claimed by four mothers before nightfall. The right one was found by the sergeant, who knew the smell of her remedy.",
+    "A LOST CHILD.—A child of four found wandering in Mulberry street was taken to the station house, given a peppermint by the sergeant and claimed by its mother before supper. A proprietor of the ward who called meanwhile with a bottle of soothing syrup, for the child's nerves, was shown the door, the child's nerves being the best in the station house.",
     "THE MIDWIVES.—The Board of Health asks the midwives of the ward to register. Several have replied that they are too busy, and one that she is a druggist.",
     "A BIRTHDAY.—A woman of Cherry street kept her hundredth birthday on Sunday and attributed her years to never having taken a patent medicine. Three proprietors have since called to offer her one.",
     "THE BOOTBLACKS.—The bootblacks of Park Row have formed a union and raised the price of a shine to six cents. A proprietor of a remedy for tired feet has given each boy a card to hand to his customers.",
@@ -2045,7 +2964,7 @@
     },
     "THE GARBAGE.—The garbage scows have been held at the dock for a week by the weather, and the ward has noticed. A druggist of Catharine street sells a remedy for the smell, which he says is the smell.",
     "THE TENEMENT FIRE.—The tenants of a house in Monroe street who were brought down the ladders in their nightclothes on Tuesday say the first thing they saved was the rent book, and the second the remedy.",
-    "THE WIDOW'S PENSION.—A widow of Oliver street has been paid her pension by the Government after eleven years of letters. She has spent the first quarter on a remedy for the nerves the letters gave her.",
+    "THE WIDOW'S PENSION.—A widow of Oliver street has been paid her pension by the Government after eleven years of letters. The Pension Office calls it prompt; a proprietor of the ward, who has sent her his circular every week of the eleven years, calls it his best testimonial yet.",
     {
       "text": "THE TYPE-WRITER.—A young lady type-writer in a Broadway office types sixty words a minute, and the gentlemen of the office are said to come in early to watch her. A druggist of the building sells a remedy for their nerves.",
       "to": 1891
@@ -2228,8 +3147,8 @@
       "a taster for his batches, which a house takes on after forty batches and a hundred dollars in hand, or after its first bad batch"
     ],
     "larger_shop": [
-      "the cobbler's shop next door, which the landlord offers, at five dollars a month, to a proprietor with twenty-five regulars",
-      "the cobbler's shop next door, which the landlord will let, at five dollars a month, once the shop has twenty-five regulars"
+      "the empty shop next door, the cobbler's that was, which the landlord offers at five dollars a month to a proprietor with twenty-five regulars",
+      "the empty shop next door, the cobbler's that was, which the landlord will let at five dollars a month once the shop has twenty-five regulars"
     ],
     "bulk_supplier": [
       "terms from an importer on Pearl street, who gives them to a house that has brewed twenty-five batches",
@@ -2488,21 +3407,36 @@
     "OUT OF TOWN.—The Paterson coroner sat upon a millhand who had been dosing himself with a remedy from New-York. The jury could not agree on the remedy, but agreed on New-York."
   ],
   "callerSources": {
-    "ward": "from the ward",
-    "newspaper": "by the Gazette",
-    "subscriptions": "by the society",
-    "branch_shop": "at the branch",
-    "almanac": "by the almanac",
-    "word": "on the word of its strength",
-    "physician": "on the doctor's prescriptions",
+    "ward": [
+      "from the ward",
+      "from the street",
+      "of the ward's own accord",
+      "from the neighborhood"
+    ],
+    "newspaper": [
+      "by the Gazette",
+      "with the Gazette's notice in hand",
+      "who had read the Gazette",
+      "sent by the notice in the Gazette"
+    ],
+    "subscriptions": ["by the society", "from the society", "on the society's word"],
+    "branch_shop": ["at the branch", "at the branch in the other ward", "by the branch"],
+    "almanac": [
+      "by the almanac",
+      "with the almanac in hand",
+      "who had read the almanac",
+      "sent by the almanac"
+    ],
+    "word": ["on the word of its strength", "on the talk of its strength"],
+    "physician": ["on the doctor's prescriptions", "with a doctor's note"],
     "bazaar": "sent from the pulpit",
     "notice": "by the reading notice",
-    "placard": "by the card in the window",
-    "neighbours": "on a neighbour's word",
+    "placard": ["by the card in the window", "who read the window card"],
+    "neighbours": ["on a neighbour's word", "sent by a neighbour", "on a neighbour's say-so"],
     "fountain": "for the soda fountain",
     "feeney": "from Feeney's old shop",
     "undertaker": "on the undertaker's word",
-    "window": "drawn by the lit window",
+    "window": ["drawn by the lit window", "who saw the lamp in the window"],
     "clarion": "by the Clarion's piece",
     "monthly": "by the Household Page",
     "wheelmen": "from the wheelmen's club",
@@ -2513,9 +3447,9 @@
     "crowd": "to see the hole in the window",
     "subway": "by the signs in the subway",
     "doctors": "on physicians' advice",
-    "sign": "drawn by the gilt sign",
+    "sign": ["drawn by the gilt sign", "who saw the gilt sign"],
     "pushcart": "sent by the pushcart man",
-    "portrait": "by the likeness on the label",
+    "portrait": ["by the likeness on the label", "who knew the face on the label"],
     "phrenologist": "on the phrenologist's advice",
     "calendar": "by the calendar",
     "cards": "by the picture cards",
@@ -2532,7 +3466,7 @@
     "lyceum": "from the Lyceum",
     "medal": "for the gold medal",
     "motorists": "in goggles",
-    "night_bell": "by the night bell",
+    "night_bell": ["by the night bell", "who rang the night bell"],
     "pedestal": "with a cent for the pedestal",
     "phonograph": "by the talking machines",
     "pictures": "from the picture show",
@@ -2553,7 +3487,8 @@
     },
     {
       "text": "{pronounCap} was not known at the shop on Mulberry street, though a bottle from it was found in the room. The physician gives the cause as natural, and the neighbors, for once, agree with him.",
-      "if": "!risky"
+      "if": ["!risky", "!blamed"],
+      "physician": true
     },
     {
       "text": "{pronounCap} had come into the ward lately, and few knew {object}. A bottle of a neighborhood remedy stood on the shelf with the rest of {possessive} things, and has gone to the landlady with them.",
@@ -2604,44 +3539,44 @@
   ],
   "wantsRoutine": {
     "forms": [
-      "WANTED.—A girl for general housework in a small family; must be a good plain cook and washer. Apply at No. {num} {street}.",
-      "WANTED.—A smart boy, about {age}, to run errands and make himself useful in a store. Apply at No. {num} {street}, before 8.",
+      "WANTED.—A girl for general housework in {family}; {must}. Apply at No. {num} {street}.",
+      "WANTED.—A smart boy, about {age}, to {boyJob}. Apply at No. {num} {street}, before 8.",
       "WANTED.—Operators on {garment}; steady work the year round. Apply at No. {num} {street}, top floor, rear.",
       "SITUATION WANTED.—By a respectable young woman, as {place}; good city reference. Address {initial}, Box {box}, this office.",
       "SITUATION WANTED.—By a steady young man, as {manplace}; not afraid of work; reference. Address Box {box}, this office.",
       "TO LET.—{rooms}, {floor} floor, in a quiet house; water on the floor; to a small family only. Apply to the janitor, No. {num} {street}.",
       "FOR SALE.—{saleItem}, in good order; cheap for cash, the owner leaving the city. Apply at No. {num} {street}.",
       "LOST.—{lostItem}, on {weekday}, in {street} or near it. A liberal reward if returned to No. {num} {street2}.",
-      "FURNISHED ROOMS.—For gentlemen only; {furn}; terms moderate. No. {num} {street}.",
-      "BOARD.—For two respectable young men in a private family; home comforts. No. {num} {street}, second floor.",
-      "PIANO LESSONS.—By a lady of experience, at the pupil's home if desired; terms moderate. Address Miss {initial}, Box {box}, this office.",
+      "FURNISHED ROOMS.—For {roomsFor}; {furn}; terms {terms}. No. {num} {street}.",
+      "BOARD.—For {boarders} in a private family; {comforts}. No. {num} {street}, second floor.",
+      "{lessons}.—By a lady of experience, at the pupil's home if desired; terms {terms}. Address Miss {initial}, Box {box}, this office.",
       "WANTED.—{trade}; good wages to the right man. Apply at No. {num} {street}.",
-      "MONEY TO LOAN.—On furniture, pianos and household goods, without removal; strictly confidential. No. {num} {street}, room {box}.",
+      "MONEY TO LOAN.—On {loanOn}; strictly confidential. No. {num} {street}, room {box}.",
       {
-        "text": "TYPEWRITING.—Copying of every kind done neatly and quickly at moderate rates. No. {num} Nassau street, room {box}.",
+        "text": "TYPEWRITING.—{typed} done neatly and quickly at moderate rates. No. {num} Nassau street, room {box}.",
         "from": 1888
       },
       {
-        "text": "BICYCLES.—Stored, cleaned and repaired; second-hand wheels bought and sold. No. {num} {street}.",
+        "text": "BICYCLES.—{bikeTrade}; second-hand wheels bought and sold. No. {num} {street}.",
         "from": 1893,
         "to": 1900
       },
       {
-        "text": "WANTED.—A young man who understands the care of an automobile; must be sober and careful. Apply at the garage, No. {num} West Fifty-eighth street.",
+        "text": "WANTED.—A young man who understands the care of {auto}; must be {soberly}. Apply at the garage, No. {num} West Fifty-eighth street.",
         "from": 1903
       },
-      "EVENING CLASSES.—Reading, writing and arithmetic for adults; terms within the reach of all. No. {num} East Broadway.",
-      "WANTED.—A woman to do washing and ironing by the day; must be quick. Apply at No. {num} {street}, second floor, front.",
-      "WANTED.—A girl to learn the millinery; paid while learning after the first month. No. {num} {street}.",
-      "WANTED.—Experienced hands on cigars. Apply at No. {num} {street}, rear building.",
-      "STOREKEEPERS.—Counters, shelving and show-cases for sale cheap; also scales and a coffee mill. No. {num} {street}.",
-      "WANTED.—A strong young man to drive a delivery wagon; must know the lower wards. Apply at the stable, No. {num} {street}.",
-      "SITUATION WANTED.—By a middle-aged woman, as nurse to an invalid or to an infant; experienced; sleeps in. Address Box {box}, this office.",
+      "EVENING CLASSES.—{subjects}; terms within the reach of all. No. {num} East Broadway.",
+      "WANTED.—A woman to do {wash} by the day; {quick}. Apply at No. {num} {street}, second floor, front.",
+      "WANTED.—A girl to learn {learn}; paid while learning after the first month. No. {num} {street}.",
+      "WANTED.—{cigarHands}. Apply at No. {num} {street}, rear building.",
+      "STOREKEEPERS.—{fixtures} for sale cheap; also {also}. No. {num} {street}.",
+      "WANTED.—A strong young man to drive {wagon}; must know the {wards}. Apply at the stable, No. {num} {street}.",
+      "SITUATION WANTED.—By {nurseWoman}, as {nursePlace}; experienced; {sleeps}. Address Box {box}, this office.",
       {
-        "text": "TELEPHONE.—A drug store with a public telephone, open day and night. No. {num} {street}.",
+        "text": "TELEPHONE.—{phoneShop} with a public telephone, open {phoneHours}. No. {num} {street}.",
         "from": 1895
       },
-      "WANTED.—Pants finishers, girls, to work at home or in the shop; steady work. No. {num} {street}, top floor."
+      "WANTED.—{finishers}, to work at home or in the shop; steady work. No. {num} {street}, top floor."
     ],
     "slots": {
       "street": [
@@ -2843,10 +3778,9 @@
         "large and small rooms, with or without board",
         "a hall bedroom and a front room",
         "heated rooms, with gas",
-        {
-          "text": "steam heat and bath on the floor",
-          "from": 1895
-        }
+        "a front parlor and bedroom",
+        "rooms with running water",
+        "a sunny back room"
       ],
       "trade": [
         "A first-class barber",
@@ -2859,7 +3793,149 @@
         "A shoemaker for repairing",
         "A presser on coats",
         "A boy to learn the drug business"
-      ]
+      ],
+      "family": [
+        "a small family",
+        "a family of three",
+        "a private family",
+        "a family of two adults",
+        "a small family in Harlem",
+        "a doctor's family"
+      ],
+      "must": [
+        "must be a good plain cook and washer",
+        "must be neat and willing",
+        "no washing",
+        "references required",
+        "must sleep home",
+        "must be fond of children"
+      ],
+      "loanOn": [
+        "furniture, pianos and household goods, without removal",
+        "watches, diamonds and jewelry",
+        "salaries, to persons in steady employment",
+        "pianos and sewing machines, without removal",
+        "household goods, in any amount from ten dollars"
+      ],
+      "cigarHands": [
+        "Experienced hands on cigars",
+        "Bunch-breakers and rollers on cigars",
+        "Girls to strip tobacco",
+        "A cigar packer; must be quick",
+        "Rollers on fine Havana cigars"
+      ],
+      "lessons": [
+        "PIANO LESSONS",
+        "SINGING LESSONS",
+        "LESSONS IN FRENCH",
+        "LESSONS ON THE VIOLIN",
+        "DRAWING LESSONS"
+      ],
+      "terms": ["moderate", "reasonable", "very moderate", "by the quarter or the lesson"],
+      "subjects": [
+        "Reading, writing and arithmetic for adults",
+        "Bookkeeping and penmanship for young men",
+        "Dressmaking and cutting for young women",
+        "English for adults, day and evening",
+        {
+          "text": "Stenography and typewriting for young men and women",
+          "from": 1888
+        }
+      ],
+      "boarders": [
+        "two respectable young men",
+        "a gentleman and his wife",
+        "a lady teacher",
+        "two young ladies, employed",
+        "a single gentleman"
+      ],
+      "comforts": ["home comforts", "a good table", "home cooking", "bath on the floor"],
+      "finishers": [
+        "Pants finishers, girls",
+        "Basters and finishers on cloaks",
+        "Buttonhole makers on coats",
+        "Fellers on vests",
+        "Hands on knee pants"
+      ],
+      "fixtures": [
+        "Counters, shelving and show-cases",
+        "A soda fountain, marble, and fixtures",
+        "Show-cases and a cash register",
+        "Shelving and drawers, suitable for a druggist",
+        "Counters and a large mirror"
+      ],
+      "also": [
+        "scales and a coffee mill",
+        "a safe",
+        "a stove and pipe",
+        "an awning",
+        "a hand truck"
+      ],
+      "learn": [
+        "the millinery",
+        "the dressmaking",
+        "artificial flowers",
+        "hat trimming",
+        "the feather business"
+      ],
+      "wash": [
+        "washing and ironing",
+        "cleaning",
+        "washing",
+        "ironing and mending",
+        "house cleaning"
+      ],
+      "quick": ["must be quick", "must be strong", "references", "steady work for the right woman"],
+      "wagon": [
+        "a delivery wagon",
+        "a bakery wagon",
+        "a laundry wagon",
+        "an express wagon",
+        "a grocery wagon"
+      ],
+      "wards": ["lower wards", "East Side", "downtown streets", "West Side"],
+      "nurseWoman": [
+        "a middle-aged woman",
+        "a respectable widow",
+        "a competent woman",
+        "a trained nurse"
+      ],
+      "nursePlace": [
+        "nurse to an invalid or to an infant",
+        "nurse to an invalid lady",
+        "nurse to an infant",
+        "nurse to an elderly gentleman"
+      ],
+      "sleeps": ["sleeps in", "sleeps home", "city references"],
+      "typed": [
+        "Copying of every kind",
+        "Legal copying and specifications",
+        "Authors' manuscripts",
+        "Circulars and letters",
+        "Copying from dictation"
+      ],
+      "phoneShop": ["A drug store", "A cigar store", "A stationer's", "A drug store on the corner"],
+      "phoneHours": ["day and night", "until midnight", "from seven until eleven"],
+      "bikeTrade": [
+        "Stored, cleaned and repaired",
+        "Lessons given and wheels hired",
+        "Repaired while you wait",
+        "Enamelled and nickelled like new"
+      ],
+      "boyJob": [
+        "run errands and make himself useful in a store",
+        "deliver parcels; must have a wheel",
+        "help in a printing office",
+        "open the door and sweep out",
+        "carry messages in the dry-goods district"
+      ],
+      "auto": ["an automobile", "a gasoline car", "an electric runabout", "a touring car"],
+      "soberly": [
+        "sober and careful",
+        "sober, careful and a good mechanic",
+        "careful with other people's horses"
+      ],
+      "roomsFor": ["gentlemen only", "gentlemen", "a gentleman and wife", "business men"]
     }
   },
   "routine": {
@@ -2876,7 +3952,7 @@
           "ship": "Etruria",
           "line": "Cunard",
           "port": "Liverpool",
-          "from": 1885,
+          "from": "1885-05",
           "to": 1906
         },
         {
@@ -2897,14 +3973,14 @@
           "ship": "Campania",
           "line": "Cunard",
           "port": "Liverpool",
-          "from": 1893,
+          "from": "1893-05",
           "to": 1906
         },
         {
           "ship": "Lucania",
           "line": "Cunard",
           "port": "Liverpool",
-          "from": 1893,
+          "from": "1893-10",
           "to": 1906
         },
         {
@@ -2932,7 +4008,7 @@
           "ship": "Majestic",
           "line": "White Star",
           "port": "Liverpool",
-          "from": 1890,
+          "from": "1890-05",
           "to": 1906
         },
         {
@@ -2953,14 +4029,14 @@
           "ship": "Cedric",
           "line": "White Star",
           "port": "Liverpool",
-          "from": 1903,
+          "from": "1903-03",
           "to": 1906
         },
         {
           "ship": "Baltic",
           "line": "White Star",
           "port": "Liverpool",
-          "from": 1904,
+          "from": "1904-07",
           "to": 1906
         },
         {
@@ -3009,7 +4085,7 @@
           "ship": "City of Paris",
           "line": "Inman",
           "port": "Liverpool",
-          "from": 1889,
+          "from": "1889-05",
           "to": 1892
         },
         {
@@ -3023,14 +4099,14 @@
           "ship": "St. Louis",
           "line": "American",
           "port": "Southampton",
-          "from": 1895,
+          "from": "1895-07",
           "to": 1906
         },
         {
           "ship": "St. Paul",
           "line": "American",
           "port": "Southampton",
-          "from": 1895,
+          "from": "1895-11",
           "to": 1906
         },
         {
@@ -3121,7 +4197,7 @@
           "ship": "Kaiser Wilhelm II",
           "line": "North German Lloyd",
           "port": "Bremen",
-          "from": 1903,
+          "from": "1903-05",
           "to": 1906
         },
         {
@@ -3163,7 +4239,7 @@
           "ship": "Furst Bismarck",
           "line": "Hamburg-American",
           "port": "Hamburg",
-          "from": 1891,
+          "from": "1891-06",
           "to": 1903
         },
         {
@@ -3289,14 +4365,14 @@
           "ship": "Statendam",
           "line": "Holland-America",
           "port": "Rotterdam",
-          "from": 1898,
+          "from": "1898-09",
           "to": 1906
         },
         {
           "ship": "Potsdam",
           "line": "Holland-America",
           "port": "Rotterdam",
-          "from": 1900,
+          "from": "1900-06",
           "to": 1906
         },
         {
@@ -3345,7 +4421,20 @@
         "The quarantine doctors went aboard both at the Narrows and found all well, save for a lecturer on remedies who had been seasick throughout and blamed his own.",
         "A stowaway taken off at the Narrows had lived for nine days on a case of bitters in the hold, and is said to be in excellent spirits.",
         "The ship's band played on the pier, and a druggist of West street sold a remedy for the passengers' legs, which had not yet found the land.",
-        "Both report icebergs off the Banks. A proprietor of the city has named a cooling tonic for them."
+        "Both report icebergs off the Banks. A proprietor of the city has named a cooling tonic for them.",
+        "The {ship}'s surgeon declares the passage a healthy one, and has a tonic of his own to prove it, at a dollar.",
+        "Among the {ship2}'s cargo were six crates of a German stomach bitters, which the Customs taxed as spirits and the importer will sell as medicine.",
+        "The {ship} landed a lecturer on hygiene, who has taken rooms on Broadway and will cure the city by subscription.",
+        "Both lines advertise the healthiest passage on the Atlantic, and the druggists of West street advertise a remedy for it.",
+        "The {ship2}'s purser reports that a case of an English tonic was opened at sea for the seasick, who asked for the sea back.",
+        "A gentleman landed from the {ship} with the patent of an elixir and no other luggage, and was met on the pier by three proprietors who had read of him in the Herald.",
+        "The {ship}'s cabin list includes a professor of nerves from Vienna, whom the city's nerve tonics have already quoted.",
+        "The Customs found a trunk on the {ship2} packed with a French complexion wafer, and passed it, the inspector's wife having tried one.",
+        "The pilot boat sighted the {ship} off Fire Island at dawn; a druggist's runner was on the pier by eight.",
+        "The {ship} carried two hundred bags of mail, a third of them, the postmaster estimates, circulars for remedies.",
+        "A cabin passenger of the {ship} who sold a cure for sea-sickness on deck all the way over was sea-sick in the Lower Bay, and has stopped selling it.",
+        "The quarantine officers passed both ships, and a box of pills on the {ship2} which the officers called harmless and the label called miraculous.",
+        "The {ship2} brings word of a new remedy for everything, lately the rage in {port2}, which a proprietor of the Bowery has been selling since March."
       ]
     },
     "weather": {
@@ -3502,11 +4591,68 @@
           "text": "The Bureau, which is new, is said to be as often right as the old Service, which was not.",
           "from": 1891,
           "to": 1893
+        },
+        "The proprietors of the city say every weather is the weather for their remedies, and the forecast does not contradict them.",
+        "A druggist of Grand street keeps a barometer in his window that says whatever the remedy beside it needs.",
+        "A liniment of the Bowery advertises that it can foretell the weather, which is more than it claims for the rheumatism.",
+        "The almanacs of the patent medicines had it a week ago, and had the opposite too, in another column.",
+        "The weather will be blamed by the physicians and credited by the druggists, in the usual way.",
+        "The forecast is posted at the Post Office, the Battery and the window of every druggist who can see a profit in it.",
+        "A proprietor of a cough cure has offered {agency} a fee to print the forecast on his wrappers, and is said to be waiting for a colder one.",
+        "The Gazette prints it as received, and takes no responsibility for it, which puts it on the same footing as the advertisements.",
+        "The ward's druggists have a remedy ready whatever comes, and two if it comes on a Saturday.",
+        {
+          "text": "The cough lozenges have gone up a cent the box, the druggists say on account of the weather, which has not gone up at all.",
+          "months": [11, 12, 1, 2, 3]
+        },
+        {
+          "text": "The ward will burn what coal it has, and the druggists will sell it what it has not: a warming cordial at forty cents.",
+          "months": [11, 12, 1, 2]
+        },
+        {
+          "text": "The red-flannel chest protectors are in every window, and the druggists who sell them are the warmest men in the ward.",
+          "months": [11, 12, 1, 2, 3]
+        },
+        {
+          "text": "The skating is said to be good in the Park, and the sprains good on Grand street, where the liniments are.",
+          "months": [12, 1, 2]
+        },
+        {
+          "text": "The spring tonics are out again, under last spring's labels, at this spring's prices.",
+          "months": [3, 4, 5]
+        },
+        {
+          "text": "Moving Day is near, and the druggists have laid in a liniment for the backs of the city.",
+          "months": [4]
+        },
+        {
+          "text": "The ward's windows are open for the first time since October, and the cough remedies have closed for the season, at a loss.",
+          "months": [4, 5]
+        },
+        {
+          "text": "The ice is dear, the soda water cheap, and a cholera mixture in every window, against a cholera nobody has invited.",
+          "months": [6, 7, 8]
+        },
+        {
+          "text": "The heat has the ambulances out, and a druggist of the Bowery has a wagon out behind them, with a cooling cordial.",
+          "months": [6, 7, 8]
+        },
+        {
+          "text": "The fan-makers report a heavy trade, and so do the makers of a cordial that is said to fan from within.",
+          "months": [6, 7, 8]
+        },
+        {
+          "text": "The children go back to school with the catarrh they took home in June, and a remedy for it is advertised on the backs of the slates.",
+          "months": [9, 10]
+        },
+        {
+          "text": "The overcoats come out of the pawnshops and the cough remedies out of the cellars, at much the same rate of interest.",
+          "months": [10, 11]
         }
       ]
     },
     "sporting": {
-      "months": [4, 5, 6, 7, 8, 9, 10],
+      "months": [4, 5, 6, 7, 8, 9],
       "clubs": [
         {
           "name": "the New-Yorks",
@@ -3694,58 +4840,16 @@
         "The fielders complained of the sun, and the druggists of the city sell a remedy for it.",
         "The losing nine are to take a tonic before the next game, by order of their manager, who has a share in it.",
         "The crowd, which had come to see a pitchers' battle, saw a batting practice instead, and asked for its money back without result.",
-        "A foul ball struck a gentleman in the grand stand, who held up a bottle of a liniment he had brought for the purpose."
+        "A foul ball struck a gentleman in the grand stand, who held up a bottle of a liniment he had brought for the purpose.",
+        "The winners' trainer credits a rubbing of liniment, and the liniment's proprietor credits himself, in the evening papers.",
+        "A proprietor of a tonic has offered the losers a case for every run they score next week, which their manager calls the first encouragement the club has had.",
+        "The umpire, struck by a ball in the sixth, refused a remedy offered from the stand, and was struck again in the seventh.",
+        "A bottle of a nerve tonic was found under the winners' bench, which the losing captain says explains everything.",
+        "A gentleman in the grand stand took a spoonful of a remedy at every strike-out and was carried home in the eighth, the pitcher having struck out eleven.",
+        "The bleachers were sold a lemonade warranted to cure thirst, which it did not, at five cents, which it was not worth."
       ]
     },
     "police": {
-      "givenMale": [
-        "Patrick",
-        "Michael",
-        "John",
-        "James",
-        "Thomas",
-        "Hugh",
-        "Dennis",
-        "Giuseppe",
-        "Antonio",
-        "Salvatore",
-        "Francesco",
-        "Isaac",
-        "Abraham",
-        "Morris",
-        "Samuel",
-        "Louis",
-        "Hermann",
-        "Fritz",
-        "Heinrich",
-        "Karl",
-        "Peter",
-        "William",
-        "Henry",
-        "George",
-        "Charles",
-        "Stanislaus",
-        "Jan",
-        "Ole"
-      ],
-      "givenFemale": [
-        "Bridget",
-        "Mary",
-        "Margaret",
-        "Ellen",
-        "Annie",
-        "Kate",
-        "Rosa",
-        "Maria",
-        "Concetta",
-        "Sarah",
-        "Rebecca",
-        "Fanny",
-        "Lena",
-        "Gussie",
-        "Minnie",
-        "Lizzie"
-      ],
       "tradesMale": [
         "a peddler",
         "a truck driver",
@@ -3775,47 +4879,6 @@
         "a candy store keeper"
       ],
       "slots": {
-        "surname": [
-          "Hagan",
-          "Mulcahy",
-          "Brennan",
-          "Sullivan",
-          "Donovan",
-          "Quigley",
-          "Rafferty",
-          "Cassidy",
-          "Costello",
-          "Russo",
-          "Esposito",
-          "Romano",
-          "Ferrara",
-          "Lombardo",
-          "Cohen",
-          "Levy",
-          "Rosen",
-          "Goldberg",
-          "Abrams",
-          "Schmidt",
-          "Becker",
-          "Weiss",
-          "Hoffmann",
-          "Krause",
-          "Kowalski",
-          "Nowak",
-          "Olsen",
-          "Larsen",
-          "Murphy",
-          "Gallagher",
-          "Flanagan",
-          "Doyle",
-          "Fitzgerald",
-          "Meyer",
-          "Schneider",
-          "Bauer",
-          "Greenbaum",
-          "Marino",
-          "Caruso"
-        ],
         "street": [
           "Mott street",
           "Elizabeth street",
@@ -3887,16 +4950,158 @@
         "The officer said the prisoner smelled of drink; the prisoner said it was a tonic; {judge} said the distinction was a fine one, and fined accordingly.",
         "{Pronoun} asked that the remedy be fined instead, and {judge} said that it would be, if it could be got into court.",
         "Asked whether {pronoun} had anything to say, {pronoun} recommended a liniment to the officer, who was limping.",
-        "The prisoner's wife said {pronoun} had been a quiet man until the bottle; the prisoner said the same of her.",
+        "The prisoner's {spouse} said {pronoun} had been a quiet {man} until the bottle; the prisoner said the same of {spouseObject}.",
         "{Pronoun} paid the fine in pennies, which {judge} said was the first honest money the court had seen that week.",
         "{Pronoun} said {pronoun} would never do it again, and {judge}, who has heard it before, said he would wait and see.",
         "The complainant, a druggist, did not appear, being busy.",
         "{Judge} remarked that half the cases before him began with a bottle, and the other half ended with one.",
         "The prisoner, who had been in the court before, was greeted by the officers by name.",
-        "{Pronoun} gave {possessive} occupation as 'resting,' and {judge} gave {object} the chance to continue it.",
-        "An interpreter was sent for and the case explained; the prisoner then explained it again, more loudly.",
+        "{Pronoun} gave {possessive} occupation as 'resting'; {judge}, who rises at three, gave {object} ten days to do it in.",
+        "An interpreter was sent for, and arrived after the fine had been paid; the court, which had understood nothing, charged the county for his time.",
         "{Pronoun} said the remedy on the label had promised strength, and that {pronoun} had only been using it.",
-        "{Judge} advised {object} to take the pledge, and {pronoun} asked whether the pledge would mind a tonic."
+        "{Judge} advised {object} to take the pledge, and {pronoun} asked whether the pledge would mind a tonic.",
+        "{Judge} asked where the bottle was bought, and the officer named a druggist of the precinct, who was not charged, being a friend of the captain.",
+        "The officer who made the arrest was found to have a bottle of the same in his own coat, and the matter went no further than the fine.",
+        "{Pronoun} said the label had promised {object} the strength of ten; {judge} fined {object} accordingly, by the ten.",
+        "{Judge} sent for the label, read it, and said that if it were a man he would have given it thirty days.",
+        "A proprietor of the ward, called as a witness, said he had never seen the prisoner, and asked to have it put in the record.",
+        "The clerk of the court, who sells a liniment on the side, gave {object} his card on the way out.",
+        "{Judge} observed that the remedy found in the prisoner's pocket was two parts in five alcohol, and that the court could not fine a label, though it would like to.",
+        "The complaining witness kept the saloon on the corner, and the remedy came from the drug store opposite; the court did not ask which had the better license.",
+        "Counsel argued that {pronoun} had been under the influence of a nerve tonic sold on the Bowery as harmless. {Judge} said he knew the tonic, and the Bowery.",
+        "{Judge} remarked that the druggists of the precinct sold more spirits than its saloons, and paid less for the license.",
+        "The officer said the prisoner had been singing; the prisoner said it was a tonic; {judge} said that in his court it came to the same thing.",
+        "The fine was paid by a gentleman at the back of the court, who left a card for a remedy against the habit.",
+        "{Judge} asked whether anyone present could speak for the prisoner. A druggist rose, and sat down again when asked what about."
+      ],
+      "names": [
+        {
+          "origin": "irish",
+          "weight": 3,
+          "male": [
+            "Patrick",
+            "Michael",
+            "John",
+            "Thomas",
+            "James",
+            "Dennis",
+            "Timothy",
+            "Cornelius",
+            "Owen",
+            "Bartholomew",
+            "Daniel"
+          ],
+          "female": [
+            "Bridget",
+            "Mary",
+            "Ellen",
+            "Margaret",
+            "Catherine",
+            "Honora",
+            "Johanna",
+            "Nora"
+          ],
+          "surnames": [
+            "Hagan",
+            "Mulcahy",
+            "Brennan",
+            "Sullivan",
+            "Donovan",
+            "Quigley",
+            "Rafferty",
+            "Cassidy",
+            "Costello",
+            "Murphy",
+            "Gallagher",
+            "Flanagan",
+            "Doyle",
+            "Fitzgerald",
+            "Mahoney",
+            "Keegan"
+          ]
+        },
+        {
+          "origin": "italian",
+          "weight": 2,
+          "male": [
+            "Giuseppe",
+            "Antonio",
+            "Salvatore",
+            "Francesco",
+            "Giovanni",
+            "Luigi",
+            "Vincenzo",
+            "Pasquale",
+            "Domenico"
+          ],
+          "female": ["Maria", "Rosa", "Concetta", "Carmela", "Giuseppina", "Angela", "Filomena"],
+          "surnames": [
+            "Russo",
+            "Esposito",
+            "Romano",
+            "Ferrara",
+            "Lombardo",
+            "Marino",
+            "Caruso",
+            "Greco",
+            "Ricci",
+            "De Luca"
+          ]
+        },
+        {
+          "origin": "german",
+          "weight": 2,
+          "male": ["Heinrich", "Fritz", "Wilhelm", "Karl", "August", "Hermann", "Otto", "Jacob"],
+          "female": ["Gretchen", "Katharina", "Anna", "Wilhelmina", "Lena", "Elise"],
+          "surnames": [
+            "Schmidt",
+            "Becker",
+            "Weiss",
+            "Hoffmann",
+            "Krause",
+            "Meyer",
+            "Schneider",
+            "Bauer",
+            "Fischer",
+            "Wagner"
+          ]
+        },
+        {
+          "origin": "jewish",
+          "weight": 2,
+          "male": ["Morris", "Isaac", "Abraham", "Samuel", "Louis", "Max", "Solomon", "Hyman"],
+          "female": ["Rebecca", "Sarah", "Rachel", "Fanny", "Esther", "Bessie", "Rose"],
+          "surnames": [
+            "Cohen",
+            "Levy",
+            "Rosen",
+            "Goldberg",
+            "Abrams",
+            "Greenbaum",
+            "Schwartz",
+            "Kaplan",
+            "Rabinowitz"
+          ]
+        },
+        {
+          "origin": "polish",
+          "from": 1888,
+          "male": ["Stanislaus", "Jan", "Josef", "Casimir", "Adam"],
+          "female": ["Marianna", "Jadwiga", "Katarzyna", "Agnes"],
+          "surnames": ["Kowalski", "Nowak", "Wisniewski", "Kaminski", "Zielinski"]
+        },
+        {
+          "origin": "scandinavian",
+          "male": ["Ole", "Lars", "Nils", "Hans", "Sven", "Olaf"],
+          "female": ["Ingrid", "Karin", "Sigrid", "Hilda"],
+          "surnames": ["Olsen", "Larsen", "Hansen", "Johansen", "Nilsen", "Petersen"]
+        },
+        {
+          "origin": "native",
+          "male": ["William", "George", "Charles", "Henry", "Edward", "Frank"],
+          "female": ["Emma", "Annie", "Lizzie", "Jennie", "Martha"],
+          "surnames": ["Smith", "Brown", "Jones", "Clark", "Miller", "Wilson", "Taylor"]
+        }
       ]
     },
     "mortality": {
@@ -3930,7 +5135,29 @@
         },
         "The coffin-makers of the city report that their trade, unlike the remedy trade, has never needed advertising.",
         "The Registrar asks physicians to write the cause of death legibly. Several proprietors are said to be relieved by the present arrangement.",
-        "The Bureau gives the causes under thirty heads, and patent medicine under none of them."
+        "The Bureau gives the causes under thirty heads, and patent medicine under none of them.",
+        "The Registrar's return gives no figure for the remedies, and the remedies give none for the Registrar.",
+        "The Health Department lays the figure to the tenements; the landlords, to the tenants; the proprietors, to the want of their remedies.",
+        "The undertakers report no complaints, and are the only trade in the city that can say so.",
+        "Consumption accounts for the most, as usual, and for the most advertising, as usual.",
+        "The physicians have petitioned for a column for proprietary medicine in the returns. The proprietors have petitioned against it, as making work for the clerks.",
+        "The Bureau notes that the figure is lower in the wards with the most physicians and higher in those with the most druggists, and draws no conclusion, which is its practice.",
+        "The Health Department has asked again for more sanitary inspectors, and the Aldermen have asked again what for.",
+        {
+          "text": "The cold accounts for the pneumonias, the Department says, and for a great many bottles, the druggists say.",
+          "months": [12, 1, 2, 3]
+        },
+        {
+          "text": "The heat accounts for most of the infants, the Department says. It does not say what the soothing syrups account for, nobody having asked it to count.",
+          "months": [6, 7, 8, 9]
+        },
+        "A physician of the Department said privately that a third of the certificates might as well read 'the bottle,' and publicly that he had said nothing of the kind.",
+        "The return is printed in the Department's weekly bulletin, which nobody reads, and beside the remedies in every paper, which everybody does, this one included.",
+        "The coffin-makers say the figure agrees with their own books, which are kept more carefully than the city's.",
+        {
+          "text": "The Greater City's figure takes in Brooklyn, which the Department says is the healthier borough and Brooklyn's druggists say is not.",
+          "from": 1898
+        }
       ]
     },
     "fire": {
@@ -4009,7 +5236,19 @@
         "The firemen report a strong smell of spirits from the rear. The proprietor says it was a remedy.",
         "Engine Company No. 9 was first at the fire and first at the saloon after it.",
         "The owner says he will rebuild, and has meanwhile taken a room over a druggist's, where the fire risk is said to be higher.",
-        "The fire marshal will inquire. The druggists of the street have already inquired, and are selling a remedy for burns."
+        "The fire marshal will inquire. The druggists of the street have already inquired, and are selling a remedy for burns.",
+        "The Fire Department reports that the fire-escape was used as a store-room, as is the custom, and the owner as a landlord, as is his.",
+        "A quantity of liniment in the rear burned for an hour, and the Chief has asked the proprietor what was in it. The proprietor has asked the same of his wholesaler.",
+        "The insurance was found to be twice the stock, which the adjusters regard as a coincidence of the usual kind.",
+        "The engines were held up at the corner by a crowd round a medicine lecturer, who moved his wagon only when the hose was turned on him.",
+        "A druggist of the block lent the firemen his pump, and has sent the owner a bill for the water.",
+        "The building inspector passed the house in the spring, and has passed it again in the ashes, as no longer his affair.",
+        "The salvage corps saved two sewing machines, a mattress and a case of bitters, and the landlord has claimed the bitters against the rent.",
+        "By morning a proprietor across the street had his window lettered FIRE-PROOF TONIC.",
+        "The Chief says again that the city's cellars are full of oil, rags and patent medicine, and that he cannot tell the three apart by the smell.",
+        "The alarm box at the corner had been painted over with a notice for a cough syrup, and was found by feel.",
+        "Two firemen overcome by the smoke were revived at a druggist's with a tonic and a bill, and were overcome again.",
+        "The owner had been warned by the Department in March; he was warned, he says, about another building, which he also owns."
       ]
     },
     "amusements": {
@@ -4069,7 +5308,7 @@
         },
         {
           "name": "the Hippodrome",
-          "from": 1905
+          "from": "1905-05"
         },
         {
           "name": "the London Theatre, on the Bowery"
@@ -4090,7 +5329,14 @@
           "a temperance drama, 'The Bottle and the Home,' in four acts",
           "the Sisters Delmar, in songs and dances",
           "a juggler who keeps eleven plates in the air and the audience in suspense",
-          "a lecturer on Darkest Africa, with lantern views",
+          {
+            "text": "a lecturer on the Dark Continent, with lantern views",
+            "to": 1889
+          },
+          {
+            "text": "a lecturer on Darkest Africa, with lantern views",
+            "from": 1890
+          },
           "a melodrama of the mines, with a cave-in at the close of the second act",
           "a company of acrobats from Berlin, and a clown from nowhere in particular",
           {
@@ -4136,12 +5382,32 @@
         "The comedian makes a joke at the expense of the patent medicines, and two proprietors in the audience laughed loudest.",
         "A doctor's wagon stands outside every night at eleven, to sell to those who come out in tears.",
         "The house was sold out on Saturday, and a speculator on the sidewalk did nearly as well as the druggist beside him.",
-        "A cough in the gallery is said to have been heard throughout the third act, and was sold a remedy at the door."
+        "A cough in the gallery is said to have been heard throughout the third act, and was sold a remedy at the door.",
+        "Between the acts a lecturer sold a nerve tonic from the stage, and the manager says the house has never been quieter.",
+        "The management has posted a notice that remedies may not be sold in the aisles, and the management across the street a notice that they may.",
+        "The critic of a morning paper found the second act long, and a proprietor in the next seat offered him something for it.",
+        "The villain is a druggist who poisons the heroine's mother, and the druggists of the Bowery have taken a box to see how it is done on the stage.",
+        "The hero recovers from a mortal wound in the fourth act, and a proprietor in the gallery has asked the management the name of the remedy.",
+        "A doctor was called for in the third act, and three rose, two of them with something to sell.",
+        "The programme carries eleven advertisements for remedies and one for the play.",
+        "Smelling salts may be had of the usher, at a price the usher says was fixed by the druggist next door.",
+        "The leading lady's portrait hangs in the lobby over a testimonial for a complexion wafer, which she says she never wrote and the wafer says it never read.",
+        "The death scene in the last act is called the finest in the city, and a proprietor of the Bowery has engaged the actor to die nightly in his window.",
+        "The temperance society has taken the gallery for Saturday, and a proprietor of bitters has taken the bar.",
+        "The gas went out in the second act, and the house sat in the dark until a lecturer on remedies lit a lamp and began to speak, when it left."
       ]
     }
   },
   "sickly": {
-    "headline": ["A SICKLY SEASON", "THE DEATHS COLUMN RUNS LONG", "A HEAVY MONTH IN THE WARD"],
+    "headline": [
+      "A SICKLY SEASON",
+      "THE DEATHS COLUMN RUNS LONG",
+      "A HEAVY MONTH IN THE WARD",
+      "THE UNDERTAKER IS BUSY",
+      "BLACK CRAPE ON THE DOORS",
+      "A HARD MONTH FOR THE WARD",
+      "THE DEATHS COLUMN IS FULL"
+    ],
     "decks": [
       ["The Ward Mourns.", "Black Crape on Mulberry Street.", "The Undertakers Are Busy."],
       [
@@ -4234,8 +5500,8 @@
   ],
   "prospectReady": {
     "larger_shop": [
-      "TRADE TALK.—The landlord has offered the proprietor the cobbler's shop next door, at five dollars a month, the shop having passed twenty-five regulars. The cobbler is packing, and waits only on the proprietor's word.",
-      "TRADE TALK.—The cobbler's shop next door is the proprietor's for the asking, at five dollars a month: the landlord has offered it, the shop having more than twenty-five regulars, and is waiting on an answer."
+      "TRADE TALK.—The landlord has offered the proprietor the empty shop next door, the cobbler's that was, at five dollars a month, the shop having passed twenty-five regulars. He waits only on the proprietor's word.",
+      "TRADE TALK.—The empty shop next door, the cobbler's that was, is the proprietor's for the asking at five dollars a month: the landlord has offered it, the shop having more than twenty-five regulars, and is waiting on an answer."
     ]
   },
   "unlockClips": {
@@ -4268,12 +5534,132 @@
       "Nothing was bought: it comes after forty batches with $100 put by, or after a bad batch comes to light."
     ],
     "larger_shop": [
-      "The wall to the cobbler's shop is down: room for twenty more regular customers.",
+      "The wall to the empty shop next door is down: room for twenty more regular customers.",
       "The rent is five dollars a month more."
     ],
     "bulk_supplier": [
       "Nothing was bought: an importer on Pearl Street gives the discount to a house that has brewed twenty-five batches.",
       "Drugs cost fifteen per cent less from now on."
     ]
-  }
+  },
+  "tradeShelfBare": [
+    "The shelf was bare before the month was out, and callers went away empty-handed.",
+    "The last bottle went before the month did; callers after it left with nothing.",
+    "The shelf ran out before the month, and the late callers went away empty-handed.",
+    "Not a bottle was left by the month's end, and those who came after went without.",
+    "The stock gave out before the month, and the counter turned callers away.",
+    "By the last week the shelf was empty, and the bell rang for nothing.",
+    "Before the month was out there was nothing on the shelf to sell.",
+    "The last callers of the month found the shelf empty.",
+    "The shelf gave out before the month did, which is money left on the counter.",
+    "The month outlasted the stock, and the callers after it went home."
+  ],
+  "tradeStock": [
+    "Stock on the shelf and in the jars, at cost: {stock}.",
+    "The shop's stock, bottled and in the jar, is worth {stock} at cost.",
+    "At cost, the drugs in the jars and the bottles on the shelf come to {stock}.",
+    "Stock in hand, at what it cost: {stock}.",
+    "On the shelf and in the jars, at cost price: {stock}."
+  ],
+  "tradeCallers": [
+    "Callers at the counter: {list}.",
+    "Who came to the counter, and why: {list}.",
+    "The month's callers: {list}.",
+    "At the counter this month: {list}.",
+    "The callers, by what brought them: {list}.",
+    "What brought the callers in: {list}.",
+    "Callers, and what sent them: {list}."
+  ],
+  "tradePost": [
+    "By post, to readers of the almanac: {bottles}, {money}.",
+    "The almanac's readers sent for {bottles} by post, paying {money}.",
+    "Orders by post from the almanac: {bottles}, for {money}.",
+    "The mail brought orders for {bottles} from the almanac's readers, worth {money}.",
+    "Posted to the almanac's readers: {bottles}, {money}.",
+    "The almanac brought in {bottles} by post, as it does, for {money}.",
+    "By post, on the almanac's coupon: {bottles}, {money}.",
+    "Through the mail, to the almanac's readers: {bottles}, for {money}."
+  ],
+  "tradeWholesale": [
+    "Wholesale: the druggists out of town ordered {ordered} and had {had}, paying {money}.",
+    "The druggists out of town ordered {ordered} and were sent {had}, for {money}.",
+    "To the trade out of town: {had} of the {ordered} ordered, for {money}.",
+    "Wholesale orders from out of town came to {ordered}; {had} went, for {money}."
+  ],
+  "tradeWholesaleNone": [
+    "Wholesale: the druggists out of town ordered {ordered} and had none, the shelf being bare.",
+    "The druggists out of town ordered {ordered}, and got nothing: there was none to send.",
+    "Out of town, the druggists asked for {ordered}; the shop had none to send them."
+  ],
+  "tradeTurned": [
+    "Callers who asked the price and went away: {n}.",
+    "Asked the price, and went away: {n}.",
+    "Callers who would not pay the price on the card: {n}.",
+    "Turned away by the price: {n}.",
+    "Of the callers, {n} asked what a bottle cost and went without."
+  ],
+  "deathBottle": {
+    "none": [
+      "The physician who signed the certificate says the bottle had no hand in it, and is the first physician in the ward to say so of a bottle.",
+      "{pronounCap} died of what brought {object} to the shop, the physician says, and not of the remedy, which neither helped nor hindered.",
+      "The physician found nothing in the remedy to blame, which the shop's rivals will find hard to credit, and its proprietor easy.",
+      "The remedy, the physician says, had nothing to do with it: there is nothing in it that could have, which its proprietor does not advertise.",
+      {
+        "text": "{pronounCap} was {age}, and died of it, the physician says; the bottle was only standing by.",
+        "if": "oldage"
+      },
+      "{pronounCap} would have died the same without it, the physician says, which is the most a physician has said for a remedy this year.",
+      "The physician says the remedy had no part in it, and the proprietor is said to be unsure whether to be relieved or offended."
+    ],
+    "caused.dose": [
+      "The physician says it was the remedy, a dose too strong for {object}, and the register says so too, for once.",
+      "There is no doubt in the physician's mind that the bottle did it, and none, he says, in the bottle's.",
+      "The physician says the last dose did it, and that the label's directions, followed exactly, would have done the same.",
+      "The bottle was half empty, the physician says, and the label wholly wrong."
+    ],
+    "caused.metals": [
+      "The physician says it was the metals in the remedy, taken month on month, and that the wonder is it took so long.",
+      "{pronounCap} wasted away on the remedy, the physician says, a spoonful at a time, as directed.",
+      "The physician says the remedy did it, slowly, as such remedies do, and has written to the Board of Health, which will file the letter."
+    ],
+    "maybe.dose": [
+      "The physician who attended will not say whether the remedy hastened the end, and has written 'natural causes' on the certificate, which has no room for the other.",
+      "The physician says privately that the remedy may have been too strong for {object}, and publicly nothing at all.",
+      "Whether the remedy did {object} harm the physician cannot say; that it did {object} no good he will."
+    ],
+    "maybe.want": [
+      "{pronounCap} had come to need the remedy, the neighbors say; whether the days without it hastened the end the physician cannot say, and the certificate says 'natural causes,' which is what certificates say.",
+      "{pronounCap} had lately been asking for the remedy by name, the neighbors say. The physician will not say what the want of it had to do with the end.",
+      "The habit had worn {object} thin, the neighbors think; the physician will not put it in writing."
+    ],
+    "maybe.metals": [
+      "The physician spoke of a slow poison in the system, and of the remedy in the same breath, and then of the weather.",
+      "There are metals in the remedy, the physician says, and what they had to do with it he cannot say, and has not been asked.",
+      "The remedy may have been poisoning {object} by the spoonful, the physician says, slowly enough to be called natural."
+    ]
+  },
+  "verdictHeadlines": [
+    "THE CORONER NAMES A REMEDY",
+    "A VERDICT AGAINST THE BOTTLE",
+    "THE JURY NAMES THE LABEL",
+    "THE INQUEST FINDS THE BOTTLE",
+    "NAMED AT THE INQUEST",
+    "THE CORONER'S JURY SPEAKS",
+    "A REMEDY IN THE VERDICT",
+    "THE BOTTLE ON THE MANTEL"
+  ],
+  "joinedPlain": [
+    "New at the counter this month: {names}.",
+    "Also among the month's new customers: {names}.",
+    "The shop's book of regulars has these new names this month: {names}.",
+    "Also taking the remedy from this month: {names}.",
+    "Further new customers: {names}."
+  ],
+  "leftPlain": [
+    "Gone from the counter this month: {names}.",
+    "No longer at the shop this month: {names}.",
+    "Also gone from the shop's books: {names}.",
+    "The proprietor has lost these regulars this month: {names}.",
+    "Not at the counter this month, and not expected: {names}."
+  ]
 }

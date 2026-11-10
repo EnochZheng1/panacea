@@ -144,7 +144,7 @@ public partial class DeskView : ScrollContainer
 		var books = new VBoxContainer();
 		books.AddChild(Print.Label("THE BOOKS", Print.Rye, 15, HorizontalAlignment.Center));
 		books.AddChild(Print.Label($"Cash in hand: {EditionWriter.Money(m.CashCents)}", Print.Fell, 16));
-		books.AddChild(Print.Label($"Standing in the ward: {m.Reputation:0}", Print.Fell, 16));
+		books.AddChild(Print.Label($"Good name in the ward: {m.Reputation:0} of 100", Print.Fell, 16));
 		books.AddChild(Print.Label($"Talk about the shop: {Talk(m.Heat)}", Print.Fell, 16));
 		books.AddChild(Print.Label($"Regulars: {m.Customers} of {m.CustomerCapacity}", Print.Fell, 16));
 		h.AddChild(Print.Slip(books, 12, 240));

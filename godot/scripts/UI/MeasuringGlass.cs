@@ -96,6 +96,7 @@ public partial class MeasuringGlass : Control
 		// the liquid, band by band
 		double level = 0;
 		var font = Print.FellIt;
+		var labels = new List<(string Name, string Measure, float Mid)>();
 		for (var i = 0; i < _layers.Count; i++)
 		{
 			var (name, _, shown, op) = _layers[i];
@@ -107,9 +108,23 @@ public partial class MeasuringGlass : Control
 			DrawRect(r, tone);
 			Shade(r, i % 4);
 			DrawLine(new Vector2(left + 3, y1), new Vector2(right - 3, y1), new Color(ink, 0.55f), 1f);
-			if (y0 - y1 > 11)
-				DrawString(font, new Vector2(right + 8, (y0 + y1) / 2 + 5), $"{name} {Fmt(shown)}", HorizontalAlignment.Left, w - right - 10, LargePrint.Size(12), ink);
+			if (y0 - y1 > 3) labels.Add((name, Fmt(shown), (y0 + y1) / 2));
 			level += shown;
+		}
+		// every band is labelled; the labels are kept a line apart, bottom up, and a thin band's
+		// label stands off it with a hairline to its band, so no two labels are ever printed over each other
+		var px = LargePrint.Size(12);
+		var room = w - right - 10;
+		var lineH = font.GetHeight(px) - 1;
+		var floor = float.MaxValue;
+		foreach (var (name, measure, mid) in labels)
+		{
+			var lines = font.GetStringSize($"{name} {measure}", HorizontalAlignment.Left, -1, px).X <= room ? 1 : 2;
+			var half = lines * lineH / 2;
+			var at = Math.Min(mid, floor - half);
+			floor = at - half;
+			if (Math.Abs(at - mid) > 2) DrawLine(new Vector2(right + 1, mid), new Vector2(right + 6, at), new Color(ink, 0.6f), 1f);
+			Label(font, name, measure, right + 8, at, room, ink);
 		}
 		// the meniscus
 		if (level > 0.01)
@@ -143,6 +158,25 @@ public partial class MeasuringGlass : Control
 			DrawLine(new Vector2(left - 1, top - 6), new Vector2(left - 4, bottom - 60), g, 2.4f);
 			DrawRect(new Rect2(left - 18, bottom - 4, right - left + 40, 4), g);
 		}
+	}
+
+	/// <summary>
+	/// A band's label beside the glass, never cut short ("Valerian Roo"): on one line when it fits,
+	/// else the name over the measure, centred on the given height.
+	/// </summary>
+	private void Label(Font font, string name, string measure, float x, float mid, float room, Color ink)
+	{
+		var px = LargePrint.Size(12);
+		var one = $"{name} {measure}";
+		var line = font.GetHeight(px) - 1;
+		if (font.GetStringSize(one, HorizontalAlignment.Left, -1, px).X <= room)
+		{
+			DrawString(font, new Vector2(x, mid + px * 0.4f), one, HorizontalAlignment.Left, -1, px, ink);
+			return;
+		}
+		var top = mid - line / 2 + px * 0.4f;
+		DrawString(font, new Vector2(x, top), name, HorizontalAlignment.Left, -1, px, ink);
+		DrawString(font, new Vector2(x, top + line), measure, HorizontalAlignment.Left, -1, px, ink);
 	}
 
 	private double Shown()

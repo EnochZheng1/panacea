@@ -192,8 +192,10 @@ public static class Print
 		b.AddThemeColorOverride("font_pressed_color", bg);
 		b.AddThemeColorOverride("font_hover_pressed_color", bg);
 		b.AddThemeColorOverride("font_focus_color", fg);
-		// a ticket that cannot be pressed is never inked: outlined faintly, whatever its kind
-		b.AddThemeColorOverride("font_disabled_color", new Color(Ink, 0.6f));
+		// a ticket that cannot be pressed is never inked: outlined with a hairline, whatever its kind.
+		// Its words stay dark enough to read (about 7:1 on the paper; at 0.6 the thin woodtype
+		// measured 2.5:1), and the screen prints why it is shut, beside it
+		b.AddThemeColorOverride("font_disabled_color", new Color(Ink, 0.78f));
 		StyleBoxFlat Make(Color fill, Color border, int width)
 		{
 			var st = Box(fill, border, width, 6);
@@ -311,6 +313,23 @@ public static class Print
 		bar.AddThemeStyleboxOverride("grabber_highlight", hot);
 		bar.AddThemeStyleboxOverride("grabber_pressed", hot);
 		bar.CustomMinimumSize = new Vector2(8, 0);
+	}
+
+	/// <summary>A thin ink scrollbar, for a scroll printed on the paper itself (a column of the proof).</summary>
+	public static void InkScrollbar(ScrollContainer sc)
+	{
+		var bar = sc.GetVScrollBar();
+		var track = new StyleBoxFlat { BgColor = new Color(Ink, 0.07f) };
+		track.ContentMarginLeft = track.ContentMarginRight = 2;
+		var grab = new StyleBoxFlat { BgColor = new Color(Ink, 0.5f) };
+		grab.SetCornerRadiusAll(3);
+		var hot = (StyleBoxFlat)grab.Duplicate();
+		hot.BgColor = new Color(Ink, 0.8f);
+		bar.AddThemeStyleboxOverride("scroll", track);
+		bar.AddThemeStyleboxOverride("grabber", grab);
+		bar.AddThemeStyleboxOverride("grabber_highlight", hot);
+		bar.AddThemeStyleboxOverride("grabber_pressed", hot);
+		bar.CustomMinimumSize = new Vector2(7, 0);
 	}
 
 	/// <summary>A sheet of paper with a double rule: an outer ink border and a fine inner one.</summary>

@@ -46,6 +46,24 @@ public static class LargePrint
 
 	private static int WoodSize(int designed) => Level == 0 ? designed : Math.Max(designed, WoodFloors[Level]);
 
+	/// <summary>One of three values by the text size: as designed, LARGE, LARGER. For type a screen sizes
+	/// itself (woodtype, which the floors leave alone, on a card that must grow with the rest).</summary>
+	public static T Pick<T>(T regular, T large, T larger) => Level switch { 0 => regular, 1 => large, _ => larger };
+
+	/// <summary>
+	/// Marks a node whose layout is designed for every text size (the proof page, the counter, the
+	/// bench, the formula book): the type under it is set at the floor and never stepped back by the
+	/// fitting pass. What runs long there scrolls, by design, rather than shrinking. Set it before the
+	/// node's children enter the tree.
+	/// </summary>
+	public static void NoFit(Node n) => n.SetMeta("lp_nofit", true);
+
+	private static bool Unfitted(Node c)
+	{
+		for (var p = c; p != null; p = p.GetParent()) if (p.HasMeta("lp_nofit")) return true;
+		return false;
+	}
+
 	/// <summary>Raised after the level changes and every control has been reset.</summary>
 	public static event Action? Changed;
 
@@ -110,16 +128,17 @@ public static class LargePrint
 		var setKey = "lp_set_" + name;
 		var designed = c.HasMeta(baseKey) && c.HasMeta(setKey) && (int)c.GetMeta(setKey) == now ? (int)c.GetMeta(baseKey) : now;
 		var want = IsWood(c.GetThemeFont(fontName)) ? WoodSize(designed) : Size(designed);
-		if (want > designed && Fitted[Level].TryGetValue(Key(c, name, designed), out var fit)) want = Math.Max(designed, Math.Min(want, fit));
+		var designedLayout = Unfitted(c);
+		if (want > designed && !designedLayout && Fitted[Level].TryGetValue(Key(c, name, designed), out var fit)) want = Math.Max(designed, Math.Min(want, fit));
 		c.SetMeta(baseKey, designed);
 		c.SetMeta(setKey, want);
 		if (c is Label l)
 		{
 			if (want <= designed) Unhold(l);
-			else if (Holds[Level].Contains(Key(c, name, designed))) Hold(l);
+			else if (!designedLayout && Holds[Level].Contains(Key(c, name, designed))) Hold(l);
 		}
 		if (want != now) c.AddThemeFontSizeOverride(name, want);
-		if (want > designed) Grew(c);
+		if (want > designed && !designedLayout) Grew(c);
 	}
 
 	/// <summary>One-line labels that had to be held to their designed width at each level, by key.</summary>

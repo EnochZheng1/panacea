@@ -26,7 +26,7 @@ public partial class FormulaBench : HBoxContainer
 	private readonly Dictionary<string, Gauge> _gauges = new();
 	private Label _cost = null!;
 	private RichTextLabel _verdict = null!;
-	private VBoxContainer _actions = null!;
+	private readonly VBoxContainer _actions;
 	private GridContainer _shelf = null!;
 	private string? _note;
 	public event Action? Changed;
@@ -49,6 +49,9 @@ public partial class FormulaBench : HBoxContainer
 	public FormulaBench(IGame game)
 	{
 		_game = game;
+		// laid out for every text size (across the whole table at the larger ones): its type is set
+		// at the size asked for and never shrunk, and nothing in it moves as the assay's words change
+		LargePrint.NoFit(this);
 		AddThemeConstantOverride("separation", 10);
 		var d = game.Desk();
 		var f = d.Formulas.FirstOrDefault(x => x.Id == _lastOpened) ?? d.Formulas.FirstOrDefault();
@@ -60,17 +63,32 @@ public partial class FormulaBench : HBoxContainer
 			{ _recipe[id] = oz; _order.Add(id); }
 		}
 		_glass.Capacity = d.BottleCapacityOunces;
+		// at the larger sizes the glass is wider, so its labels are never cut ("Valerian Roo"), and
+		// a little shorter, with the name, the price and the book's buttons under it
+		_glass.CustomMinimumSize = new Vector2(LargePrint.Pick(196, 280, 300), LargePrint.Pick(430, 330, 320));
+		_actions = new VBoxContainer();
+		_actions.AddThemeConstantOverride("separation", 4);
 
-		AddChild(Print.Slip(ShelfColumn(d), 8, 282));
+		AddChild(Print.Slip(ShelfColumn(d), 8, Large ? 300 : 282));
 		var mid = new VBoxContainer();
+		mid.AddThemeConstantOverride("separation", 4);
 		mid.AddChild(Print.Label("THE GLASS", Print.Rye, 18, HorizontalAlignment.Center));
 		mid.AddChild(_glass);
+		if (Large)
+		{
+			mid.AddChild(Print.Rule(1.4f, 0));
+			mid.AddChild(_actions);
+		}
 		AddChild(Print.Slip(mid, 6, 0));
 		var assay = AssayColumn(d);
 		assay.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-		AddChild(Print.Slip(assay, 10));
+		var assaySlip = Print.Slip(assay, 10);
+		assaySlip.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+		AddChild(assaySlip);
 		Refresh(animateFrom: true);
 	}
+
+	private static bool Large => LargePrint.Level > 0;
 
 	// ---------- the shelf ----------
 
@@ -85,7 +103,7 @@ public partial class FormulaBench : HBoxContainer
 		// the shelf scrolls inside its own frame, which ends inside the drawer: what is below says so
 		var scroll = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled, SizeFlagsVertical = SizeFlags.ExpandFill, CustomMinimumSize = new Vector2(0, 200) };
 		Print.QuietScrollbar(scroll);
-		_shelf = new GridContainer { Columns = 3, SizeFlagsHorizontal = SizeFlags.ExpandFill };
+		_shelf = new GridContainer { Columns = Large ? 2 : 3, SizeFlagsHorizontal = SizeFlags.ExpandFill };
 		_shelf.AddThemeConstantOverride("h_separation", 6);
 		_shelf.AddThemeConstantOverride("v_separation", 6);
 		scroll.AddChild(_shelf);
@@ -111,15 +129,39 @@ public partial class FormulaBench : HBoxContainer
 		return v;
 	}
 
+	/// <summary>A jar on the shelf, kept from one pour to the next: only its words and its ink change.</summary>
+	private sealed class JarView
+	{
+		public PanelContainer Box = null!;
+		public TextureRect? Img;
+		public Label Sub = null!;
+		public bool On;
+		public StyleBoxFlat Plain = null!, Ring = null!;
+	}
+
+	private readonly Dictionary<string, JarView> _jars = new();
+
+	/// <summary>
+	/// The shelf is built once and then updated in place, so a pour never moves a jar, resizes it or
+	/// scrolls the shelf from under the hand; it is built again only if the drugs on it change.
+	/// </summary>
 	private void BuildShelf(DeskModel d)
 	{
-		foreach (var c in _shelf.GetChildren()) { _shelf.RemoveChild(c); c.QueueFree(); }
-		foreach (var i in d.Ingredients)
+		var ids = d.Ingredients.Select(i => i.Id).ToList();
+		if (_jars.Count != ids.Count || ids.Any(id => !_jars.ContainsKey(id)))
 		{
-			var jar = Jar(i);
-			_shelf.AddChild(jar);
-			if (i.Id == _focusJar) Callable.From(() => { if (IsInstanceValid(jar)) jar.GrabFocus(); }).CallDeferred();
+			foreach (var c in _shelf.GetChildren()) { _shelf.RemoveChild(c); c.QueueFree(); }
+			_jars.Clear();
+			foreach (var i in d.Ingredients)
+			{
+				var jar = Jar(i);
+				_shelf.AddChild(jar.Box);
+				_jars[i.Id] = jar;
+			}
 		}
+		foreach (var i in d.Ingredients) Update(_jars[i.Id], i);
+		if (_focusJar != null && _jars.TryGetValue(_focusJar, out var f))
+			Callable.From(() => { if (IsInstanceValid(f.Box) && !f.Box.HasFocus()) f.Box.GrabFocus(); }).CallDeferred();
 	}
 
 	private static string JarCut(IngredientRow i) => i.DrugClass switch
@@ -130,45 +172,42 @@ public partial class FormulaBench : HBoxContainer
 		_ => i.Id is "calomel" or "acetanilide" or "aspirin" ? "wc_pills" : "wc_bottle_panacea",
 	};
 
-	private Control Jar(IngredientRow i)
+	/// <summary>The jars' width: three to a row as designed, two at the larger sizes, so a name never breaks mid-word.</summary>
+	private static float JarWidth => Large ? 128f : 84f;
+
+	private JarView Jar(IngredientRow i)
 	{
-		var inGlass = _recipe.GetValueOrDefault(i.Id);
-		var box = new PanelContainer { CustomMinimumSize = new Vector2(84, 108), MouseFilter = MouseFilterEnum.Stop, MouseDefaultCursorShape = CursorShape.PointingHand, FocusMode = FocusModeEnum.All };
-		var on = inGlass > 0;
-		var plain = Print.Box(on ? new Color(Print.Ink, 0.08f) : new Color(0, 0, 0, 0), Print.Ink, on ? 2 : 1, 4);
-		box.AddThemeStyleboxOverride("panel", plain);
-		// the keyboard's jar is printed in reverse at the foot and ruled heavily, not one pixel more
-		var ring = Print.Box(on ? new Color(Print.Ink, 0.08f) : new Color(0, 0, 0, 0), Print.Ink, 4, 4);
-		ring.ExpandMarginLeft = ring.ExpandMarginRight = ring.ExpandMarginTop = ring.ExpandMarginBottom = 3;
-		box.FocusEntered += () => box.AddThemeStyleboxOverride("panel", ring);
-		box.FocusExited += () => box.AddThemeStyleboxOverride("panel", plain);
-		box.TooltipText = (i.CostPerOunceCents == 0 ? $"{i.Name}: free, from the pump, and always on hand." : $"{i.Name}: {EditionWriter.Money(i.CostPerOunceCents)} the ounce, {i.OnHand:0.#} oz on hand.") + $"\n{i.Description}";
+		var jv = new JarView();
+		// one size for every jar: room for the cut, two lines of name and two of what is in the glass
+		var px = LargePrint.Size(13);
+		var line = Mathf.Ceil(Print.Fell.GetHeight(px)) - 2;
+		var box = new PanelContainer { CustomMinimumSize = new Vector2(JarWidth, 54 + 4 * line + 10), MouseFilter = MouseFilterEnum.Stop, MouseDefaultCursorShape = CursorShape.PointingHand, FocusMode = FocusModeEnum.All };
+		jv.Box = box;
+		// the keyboard's jar is ruled heavily, not one pixel more
+		box.FocusEntered += () => box.AddThemeStyleboxOverride("panel", jv.Ring);
+		box.FocusExited += () => box.AddThemeStyleboxOverride("panel", jv.Plain);
 		var v = new VBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
 		v.AddThemeConstantOverride("separation", 0);
 		var tex = Print.Cut(JarCut(i));
 		if (tex != null)
 		{
-			var img = new TextureRect { Texture = tex, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered, CustomMinimumSize = new Vector2(0, 54), MouseFilter = MouseFilterEnum.Ignore };
-			// the shelf is not the product: jars are printed in plain ink; green only once poured
-			if (!on) img.Material = new ShaderMaterial { Shader = GD.Load<Shader>("res://shaders/ink_only.gdshader") };
-			v.AddChild(img);
+			jv.Img = new TextureRect { Texture = tex, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered, CustomMinimumSize = new Vector2(0, 54), MouseFilter = MouseFilterEnum.Ignore };
+			v.AddChild(jv.Img);
 		}
 		var name = Print.Label(i.Name, Print.Fell, 13, HorizontalAlignment.Center);
+		name.CustomMinimumSize = new Vector2(0, 2 * line);
+		name.VerticalAlignment = VerticalAlignment.Center;
 		name.MouseFilter = MouseFilterEnum.Ignore;
 		v.AddChild(name);
-		var sub = Print.Label(on ? $"{inGlass:0.###} oz in the glass" : (i.CostPerOunceCents == 0 ? "free" : $"{EditionWriter.Money(i.CostPerOunceCents)}/oz" + (i.CostPerOunceCents >= 200 ? " · by the ⅛" : "")), Print.Fell, 13, HorizontalAlignment.Center);
-		sub.MouseFilter = MouseFilterEnum.Ignore;
-		v.AddChild(sub);
+		jv.Sub = Print.Label("", Print.Fell, 13, HorizontalAlignment.Center);
+		jv.Sub.CustomMinimumSize = new Vector2(0, 2 * line);
+		jv.Sub.MouseFilter = MouseFilterEnum.Ignore;
+		v.AddChild(jv.Sub);
 		box.AddChild(v);
 		Anim.LiftOnHover(box, 1.05f);
 		box.MouseEntered += () => Sfx.Play("tick", -14f, 0.15f);
 		// a dear, potent drug is measured by the eighth: a half ounce of morphine would empty the ward
 		var unit = i.CostPerOunceCents >= 200 ? 0.125 : 0.5;
-		var unitText = unit < 0.5 ? "⅛ oz" : "½ oz";
-		var fineText = unit < 0.5 ? "1/16 oz" : "¼ oz";
-		box.TooltipText += $"\nClick or Enter: pour {unitText} (Shift: {fineText}). Right-click or Backspace: take it back.";
-		box.FocusEntered += () => box.AddThemeStyleboxOverride("panel", Print.Box(new Color(Print.Ink, 0.08f), Print.Ink, 3, 4));
-		box.FocusExited += () => box.AddThemeStyleboxOverride("panel", Print.Box(on ? new Color(Print.Ink, 0.08f) : new Color(0, 0, 0, 0), Print.Ink, on ? 2 : 1, 4));
 		var id = i.Id;
 		box.GuiInput += e =>
 		{
@@ -185,7 +224,30 @@ public partial class FormulaBench : HBoxContainer
 				else if (k.Keycode is Key.Enter or Key.KpEnter or Key.Space) { Add(id, unit); box.AcceptEvent(); }
 			}
 		};
-		return box;
+		return jv;
+	}
+
+	/// <summary>What the jar says and how it is inked: what is in the glass, its price, its stock.</summary>
+	private void Update(JarView jv, IngredientRow i)
+	{
+		var inGlass = _recipe.GetValueOrDefault(i.Id);
+		var on = inGlass > 0;
+		var first = jv.Plain == null;
+		jv.On = on;
+		jv.Plain = Print.Box(on ? new Color(Print.Ink, 0.08f) : new Color(0, 0, 0, 0), Print.Ink, on ? 2 : 1, 4);
+		jv.Ring = Print.Box(on ? new Color(Print.Ink, 0.08f) : new Color(0, 0, 0, 0), Print.Ink, 4, 4);
+		jv.Ring.ExpandMarginLeft = jv.Ring.ExpandMarginRight = jv.Ring.ExpandMarginTop = jv.Ring.ExpandMarginBottom = 3;
+		jv.Box.AddThemeStyleboxOverride("panel", jv.Box.HasFocus() ? jv.Ring : jv.Plain);
+		// the shelf is not the product: jars are printed in plain ink; green only once poured
+		if (jv.Img != null && (first || (jv.Img.Material == null) != on))
+			jv.Img.Material = on ? null : new ShaderMaterial { Shader = GD.Load<Shader>("res://shaders/ink_only.gdshader") };
+		jv.Sub.Text = on ? $"{inGlass:0.###} oz in the glass" : (i.Free ? "free" : $"{OrderForm.PerOunce(i.CostPerOunce)}/oz" + (i.CostPerOunceCents >= 200 ? " · by the ⅛" : ""));
+		var unit = i.CostPerOunceCents >= 200 ? 0.125 : 0.5;
+		var unitText = unit < 0.5 ? "⅛ oz" : "½ oz";
+		var fineText = unit < 0.5 ? "1/16 oz" : "¼ oz";
+		// the tooltip is the jar's own, said afresh with each pour (never another jar's)
+		jv.Box.TooltipText = (i.Free ? (i.Id == "water" ? $"{i.Name}: free, from the pump, and always on hand." : $"{i.Name}: free, and always on hand.") : $"{i.Name}: {OrderForm.PerOunce(i.CostPerOunce)} the ounce, {i.OnHand:0.#} oz on hand.")
+			+ $"\n{i.Description}\nClick or Enter: pour {unitText} (Shift: {fineText}). Right-click or Backspace: take it back.";
 	}
 
 	/// <summary>Dev: pours the given ingredients one by one, for recordings.</summary>
@@ -248,18 +310,31 @@ public partial class FormulaBench : HBoxContainer
 			_gauges[key] = g;
 			v.AddChild(g);
 		}
-		_cost = Print.Label("", Print.FellIt, 14);
+		// the cost and the verdict keep one height whatever they say (a line; room for the longest
+		// verdict), so the price and the book's buttons under them never move as the glass is poured
+		_cost = Print.Label("", Print.FellIt, 14, wrap: false);
+		_cost.CustomMinimumSize = new Vector2(0, Mathf.Ceil(Print.FellIt.GetHeight(LargePrint.Size(14))));
 		v.AddChild(_cost);
 		_verdict = Print.Body("", 14, justify: false);
+		_verdict.CustomMinimumSize = new Vector2(0, VerdictHeight());
 		v.AddChild(_verdict);
 		v.AddChild(Print.Rule(1.4f, 0));
 		_procs = new HFlowContainer();
 		_procs.AddThemeConstantOverride("separation", 4);
+		_procs.AddThemeConstantOverride("v_separation", 4);
 		v.AddChild(_procs);
-		_actions = new VBoxContainer();
-		_actions.AddThemeConstantOverride("separation", 4);
-		v.AddChild(_actions);
+		if (!Large) v.AddChild(_actions);
 		return v;
+	}
+
+	/// <summary>The longest thing the verdict says, measured at the width it is set in.</summary>
+	private static float VerdictHeight()
+	{
+		var longest = "Perfectly safe and perfectly useless. The ward will say so. The spirit in it makes a slight habit: regulars grow fond of it, but none will come to crave it.";
+		// the assay's measure: the drawer's width less the shelf and the glass
+		var width = Large ? 1208f - 300f - 300f - 20f - 3 * 28f - 24f : 196f;
+		var px = LargePrint.Size(14);
+		return Mathf.Ceil(Print.FellIt.GetMultilineStringSize(longest, HorizontalAlignment.Left, width, px).Y + px * 0.6f);
 	}
 
 	private HFlowContainer _procs = null!;
@@ -466,12 +541,19 @@ public partial class FormulaBench : HBoxContainer
 		private readonly Label _words;
 		private readonly Label _value;
 		private Tween? _t;
-		private const float Track = 190f;
+		// the bar is longer when the assay has the width of the table
+		private static float Track => LargePrint.Pick(190f, 340f, 340f);
 		public string Help = "";
 
 		public Gauge(string label)
 		{
 			AddThemeConstantOverride("separation", 0);
+			// on the table's width the reading stands at the end of its bar, not across the slip from it
+			if (Large)
+			{
+				SizeFlagsHorizontal = SizeFlags.ShrinkBegin;
+				CustomMinimumSize = new Vector2(Track + 70, 0);
+			}
 			var top = new HBoxContainer();
 			top.AddChild(Print.Label(label, Print.Rye, 13, wrap: false));
 			_words = Print.Label("", Print.FellIt, 13, HorizontalAlignment.Right, wrap: false);

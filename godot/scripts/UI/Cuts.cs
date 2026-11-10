@@ -20,7 +20,7 @@ public static class Cuts
 	/// <summary>The base cut for a variant: strips a trailing <c>_b</c> or <c>_c</c>.</summary>
 	public static string Base(string cut)
 	{
-		if (cut != null && cut.Length > 2 && cut[^2] == '_' && (cut[^1] == 'b' || cut[^1] == 'c'))
+		if (cut.Length > 2 && cut[^2] == '_' && (cut[^1] == 'b' || cut[^1] == 'c'))
 			return cut[..^2];
 		return cut;
 	}

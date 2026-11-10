@@ -102,7 +102,8 @@
             "type": "notoriety",
             "delta": 5
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "decline",
@@ -131,7 +132,8 @@
             "type": "notoriety",
             "delta": 1
           }
-        ]
+        ],
+        "ledger": "fees"
       },
       {
         "id": "let_him_look",
@@ -171,6 +173,10 @@
           {
             "type": "setFlag",
             "id": "feeney_nearby"
+          },
+          {
+            "type": "setFlag",
+            "id": "feeney_slandered"
           }
         ]
       },
@@ -184,6 +190,10 @@
           {
             "type": "setFlag",
             "id": "feeney_nearby"
+          },
+          {
+            "type": "setFlag",
+            "id": "feeney_ignored"
           }
         ],
         "default": true
@@ -210,7 +220,8 @@
             "type": "heat",
             "delta": -5
           }
-        ]
+        ],
+        "ledger": "subscriptions"
       },
       {
         "id": "ignore_them",
@@ -318,6 +329,17 @@
         {
           "type": "bottlesSold",
           "atLeast": 150
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "flag",
+            "id": "feeney_slandered"
+          }
+        },
+        {
+          "type": "remedyPrice",
+          "atLeastCents": 66
         }
       ]
     },
@@ -331,7 +353,88 @@
             "type": "cash",
             "deltaCents": -1000
           }
+        ],
+        "ledger": "outlay"
+      },
+      {
+        "id": "cry_him_down",
+        "effects": [
+          {
+            "type": "notoriety",
+            "delta": 2
+          },
+          {
+            "type": "heat",
+            "delta": 4
+          },
+          {
+            "type": "reputation",
+            "delta": -2
+          }
         ]
+      },
+      {
+        "id": "let_him_try",
+        "effects": [
+          {
+            "type": "capability",
+            "id": "rival_share_pct",
+            "delta": 40,
+            "months": 4
+          },
+          {
+            "type": "capability",
+            "id": "rival_price_cents",
+            "delta": 65,
+            "months": 4
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "rival_price_war_slander",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "flag",
+          "id": "feeney_nearby"
+        },
+        {
+          "type": "flag",
+          "id": "feeney_slandered"
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "flag",
+            "id": "feeney_closed"
+          }
+        },
+        {
+          "type": "bottlesSold",
+          "atLeast": 150
+        },
+        {
+          "type": "remedyPrice",
+          "atLeastCents": 66
+        }
+      ]
+    },
+    "chance": 0.12,
+    "cooldownMonths": 48,
+    "choices": [
+      {
+        "id": "handbills",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -1000
+          }
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "cry_him_down",
@@ -403,7 +506,8 @@
             "id": "rent_extra_cents",
             "delta": -100
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "smaller_premises",
@@ -417,6 +521,10 @@
             "type": "capability",
             "id": "rent_extra_cents",
             "delta": -100
+          },
+          {
+            "type": "setFlag",
+            "id": "moved_across"
           }
         ]
       },
@@ -461,7 +569,8 @@
             "type": "cash",
             "deltaCents": -600
           }
-        ]
+        ],
+        "ledger": "supplies"
       },
       {
         "id": "pay_the_new_price",
@@ -551,6 +660,13 @@
         {
           "type": "season",
           "months": [2, 3, 4]
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "flag",
+            "id": "moved_across"
+          }
         }
       ]
     },
@@ -564,7 +680,8 @@
             "type": "cash",
             "deltaCents": -500
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "rent_it",
@@ -714,7 +831,8 @@
             "type": "reputation",
             "delta": 1
           }
-        ]
+        ],
+        "ledger": "subscriptions"
       },
       {
         "id": "regrets",
@@ -778,7 +896,8 @@
             "type": "setFlag",
             "id": "paid_police"
           }
-        ]
+        ],
+        "ledger": "fees"
       },
       {
         "id": "refuse",
@@ -839,7 +958,8 @@
             "delta": 4,
             "months": 2
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "wait",
@@ -886,7 +1006,8 @@
             "type": "reputation",
             "delta": 1
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "buy_certificate",
@@ -903,7 +1024,8 @@
             "type": "heat",
             "delta": 2
           }
-        ]
+        ],
+        "ledger": "fees"
       },
       {
         "id": "file_it",
@@ -1034,7 +1156,8 @@
             "type": "heat",
             "delta": 4
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "bed_rest",
@@ -1091,8 +1214,13 @@
             "id": "ingredient_discount_pct",
             "delta": 10,
             "months": 12
+          },
+          {
+            "type": "setFlag",
+            "id": "hobart_exclusive"
           }
-        ]
+        ],
+        "ledger": "supplies"
       },
       {
         "id": "stay_free",
@@ -1147,7 +1275,8 @@
             "type": "setFlag",
             "id": "show_on_road"
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "decline",
@@ -1244,11 +1373,11 @@
         },
         {
           "type": "season",
-          "months": [4, 5, 6, 7, 8]
+          "months": [5, 6, 7, 8]
         }
       ]
     },
-    "chance": 0.1,
+    "chance": 0.12,
     "once": true,
     "choices": [
       {
@@ -1420,7 +1549,8 @@
             "type": "clearFlag",
             "id": "kehoe_stronger"
           }
-        ]
+        ],
+        "ledger": "fees"
       },
       {
         "id": "say_nothing",
@@ -1549,6 +1679,10 @@
           {
             "type": "setFlag",
             "id": "stowe_known"
+          },
+          {
+            "type": "setFlag",
+            "id": "stowe_sheet_true"
           }
         ]
       },
@@ -1566,6 +1700,10 @@
           {
             "type": "setFlag",
             "id": "stowe_known"
+          },
+          {
+            "type": "setFlag",
+            "id": "stowe_sheet_vegetable"
           }
         ]
       },
@@ -1689,7 +1827,8 @@
             "type": "heat",
             "delta": -6
           }
-        ]
+        ],
+        "ledger": "fees"
       },
       {
         "id": "bottles_only",
@@ -1758,6 +1897,13 @@
         {
           "type": "batchesBrewed",
           "atLeast": 6
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "flag",
+            "id": "feeney_slandered"
+          }
         }
       ]
     },
@@ -1781,6 +1927,81 @@
           {
             "type": "setFlag",
             "id": "feeney_has_receipt"
+          },
+          {
+            "type": "setFlag",
+            "id": "boy_left"
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "feeney_boy_slander",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "flag",
+          "id": "feeney_nearby"
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "flag",
+            "id": "feeney_closed"
+          }
+        },
+        {
+          "type": "since",
+          "event": "rival_shop_opens",
+          "atLeast": 2
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "date",
+            "from": {
+              "year": 1895,
+              "month": 1
+            }
+          }
+        },
+        {
+          "type": "batchesBrewed",
+          "atLeast": 6
+        },
+        {
+          "type": "flag",
+          "id": "feeney_slandered"
+        }
+      ]
+    },
+    "chance": 0.3,
+    "once": true,
+    "choices": [
+      {
+        "id": "raise",
+        "effects": [
+          {
+            "type": "capability",
+            "id": "retainer_cents",
+            "delta": 200,
+            "months": 12
+          }
+        ]
+      },
+      {
+        "id": "let_him_go",
+        "effects": [
+          {
+            "type": "setFlag",
+            "id": "feeney_has_receipt"
+          },
+          {
+            "type": "setFlag",
+            "id": "boy_left"
           }
         ],
         "default": true
@@ -1797,9 +2018,19 @@
           "id": "feeney_has_receipt"
         },
         {
-          "type": "since",
-          "event": "feeney_boy",
-          "atLeast": 2
+          "type": "any",
+          "of": [
+            {
+              "type": "since",
+              "event": "feeney_boy",
+              "atLeast": 2
+            },
+            {
+              "type": "since",
+              "event": "feeney_boy_slander",
+              "atLeast": 2
+            }
+          ]
         }
       ]
     },
@@ -1821,7 +2052,8 @@
             "type": "clearFlag",
             "id": "feeney_has_receipt"
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "cry_imitation",
@@ -1952,7 +2184,8 @@
             "type": "setFlag",
             "id": "feeney_closed"
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "say_nothing",
@@ -2172,7 +2405,8 @@
             "type": "setFlag",
             "id": "soda_fountain"
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "decline",
@@ -2287,7 +2521,8 @@
             "type": "setFlag",
             "id": "window_wired"
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "gas_will_do",
@@ -2355,7 +2590,8 @@
             "type": "setFlag",
             "id": "reporter_paid"
           }
-        ]
+        ],
+        "ledger": "fees"
       },
       {
         "id": "show_the_door",
@@ -2379,17 +2615,8 @@
       "type": "all",
       "of": [
         {
-          "type": "any",
-          "of": [
-            {
-              "type": "flag",
-              "id": "reporter_paid"
-            },
-            {
-              "type": "flag",
-              "id": "reporter_refused"
-            }
-          ]
+          "type": "flag",
+          "id": "reporter_refused"
         },
         {
           "type": "since",
@@ -2424,7 +2651,106 @@
             "type": "clearFlag",
             "id": "reporter_refused"
           }
-        ]
+        ],
+        "ledger": "fees"
+      },
+      {
+        "id": "pull_the_ads",
+        "effects": [
+          {
+            "type": "notoriety",
+            "delta": 3
+          },
+          {
+            "type": "heat",
+            "delta": 3
+          },
+          {
+            "type": "clearFlag",
+            "id": "reporter_paid"
+          },
+          {
+            "type": "clearFlag",
+            "id": "reporter_refused"
+          }
+        ],
+        "requires": {
+          "type": "unlocked",
+          "id": "newspaper_ads"
+        }
+      },
+      {
+        "id": "let_it_run",
+        "effects": [
+          {
+            "type": "heat",
+            "delta": 8
+          },
+          {
+            "type": "reputation",
+            "delta": -3
+          },
+          {
+            "type": "wardMemory",
+            "delta": 4
+          },
+          {
+            "type": "clearFlag",
+            "id": "reporter_paid"
+          },
+          {
+            "type": "clearFlag",
+            "id": "reporter_refused"
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "reporter_proofs_paid",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "flag",
+          "id": "reporter_paid"
+        },
+        {
+          "type": "since",
+          "event": "reporter_calls",
+          "atLeast": 2
+        }
+      ]
+    },
+    "chance": 0.4,
+    "once": true,
+    "choices": [
+      {
+        "id": "buy_the_head",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -2500
+          },
+          {
+            "type": "heat",
+            "delta": -2
+          },
+          {
+            "type": "setFlag",
+            "id": "reporter_kept"
+          },
+          {
+            "type": "clearFlag",
+            "id": "reporter_paid"
+          },
+          {
+            "type": "clearFlag",
+            "id": "reporter_refused"
+          }
+        ],
+        "ledger": "fees"
       },
       {
         "id": "pull_the_ads",
@@ -2595,7 +2921,8 @@
             "type": "clearFlag",
             "id": "stowe_lie"
           }
-        ]
+        ],
+        "ledger": "fees"
       },
       {
         "id": "own_chemist",
@@ -2616,7 +2943,8 @@
             "type": "clearFlag",
             "id": "stowe_lie"
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "let_them_print",
@@ -2756,7 +3084,8 @@
             "type": "setFlag",
             "id": "pa_member"
           }
-        ]
+        ],
+        "ledger": "subscriptions"
       },
       {
         "id": "decline",
@@ -2925,7 +3254,8 @@
             "type": "notoriety",
             "delta": 1
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "decline",
@@ -2980,7 +3310,8 @@
             "type": "wardMemory",
             "delta": -4
           }
-        ]
+        ],
+        "ledger": "trade"
       },
       {
         "id": "decline",
@@ -3032,7 +3363,8 @@
             "type": "cash",
             "deltaCents": -3000
           }
-        ]
+        ],
+        "ledger": "supplies"
       },
       {
         "id": "on_credit",
@@ -3272,7 +3604,8 @@
             "delta": 3,
             "months": 6
           }
-        ]
+        ],
+        "ledger": "trade"
       },
       {
         "id": "decline",
@@ -3380,7 +3713,8 @@
             "type": "notoriety",
             "delta": 2
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "get_off",
@@ -3440,7 +3774,8 @@
             "type": "notoriety",
             "delta": 2
           }
-        ]
+        ],
+        "ledger": "fees"
       },
       {
         "id": "let_it_print",
@@ -3568,7 +3903,8 @@
             "type": "clearFlag",
             "id": "lexow_witness"
           }
-        ]
+        ],
+        "ledger": "fees"
       },
       {
         "id": "to_the_papers",
@@ -3666,7 +4002,8 @@
             "type": "reputation",
             "delta": 1
           }
-        ]
+        ],
+        "ledger": "trade"
       },
       {
         "id": "cannot_spare",
@@ -3930,7 +4267,8 @@
             "type": "heat",
             "delta": 2
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "decline",
@@ -4084,7 +4422,8 @@
             "type": "cash",
             "deltaCents": -2500
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "jersey_ice",
@@ -4097,7 +4436,8 @@
             "type": "heat",
             "delta": 2
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "shut_fountain",
@@ -4141,7 +4481,8 @@
             "type": "cash",
             "deltaCents": -3000
           }
-        ]
+        ],
+        "ledger": "subscriptions"
       },
       {
         "id": "let_them_cut",
@@ -4259,7 +4600,8 @@
             "type": "setFlag",
             "id": "fireproofed"
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "ask_inspector",
@@ -4276,7 +4618,8 @@
             "type": "notoriety",
             "delta": 2
           }
-        ]
+        ],
+        "ledger": "fees"
       },
       {
         "id": "show_cause",
@@ -4389,7 +4732,8 @@
             "type": "setFlag",
             "id": "radio_active"
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "decline",
@@ -4549,7 +4893,8 @@
             "type": "heat",
             "delta": -2
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "no_reply",
@@ -4580,9 +4925,19 @@
           }
         },
         {
-          "type": "since",
-          "event": "reporter_proofs",
-          "atLeast": 12
+          "type": "any",
+          "of": [
+            {
+              "type": "since",
+              "event": "reporter_proofs",
+              "atLeast": 12
+            },
+            {
+              "type": "since",
+              "event": "reporter_proofs_paid",
+              "atLeast": 12
+            }
+          ]
         }
       ]
     },
@@ -4604,7 +4959,8 @@
             "type": "clearFlag",
             "id": "reporter_kept"
           }
-        ]
+        ],
+        "ledger": "fees"
       },
       {
         "id": "give_a_rival",
@@ -4762,7 +5118,8 @@
             "type": "heat",
             "delta": -6
           }
-        ]
+        ],
+        "ledger": "subscriptions"
       },
       {
         "id": "resign",
@@ -4891,7 +5248,8 @@
             "type": "heat",
             "delta": -6
           }
-        ]
+        ],
+        "ledger": "fees"
       },
       {
         "id": "for_the_bill",
@@ -4943,6 +5301,13 @@
           "type": "since",
           "event": "stowe_tract",
           "atLeast": 12
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "flag",
+            "id": "stowe_sheet_vegetable"
+          }
         }
       ]
     },
@@ -5001,7 +5366,127 @@
             "type": "clearFlag",
             "id": "stowe_lie"
           }
+        ],
+        "ledger": "subscriptions"
+      },
+      {
+        "id": "let_her_say",
+        "effects": [
+          {
+            "type": "heat",
+            "delta": 3
+          },
+          {
+            "type": "clearFlag",
+            "id": "stowe_known"
+          },
+          {
+            "type": "clearFlag",
+            "id": "stowe_truth"
+          },
+          {
+            "type": "clearFlag",
+            "id": "stowe_lie"
+          }
+        ],
+        "default": true
+      }
+    ]
+  },
+  {
+    "id": "stowe_washington_vegetable",
+    "condition": {
+      "type": "all",
+      "of": [
+        {
+          "type": "flag",
+          "id": "stowe_known"
+        },
+        {
+          "type": "date",
+          "from": {
+            "year": 1904,
+            "month": 1
+          }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "date",
+            "from": {
+              "year": 1906,
+              "month": 7
+            }
+          }
+        },
+        {
+          "type": "since",
+          "event": "stowe_tract",
+          "atLeast": 12
+        },
+        {
+          "type": "flag",
+          "id": "stowe_sheet_vegetable"
+        }
+      ]
+    },
+    "chance": 0.15,
+    "once": true,
+    "choices": [
+      {
+        "id": "go_with_her",
+        "effects": [
+          {
+            "type": "reputation",
+            "delta": 1
+          },
+          {
+            "type": "heat",
+            "delta": 4
+          },
+          {
+            "type": "notoriety",
+            "delta": 3
+          },
+          {
+            "type": "clearFlag",
+            "id": "stowe_known"
+          },
+          {
+            "type": "clearFlag",
+            "id": "stowe_truth"
+          },
+          {
+            "type": "clearFlag",
+            "id": "stowe_lie"
+          }
         ]
+      },
+      {
+        "id": "donation",
+        "effects": [
+          {
+            "type": "cash",
+            "deltaCents": -5000
+          },
+          {
+            "type": "heat",
+            "delta": -4
+          },
+          {
+            "type": "clearFlag",
+            "id": "stowe_known"
+          },
+          {
+            "type": "clearFlag",
+            "id": "stowe_truth"
+          },
+          {
+            "type": "clearFlag",
+            "id": "stowe_lie"
+          }
+        ],
+        "ledger": "subscriptions"
       },
       {
         "id": "let_her_say",
@@ -5051,7 +5536,8 @@
             "type": "notoriety",
             "delta": 1
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "plain_label",
@@ -5064,7 +5550,8 @@
             "type": "reputation",
             "delta": 1
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "wait_and_see",
@@ -5102,7 +5589,8 @@
             "type": "notoriety",
             "delta": 2
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "stay_medicine",
@@ -5159,7 +5647,8 @@
             "type": "setFlag",
             "id": "still_piped"
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "buy_bonnet",
@@ -5294,7 +5783,8 @@
             "type": "setFlag",
             "id": "gilt_sign"
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "touch_up",
@@ -5313,7 +5803,8 @@
             "type": "setFlag",
             "id": "sign_touched"
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "leave_it",
@@ -5365,7 +5856,8 @@
             "type": "setFlag",
             "id": "lynch_book"
           }
-        ]
+        ],
+        "ledger": "fees"
       },
       {
         "id": "bars",
@@ -5520,7 +6012,8 @@
             "type": "heat",
             "delta": -2
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "see_deputy",
@@ -5537,7 +6030,8 @@
             "type": "notoriety",
             "delta": 1
           }
-        ]
+        ],
+        "ledger": "fees"
       },
       {
         "id": "dispute",
@@ -5652,7 +6146,8 @@
             "type": "setFlag",
             "id": "sat_for_portrait"
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "decline",
@@ -5693,7 +6188,8 @@
             "type": "heat",
             "delta": -3
           }
-        ]
+        ],
+        "ledger": "fees"
       },
       {
         "id": "write_denial",
@@ -5811,7 +6307,8 @@
             "type": "reputation",
             "delta": 1
           }
-        ]
+        ],
+        "ledger": "trade"
       },
       {
         "id": "smaller_bottle",
@@ -6096,7 +6593,8 @@
             "type": "setFlag",
             "id": "lodge_member"
           }
-        ]
+        ],
+        "ledger": "subscriptions"
       },
       {
         "id": "decline",
@@ -6211,7 +6709,8 @@
             "type": "reputation",
             "delta": 1
           }
-        ]
+        ],
+        "ledger": "subscriptions"
       },
       {
         "id": "regrets",
@@ -6221,7 +6720,8 @@
             "deltaCents": -100
           }
         ],
-        "default": true
+        "default": true,
+        "ledger": "subscriptions"
       }
     ]
   },
@@ -6400,7 +6900,8 @@
             "delta": 3,
             "months": 2
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "decline",
@@ -6459,7 +6960,8 @@
             "type": "notoriety",
             "delta": 1
           }
-        ]
+        ],
+        "ledger": "subscriptions"
       },
       {
         "id": "cough_syrup",
@@ -6490,7 +6992,8 @@
             "delta": 1
           }
         ],
-        "default": true
+        "default": true,
+        "ledger": "subscriptions"
       }
     ]
   },
@@ -6547,7 +7050,8 @@
             "type": "reputation",
             "delta": 1
           }
-        ]
+        ],
+        "ledger": "trade"
       },
       {
         "id": "keep_out",
@@ -6753,7 +7257,8 @@
             "delta": 2,
             "months": 3
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "decline",
@@ -6790,11 +7295,11 @@
         },
         {
           "type": "season",
-          "months": [6, 7]
+          "months": [6]
         }
       ]
     },
-    "chance": 0.14,
+    "chance": 0.26,
     "cooldownMonths": 36,
     "choices": [
       {
@@ -6812,7 +7317,8 @@
             "type": "wardMemory",
             "delta": -1
           }
-        ]
+        ],
+        "ledger": "trade"
       },
       {
         "id": "on_counter",
@@ -6868,7 +7374,8 @@
             "delta": 2,
             "months": 1
           }
-        ]
+        ],
+        "ledger": "subscriptions"
       },
       {
         "id": "open_door",
@@ -7065,7 +7572,8 @@
             "type": "cash",
             "deltaCents": -400
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "bucket",
@@ -7119,7 +7627,8 @@
             "delta": 1,
             "months": 12
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "decline",
@@ -7160,7 +7669,8 @@
             "type": "cash",
             "deltaCents": -400
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "wait",
@@ -7216,7 +7726,8 @@
             "type": "wardMemory",
             "delta": -1
           }
-        ]
+        ],
+        "ledger": "subscriptions"
       },
       {
         "id": "penmanship",
@@ -7225,7 +7736,8 @@
             "type": "cash",
             "deltaCents": -100
           }
-        ]
+        ],
+        "ledger": "subscriptions"
       },
       {
         "id": "regrets",
@@ -7353,7 +7865,8 @@
             "type": "notoriety",
             "delta": 1
           }
-        ]
+        ],
+        "ledger": "subscriptions"
       },
       {
         "id": "case_of_tonic",
@@ -7420,7 +7933,8 @@
             "type": "reputation",
             "delta": 1
           }
-        ]
+        ],
+        "ledger": "trade"
       },
       {
         "id": "lemonade",
@@ -7516,6 +8030,17 @@
         {
           "type": "batchesBrewed",
           "atLeast": 6
+        },
+        {
+          "type": "remedies",
+          "atLeast": 2
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "flag",
+            "id": "boy_left"
+          }
         }
       ]
     },
@@ -7541,7 +8066,8 @@
             "type": "heat",
             "delta": -1
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "syrup_only",
@@ -7959,7 +8485,8 @@
             "delta": 1,
             "months": 12
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "sketch",
@@ -7976,7 +8503,8 @@
             "type": "notoriety",
             "delta": 1
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "decline",
@@ -8077,7 +8605,8 @@
             "type": "reputation",
             "delta": 1
           }
-        ]
+        ],
+        "ledger": "subscriptions"
       },
       {
         "id": "sergeant",
@@ -8130,7 +8659,8 @@
             "type": "reputation",
             "delta": 1
           }
-        ]
+        ],
+        "ledger": "trade"
       },
       {
         "id": "sharp_reply",
@@ -8275,7 +8805,8 @@
             "delta": 1
           }
         ],
-        "default": true
+        "default": true,
+        "ledger": "trade"
       }
     ],
     "once": true
@@ -8331,7 +8862,8 @@
             "deltaCents": -300
           }
         ],
-        "default": true
+        "default": true,
+        "ledger": "supplies"
       }
     ],
     "once": true
@@ -8412,6 +8944,23 @@
         {
           "type": "batchesBrewed",
           "atLeast": 12
+        },
+        {
+          "type": "any",
+          "of": [
+            {
+              "type": "not",
+              "requirement": {
+                "type": "flag",
+                "id": "hobart_exclusive"
+              }
+            },
+            {
+              "type": "since",
+              "event": "jobber_exclusive",
+              "atLeast": 12
+            }
+          ]
         }
       ]
     },
@@ -8431,7 +8980,8 @@
             "delta": 8,
             "months": 6
           }
-        ]
+        ],
+        "ledger": "supplies"
       },
       {
         "id": "stay",
@@ -8525,6 +9075,13 @@
             "type": "flag",
             "id": "shopfront_painted"
           }
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "flag",
+            "id": "moved_across"
+          }
         }
       ]
     },
@@ -8542,7 +9099,8 @@
             "type": "setFlag",
             "id": "shopfront_painted"
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "own_colours",
@@ -8561,7 +9119,8 @@
             "type": "setFlag",
             "id": "shopfront_painted"
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "ignore",
@@ -8633,7 +9192,8 @@
             "type": "reputation",
             "delta": 1
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "ignore",
@@ -8662,6 +9222,13 @@
         {
           "type": "batchesBrewed",
           "atLeast": 6
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "flag",
+            "id": "boy_left"
+          }
         }
       ]
     },
@@ -8678,7 +9245,8 @@
             "type": "wardMemory",
             "delta": -1
           }
-        ]
+        ],
+        "ledger": "subscriptions"
       },
       {
         "id": "joseph",
@@ -8687,7 +9255,8 @@
             "type": "cash",
             "deltaCents": -50
           }
-        ]
+        ],
+        "ledger": "subscriptions"
       },
       {
         "id": "do_without",
@@ -8830,7 +9399,8 @@
             "type": "cash",
             "deltaCents": -100
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "look_again",
@@ -8843,7 +9413,8 @@
             "type": "heat",
             "delta": 1
           }
-        ]
+        ],
+        "ledger": "fees"
       },
       {
         "id": "dispute",
@@ -8894,7 +9465,8 @@
             "delta": 1,
             "months": 12
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "shop_hours",
@@ -8936,7 +9508,8 @@
             "type": "heat",
             "delta": 1
           }
-        ]
+        ],
+        "ledger": "fees"
       },
       {
         "id": "serve",
@@ -8950,7 +9523,8 @@
             "delta": 1
           }
         ],
-        "default": true
+        "default": true,
+        "ledger": "trade"
       }
     ]
   },
@@ -8998,7 +9572,8 @@
             "delta": 1,
             "months": 2
           }
-        ]
+        ],
+        "ledger": "subscriptions"
       },
       {
         "id": "box_and_dime",
@@ -9013,7 +9588,8 @@
             "delta": 1,
             "months": 2
           }
-        ]
+        ],
+        "ledger": "subscriptions"
       },
       {
         "id": "decline",
@@ -9060,7 +9636,8 @@
             "type": "reputation",
             "delta": 1
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "washington",
@@ -9079,7 +9656,8 @@
             "delta": 2,
             "months": 1
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "nothing",
@@ -9137,7 +9715,8 @@
             "delta": 2,
             "months": 3
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "decline",
@@ -9239,7 +9818,8 @@
             "type": "reputation",
             "delta": 1
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "march",
@@ -9260,7 +9840,8 @@
             "type": "wardMemory",
             "delta": -1
           }
-        ]
+        ],
+        "ledger": "trade"
       },
       {
         "id": "own_lamp",
@@ -9321,7 +9902,8 @@
             "type": "setFlag",
             "id": "gold_medal_1893"
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "decline",
@@ -9437,7 +10019,8 @@
             "type": "wardMemory",
             "delta": -1
           }
-        ]
+        ],
+        "ledger": "trade"
       },
       {
         "id": "trade_secret",
@@ -9498,7 +10081,8 @@
             "type": "wardMemory",
             "delta": -1
           }
-        ]
+        ],
+        "ledger": "trade"
       },
       {
         "id": "keep_card",
@@ -9554,7 +10138,8 @@
             "type": "reputation",
             "delta": 1
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "tip_cartman",
@@ -9567,7 +10152,8 @@
             "type": "heat",
             "delta": 1
           }
-        ]
+        ],
+        "ledger": "fees"
       },
       {
         "id": "leave_it",
@@ -9606,6 +10192,13 @@
         {
           "type": "regulars",
           "atLeast": 10
+        },
+        {
+          "type": "not",
+          "requirement": {
+            "type": "flag",
+            "id": "boy_left"
+          }
         }
       ]
     },
@@ -9624,7 +10217,8 @@
             "delta": 1,
             "months": 24
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "canal_street",
@@ -9643,7 +10237,8 @@
             "delta": 1,
             "months": 24
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "walk",
@@ -9875,7 +10470,8 @@
             "type": "wardMemory",
             "delta": -1
           }
-        ]
+        ],
+        "ledger": "trade"
       },
       {
         "id": "nursery_lotion",
@@ -9940,7 +10536,8 @@
             "type": "cash",
             "deltaCents": -100
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "district_leader",
@@ -9953,7 +10550,8 @@
             "type": "heat",
             "delta": -2
           }
-        ]
+        ],
+        "ledger": "fees"
       },
       {
         "id": "wait",
@@ -10085,7 +10683,8 @@
             "type": "setFlag",
             "id": "telephone"
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "decline",
@@ -10187,7 +10786,8 @@
             "type": "cash",
             "deltaCents": -200
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "wait",
@@ -10201,7 +10801,8 @@
             "delta": -1
           }
         ],
-        "default": true
+        "default": true,
+        "ledger": "trade"
       }
     ]
   },
@@ -10247,7 +10848,8 @@
             "type": "wardMemory",
             "delta": -1
           }
-        ]
+        ],
+        "ledger": "trade"
       },
       {
         "id": "preventive",
@@ -10421,7 +11023,8 @@
             "delta": 2,
             "months": 6
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "decline",
@@ -10479,7 +11082,8 @@
             "type": "setFlag",
             "id": "electric_sign"
           }
-        ]
+        ],
+        "ledger": "outlay"
       },
       {
         "id": "decline",
@@ -10567,7 +11171,8 @@
             "type": "clearFlag",
             "id": "lynch_book"
           }
-        ]
+        ],
+        "ledger": "fees"
       },
       {
         "id": "out_of_the_book",
@@ -10588,7 +11193,8 @@
             "type": "clearFlag",
             "id": "lynch_book"
           }
-        ]
+        ],
+        "ledger": "fees"
       },
       {
         "id": "for_the_till",
@@ -10711,7 +11317,8 @@
             "type": "clearFlag",
             "id": "counterfeit_described"
           }
-        ]
+        ],
+        "ledger": "trade"
       },
       {
         "id": "not_sure",

@@ -72,10 +72,10 @@ public class GameTests
         Assert.Equal(1, C.Config.Market.CravingPremium);
         Assert.Equal(1.15, C.Config.Market.DearAbove);
         Assert.Equal(3, C.Config.WalkIns.WardShareSlack);
-        Assert.Equal(176, C.Events.Count);
+        Assert.Equal(180, C.Events.Count);
         Assert.Equal(8, C.Timeline.Count);
         Assert.Equal(12, C.Regulars.Count);
-        Assert.Equal(933, C.Strings.Count);
+        Assert.Equal(952, C.Strings.Count);
         Assert.Equal(8, C.Investments.Count);
         Assert.Equal("narcotic_discount_pct", C.ById.Investments["laboratory"].Effects.OfType<CapabilityEffect>().Single().Id);
         Assert.Equal("system", C.ById.Events["inquest"].Trigger);

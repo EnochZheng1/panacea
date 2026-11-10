@@ -75,6 +75,10 @@ export type Requirement =
   | { type: 'remedyHabit'; atLeast: number }
   | { type: 'remedyDrug'; drugClass: DrugClass; atLeastOz: number }
   | { type: 'remedyClaim'; id: string }
+  /** The shop's remedy (as above) is priced at this many cents or more. */
+  | { type: 'remedyPrice'; atLeastCents: number }
+  /** The shop sold at least this many different remedies last month: enough to mix them up. */
+  | { type: 'remedies'; atLeast: number }
   | { type: 'flag'; id: string }
   | { type: 'unlocked'; id: string }
   | { type: 'all'; of: Requirement[] }
@@ -110,6 +114,8 @@ export const RequirementSchema: z.ZodType<Requirement> = z.lazy(() =>
       atLeastOz: z.number().min(0),
     }),
     z.strictObject({ type: z.literal('remedyClaim'), id: IdSchema }),
+    z.strictObject({ type: z.literal('remedyPrice'), atLeastCents: z.number().int().min(0) }),
+    z.strictObject({ type: z.literal('remedies'), atLeast: z.number().int().min(0) }),
     z.strictObject({ type: z.literal('flag'), id: IdSchema }),
     z.strictObject({ type: z.literal('unlocked'), id: IdSchema }),
     z.strictObject({ type: z.literal('all'), of: z.array(RequirementSchema).min(1) }),
@@ -236,6 +242,15 @@ export const UnlockSchema = z.strictObject({
 });
 export type Unlock = z.infer<typeof UnlockSchema>;
 
+/**
+ * Where a reply to a letter books its money, when that is not simply the cost of answering:
+ * `outlay` (laid out on the business: a sign, a portrait, a lease), `supplies` (spirit or drugs
+ * bought), `fees` (a consideration to an official), `subscriptions` (a subscription, a donation,
+ * dues), `trade` (trade given up to answer it). Untagged money is "letters answered".
+ */
+export const LEDGER_TAGS = ['outlay', 'supplies', 'fees', 'subscriptions', 'trade'] as const;
+export type LedgerTag = (typeof LEDGER_TAGS)[number];
+
 export const EventChoiceSchema = z.strictObject({
   id: IdSchema,
   effects: z.array(EffectSchema).default([]),
@@ -243,6 +258,8 @@ export const EventChoiceSchema = z.strictObject({
   requires: RequirementSchema.optional(),
   /** Chosen automatically if the month ends without a decision. */
   default: z.boolean().default(false),
+  /** Where the reply's cash effects are booked (see `LEDGER_TAGS`). */
+  ledger: z.enum(LEDGER_TAGS).optional(),
 });
 export type EventChoice = z.infer<typeof EventChoiceSchema>;
 

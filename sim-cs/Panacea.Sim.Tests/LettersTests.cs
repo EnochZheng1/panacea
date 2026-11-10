@@ -272,4 +272,147 @@ public class LettersTests
         Assert.Equal(4, brewed.Month.Callers["bazaar"]);
         Assert.False(brewed.Month.Callers.ContainsKey("fountain"));
     }
+
+    // ---- the round-9 letters fix: correspondents who remember ----
+
+    /// <summary>A shop in its second summer whose <paramref name="remedies"/> bottles, each at <paramref name="priceCents"/>, all sold last month.</summary>
+    private static GameState Shop(string seed, int priceCents, int remedies = 1)
+    {
+        var s = Fresh(seed);
+        for (int i = 0; i < remedies; i++)
+            s.Lab.Formulas.Add(new Formula { Id = $"r{i}", Name = $"Remedy {i}", ProcessId = "simple_mix", PriceCents = priceCents, Components = [.. Tonic] });
+        s.Ledger.Add(new LedgerEntry
+        {
+            Date = s.Meta.Date,
+            Sales = s.Lab.Formulas.Select((f, i) => new SaleRecord { FormulaId = f.Id, Bottles = 9 - i }).ToList(),
+        });
+        s.Stats.BottlesSold = 700;
+        s.Stats.BatchesBrewed = 30;
+        s.Meta.Turn = 17;
+        s.Meta.Date = new GameDate(1886, 6);
+        s.Player.CashCents = 100_000;
+        s.Scrutiny.Heat = 0;
+        s.Ward.Memory = 0;
+        return s;
+    }
+
+    private static bool Could(GameState s, string id) => Requirements.Evaluate(C.ById.Events[id].Condition!, s, C).Met;
+
+    /// <summary>Answers the letter as if it had come <paramref name="ago"/> months back.</summary>
+    private static void Reply(GameState s, string eventId, string choiceId, int ago = 2)
+    {
+        s.Events.Pending.Add(new PendingEvent { InstanceId = $"r_{eventId}", EventId = eventId, DrawnTurn = s.Meta.Turn });
+        Assert.Null(Progression.ResolveEvent(s, C, Rng.FromSeed(eventId), $"r_{eventId}", choiceId, false));
+        s.Events.LastDrawn[eventId] = s.Meta.Turn - ago;
+        s.Events.TimesDrawn[eventId] = 1;
+    }
+
+    [Fact]
+    public void FeeneyRemembersHowHisOpeningWasTakenAndOnlyUndersellsADearerBottle()
+    {
+        var slandered = Shop("feeney-slander", 75);
+        Reply(slandered, "rival_shop_opens", "spread_rumour");
+        Assert.True(Could(slandered, "rival_price_war_slander"));
+        Assert.False(Could(slandered, "rival_price_war"));
+        Assert.True(Could(slandered, "feeney_boy_slander"));
+        Assert.False(Could(slandered, "feeney_boy"));
+
+        var ignored = Shop("feeney-ignored", 75);
+        Reply(ignored, "rival_shop_opens", "ignore");
+        Assert.True(Could(ignored, "rival_price_war"));
+        Assert.False(Could(ignored, "rival_price_war_slander"));
+        Assert.True(Could(ignored, "feeney_boy"));
+        Assert.False(Could(ignored, "feeney_boy_slander"));
+
+        slandered.Lab.Formulas[0].PriceCents = 65;
+        ignored.Lab.Formulas[0].PriceCents = 65;
+        Assert.False(Could(slandered, "rival_price_war_slander"));
+        Assert.False(Could(ignored, "rival_price_war"));
+    }
+
+    [Fact]
+    public void FeeneysCopyFollowsEitherErrandBoyLetterAndABoyWhoLeftIsGone()
+    {
+        var s = Shop("feeney-boy", 75, 2);
+        Reply(s, "rival_shop_opens", "spread_rumour", 4);
+        Assert.True(Could(s, "wrong_bottle"));
+        Assert.True(Could(s, "boy_measles"));
+        Reply(s, "feeney_boy_slander", "let_him_go");
+        Assert.True(Could(s, "feeney_copy"));
+        Assert.True(Progression.WaitsOnLetter(C.ById.Events["feeney_copy"].Condition!));
+        Assert.False(Could(s, "wrong_bottle"));
+        Assert.False(Could(s, "boy_measles"));
+        Assert.Equal(2, Requirements.RemediesSold(s));
+        Assert.False(Could(Shop("one-remedy", 75, 1), "wrong_bottle"));
+        Assert.True(Requirements.Evaluate(new RemedyPriceRequirement(75), s, C).Met);
+        Assert.False(Requirements.Evaluate(new RemedyPriceRequirement(76), s, C).Met);
+        Assert.Equal(new RequirementStatus(false, 0.5), Requirements.Evaluate(new AtLeastRequirement("remedies", 4), s, C));
+    }
+
+    [Fact]
+    public void TheReporterAndMrsStoweRememberWhatYouAnswered()
+    {
+        var paid = Shop("pryor", 75);
+        paid.Meta.Date = new GameDate(1892, 3);
+        Reply(paid, "reporter_calls", "pay_him");
+        Assert.True(Could(paid, "reporter_proofs_paid"));
+        Assert.False(Could(paid, "reporter_proofs"));
+        Reply(paid, "reporter_proofs_paid", "buy_the_head", 12);
+        paid.Meta.Date = new GameDate(1904, 1);
+        Assert.True(Could(paid, "reporter_returns"));
+
+        var door = Shop("pryor-door", 75);
+        door.Meta.Date = new GameDate(1892, 3);
+        Reply(door, "reporter_calls", "show_the_door");
+        Assert.True(Could(door, "reporter_proofs"));
+        Assert.False(Could(door, "reporter_proofs_paid"));
+
+        foreach (var (answer, letter, other) in new[]
+        {
+            ("purely_vegetable", "stowe_washington_vegetable", "stowe_washington"),
+            ("answer_truly", "stowe_washington", "stowe_washington_vegetable"),
+        })
+        {
+            var s = Shop($"stowe-{answer}", 75);
+            Reply(s, "stowe_tract", answer, 18 * 12);
+            s.Meta.Date = new GameDate(1905, 3);
+            Assert.True(Could(s, letter));
+            Assert.False(Could(s, other));
+        }
+    }
+
+    [Fact]
+    public void AnAnyWaitsOnALetterOnlyWhenEveryWayOfMeetingItDoes()
+    {
+        var a = new SinceRequirement("a", 1);
+        var b = new SinceRequirement("b", 1);
+        Assert.True(Progression.WaitsOnLetter(new AnyRequirement([a, b])));
+        Assert.False(Progression.WaitsOnLetter(new AnyRequirement([new FlagRequirement("x"), a])));
+        Assert.False(Progression.WaitsOnLetter(C.ById.Events["jobber_rival"].Condition!));
+        var s = Shop("jobbers", 75);
+        Assert.True(Could(s, "jobber_rival"));
+        Reply(s, "jobber_exclusive", "sign", 3);
+        Assert.False(Could(s, "jobber_rival"));
+        s.Events.LastDrawn["jobber_exclusive"] = s.Meta.Turn - 12;
+        Assert.True(Could(s, "jobber_rival"));
+    }
+
+    [Fact]
+    public void AReplysMoneyIsBookedWhereItBelongs()
+    {
+        List<(string, string)> Booked(string eventId, string choiceId)
+        {
+            var s = Shop($"ledger-{eventId}", 75);
+            int before = s.Month.Deltas.Count;
+            Reply(s, eventId, choiceId);
+            return s.Month.Deltas.Skip(before).Select(d => (d.Metric, d.Cause)).ToList();
+        }
+        Assert.Equal([("cash", Causes.Ingredients)], Booked("spirits_dearer", "outside_distiller"));
+        Assert.Equal([("cash", Causes.Investment)], Booked("sign_painter", "gilt_sign"));
+        Assert.Equal([("cash", Causes.Investment), ("reputation", Causes.Event), ("notoriety", Causes.Event)], Booked("photographer", "sit_for_it"));
+        Assert.Equal([("cash", Causes.Bribe), ("notoriety", Causes.Event)], Booked("sanitary_inspector", "pay_fee"));
+        Assert.Equal([("cash", Causes.Retainer), ("reputation", Causes.Event)], Booked("pedestal_fund", "box_and_dollar"));
+        Assert.Equal([("cash", Progression.LetterLedger["trade"]), ("reputation", Causes.Event)], Booked("jury_duty", "serve"));
+        Assert.Equal([("cash", Causes.Event)], Booked("medicine_show_returns", "take_money"));
+    }
 }

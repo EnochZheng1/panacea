@@ -174,7 +174,15 @@ export function lintContent(pack: ContentPack): ContentIssue[] {
     });
   // A season comes round every year, and the remedy and the post change from month to month, so
   // these can only time a letter, never hold back progress.
-  const LETTER_ONLY = new Set(['season', 'since', 'remedyHabit', 'remedyDrug', 'remedyClaim']);
+  const LETTER_ONLY = new Set([
+    'season',
+    'since',
+    'remedyHabit',
+    'remedyDrug',
+    'remedyClaim',
+    'remedyPrice',
+    'remedies',
+  ]);
   const noSeason = (file: string, path: string, req: Requirement) =>
     walkRequirement(req, (r) => {
       if (LETTER_ONLY.has(r.type))
@@ -188,6 +196,13 @@ export function lintContent(pack: ContentPack): ContentIssue[] {
     if (ev.condition) checkRequirement('events', `${i}.condition`, ev.condition);
     ev.choices.forEach((c, j) => {
       if (c.requires) checkRequirement('events', `${i}.choices.${j}.requires`, c.requires);
+      if (c.ledger && !c.effects.some((e) => e.type === 'cash')) {
+        error(
+          'events',
+          `${i}.choices.${j}.ledger`,
+          'books money, but the reply has no cash effect',
+        );
+      }
     });
   });
 

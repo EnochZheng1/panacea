@@ -7,3 +7,5 @@ playtest-reports
 godot/assets/polyhaven
 # Godot's own files
 godot/.godot
+# agents' worktrees
+.claude

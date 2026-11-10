@@ -1,5 +1,12 @@
-import type { ContentPack, Effect, EventChoice, GameEvent, Requirement } from '@panacea/content';
-import { CAUSES } from '../core/causes.ts';
+import type {
+  ContentPack,
+  Effect,
+  EventChoice,
+  GameEvent,
+  LedgerTag,
+  Requirement,
+} from '@panacea/content';
+import { CAUSES, type Cause } from '../core/causes.ts';
 import { compareDates } from '../core/date.ts';
 import type { GameState, PendingEvent, Phase, Rng } from '../core/index.ts';
 import { applyEffects } from './effects.ts';
@@ -148,14 +155,19 @@ const compareOrdinal = (a: string, b: string): number => (a < b ? -1 : a > b ? 1
 const isRandomPending = (p: PendingEvent, content: ContentPack) =>
   content.byId.events.get(p.eventId)?.trigger !== 'system';
 
-/** Whether a condition waits on another letter (a `since`, not under a `not`): a follow-up. */
+/**
+ * Whether a condition waits on another letter (a `since`, not under a `not`): a follow-up. An
+ * `any` waits only if every way of meeting it does, so "never signed, or signed a year ago" does
+ * not make a fresh letter a follow-up.
+ */
 export function waitsOnLetter(req: Requirement): boolean {
   switch (req.type) {
     case 'since':
       return true;
     case 'all':
-    case 'any':
       return req.of.some(waitsOnLetter);
+    case 'any':
+      return req.of.every(waitsOnLetter);
     default:
       return false;
   }
@@ -261,10 +273,28 @@ export function resolveEvent(
       return error;
     }
   }
-  applyEffects(state, creditedEffects(state, content, ev, choice.effects), CAUSES.event, ev.id);
+  const cashCause = choice.ledger ? LETTER_LEDGER[choice.ledger] : CAUSES.event;
+  for (const e of creditedEffects(state, content, ev, choice.effects)) {
+    applyEffects(state, [e], e.type === 'cash' ? cashCause : CAUSES.event, ev.id);
+  }
   state.month.news.push({ kind: 'event_resolved', eventId: ev.id, choiceId: choice.id, auto });
   return null;
 }
+
+/**
+ * The ledger line a reply's money is booked under, by its `ledger` tag: a gilt sign is laid out
+ * on the business, the Jersey distiller's spirit is an ingredient, the inspector's three dollars
+ * a consulting fee, the parish's dozen a subscription. Untagged money (a pound of tea, a gallon
+ * sold for a mare) is "letters answered", and so, for now, is trade given up (see the round-9
+ * letters write-up: it wants a cause of its own).
+ */
+export const LETTER_LEDGER: Record<LedgerTag, Cause> = {
+  outlay: CAUSES.investment,
+  supplies: CAUSES.ingredients,
+  fees: CAUSES.bribe,
+  subscriptions: CAUSES.retainer,
+  trade: CAUSES.event,
+};
 
 /**
  * The effects of a reply to a letter as the ward credits them: standing earned by a kindness is

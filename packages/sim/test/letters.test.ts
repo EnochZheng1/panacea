@@ -10,8 +10,14 @@ import {
 import { applyEffects } from '../src/systems/effects.ts';
 import { productionPhase } from '../src/systems/lab.ts';
 import { letterCallers, letterTrust, salesPhase } from '../src/systems/market.ts';
-import { creditedEffects, drawEvents, waitsOnLetter } from '../src/systems/progression.ts';
-import { evaluateRequirement, shopRemedy } from '../src/systems/requirements.ts';
+import {
+  creditedEffects,
+  drawEvents,
+  LETTER_LEDGER,
+  resolveEvent,
+  waitsOnLetter,
+} from '../src/systems/progression.ts';
+import { evaluateRequirement, remediesSold, shopRemedy } from '../src/systems/requirements.ts';
 import { act, content, roomFor, start, TONIC } from './helpers.ts';
 
 /** `n` random letters that could all come this month, each certain to be drawn if reached. */
@@ -315,5 +321,198 @@ describe('letter effects', () => {
     expect(s.month.callers['wheelmen']).toBe(6);
     expect(s.month.callers['bazaar']).toBe(4);
     expect(s.month.callers['fountain']).toBeUndefined();
+  });
+});
+
+describe('correspondents who remember (round 9)', () => {
+  /** A shop in its second summer whose `remedies` bottles, each at `priceCents`, all sold last month. */
+  function shop(seed: string, priceCents: number, remedies = 1): GameState {
+    let s = fresh(seed);
+    for (let i = 0; i < remedies; i++) {
+      s = act(s, {
+        type: 'CreateFormula',
+        name: `Remedy ${i}`,
+        components: TONIC,
+        processId: 'simple_mix',
+        priceCents,
+        claims: [],
+      });
+    }
+    const sold = s.lab.formulas.map((f, i) => ({ formulaId: f.id, bottles: 9 - i }) as SaleRecord);
+    s.ledger.push({ sales: sold } as LedgerEntry);
+    s.stats.bottlesSold = 700;
+    s.stats.batchesBrewed = 30;
+    s.meta.turn = 17;
+    s.meta.date = { year: 1886, month: 6 };
+    s.player.cashCents = 100_000;
+    s.scrutiny.heat = 0;
+    s.ward.memory = 0;
+    return s;
+  }
+  /** Whether the letter could come this month. */
+  const could = (s: GameState, id: string) =>
+    evaluateRequirement(content.byId.events.get(id)!.condition!, s, content).met;
+  /** Answers the letter as if it had come `ago` months back (so a follow-up can wait on it). */
+  const reply = (s: GameState, eventId: string, choiceId: string, ago = 2) => {
+    s.events.pending.push({ instanceId: `r_${eventId}`, eventId, drawnTurn: s.meta.turn });
+    expect(resolveEvent(s, content, Rng.fromSeed(eventId), `r_${eventId}`, choiceId, false)).toBe(
+      null,
+    );
+    s.events.lastDrawn[eventId] = s.meta.turn - ago;
+    s.events.timesDrawn[eventId] = 1;
+  };
+  const text = (key: string) => content.strings[`event.${key}`] ?? '';
+
+  it('Feeney remembers how his opening was taken, and only undersells a dearer bottle', () => {
+    const slandered = shop('feeney-slander', 75);
+    reply(slandered, 'rival_shop_opens', 'spread_rumour');
+    expect(could(slandered, 'rival_price_war_slander')).toBe(true);
+    expect(could(slandered, 'rival_price_war')).toBe(false);
+    expect(could(slandered, 'feeney_boy_slander')).toBe(true);
+    expect(could(slandered, 'feeney_boy')).toBe(false);
+    expect(text('rival_price_war_slander.body')).toContain('what you told the ward of his stock');
+    expect(text('feeney_boy_slander.body')).toContain('whose stock is adulterated');
+    expect(text('rival_price_war_slander.choice.cry_him_down')).toContain('again');
+
+    const ignored = shop('feeney-ignored', 75);
+    reply(ignored, 'rival_shop_opens', 'ignore');
+    expect(could(ignored, 'rival_price_war')).toBe(true);
+    expect(could(ignored, 'rival_price_war_slander')).toBe(false);
+    expect(could(ignored, 'feeney_boy')).toBe(true);
+    expect(could(ignored, 'feeney_boy_slander')).toBe(false);
+    expect(text('rival_price_war.body')).toContain('paying him no mind');
+
+    // "Why pay more?" only to a shop that does charge more than his 65c
+    for (const s of [slandered, ignored]) s.lab.formulas[0]!.priceCents = 65;
+    expect(could(slandered, 'rival_price_war_slander')).toBe(false);
+    expect(could(ignored, 'rival_price_war')).toBe(false);
+  });
+
+  it("Feeney's copy follows whichever errand-boy letter came, and a boy who left is gone", () => {
+    const s = shop('feeney-boy', 75, 2);
+    reply(s, 'rival_shop_opens', 'spread_rumour', 4);
+    expect(could(s, 'wrong_bottle')).toBe(true);
+    expect(could(s, 'boy_measles')).toBe(true);
+    reply(s, 'feeney_boy_slander', 'let_him_go');
+    expect(s.player.flags['feeney_has_receipt']).toBe(true);
+    expect(could(s, 'feeney_copy')).toBe(true);
+    expect(waitsOnLetter(content.byId.events.get('feeney_copy')!.condition!)).toBe(true);
+    // Tommy is sweeping for Feeney now: no letters from him, or about him
+    expect(could(s, 'wrong_bottle')).toBe(false);
+    expect(could(s, 'boy_measles')).toBe(false);
+    s.meta.date = { year: 1896, month: 5 };
+    expect(could(s, 'bicycle_boy')).toBe(false);
+    delete s.player.flags['boy_left'];
+    expect(could(s, 'bicycle_boy')).toBe(true);
+  });
+
+  it('the wrong bottle needs two remedies to mix up', () => {
+    const one = shop('one-remedy', 75, 1);
+    expect(remediesSold(one)).toBe(1);
+    expect(could(one, 'wrong_bottle')).toBe(false);
+    const two = shop('two-remedies', 75, 2);
+    expect(remediesSold(two)).toBe(2);
+    expect(could(two, 'wrong_bottle')).toBe(true);
+    expect(evaluateRequirement({ type: 'remedies', atLeast: 2 }, two, content)).toEqual({
+      met: true,
+      progress: 1,
+    });
+    two.ledger[two.ledger.length - 1]!.sales[1]!.bottles = 0;
+    expect(evaluateRequirement({ type: 'remedies', atLeast: 2 }, two, content)).toEqual({
+      met: false,
+      progress: 0.5,
+    });
+    expect(text('wrong_bottle.body')).not.toContain('liniment');
+    // the shop's own price, read off the bottle it sells most of
+    expect(evaluateRequirement({ type: 'remedyPrice', atLeastCents: 75 }, two, content).met).toBe(
+      true,
+    );
+    expect(evaluateRequirement({ type: 'remedyPrice', atLeastCents: 76 }, two, content).met).toBe(
+      false,
+    );
+    expect(
+      evaluateRequirement({ type: 'remedyPrice', atLeastCents: 1 }, fresh('none'), content).met,
+    ).toBe(false);
+  });
+
+  it('the reporter remembers whether he was paid or shown the door', () => {
+    const s = shop('pryor', 75);
+    s.meta.date = { year: 1892, month: 3 };
+    reply(s, 'reporter_calls', 'pay_him');
+    expect(could(s, 'reporter_proofs_paid')).toBe(true);
+    expect(could(s, 'reporter_proofs')).toBe(false);
+    reply(s, 'reporter_proofs_paid', 'buy_the_head', 12);
+    expect(s.player.flags['reporter_kept']).toBe(true);
+    s.meta.date = { year: 1904, month: 1 };
+    expect(could(s, 'reporter_returns')).toBe(true);
+
+    const t = shop('pryor-door', 75);
+    t.meta.date = { year: 1892, month: 3 };
+    reply(t, 'reporter_calls', 'show_the_door');
+    expect(could(t, 'reporter_proofs')).toBe(true);
+    expect(could(t, 'reporter_proofs_paid')).toBe(false);
+    expect(text('reporter_proofs.body')).toContain('You showed me the door');
+    expect(text('reporter_proofs_paid.body')).toContain('Your five dollars');
+  });
+
+  it('Mrs. Stowe remembers what you wrote on her sheet', () => {
+    for (const [answer, letter, other, words] of [
+      ['purely_vegetable', 'stowe_washington_vegetable', 'stowe_washington', 'PURELY VEGETABLE'],
+      ['answer_truly', 'stowe_washington', 'stowe_washington_vegetable', 'the one honest line'],
+    ] as const) {
+      const s = shop(`stowe-${answer}`, 75);
+      reply(s, 'stowe_tract', answer, 18 * 12);
+      s.meta.date = { year: 1905, month: 3 };
+      expect(could(s, letter)).toBe(true);
+      expect(could(s, other)).toBe(false);
+      expect(text(`${letter}.body`)).toContain(words);
+    }
+  });
+
+  it('waits on an "any" only when every way of meeting it waits on a letter', () => {
+    const a = { type: 'since', event: 'a', atLeast: 1 } as const;
+    const b = { type: 'since', event: 'b', atLeast: 1 } as const;
+    expect(waitsOnLetter({ type: 'any', of: [a, b] })).toBe(true);
+    expect(waitsOnLetter({ type: 'any', of: [{ type: 'flag', id: 'x' }, a] })).toBe(false);
+    // the rival house is not a follow-up of the exclusive terms, though it waits a year after them
+    expect(waitsOnLetter(content.byId.events.get('jobber_rival')!.condition!)).toBe(false);
+    const s = shop('jobbers', 75);
+    expect(could(s, 'jobber_rival')).toBe(true);
+    reply(s, 'jobber_exclusive', 'sign', 3);
+    expect(could(s, 'jobber_rival')).toBe(false);
+    s.events.lastDrawn['jobber_exclusive'] = s.meta.turn - 12;
+    expect(could(s, 'jobber_rival')).toBe(true);
+  });
+
+  it("books a reply's money where it belongs, and everything else to the letter", () => {
+    const booked = (eventId: string, choiceId: string) => {
+      const s = shop(`ledger-${eventId}`, 75);
+      const before = s.month.deltas.length;
+      reply(s, eventId, choiceId);
+      return s.month.deltas.slice(before).map((d) => [d.metric, d.cause]);
+    };
+    expect(booked('spirits_dearer', 'outside_distiller')).toEqual([
+      ['cash', 'expense.ingredients'],
+    ]);
+    expect(booked('sign_painter', 'gilt_sign')).toEqual([['cash', 'expense.investment']]);
+    expect(booked('photographer', 'sit_for_it')).toEqual([
+      ['cash', 'expense.investment'],
+      ['reputation', 'event'],
+      ['notoriety', 'event'],
+    ]);
+    expect(booked('sanitary_inspector', 'pay_fee')).toEqual([
+      ['cash', 'expense.bribe'],
+      ['notoriety', 'event'],
+    ]);
+    expect(booked('pedestal_fund', 'box_and_dollar')).toEqual([
+      ['cash', 'expense.retainer'],
+      ['reputation', 'event'],
+    ]);
+    expect(booked('jury_duty', 'serve')).toEqual([
+      ['cash', LETTER_LEDGER.trade],
+      ['reputation', 'event'],
+    ]);
+    expect(booked('kehoe_thanks', 'send_syrup')[0]).toEqual(['cash', 'event']);
+    expect(booked('medicine_show_returns', 'take_money')).toEqual([['cash', 'event']]);
   });
 });

@@ -59,7 +59,10 @@ export function evaluateRequirement(
     case 'remedyHabit':
     case 'remedyDrug':
     case 'remedyClaim':
+    case 'remedyPrice':
       return binary(remedyHolds(req, state, content));
+    case 'remedies':
+      return ratio(remediesSold(state), req.atLeast);
     case 'flag':
       return binary(state.player.flags[req.id] === true);
     case 'unlocked':
@@ -106,6 +109,12 @@ export function shopRemedy(state: GameState): Formula | null {
   return formulas.find((f) => f.id === best) ?? formulas[formulas.length - 1] ?? null;
 }
 
+/** How many different remedies the shop sold last month (0 before its first month is out). */
+export function remediesSold(state: GameState): number {
+  const last = state.ledger[state.ledger.length - 1];
+  return (last?.sales ?? []).filter((s) => s.bottles > 0).length;
+}
+
 /** Fluid ounces per bottle of the formula's ingredients of one drug class. */
 export function drugOunces(formula: Formula, drugClass: DrugClass, content: ContentPack): number {
   let oz = 0;
@@ -116,13 +125,15 @@ export function drugOunces(formula: Formula, drugClass: DrugClass, content: Cont
 }
 
 function remedyHolds(
-  req: Extract<Requirement, { type: 'remedyHabit' | 'remedyDrug' | 'remedyClaim' }>,
+  req: Extract<Requirement, { type: 'remedyHabit' | 'remedyDrug' | 'remedyClaim' | 'remedyPrice' }>,
   state: GameState,
   content: ContentPack,
 ): boolean {
   const remedy = shopRemedy(state);
   if (!remedy) return false;
   switch (req.type) {
+    case 'remedyPrice':
+      return remedy.priceCents >= req.atLeastCents;
     case 'remedyHabit':
       return (
         analyzeFormula(remedy.components, remedy.processId, content).properties.habit >= req.atLeast
@@ -182,6 +193,8 @@ function countFor(req: Requirement, state: GameState): number | null {
       return state.customers.length;
     case 'months':
       return state.meta.turn;
+    case 'remedies':
+      return remediesSold(state);
     default:
       return null;
   }
@@ -261,7 +274,8 @@ export function requirementProgress(
     }
     case 'remedyHabit':
     case 'remedyDrug':
-    case 'remedyClaim': {
+    case 'remedyClaim':
+    case 'remedyPrice': {
       const met = remedyHolds(req, state, content);
       const id =
         req.type === 'remedyClaim' ? req.id : req.type === 'remedyDrug' ? req.drugClass : null;

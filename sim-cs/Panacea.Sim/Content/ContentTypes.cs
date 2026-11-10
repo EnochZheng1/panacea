@@ -118,6 +118,12 @@ public sealed record RemedyClaimRequirement(string Id) : Requirement
     public override string Type => "remedyClaim";
 }
 
+/// <summary>The shop's remedy is priced at this many cents or more.</summary>
+public sealed record RemedyPriceRequirement(int AtLeastCents) : Requirement
+{
+    public override string Type => "remedyPrice";
+}
+
 public sealed record FlagRequirement(string Id) : Requirement
 {
     public override string Type => "flag";
@@ -158,13 +164,14 @@ internal sealed class RequirementConverter : JsonConverter<Requirement>
         {
             "cash" => new AtLeastRequirement(type, e.GetProperty("atLeastCents").GetDouble()),
             "reputation" or "notoriety" or "bottlesSold" or "batchesBrewed" or "heat" or "deaths"
-                or "inquests" or "regulars" or "months" => new AtLeastRequirement(type, e.GetProperty("atLeast").GetDouble()),
+                or "inquests" or "regulars" or "months" or "remedies" => new AtLeastRequirement(type, e.GetProperty("atLeast").GetDouble()),
             "date" => new DateRequirement(e.GetProperty("from").Deserialize<GameDate>(options)!),
             "season" => new SeasonRequirement(e.GetProperty("months").EnumerateArray().Select(x => x.GetInt32()).ToList()),
             "since" => new SinceRequirement(e.GetProperty("event").GetString()!, e.GetProperty("atLeast").GetInt32()),
             "remedyHabit" => new RemedyHabitRequirement(e.GetProperty("atLeast").GetDouble()),
             "remedyDrug" => new RemedyDrugRequirement(e.GetProperty("drugClass").GetString()!, e.GetProperty("atLeastOz").GetDouble()),
             "remedyClaim" => new RemedyClaimRequirement(e.GetProperty("id").GetString()!),
+            "remedyPrice" => new RemedyPriceRequirement(e.GetProperty("atLeastCents").GetInt32()),
             "flag" => new FlagRequirement(e.GetProperty("id").GetString()!),
             "unlocked" => new UnlockedRequirement(e.GetProperty("id").GetString()!),
             "all" => new AllRequirement(e.GetProperty("of").EnumerateArray().Select(x => Parse(x, options)).ToList()),
@@ -204,6 +211,9 @@ internal sealed class RequirementConverter : JsonConverter<Requirement>
                 break;
             case RemedyClaimRequirement rc:
                 writer.WriteString("id", rc.Id);
+                break;
+            case RemedyPriceRequirement rp:
+                writer.WriteNumber("atLeastCents", rp.AtLeastCents);
                 break;
             case FlagRequirement f:
                 writer.WriteString("id", f.Id);
@@ -377,6 +387,11 @@ public sealed class EventChoice
     public IReadOnlyList<Effect> Effects { get; init; } = [];
     public Requirement? Requires { get; init; }
     public bool Default { get; init; }
+    /// <summary>
+    /// Where the reply's cash effects are booked (schemas.ts LEDGER_TAGS): "outlay", "supplies",
+    /// "fees", "subscriptions" or "trade"; null for "letters answered" (Progression.LetterLedger).
+    /// </summary>
+    public string? Ledger { get; init; }
 }
 
 public sealed class GameEvent

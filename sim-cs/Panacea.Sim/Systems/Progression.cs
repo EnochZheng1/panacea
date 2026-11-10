@@ -56,8 +56,13 @@ public static class Requirements
         "inquests" => state.Scrutiny.InquestsHeld,
         "regulars" => state.Customers.Count,
         "months" => state.Meta.Turn,
+        "remedies" => RemediesSold(state),
         _ => throw new InvalidOperationException($"unknown requirement \"{r.Kind}\""),
     };
+
+    /// <summary>How many different remedies the shop sold last month (requirements.ts remediesSold).</summary>
+    public static int RemediesSold(GameState state) =>
+        state.Ledger.Count > 0 ? state.Ledger[^1].Sales.Count(s => s.Bottles > 0) : 0;
 
     /// <summary>Months since the letter last came, or null if it never has.</summary>
     private static int? MonthsSince(GameState state, string eventId) =>
@@ -102,6 +107,7 @@ public static class Requirements
             RemedyHabitRequirement h => Formulas.Analyze(remedy.Components, remedy.ProcessId, content).Properties.Habit >= h.AtLeast,
             RemedyDrugRequirement d => DrugOunces(remedy, d.DrugClass, content) >= d.AtLeastOz,
             RemedyClaimRequirement c => remedy.Claims.Contains(c.Id),
+            RemedyPriceRequirement p => remedy.PriceCents >= p.AtLeastCents,
             _ => throw new InvalidOperationException($"unknown requirement {req.Type}"),
         };
     }
@@ -171,7 +177,7 @@ public static class Requirements
                 bool met = months is int m && m >= since.AtLeast;
                 return [new ConditionProgress("since", since.Event, "atLeast", months ?? 0, since.AtLeast, met, via)];
             }
-            case RemedyHabitRequirement or RemedyDrugRequirement or RemedyClaimRequirement:
+            case RemedyHabitRequirement or RemedyDrugRequirement or RemedyClaimRequirement or RemedyPriceRequirement:
             {
                 bool met = RemedyHolds(req, state, content);
                 string? id = req switch { RemedyClaimRequirement c => c.Id, RemedyDrugRequirement d => d.DrugClass, _ => null };
@@ -205,6 +211,7 @@ public static class Requirements
                     "inquests" => state.Scrutiny.InquestsHeld,
                     "regulars" => state.Customers.Count,
                     "months" => state.Meta.Turn,
+                    "remedies" => RemediesSold(state),
                     _ => throw new InvalidOperationException($"unknown requirement \"{r.Kind}\""),
                 };
                 return Ratio(value, r.AtLeast);
@@ -220,7 +227,7 @@ public static class Requirements
                 return Binary(season.Months.Contains(state.Meta.Date.Month));
             case SinceRequirement since:
                 return MonthsSince(state, since.Event) is int months ? Ratio(months, since.AtLeast) : Binary(false);
-            case RemedyHabitRequirement or RemedyDrugRequirement or RemedyClaimRequirement:
+            case RemedyHabitRequirement or RemedyDrugRequirement or RemedyClaimRequirement or RemedyPriceRequirement:
                 return Binary(RemedyHolds(req, state, content));
             case FlagRequirement f:
                 return Binary(state.Player.Flags.TryGetValue(f.Id, out var flag) && flag);
@@ -418,12 +425,15 @@ public static class Progression
     private static bool IsRandomPending(PendingEvent p, ContentPack content) =>
         !(content.ById.Events.TryGetValue(p.EventId, out var ev) && ev.Trigger == "system");
 
-    /// <summary>Whether a condition waits on another letter (a "since", not under a "not"): a follow-up.</summary>
+    /// <summary>
+    /// Whether a condition waits on another letter (a "since", not under a "not"): a follow-up. An
+    /// "any" waits only if every way of meeting it does (progression.ts waitsOnLetter).
+    /// </summary>
     public static bool WaitsOnLetter(Requirement req) => req switch
     {
         SinceRequirement => true,
         AllRequirement all => all.Of.Any(WaitsOnLetter),
-        AnyRequirement any => any.Of.Any(WaitsOnLetter),
+        AnyRequirement any => any.Of.All(WaitsOnLetter),
         _ => false,
     };
 
@@ -512,10 +522,25 @@ public static class Progression
                 return error;
             }
         }
-        Effects.Apply(state, CreditedEffects(state, content, ev, choice.Effects), Causes.Event, ev.Id);
+        string cashCause = choice.Ledger is string tag ? LetterLedger[tag] : Causes.Event;
+        foreach (var e in CreditedEffects(state, content, ev, choice.Effects))
+            Effects.Apply(state, [e], e is CashEffect ? cashCause : Causes.Event, ev.Id);
         state.Month.News.Add(new EventResolvedNews(ev.Id, choice.Id, auto));
         return null;
     }
+
+    /// <summary>
+    /// The ledger line a reply's money is booked under, by its ledger tag (progression.ts
+    /// LETTER_LEDGER). Untagged money is "letters answered", and so, for now, is trade given up.
+    /// </summary>
+    public static readonly IReadOnlyDictionary<string, string> LetterLedger = new Dictionary<string, string>
+    {
+        ["outlay"] = Causes.Investment,
+        ["supplies"] = Causes.Ingredients,
+        ["fees"] = Causes.Bribe,
+        ["subscriptions"] = Causes.Retainer,
+        ["trade"] = Causes.Event,
+    };
 
     /// <summary>
     /// The effects of a reply to a letter as the ward credits them (progression.ts creditedEffects):

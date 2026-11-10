@@ -34,6 +34,8 @@ Earlier explorations are kept for reference: grim ink (`silent_partner`, `satisf
 | Apparatus         | `wc_still` (the game animates the fire, steam, drip and receiver over it)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | Seals             | `seal_coroner`, `seal_health`, `seal_sanitary`, `seal_college`, `seal_league`, `seal_hobart` (written by `tools/make_seals.py`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 
+The remedy's bottle, `wc_bottle_panacea`, is engraved with a blank label: the game sets the shop's own remedy and price on it in type (`scripts/UI/LabelledCut.cs`), so a notice never shows another remedy's name. The rivals' bottles (`wc_bottle_syrup`, `wc_bottle_bitters`, `wc_pills`) keep their engraved labels.
+
 To rebuild the set:
 
 1. `python3 tools/build_woodcut.py` composes each `art/templates/wc/<name>.body.svg` with the shared woodcut style and a card.
@@ -52,9 +54,10 @@ Render the sprites before the ad formats, because the layouts embed the cuts.
 
 ## Asset log
 
-| Asset                          | Source                                    | Licence       |
-| ------------------------------ | ----------------------------------------- | ------------- |
-| All art in `art/src/`          | Original, authored in this repo           | Project-owned |
-| IM Fell English font           | Google Fonts (`assets/fonts/OFL.txt`)     | SIL OFL 1.1   |
-| Rye font                       | Google Fonts (`assets/fonts/OFL-Rye.txt`) | SIL OFL 1.1   |
-| Poly Haven models and textures | `assets/polyhaven/LICENSES.json`          | CC0 1.0       |
+| Asset                                                                                                 | Source                                                                             | Licence       |
+| ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------- |
+| All art in `art/src/`                                                                                 | Original, authored in this repo                                                    | Project-owned |
+| IM Fell English font                                                                                  | Google Fonts (`assets/fonts/OFL.txt`)                                              | SIL OFL 1.1   |
+| IM Fell English Lining (the game's Fell: IM Fell with lining figures, `tools/make_lining_figures.py`) | IM Fell English and Liberation Serif's figures (`assets/fonts/OFL-Liberation.txt`) | SIL OFL 1.1   |
+| Rye font                                                                                              | Google Fonts (`assets/fonts/OFL-Rye.txt`)                                          | SIL OFL 1.1   |
+| Poly Haven models and textures                                                                        | `assets/polyhaven/LICENSES.json`                                                   | CC0 1.0       |

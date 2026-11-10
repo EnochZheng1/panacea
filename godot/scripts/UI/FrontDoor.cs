@@ -51,12 +51,14 @@ public static class SaveStore
 	}
 }
 
-/// <summary>The player's settings, kept between sessions: the window and the sound.</summary>
+/// <summary>The player's settings, kept between sessions: the window, the sound and the size of the type.</summary>
 public static class Settings
 {
 	public static string PathName = "user://settings.cfg";
 	public static bool Fullscreen { get; private set; }
 	public static bool Sound { get; private set; } = true;
+	/// <summary>0 regular, 1 large, 2 larger (see <see cref="LargePrint"/>).</summary>
+	public static int TextSize { get; private set; }
 
 	public static void Load()
 	{
@@ -65,12 +67,14 @@ public static class Settings
 		{
 			Fullscreen = (bool)cfg.GetValue("window", "fullscreen", false);
 			Sound = (bool)cfg.GetValue("sound", "on", true);
+			TextSize = Math.Clamp((int)cfg.GetValue("print", "size", 0), 0, LargePrint.Names.Length - 1);
 		}
 		Apply();
 	}
 
 	public static void SetFullscreen(bool on) { Fullscreen = on; Apply(); Save(); }
 	public static void SetSound(bool on) { Sound = on; Apply(); Save(); }
+	public static void SetTextSize(int level) { TextSize = Math.Clamp(level, 0, LargePrint.Names.Length - 1); Apply(); Save(); }
 
 	private static void Apply()
 	{
@@ -78,6 +82,7 @@ public static class Settings
 		if (DisplayServer.GetName() != "headless")
 			DisplayServer.WindowSetMode(Fullscreen ? DisplayServer.WindowMode.Fullscreen : DisplayServer.WindowMode.Windowed);
 		Sfx.SetEnabled(Sound);
+		LargePrint.SetLevel(TextSize);
 	}
 
 	private static void Save()
@@ -85,6 +90,7 @@ public static class Settings
 		var cfg = new ConfigFile();
 		cfg.SetValue("window", "fullscreen", Fullscreen);
 		cfg.SetValue("sound", "on", Sound);
+		cfg.SetValue("print", "size", TextSize);
 		cfg.Save(PathName);
 	}
 }

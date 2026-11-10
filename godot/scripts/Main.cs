@@ -30,21 +30,31 @@ public partial class Main : Control
 	public override void _Ready()
 	{
 		SetAnchorsPreset(LayoutPreset.FullRect);
+		// the text-size setting reaches every control as it is built, on every screen and drawer
+		LargePrint.Attach(GetTree());
 		// tooltips are printed slips too
 		var theme = new Theme();
 		theme.SetStylebox("panel", "TooltipPanel", Print.Box(Print.Paper, Print.Ink, 2, 7));
 		theme.SetFont("font", "TooltipLabel", Print.FellIt);
-		theme.SetFontSize("font_size", "TooltipLabel", 15);
+		theme.SetFontSize("font_size", "TooltipLabel", LargePrint.Size(15));
 		theme.SetColor("font_color", "TooltipLabel", Print.Ink);
 		Theme = theme;
 		// and for the footer and the press, which sit on their own canvas layers
 		GetTree().Root.Theme = theme;
+		LargePrint.Changed += () =>
+		{
+			theme.SetFontSize("font_size", "TooltipLabel", LargePrint.Size(15));
+			UpdateStatus(null);
+		};
 		var args = OS.GetCmdlineUserArgs();
 		string Arg(string name, string fallback)
 		{
 			for (var i = 0; i < args.Length - 1; i++) if (args[i] == name) return args[i + 1];
 			return fallback;
 		}
+		// dev: a text size for screenshots (a player's comes from the settings)
+		if (Array.IndexOf(LargePrint.Names, Arg("--textsize", "").ToUpperInvariant()) is >= 0 and var level) LargePrint.SetLevel(level);
+		HandleStopSignals();
 
 		var sfx = new Sfx();
 		AddChild(sfx);
@@ -94,8 +104,13 @@ public partial class Main : Control
 		menu.TooltipText = "The title page, the settings, and a way out. (Escape opens it too.)";
 		menu.Pressed += () => { if (!_pressing && _card == null) ShowPause(); };
 		row.AddChild(menu);
-		_status = Print.Label("", Print.FellIt, 17, color: Print.Paper);
+		// one line, always: what will not fit is left out (see FitStatus), never wrapped under
+		_status = Print.Label("", Print.FellIt, 17, color: Print.Paper, wrap: false);
 		_status.SizeFlagsVertical = SizeFlags.ShrinkCenter;
+		_status.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+		_status.ClipText = true;
+		_status.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
+		_status.Resized += () => FitStatus();
 		row.AddChild(_status);
 		_nav = InvertedButton("TO THE PROOF ☞");
 		_nav.SizeFlagsVertical = SizeFlags.ShrinkCenter;
@@ -139,6 +154,7 @@ public partial class Main : Control
 		}
 		else if (args.Contains("--title")) ShowTitle();
 		else if (args.Contains("--menu")) ShowPause();
+		else if (args.Contains("--settings")) ShowSettings(ShowPause);
 		if (Arg("--savetest", "") is { Length: > 0 } months) SaveTest(int.Parse(months));
 		if (Arg("--screen", "edition") is "desk" or "proof") SetDesk(true);
 		if (Arg("--drawer", "") is { Length: > 0 } drawer) _desk.OpenDrawer(drawer);
@@ -148,6 +164,9 @@ public partial class Main : Control
 			Driver.Start(this, port, DriverState);
 		}
 		if (Arg("--pour", "") is { Length: > 0 } pour) _desk.DemoPour(pour.Split(','));
+		// dev: report the smallest type on screen and anything it has pushed out of place
+		if (args.Contains("--typecheck")) AddChild(new TypeCheck(int.Parse(Arg("--frames", "90"))));
+		if (args.Contains("--growth")) ShowGrowthPreview();
 		if (Arg("--hover", "") is { Length: > 0 } hover)
 		{
 			// dev: move a pretend cursor to x,y after the screen settles (for hover screenshots)
@@ -287,7 +306,7 @@ public partial class Main : Control
 	{
 		var c = new FrontCard(520);
 		c.Title("THE MENU", 30);
-		c.Line(_game.Ended ? "The business is closed." : "The game is saved at every edition.", 15);
+		c.Line(_game.Ended ? "The business is closed." : "The game is saved as you go.", 15);
 		c.OnEscape = CloseCard;
 		c.Choice("☞  BACK TO THE SHOP", CloseCard, solid: true);
 		c.Choice("SETTINGS", () => ShowSettings(ShowPause));
@@ -296,7 +315,7 @@ public partial class Main : Control
 		ShowCard(c);
 	}
 
-	private void ShowSettings(Action back, int focus = 2)
+	private void ShowSettings(Action back, int focus = 3)
 	{
 		var c = new FrontCard(480) { FocusAt = focus };
 		c.Title("SETTINGS", 30);
@@ -304,6 +323,15 @@ public partial class Main : Control
 		// a toggle rebuilds the card with the keyboard still on it, so a second Enter toggles it back
 		c.Choice($"THE WINDOW: {(Settings.Fullscreen ? "FULL SCREEN" : "A WINDOW")}", () => { Settings.SetFullscreen(!Settings.Fullscreen); ShowSettings(back, 0); }, "Press to change.");
 		c.Choice($"SOUND: {(Settings.Sound ? "THE SHOP HEARD" : "HUSHED")}", () => { Settings.SetSound(!Settings.Sound); SyncSound(); ShowSettings(back, 1); }, "The press, the till, the paper. (The same switch as at the foot of the page.)");
+		// a dev run has no settings file: it changes the size for this run only
+		c.Choice($"TEXT SIZE: {LargePrint.Names[LargePrint.Level]}", () =>
+		{
+			var next = (LargePrint.Level + 1) % LargePrint.Names.Length;
+			if (_dev) LargePrint.SetLevel(next); else Settings.SetTextSize(next);
+			ShowSettings(back, 2);
+		}, LargePrint.Level == 0
+			? "Press for larger small print: the counter cards, the works, the drawers, the jars."
+			: "The small print is set larger. Press to change.");
 		c.Choice("☜  BACK", back);
 		ShowCard(c);
 	}
@@ -311,7 +339,9 @@ public partial class Main : Control
 	/// <summary>Writes the save (a dev run never touches the player's save).</summary>
 	private void SaveNow()
 	{
-		if (_dev || _game is not SimGame sg) return;
+		// the fresh shop laid out behind a first title page is nobody's yet: saving it would put a
+		// CONTINUE on the title page, and A NEW SHOP would then ask to be pressed twice
+		if (_dev || !_inPlay || _game is not SimGame sg) return;
 		SaveStore.Write(sg.SaveJson());
 		_savedActions = sg.Actions;
 		_savedAt = Time.GetTicksMsec();
@@ -319,6 +349,8 @@ public partial class Main : Control
 
 	private int _savedActions = -1;
 	private ulong _savedAt;
+	/// <summary>Whether the shop on the table is the player's: one they continued or began, never the backdrop of a first launch.</summary>
+	private bool _inPlay;
 
 	/// <summary>
 	/// The month's work is kept as it is done, not only at the press: a reply to a letter, a batch, a
@@ -356,6 +388,8 @@ public partial class Main : Control
 		SetDesk(false, slide: false);
 		ShowEdition();
 		_backdropIsSave = true;
+		_inPlay = true;
+		_savedActions = loaded.Actions;
 		return true;
 	}
 
@@ -364,6 +398,8 @@ public partial class Main : Control
 	{
 		if (!_dev) SaveStore.Delete();
 		_backdropIsSave = false;
+		_inPlay = true;
+		_monthDelta = null;
 		using (var f = FileAccess.Open("res://data/paper.en.json", FileAccess.ModeFlags.Read))
 			_writer = new EditionWriter(f.GetAsText());
 		_game = SimGame.Start(seed ?? $"shop-{(long)Time.GetUnixTimeFromSystem()}-{GD.Randi() % 10000}");
@@ -582,6 +618,61 @@ public partial class Main : Control
 		return run;
 	}
 
+	/// <summary>
+	/// Dev (--growth): the counter's dressing and the row of stills (ShopGrowth.cs) for this shop,
+	/// laid out alone on the table for a screenshot, as the proof and the still drawer would print them.
+	/// </summary>
+	private void ShowGrowthPreview()
+	{
+		var d = _game.Desk();
+		var layer = new CanvasLayer { Layer = 40 };
+		AddChild(layer);
+		var bg = new ColorRect { Color = Print.Table };
+		bg.SetAnchorsPreset(LayoutPreset.FullRect);
+		layer.AddChild(bg);
+		var row = new HBoxContainer { Position = new Vector2(22, 10) };
+		row.AddThemeConstantOverride("separation", 14);
+		layer.AddChild(row);
+		var left = new VBoxContainer();
+		left.AddThemeConstantOverride("separation", 4);
+		row.AddChild(left);
+		Control Strip(DeskModel m)
+		{
+			var strip = new Control { CustomMinimumSize = new Vector2(824, 292) };
+			strip.AddChild(new ColorRect { Color = Print.Paper, Size = new Vector2(824, 292) });
+			strip.AddChild(new CounterDressing(m));
+			strip.AddChild(new ColorRect { Color = Print.Ink, Position = new Vector2(0, 226), Size = new Vector2(824, 66) });
+			var x = 64f;
+			foreach (var r in m.Regulars.Take(5))
+			{
+				var tex = Print.Cut(Cuts.For(r.Segment, !r.Name.StartsWith("Mr."), r.Name));
+				if (tex == null) continue;
+				const float h = 186f;
+				strip.AddChild(new TextureRect { Texture = tex, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered, Position = new Vector2(x, 226 - h + 12), Size = new Vector2(h * tex.GetWidth() / tex.GetHeight(), h) });
+				x += 140;
+			}
+			var title = Print.Label("AT THE COUNTER", Print.Rye, 14, HorizontalAlignment.Right, wrap: false);
+			title.Position = new Vector2(824 - 300, 8); title.Size = new Vector2(286, 20);
+			strip.AddChild(title);
+			return strip;
+		}
+		string Held(DeskModel m) => string.Join(", ", m.Investments.Where(i => i.Held).Select(i => i.Id));
+		left.AddChild(Print.Label($"AS THE SHOP IS · {d.Customers} regulars of {d.CustomerCapacity} · held: {Held(d)}", Print.FellIt, 15, color: Print.Paper, wrap: false));
+		left.AddChild(Strip(d));
+		// the same counter grown: fifty regulars and every venture taken up
+		var grown = new DeskModel { Customers = 50, CustomerCapacity = 70, Regulars = d.Regulars, Investments = d.Investments.Select(i => new InvestmentRow { Id = i.Id, Name = i.Name, Held = true }).ToList() };
+		left.AddChild(Print.Label($"GROWN · {grown.Customers} regulars of {grown.CustomerCapacity} · held: every venture", Print.FellIt, 15, color: Print.Paper, wrap: false));
+		left.AddChild(Strip(grown));
+		var still = new VBoxContainer();
+		still.AddChild(Print.Label("THE STILL", Print.Rye, 22, HorizontalAlignment.Center));
+		var stills = Math.Max(1, d.StillsFree + d.Brewing.Count);
+		still.AddChild(new StillDrawing { Lit = d.Brewing.Count > 0, Stills = stills });
+		var others = new StillRow();
+		others.Set(stills - 1, Math.Max(0, d.Brewing.Count - 1));
+		still.AddChild(others);
+		row.AddChild(Print.Slip(still, 10, 330));
+	}
+
 	/// <summary>What the scripted reviewer may know: the screen and the game as the player sees it.</summary>
 	private System.Text.Json.Nodes.JsonObject DriverState()
 	{
@@ -737,22 +828,112 @@ public partial class Main : Control
 	/// <summary>The footer line; <paramref name="cash"/> overrides the figure while it counts.</summary>
 	private long? _monthDelta;
 
+	/// <summary>The footer's pieces, most needed first; each with how readily it is left out when the line is too long (0: never).</summary>
+	private readonly List<(string Text, int Drop)> _statusParts = new();
+
 	private void UpdateStatus(long? cash)
 	{
+		if (_status == null || _game == null) return;
 		var d = _game.Desk();
-		var when = new System.DateTime(d.Year, d.Month, 1).ToString("MMMM yyyy", System.Globalization.CultureInfo.InvariantCulture);
-		// reading the paper, say which edition it is, so its date and the month in hand never seem to disagree
-		if (!_onDesk && !_game.Ended)
+		// the bottle's label, wherever the cut is printed, carries the shop's own remedy
+		LabelledCut.Remedy = d.Formulas.FirstOrDefault()?.Name;
+		LabelledCut.PriceCents = d.Formulas.FirstOrDefault()?.PriceCents ?? 0;
+		var inv = System.Globalization.CultureInfo.InvariantCulture;
+		var month = new System.DateTime(d.Year, d.Month, 1).ToString("MMMM yyyy", inv);
+		var parts = _statusParts;
+		parts.Clear();
+		var letters = d.Letters.Count == 0 ? null : $"{d.Letters.Count} letter{(d.Letters.Count == 1 ? "" : "s")} waiting";
+		if (_pressing) parts.Add(("☞ Click, or press any key, to see the edition.", 0));
+		else if (_game.Ended)
+			parts.Add((_game.Facts.Career is { } c
+				? $"The business is closed after {(c.Months >= 24 ? $"{c.Months / 12} years" : $"{c.Months} months")}: {c.Bottles:N0} bottles sold, {c.Deaths} dead. The paper has the last word."
+				: "The business is closed. The paper has the last word.", 0));
+		else if (_onDesk)
 		{
+			// at the bench: the money and the talk, which a drawer's letter may ask about, kept in view
+			// here on the black, where an open drawer never dims them
+			parts.Add((month, 0));
+			parts.Add(($"cash now {EditionWriter.Money(cash ?? d.CashCents)}", 0));
+			parts.Add(($"suspicion: {DeskView.Talk(d.Heat)} ({d.Heat:0} of 100)", 1));
+			if (letters != null) parts.Add((letters, 2));
+			parts.Add(($"{d.Customers} regulars", 3));
+		}
+		else
+		{
+			// reading the paper: say which edition it is, and quote its closing figure as the books'
+			// figure, so it can never seem to disagree with the cash in hand after a month's spending
 			var f = _game.Facts;
 			var printed = f.FirstEdition ? EditionWriter.FirstSaturday(f.Year, f.Month) : EditionWriter.PublicationDate(f.Year, f.Month);
-			when = $"The Gazette of {printed.ToString("MMMM d", System.Globalization.CultureInfo.InvariantCulture)} · now {when}";
+			parts.Add(($"The Gazette of {printed.ToString("MMMM d", inv)}", 0));
+			var closed = cash ?? f.CashCents;
+			var dm = _monthDelta ?? (f.FirstEdition ? (long?)null : f.CashCents - f.CashStartCents);
+			var books = dm is long m ? (m == 0 ? ", the books even" : $", the books {(m > 0 ? "up" : "down")} {EditionWriter.Money(Math.Abs(m))}") : "";
+			var since = cash == null ? d.CashCents - f.CashCents : 0;
+			if (since == 0) parts.Add(($"cash {EditionWriter.Money(closed)}{books}", 0));
+			else
+			{
+				parts.Add(($"the books closed at {EditionWriter.Money(closed)}", 0));
+				parts.Add(($"cash now {EditionWriter.Money(d.CashCents)}, {EditionWriter.Money(Math.Abs(since))} {(since < 0 ? "spent" : "taken")} since", 0));
+			}
+			parts.Add(($"now {month}", 2));
+			if (letters != null) parts.Add((letters, 1));
+			parts.Add(($"{d.Customers} regulars", 3));
 		}
-		_status.Text = _pressing ? "☞ Click, or press any key, to see the edition." : _game.Ended
-			? (_game.Facts.Career is { } c
-				? $"The business is closed after {(c.Months >= 24 ? $"{c.Months / 12} years" : $"{c.Months} months")}: {c.Bottles:N0} bottles sold, {c.Deaths} dead. The paper has the last word."
-				: "The business is closed. The paper has the last word.")
-			: $"{when} · cash in hand {EditionWriter.Money(cash ?? d.CashCents)}{(_monthDelta is long dm && !_onDesk ? (dm == 0 ? " (the books even)" : $" (the books {(dm > 0 ? "up" : "down")} {EditionWriter.Money(Math.Abs(dm))})") : "")} · {d.Customers} regulars{(d.Letters.Count == 0 ? "" : $" · {d.Letters.Count} letter{(d.Letters.Count == 1 ? "" : "s")} waiting")}";
+		FitStatus();
+	}
+
+	/// <summary>Sets the footer on one line, leaving out the least needed pieces until it fits.</summary>
+	private void FitStatus()
+	{
+		if (_status == null) return;
+		var keep = _statusParts.ToList();
+		string Line() => string.Join(" · ", keep.Select(p => p.Text));
+		var room = _status.Size.X;
+		var font = _status.GetThemeFont("font");
+		var size = _status.GetThemeFontSize("font_size");
+		while (room > 1 && keep.Any(p => p.Drop > 0) && font.GetStringSize(Line(), HorizontalAlignment.Left, -1, size).X > room)
+			keep.Remove(keep.Where(p => p.Drop > 0).OrderByDescending(p => p.Drop).First());
+		var text = Line();
+		if (_status.Text != text) _status.Text = text;
+	}
+
+	// ---------- a stop from outside (the window manager's kill, Ctrl+C in a terminal) ----------
+
+	private static System.Runtime.InteropServices.PosixSignalRegistration? _onTerm, _onInt;
+
+	/// <summary>
+	/// A SIGTERM or SIGINT is taken as SAVE, AND QUIT: the shop is saved and the game quits from its
+	/// own main loop. Left to the runtime, the signal ended the process from another thread, with
+	/// the engine's threads unjoined ("A Thread object is being destroyed without its completion
+	/// having been realized") and the month's last changes unsaved.
+	/// </summary>
+	private void HandleStopSignals()
+	{
+		void Stop(System.Runtime.InteropServices.PosixSignalContext ctx)
+		{
+			ctx.Cancel = true;
+			Callable.From(() =>
+			{
+				if (!IsInstanceValid(this)) return;
+				SaveNow();
+				GetTree().Quit();
+			}).CallDeferred();
+		}
+		try
+		{
+			_onTerm?.Dispose();
+			_onInt?.Dispose();
+			_onTerm = System.Runtime.InteropServices.PosixSignalRegistration.Create(System.Runtime.InteropServices.PosixSignal.SIGTERM, Stop);
+			_onInt = System.Runtime.InteropServices.PosixSignalRegistration.Create(System.Runtime.InteropServices.PosixSignal.SIGINT, Stop);
+		}
+		catch (Exception) { /* a platform without POSIX signals: nothing to take */ }
+	}
+
+	public override void _ExitTree()
+	{
+		_onTerm?.Dispose();
+		_onInt?.Dispose();
+		_onTerm = _onInt = null;
 	}
 }
 

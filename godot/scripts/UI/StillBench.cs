@@ -25,6 +25,8 @@ public partial class StillBench : HBoxContainer
 	private string? _formula;
 	private string? _note;
 	private readonly StillDrawing _still = new();
+	/// <summary>The house's other stills, printed small under the first.</summary>
+	private readonly StillRow _others = new();
 	private readonly VBoxContainer _right = new() { SizeFlagsHorizontal = SizeFlags.ExpandFill };
 	public event Action? Changed;
 
@@ -35,6 +37,7 @@ public partial class StillBench : HBoxContainer
 		var left = new VBoxContainer();
 		left.AddChild(Print.Label("THE STILL", Print.Rye, 22, HorizontalAlignment.Center));
 		left.AddChild(_still);
+		left.AddChild(_others);
 		AddChild(Print.Slip(left, 10, 330));
 		_right.AddThemeConstantOverride("separation", 8);
 		// the batch card keeps its width whatever it holds, so a short message never collapses it
@@ -58,6 +61,7 @@ public partial class StillBench : HBoxContainer
 		var d = _game.Desk();
 		_still.Lit = d.Brewing.Count > 0;
 		_still.Stills = Math.Max(1, d.StillsFree + d.Brewing.Count);
+		_others.Set(_still.Stills - 1, Math.Max(0, d.Brewing.Count - 1));
 
 		if (d.Formulas.Count == 0)
 		{
@@ -464,6 +468,6 @@ public partial class StillDrawing : Control
 		}
 		if (_flare > 0) DrawCircle(FireDoor.GetCenter(), 30 * _flare, new Color(paper, 0.35f * _flare));
 		var caption = Lit ? "On the fire." : "Cold.";
-		DrawString(Print.FellIt, new Vector2(24, 378), Stills > 1 ? $"{caption} Still No. 1 of {Stills}." : caption, HorizontalAlignment.Left, -1, 15, ink);
+		DrawString(Print.FellIt, new Vector2(24, 378), Stills > 1 ? $"{caption} Still No. 1 of {Stills}." : caption, HorizontalAlignment.Left, -1, LargePrint.Size(15), ink);
 	}
 }

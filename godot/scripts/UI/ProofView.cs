@@ -251,7 +251,7 @@ public partial class ProofView : Control
 			leftStack.AddChild(Drawer(_drawer));
 			// while a drawer is open the bench is out of reach of the mouse as well as the keyboard
 			// (dimmed only a little: the cash and the suspicion stay readable while a letter asks for money)
-			bench.Modulate = new Color(1, 1, 1, 0.8f);
+			bench.Modulate = new Color(1, 1, 1, 0.88f);
 			void Lock(Node n) { foreach (var k in n.GetChildren()) { if (k is Control c) c.MouseFilter = MouseFilterEnum.Ignore; Lock(k); } }
 			Lock(bench);
 		}
@@ -507,6 +507,8 @@ public partial class ProofView : Control
 		var tint = new ColorRect { Material = new ShaderMaterial { Shader = GD.Load<Shader>("res://shaders/tint.gdshader") } };
 		tint.SetAnchorsPreset(LayoutPreset.FullRect);
 		strip.AddChild(tint);
+		// the shelves fill as the shop grows, and each venture taken up hangs its card on the wall
+		strip.AddChild(new CounterDressing(m));
 		var counter = new ColorRect { Color = Print.Ink, AnchorTop = 1, AnchorRight = 1, AnchorBottom = 1, OffsetTop = -66 };
 		strip.AddChild(counter);
 		strip.AddChild(new ColorRect { Color = Print.Paper, AnchorTop = 1, AnchorRight = 1, AnchorBottom = 1, OffsetTop = -62, OffsetBottom = -60 });

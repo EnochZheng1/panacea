@@ -122,7 +122,7 @@ ASSETS = {
     'wc_mother_c': ('THE YOUNG MOTHER.', 'Recommended by a neighbor, whose child also sleeps.', 600, 1000, PAPER),
     'wc_lady_b': ('THE DEBUTANTE.', 'A pale and interesting complexion, at forty cents the box.', 600, 1000, PAPER),
     'wc_lady_c': ('THE SOCIETY MATRON.', 'Takes the wafers on Tuesdays and the vapours on Thursdays.', 600, 1000, PAPER),
-    'wc_bottle_panacea': ('THE PANACEA.', 'One dollar the bottle. Cures all ills.', 400, 760, PAPER),
+    'wc_bottle_panacea': ('THE REMEDY.', 'The label is left blank: the proprietor sets his own name on it.', 400, 760, PAPER),
     'wc_bottle_syrup': ('SOOTHING SYRUP.', 'Quiets fretful infants. Thoroughly.', 400, 760, PAPER),
     'wc_bottle_bitters': ('TEMPERANCE BITTERS.', 'Purely medicinal. Take hourly.', 400, 760, PAPER),
     'wc_pills': ('LITTLE LIVER PILLS.', 'Purely vegetable, mostly.', 400, 760, PAPER),

@@ -108,7 +108,7 @@ public partial class MeasuringGlass : Control
 			Shade(r, i % 4);
 			DrawLine(new Vector2(left + 3, y1), new Vector2(right - 3, y1), new Color(ink, 0.55f), 1f);
 			if (y0 - y1 > 11)
-				DrawString(font, new Vector2(right + 8, (y0 + y1) / 2 + 5), $"{name} {Fmt(shown)}", HorizontalAlignment.Left, w - right - 10, 12, ink);
+				DrawString(font, new Vector2(right + 8, (y0 + y1) / 2 + 5), $"{name} {Fmt(shown)}", HorizontalAlignment.Left, w - right - 10, LargePrint.Size(12), ink);
 			level += shown;
 		}
 		// the meniscus
@@ -129,15 +129,15 @@ public partial class MeasuringGlass : Control
 		{
 			var y = Y(oz);
 			DrawLine(new Vector2(left, y), new Vector2(left + 14, y), ink, 1.6f);
-			DrawString(Print.Fell, new Vector2(left - 26, y + 5), oz.ToString(), HorizontalAlignment.Right, 20, 13, ink);
+			DrawString(Print.Fell, new Vector2(left - 26, y + 5), oz.ToString(), HorizontalAlignment.Right, 20, LargePrint.Size(13), ink);
 			if (oz < Capacity) DrawLine(new Vector2(left, Y(oz + 0.5)), new Vector2(left + 7, Y(oz + 0.5)), ink, 1f);
 		}
 		var full = Y(Capacity);
 		DrawDashedLine(new Vector2(left, full), new Vector2(right, full), ink, 1.4f, 5);
-		DrawString(Print.FellIt, new Vector2(left - 6, full - 8), "a full bottle", HorizontalAlignment.Left, -1, 12, ink);
+		DrawString(Print.FellIt, new Vector2(left - 6, full - 8), "a full bottle", HorizontalAlignment.Left, -1, LargePrint.Size(12), ink);
 		if (Total() > Capacity + 1e-6)
 		{
-			DrawString(Print.Rye, new Vector2(left - 10, top - 18), "IT OVERFLOWS", HorizontalAlignment.Left, -1, 15, ink);
+			DrawString(Print.Rye, new Vector2(left - 10, top - 18), "IT OVERFLOWS", HorizontalAlignment.Left, -1, LargePrint.Size(15), ink);
 			var g = Print.Paper.Lerp(Print.Green, 0.55f);
 			DrawLine(new Vector2(right + 1, top - 6), new Vector2(right + 3, bottom - 30), g, 3f);
 			DrawLine(new Vector2(left - 1, top - 6), new Vector2(left - 4, bottom - 60), g, 2.4f);

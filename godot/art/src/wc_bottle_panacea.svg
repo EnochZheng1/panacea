@@ -75,22 +75,12 @@
     <path class="cut" d="M186,156 L186,180 M198,154 L198,182 M210,156 L210,180" stroke-width="1.6"/>
     <path class="p" d="M142,330 L258,330 L258,506 L142,506 Z"/>
     <path class="ln" d="M142,330 L258,330 L258,506 L142,506 Z M148,336 L252,336 L252,500 L148,500 Z" stroke-width="1.6"/>
-    <path class="ln" d="M164,404 L236,404 M164,462 L236,462" stroke-width="1.2"/>
-  </g>
-  <g filter="url(#soft)" font-family="Fell" fill="#141212" text-anchor="middle">
-    <text x="200" y="356" font-size="11" letter-spacing="2">DR. ——'S</text>
-    <text x="200" y="374" font-family="FellIt" font-size="14">Celebrated</text>
-    <text x="200" y="398" font-family="Rye" font-size="24" textLength="96" lengthAdjust="spacingAndGlyphs">PANACEA</text>
-    <text x="200" y="420" font-size="8.5" letter-spacing="1" textLength="92" lengthAdjust="spacingAndGlyphs">CONSUMPTION · CATARRH</text>
-    <text x="200" y="432" font-size="8.5" letter-spacing="1" textLength="92" lengthAdjust="spacingAndGlyphs">DYSPEPSIA · MELANCHOLY</text>
-    <text x="200" y="444" font-size="8.5" letter-spacing="1" textLength="80" lengthAdjust="spacingAndGlyphs">FEMALE COMPLAINTS</text>
-    <text x="200" y="456" font-size="8.5" letter-spacing="1">&amp; ALL ILLS</text>
-    <text x="200" y="478" font-family="FellIt" font-size="10">Purely Vegetable</text>
-    <text x="200" y="494" font-size="9" letter-spacing="1.5">ONE DOLLAR</text>
+    <!-- the label is left blank: the game sets the remedy's own name on it in type -->
+    <path class="ln" d="M180,346 L220,346 M180,490 L220,490" stroke-width="1.2"/>
   </g>
 
   <g id="caption" filter="url(#soft)">
-    <text x="200.0" y="682" font-family="Rye" font-size="30" text-anchor="middle" fill="#141212">THE PANACEA.</text>
-    <text x="200.0" y="714" font-family="FellIt" font-size="18" text-anchor="middle" fill="#141212">One dollar the bottle. Cures all ills.</text>
+    <text x="200.0" y="682" font-family="Rye" font-size="30" text-anchor="middle" fill="#141212">THE REMEDY.</text>
+    <text x="200.0" y="714" font-family="FellIt" font-size="18" text-anchor="middle" fill="#141212">The label is left blank: the proprietor sets his own name on it.</text>
   </g>
 </svg>

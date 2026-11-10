@@ -20,8 +20,10 @@ public static class Print
 
 	private static FontFile? _rye, _fell, _fellIt;
 	public static FontFile Rye => _rye ??= GD.Load<FontFile>("res://assets/fonts/Rye-Regular.ttf");
-	public static FontFile Fell => _fell ??= GD.Load<FontFile>("res://assets/fonts/IMFeENrm28P.ttf");
-	public static FontFile FellIt => _fellIt ??= GD.Load<FontFile>("res://assets/fonts/IMFeENit28P.ttf");
+	// IM Fell with lining figures in place of its old-style ones, whose 1 and 0 read as I and o
+	// ("$I9.8o"); see tools/make_lining_figures.py
+	public static FontFile Fell => _fell ??= GD.Load<FontFile>("res://assets/fonts/IMFeENrm28P-Lining.ttf");
+	public static FontFile FellIt => _fellIt ??= GD.Load<FontFile>("res://assets/fonts/IMFeENit28P-Lining.ttf");
 
 	public static Label Label(string text, Font font, int size, HorizontalAlignment align = HorizontalAlignment.Left, Color? color = null, bool wrap = true)
 	{
@@ -160,8 +162,17 @@ public static class Print
 		return p;
 	}
 
-	public static Texture2D? Cut(string name) =>
-		string.IsNullOrEmpty(name) ? null : ResourceLoader.Exists($"res://assets/art/cuts/{name}.png") ? GD.Load<Texture2D>($"res://assets/art/cuts/{name}.png") : null;
+	private static LabelledCut? _remedyCut;
+
+	/// <summary>A stock cut by name. The remedy's bottle (<c>wc_bottle_panacea</c>) comes with the
+	/// shop's own remedy set on its label (see <see cref="LabelledCut"/>).</summary>
+	public static Texture2D? Cut(string name)
+	{
+		if (string.IsNullOrEmpty(name) || !ResourceLoader.Exists($"res://assets/art/cuts/{name}.png")) return null;
+		var tex = GD.Load<Texture2D>($"res://assets/art/cuts/{name}.png");
+		if (name != "wc_bottle_panacea") return tex;
+		return _remedyCut ??= new LabelledCut(tex);
+	}
 
 	/// <summary>
 	/// A printed ticket: woodtype caption inside a ruled border. Hovering inks it in (the colours

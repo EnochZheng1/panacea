@@ -100,8 +100,16 @@ public sealed class PaperFacts
     /// <summary>Bottles sent by post to the almanac's readers this month, and what they brought.</summary>
     public int PostDelivered;
     public long PostRevenueCents;
-    /// <summary>Flags the paper prints: gold_medal_1893 and radio_active (lines on the shop's notice), feeney_closed.</summary>
+    /// <summary>
+    /// Flags the paper prints: gold_medal_1893 and radio_active (lines on the shop's notice),
+    /// feeney_closed; and what the shop has to show for its sign (gilt_sign, sign_touched,
+    /// shopfront_painted), so the callers it drew are credited to the sign it has.
+    /// </summary>
     public HashSet<string> Flags = new();
+    /// <summary>Regulars asking for the remedy by name or shaking for want of it, when the edition went to press.</summary>
+    public int CravingRegulars;
+    /// <summary>Stills in the back room.</summary>
+    public int Stills = 1;
 }
 
 public sealed class ProductFact
@@ -140,7 +148,7 @@ public sealed class PersonFact
     public string LastSeen = "";
     /// <summary>For the dead: the cause as the ward and the register give it (overdose, wasting, ailment, old_age, natural).</summary>
     public string Cause = "";
-    /// <summary>For the dead: the remedy whose bottle was theirs, if the shop's.</summary>
+    /// <summary>For the dead: the remedy whose bottle was theirs, if the shop's; for a customer, the remedy the shop last sold them.</summary>
     public string? Product;
     /// <summary>Asking for the remedy by name, or shaking for want of it, when last seen.</summary>
     public bool Craving;

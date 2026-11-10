@@ -487,12 +487,15 @@ public sealed class SimGame : IGame
 		};
 		if (Ended) f.Career = Career(o);
 		// what the shop's letters have bought it that the paper prints: a medal, a licence, a rival's shop
-		foreach (var flag in new[] { "gold_medal_1893", "radio_active", "feeney_closed" })
+		foreach (var flag in new[] { "gold_medal_1893", "radio_active", "feeney_closed", "gilt_sign", "sign_touched", "shopfront_painted" })
 			if (_state.Player.Flags.TryGetValue(flag, out var on) && on) f.Flags.Add(flag);
 		f.WardMemory = o.WardMemory;
 		f.RememberedDeaths = o.WardRemembers.Deaths;
 		f.RememberedVerdicts = o.WardRemembers.Verdicts;
 		f.RememberedInfants = o.WardRemembers.InfantDeaths;
+		// what a lead that speaks of the shop's record must square with
+		f.CravingRegulars = o.Customers.Count(c => c.Craving || c.Withdrawal);
+		f.Stills = o.Stills;
 		if (f.FirstEdition) f.Turn = 0;
 		else f.Turn = report!.Turn + 1;
 
@@ -691,6 +694,9 @@ public sealed class SimGame : IGame
 
 	private PersonFact Person(ObservedCustomer c) => new()
 	{
+		// the remedy the shop last sold them, so a notice names the bottle they came for (the
+		// teething syrup, not the bitters)
+		Product = _state.Customers.Find(x => x.Id == c.Id)?.LastFormulaId is { } fid ? _state.Lab.Formulas.Find(x => x.Id == fid)?.Name : null,
 		Id = c.Id,
 		Name = c.Name,
 		Segment = c.Segment,

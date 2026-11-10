@@ -1048,6 +1048,18 @@ public partial class ProofView : Control
 	/// The post: how many letters wait, and the button to them, on one line at the top of a slip of
 	/// one height at every size, so OPEN THE LETTERS is always in the same place.
 	/// </summary>
+	/// <summary>What an empty post says, one line a month in turn, so it doesn't read the same every month.</summary>
+	private static readonly string[] NoPost =
+	{
+		"Nothing in the post this month but a circular for galvanic belts.",
+		"The postman brought nothing but a seed catalogue and a bill from the printer.",
+		"No letters this month. A handbill for a rival's liniment was pushed under the door.",
+		"Nothing in the post but a rival's almanac, with your symptoms on every page.",
+		"No letters. The postman says the ward is saving its stamps.",
+		"Nothing in the post this month but a card from a phrenologist, offering to read your head at a reduction.",
+		"No letters this month; only a circular from a firm of undertakers, wishing the house continued prosperity.",
+	};
+
 	private Control LettersSlip(DeskModel m)
 	{
 		var answered = MonthBook.LettersAnswered(_game);
@@ -1071,7 +1083,7 @@ public partial class ProofView : Control
 		{
 			var none = Print.Label(answered > 0
 				? $"{Cap(Spell(answered))} letter{(answered == 1 ? "" : "s")} answered this month; nothing more in the post."
-				: "Nothing in the post this month but a circular for galvanic belts.", Print.FellIt, 13);
+				: NoPost[(int)((uint)(m.Turn * 7 + 3) % NoPost.Length)], Print.FellIt, 13);
 			v.AddChild(none);
 		}
 		foreach (var l in m.Letters.Take(1))

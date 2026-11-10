@@ -215,9 +215,13 @@ public partial class EditionView : ScrollContainer
 		page.AddChild(mast);
 		page.AddChild(Print.Rule());
 		var dateline = new HBoxContainer();
-		dateline.AddChild(Print.Label(e.DatelineLeft, Print.Fell, 14));
+		dateline.AddChild(DashedLine(e.DatelineLeft, 14));
 		dateline.AddChild(Print.Label(e.DatelineCentre, Print.Fell, 14, HorizontalAlignment.Center));
-		dateline.AddChild(Print.Label(e.DatelineRight, Print.Fell, 14, HorizontalAlignment.Right));
+		// the date takes the room between the volume and the price, so it stays on one line at the
+		// larger text sizes
+		var price = Print.Label(e.DatelineRight, Print.Fell, 14, HorizontalAlignment.Right, wrap: false);
+		price.SizeFlagsHorizontal = SizeFlags.ShrinkEnd;
+		dateline.AddChild(price);
 		page.AddChild(dateline);
 		page.AddChild(Print.Rule(1.6f, 0));
 		if (!string.IsNullOrEmpty(e.Brief))
@@ -284,6 +288,36 @@ public partial class EditionView : ScrollContainer
 			var text = dash > 0 ? $"[b]{Print.Escape(t[..(dash + 2)])}[/b]{Print.Escape(t[(dash + 2)..])}" : Print.Escape(t);
 			shortest.AddChild(Print.Body(text, 15));
 		}
+	}
+
+	/// <summary>
+	/// A line of the dateline whose em dash ("VOL. XVI.—NO. 660.") is ruled, not set: IM Fell's
+	/// dash is short and, at the larger text sizes, breaks in the middle and reads as a double
+	/// hyphen. The rule is nine-tenths of an em at whatever size the line is set.
+	/// </summary>
+	private static Control DashedLine(string text, int size)
+	{
+		var at = text.IndexOf('\u2014');
+		if (at < 0) return Print.Label(text, Print.Fell, size);
+		var row = new HBoxContainer();
+		row.AddThemeConstantOverride("separation", 1);
+		var before = Print.Label(text[..at], Print.Fell, size, wrap: false);
+		var after = Print.Label(text[(at + 1)..], Print.Fell, size, wrap: false);
+		var dash = new ColorRect { Color = Print.Ink, SizeFlagsVertical = SizeFlags.ShrinkCenter, MouseFilter = MouseFilterEnum.Ignore };
+		void Fit()
+		{
+			if (!GodotObject.IsInstanceValid(before) || !GodotObject.IsInstanceValid(dash)) return;
+			var px = before.GetThemeFontSize("font_size");
+			dash.CustomMinimumSize = new Vector2(Mathf.Round(px * 0.9f), Mathf.Max(2f, Mathf.Round(px / 8f)));
+		}
+		row.AddChild(before);
+		row.AddChild(dash);
+		row.AddChild(after);
+		// (the text-size setting sets the labels' size as they enter the tree, and again when it changes)
+		before.Ready += Fit;
+		LargePrint.Changed += Fit;
+		row.TreeExiting += () => LargePrint.Changed -= Fit;
+		return row;
 	}
 
 	private static Control Ear(string head, string text)

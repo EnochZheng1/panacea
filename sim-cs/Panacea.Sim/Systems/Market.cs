@@ -297,6 +297,10 @@ public static class Market
         double labelBoldness = MaxBoldness(onSale, content);
         if (labelBoldness > 0)
             Ledger.Adjust(state, Metrics.Heat, labelBoldness * adv.LabelHeatPerBoldness, Causes.Claims);
+        // A label that cures consumption is read at the Board of Health and in Park Row (round 10).
+        int cures = 0;
+        foreach (var f in onSale) cures = Math.Max(cures, Formulas.CureClaims(f.Claims, content));
+        if (cures > 0 && adv.CuresHeat > 0) Ledger.Adjust(state, Metrics.Heat, cures * adv.CuresHeat, Causes.CureClaims);
         // An almanac prints every claim in the formula book, for a year, on every kitchen table.
         double printedBoldness = MaxBoldness(state.Lab.Formulas, content);
         foreach (var inv in Investments.Held(state, content))
@@ -565,7 +569,8 @@ public static class Market
         var cfg = content.Config.WalkIns;
         var caps = state.Player.Capabilities;
         var callers = state.Month.Callers;
-        callers["ward"] = rng.Int(0, cfg.Base + (int)Math.Floor(state.Player.Reputation * cfg.PerReputation));
+        // the ward's callers: the good name brings them, and a name the papers print brings the curious
+        callers["ward"] = rng.Int(0, cfg.Base + (int)Math.Floor(state.Player.Reputation * cfg.PerReputation + Math.Min(state.Player.Notoriety, cfg.NotorietyCap) * cfg.PerNotoriety));
         callers["newspaper"] = scratch.AdVisitors;
         callers["subscriptions"] = Math.Max(0, caps.GetOr("walk_in_bonus", 0));
         callers["word"] = WordOfStrength(offers, content);
@@ -616,7 +621,9 @@ public static class Market
 
             // A walk-in who felt relief may come back as a regular.
             content.ById.Ailments.TryGetValue(ailmentId, out var ailment);
-            double relief = Pharmacology.ReliefScore(offer.Analysis, buyer.Tolerance, buyer.Profile) - (ailment?.Severity ?? 0);
+            // unless the label promised a cure the bottle did not make good (round 10)
+            double felt = Pharmacology.ReliefScore(offer.Analysis, buyer.Tolerance, buyer.Profile) - (ailment?.Severity ?? 0);
+            double relief = felt - content.Config.Market.Disappointment * Formulas.PromiseShortfall(offer.Formula.Claims, ailmentId, felt, 0, content);
             double reputationFactor = 0.5 + state.Player.Reputation / 50;
             double pConvert = cfg.ConversionChance * (1 + 0.2 * claims) * reputationFactor *
                 WardSystem.MemoryLoss(state, content.Config.Ward.ConversionLoss);

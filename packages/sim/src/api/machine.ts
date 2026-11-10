@@ -69,6 +69,11 @@ export interface ObservedCustomer {
   craving: boolean;
   /** Shaking, sweating, irritable: missed their dose. */
   withdrawal: boolean;
+  /**
+   * Weaning off an old recipe: still craving one that had a narcotic in it, on a bottle that has
+   * none (see `Customer.weaning`); the craving fades within a season.
+   */
+  weaning: boolean;
   /** Spent beyond their means on the bottle and can no longer pay: one bottle at most. */
   ruined: boolean;
 }
@@ -90,6 +95,8 @@ export interface ObservedDeath {
    */
   reportedCause: ReportedCause;
   formulaId: string | null;
+  /** The label on their bottle claimed to cure the complaint they died with. */
+  promisedCure: boolean;
   inquest: DeathRecord['inquest'];
   verdict: string | null;
 }
@@ -312,6 +319,7 @@ export function observe(state: GameState, content: ContentPack): Observation {
       mood: moodFor(c.satisfaction),
       craving: c.body.dependency > threshold,
       withdrawal: c.inWithdrawal,
+      weaning: c.weaning,
       ruined: isRuined(c, content),
     })),
     customerCapacity: customerCapacity(state, content),
@@ -326,6 +334,7 @@ export function observe(state: GameState, content: ContentPack): Observation {
       ailment: d.ailment,
       reportedCause: d.reportedCause,
       formulaId: d.formulaId,
+      promisedCure: d.promisedCure,
       inquest: d.inquest,
       verdict: d.verdict,
     })),

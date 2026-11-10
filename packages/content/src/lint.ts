@@ -182,6 +182,7 @@ export function lintContent(pack: ContentPack): ContentIssue[] {
     'remedyClaim',
     'remedyPrice',
     'remedies',
+    'regularDied',
   ]);
   const noSeason = (file: string, path: string, req: Requirement) =>
     walkRequirement(req, (r) => {

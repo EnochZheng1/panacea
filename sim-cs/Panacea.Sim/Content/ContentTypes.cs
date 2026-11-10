@@ -118,6 +118,15 @@ public sealed record RemedyClaimRequirement(string Id) : Requirement
     public override string Type => "remedyClaim";
 }
 
+/// <summary>
+/// A regular (named, taking the bottle themselves) died in the last WithinMonths months; with Owing,
+/// one who owed for spending beyond their means on it.
+/// </summary>
+public sealed record RegularDiedRequirement(int WithinMonths, bool Owing) : Requirement
+{
+    public override string Type => "regularDied";
+}
+
 /// <summary>The shop's remedy is priced at this many cents or more.</summary>
 public sealed record RemedyPriceRequirement(int AtLeastCents) : Requirement
 {
@@ -172,6 +181,8 @@ internal sealed class RequirementConverter : JsonConverter<Requirement>
             "remedyDrug" => new RemedyDrugRequirement(e.GetProperty("drugClass").GetString()!, e.GetProperty("atLeastOz").GetDouble()),
             "remedyClaim" => new RemedyClaimRequirement(e.GetProperty("id").GetString()!),
             "remedyPrice" => new RemedyPriceRequirement(e.GetProperty("atLeastCents").GetInt32()),
+            "regularDied" => new RegularDiedRequirement(e.GetProperty("withinMonths").GetInt32(),
+                e.TryGetProperty("owing", out var owing) && owing.GetBoolean()),
             "flag" => new FlagRequirement(e.GetProperty("id").GetString()!),
             "unlocked" => new UnlockedRequirement(e.GetProperty("id").GetString()!),
             "all" => new AllRequirement(e.GetProperty("of").EnumerateArray().Select(x => Parse(x, options)).ToList()),
@@ -214,6 +225,10 @@ internal sealed class RequirementConverter : JsonConverter<Requirement>
                 break;
             case RemedyPriceRequirement rp:
                 writer.WriteNumber("atLeastCents", rp.AtLeastCents);
+                break;
+            case RegularDiedRequirement rd:
+                writer.WriteNumber("withinMonths", rd.WithinMonths);
+                if (rd.Owing) writer.WriteBoolean("owing", true);
                 break;
             case FlagRequirement f:
                 writer.WriteString("id", f.Id);
@@ -497,6 +512,12 @@ public sealed class Claim
     public IReadOnlyList<string> Ailments { get; init; } = [];
     public double Appeal { get; init; }
     public double Boldness { get; init; }
+    /// <summary>
+    /// A claim to cure outright: never made good (MarketConfig.CureShare); one that names a deadly
+    /// complaint draws the Board's and the press's eye (AdvertisingConfig.CuresHeat), and a customer
+    /// who dies of it is a broken promise.
+    /// </summary>
+    public bool Cures { get; init; }
     public string? RequiresUnlock { get; init; }
 }
 
@@ -601,6 +622,12 @@ public sealed class WalkInsConfig
     /// all wary ("careful").
     /// </summary>
     public double CarefulPerWary { get; init; }
+    /// <summary>
+    /// A shop that is better known draws strangers who have heard the name: the ward's callers are
+    /// drawn up to Base + reputation × PerReputation + min(notoriety, NotorietyCap) × PerNotoriety.
+    /// </summary>
+    public double PerNotoriety { get; init; }
+    public double NotorietyCap { get; init; }
 }
 
 public sealed class MarketConfig
@@ -665,6 +692,15 @@ public sealed class MarketConfig
     /// what is left on the shelf; the walk-ins get the rest.
     /// </summary>
     public double OrdersShelfShare { get; init; }
+    /// <summary>
+    /// A label's promise (round 10): a buyer whose complaint a claim names expects PromiseShare × its
+    /// appeal in relief beyond the complaint (CureShare × it for a claim to cure, which no bottle makes
+    /// good, given CurePatience months); the shortfall counts Disappointment × against satisfaction.
+    /// </summary>
+    public double PromiseShare { get; init; }
+    public double CureShare { get; init; }
+    public double CurePatience { get; init; }
+    public double Disappointment { get; init; }
 }
 
 public sealed class AdvertisingConfig
@@ -672,6 +708,8 @@ public sealed class AdvertisingConfig
     public double VisitorsPerSqrtCent { get; init; }
     public double HeatPerBoldness { get; init; }
     public double LabelHeatPerBoldness { get; init; }
+    /// <summary>Heat per month for each claim on a bottle on sale to cure a deadly disease.</summary>
+    public double CuresHeat { get; init; }
 }
 
 public sealed class BatchesConfig
@@ -696,6 +734,11 @@ public sealed class BodyConfig
     /// </summary>
     public double HabitFloor { get; init; }
     public double MildDependencyCap { get; init; }
+    /// <summary>
+    /// Weaning: a regular still dependent above MildDependencyCap whose bottles this month were all
+    /// mild loses this share of the dependency a month.
+    /// </summary>
+    public double WeaningDecay { get; init; }
     public double LoadDecay { get; init; }
     public double LoadSafe { get; init; }
     public double LoadHarm { get; init; }
@@ -740,6 +783,20 @@ public sealed class ScrutinyConfig
     public required IReadOnlyList<string> BenignVerdicts { get; init; }
     /// <summary>What a bought verdict does to the heat (0: the envelope stops the talk rising, no more).</summary>
     public double BribedVerdictHeat { get; init; }
+    /// <summary>A death the remedy had no part in raises the heat by this share of the usual (0).</summary>
+    public double UnimplicatedDeathShare { get; init; }
+    /// <summary>A customer dies of a complaint the label claimed to cure: heat, as for a death.</summary>
+    public double HeatPerBrokenPromise { get; init; }
+    /// <summary>What an inquest's verdict does, as the coroner's letter prints it.</summary>
+    public double NamedHeat { get; init; }
+    public double NamedReputation { get; init; }
+    public double NamedNotoriety { get; init; }
+    public double ClearedHeat { get; init; }
+    public double TestifiedReputation { get; init; }
+    public double ExposedHeat { get; init; }
+    public double ExposedReputation { get; init; }
+    public double ExposedNotoriety { get; init; }
+    public double BribedNotoriety { get; init; }
 }
 
 /// <summary>
@@ -765,6 +822,8 @@ public sealed class WardConfig
     public double PerExposedBribe { get; init; }
     /// <summary>The Board of Health carried the bottles away.</summary>
     public double PerSeizure { get; init; }
+    /// <summary>A customer died of what the label claimed to cure.</summary>
+    public double PerBrokenPromise { get; init; }
     /// <summary>At a memory of 100, strangers at the counter buy this much less often…</summary>
     public double WalkInLoss { get; init; }
     /// <summary>…come back as regulars this much less often…</summary>

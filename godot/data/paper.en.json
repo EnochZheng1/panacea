@@ -4437,7 +4437,7 @@
   ],
   "callerSources": {
     "careful": [
-      "sent by the careful households",
+      "sent by households that keep no narcotic in the house",
       "on the word of a careful mother",
       "who will not have a narcotic in the house"
     ],
@@ -7509,6 +7509,11 @@
     "Wholesale: the druggists out of town ordered {ordered} and had none, the shelf being bare.",
     "The druggists out of town ordered {ordered}, and got nothing: there was none to send.",
     "Out of town, the druggists asked for {ordered}; the shop had none to send them."
+  ],
+  "tradeDisappointed": [
+    "Regulars who found the bottle did less than the label says: {n}.",
+    "Taken at the label's word, and disappointed: {n}.",
+    "Regulars the label promised more than the bottle did: {n}."
   ],
   "tradeRefusedNarcotic": [
     "Callers who read the label and would not have a narcotic in the house: {n}.",

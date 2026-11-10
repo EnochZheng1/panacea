@@ -123,6 +123,70 @@ export function claimAppeal(
   return total;
 }
 
+/**
+ * How far a bottle fell short of its label for a buyer with this complaint, who felt `relief`
+ * beyond the complaint itself (round-10 balance). Each claim that speaks to the complaint promised
+ * relief: `market.promiseShare` × its appeal for an ordinary claim, which the bottle makes good if
+ * it gives that much relief (the shortfall is at most the promise), and `market.cureShare` × its
+ * appeal for a claim to cure a deadly disease (`Claim.cures`), which no bottle makes good: the
+ * buyer still has the complaint. A cure is given time (a course of bottles): its part grows with
+ * the months they have taken it, `months` / `market.curePatience`, to the whole after that.
+ */
+export function promiseShortfall(
+  claims: readonly string[],
+  ailmentId: string,
+  relief: number,
+  months: number,
+  content: ContentPack,
+): number {
+  const { promiseShare, cureShare, curePatience } = content.config.market;
+  let promised = 0;
+  let cure = 0;
+  for (const id of claims) {
+    const claim = content.byId.claims.get(id);
+    if (!claim) continue;
+    if (claim.ailments.length > 0 && !claim.ailments.includes(ailmentId)) continue;
+    if (claim.cures) cure += cureShare * claim.appeal;
+    else promised += promiseShare * claim.appeal;
+  }
+  const patience = curePatience > 0 ? Math.min(1, Math.max(0, months) / curePatience) : 1;
+  return Math.min(promised, Math.max(0, promised - relief)) + cure * patience;
+}
+
+/** A complaint that kills (its `mortalityMultiplier` is over 1): the consumption, a teething fever. */
+const isDeadly = (ailmentId: string, content: ContentPack): boolean =>
+  (content.byId.ailments.get(ailmentId)?.mortalityMultiplier ?? 1) > 1;
+
+/**
+ * Whether a label claims to cure this complaint outright, and the complaint is one that kills (a
+ * `cures` claim that names a deadly complaint, or every complaint): a customer who dies of it is
+ * a broken promise.
+ */
+export function promisesCure(
+  claims: readonly string[],
+  ailmentId: string | null,
+  content: ContentPack,
+): boolean {
+  if (ailmentId === null || !isDeadly(ailmentId, content)) return false;
+  for (const id of claims) {
+    const claim = content.byId.claims.get(id);
+    if (!claim?.cures) continue;
+    if (claim.ailments.length === 0 || claim.ailments.includes(ailmentId)) return true;
+  }
+  return false;
+}
+
+/**
+ * Claims on a label to cure a deadly disease: `cures` claims that name a complaint that kills, or
+ * every complaint (the Board and the press read these: `advertising.curesHeat`).
+ */
+export const cureClaims = (claims: readonly string[], content: ContentPack): number =>
+  claims.filter((id) => {
+    const claim = content.byId.claims.get(id);
+    if (!claim?.cures) return false;
+    return claim.ailments.length === 0 || claim.ailments.some((a) => isDeadly(a, content));
+  }).length;
+
 /** Returns an error message, or null if this set of claims may be printed right now. */
 export function validateClaims(
   claims: readonly string[],

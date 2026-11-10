@@ -93,6 +93,7 @@ public static class Ledger
             Complaints = m.Complaints,
             TurnedAwayByPrice = m.TurnedAwayByPrice,
             RefusedNarcotic = m.RefusedNarcotic,
+            Disappointed = m.Disappointed,
             Callers = m.Callers,
             Wholesale = m.Wholesale,
             Post = m.Post,

@@ -288,7 +288,7 @@ public partial class ProofView : Control
 			// say why he stands there: what the frail customer looks like and how much they take
 			var how = dr.Looks == "gravely_ill" ? "gravely ill" : "poorly";
 			var took = dr.BottlesLastMonth > 0 ? $", {Spell(dr.BottlesLastMonth).ToLowerInvariant()} bottle{(dr.BottlesLastMonth == 1 ? "" : "s")} last month" : "";
-			var habit = dr.Withdrawal ? ", in want of the bottle" : dr.Craving ? ", craving it" : "";
+			var habit = dr.Weaning && (dr.Withdrawal || dr.Craving) ? ", weaning off the old recipe (it passes within a season)" : dr.Withdrawal ? ", in want of the bottle" : dr.Craving ? ", craving it" : "";
 			var others = frail.Where(r => r != dr).ToList();
 			var rest = others.Count == 0 ? "" : others.Count <= 2
 				? $" Also at risk: {string.Join(" and ", others.Select(r => r.Name))}."
@@ -881,6 +881,7 @@ public partial class ProofView : Control
 	{
 		var rye = LargePrint.Pick(11, 13, 15);
 		Control? chip = r.Ruined ? Chip("☞ RUINED BY IT", rye, inverted: true)
+			: r.Weaning && (r.Withdrawal || r.Craving) ? Chip("WEANING OFF IT", rye, inverted: false)
 			: r.Withdrawal ? Chip("SHAKING", rye, inverted: true)
 			: r.Craving ? Chip("ASKS BY NAME", rye, inverted: false)
 			: null;
@@ -888,6 +889,7 @@ public partial class ProofView : Control
 		{
 			chip.SizeFlagsHorizontal = SizeFlags.ShrinkBegin;
 			chip.TooltipText = r.Ruined ? "Ruined by it: has spent beyond their means on the bottle. One bottle at most now, and the family complains."
+				: r.Weaning && (r.Withdrawal || r.Craving) ? "Weaning off the old recipe: the bottle has no narcotic in it now, and the craving fades within a season. Shaky meanwhile, and a frail customer is weaker for it."
 				: r.Withdrawal ? "Shaking: craves the bottle and has not had enough of it. Withdrawal weakens a frail customer."
 				: "Asks by name: has come to crave the bottle, and takes more each month.";
 			chip.MouseFilter = MouseFilterEnum.Pass;
@@ -1134,7 +1136,7 @@ public partial class ProofView : Control
 		var nameText = large ? $"good name: {m.Reputation:0} of 100" : $"good name in the ward: {m.Reputation:0} of 100";
 		var knownText = m.Notoriety >= 0.5 ? $"better known: {m.Notoriety:0}" : null;
 		const string nameTip = "Good name in the ward: what the ward thinks of the shop, out of 100. A good name brings callers and keeps regulars; letters and deaths move it. A letter's \"good name +1\" adds to this figure.";
-		const string knownTip = "How well known the shop is, from letters answered and inquests sat. It does no harm by itself, but the better known the shop, the likelier a verdict bought from the coroner is to come out. A letter's \"better known +1\" adds to this figure.";
+		const string knownTip = "How well known the shop is, from letters answered and inquests sat. The better known, the more strangers come in to try the bottle; but a verdict bought from the coroner is likelier to come out. A letter's \"better known +1\" adds to this figure.";
 		if (!large)
 		{
 			// two columns: the shelf and the still; the cash and the good name

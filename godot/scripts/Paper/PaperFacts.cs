@@ -73,6 +73,8 @@ public sealed class PaperFacts
     public int TurnedAwayByPrice;
     /// <summary>Careful callers who would not take a bottle with a narcotic in it.</summary>
     public int RefusedNarcotic;
+    /// <summary>Regulars the label promised more than the bottle did (less pleased with it for that).</summary>
+    public int Disappointed;
     /// <summary>Inquests whose bought verdict came out this month.</summary>
     public List<PersonFact> Exposed = new();
     public List<(string Label, long Cents)> CashLines = new();

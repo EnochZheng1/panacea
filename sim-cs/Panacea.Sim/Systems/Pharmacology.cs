@@ -134,6 +134,7 @@ public static class CustomersSystem
                 LastFormulaId = null,
                 BottlesLastMonth = 0,
                 InWithdrawal = false,
+                Weaning = false,
                 DebtCents = 0,
                 Wary = r.Wary,
             };
@@ -182,6 +183,7 @@ public static class CustomersSystem
             LastFormulaId = null,
             BottlesLastMonth = 0,
             InWithdrawal = false,
+            Weaning = false,
             DebtCents = 0,
             Wary = wary,
         };

@@ -64,6 +64,18 @@ public static class Requirements
     public static int RemediesSold(GameState state) =>
         state.Ledger.Count > 0 ? state.Ledger[^1].Sales.Count(s => s.Bottles > 0) : 0;
 
+    /// <summary>
+    /// Whether a regular (named, taking the bottle themselves) died in the last WithinMonths months,
+    /// and, with Owing, owed for spending beyond their means on it (requirements.ts regularDied).
+    /// </summary>
+    public static bool RegularDied(GameState state, int withinMonths, bool owing) =>
+        state.Deaths.Any(d =>
+            !d.Anonymous &&
+            d.CustomerId is not null &&
+            d.Consumer == Consumers.Self &&
+            state.Meta.Turn - d.Turn <= withinMonths &&
+            (!owing || d.OwedCents > 0));
+
     /// <summary>Months since the letter last came, or null if it never has.</summary>
     private static int? MonthsSince(GameState state, string eventId) =>
         state.Events.LastDrawn.TryGetValue(eventId, out int last) ? state.Meta.Turn - last : null;
@@ -177,6 +189,11 @@ public static class Requirements
                 bool met = months is int m && m >= since.AtLeast;
                 return [new ConditionProgress("since", since.Event, "atLeast", months ?? 0, since.AtLeast, met, via)];
             }
+            case RegularDiedRequirement rd:
+            {
+                bool met = RegularDied(state, rd.WithinMonths, rd.Owing);
+                return [new ConditionProgress("regularDied", null, "atLeast", met ? 1 : 0, 1, met, via)];
+            }
             case RemedyHabitRequirement or RemedyDrugRequirement or RemedyClaimRequirement or RemedyPriceRequirement:
             {
                 bool met = RemedyHolds(req, state, content);
@@ -227,6 +244,8 @@ public static class Requirements
                 return Binary(season.Months.Contains(state.Meta.Date.Month));
             case SinceRequirement since:
                 return MonthsSince(state, since.Event) is int months ? Ratio(months, since.AtLeast) : Binary(false);
+            case RegularDiedRequirement rd:
+                return Binary(RegularDied(state, rd.WithinMonths, rd.Owing));
             case RemedyHabitRequirement or RemedyDrugRequirement or RemedyClaimRequirement or RemedyPriceRequirement:
                 return Binary(RemedyHolds(req, state, content));
             case FlagRequirement f:

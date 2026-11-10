@@ -12,7 +12,10 @@ public sealed record ObservedCustomer(
     string Mood, // delighted, content, grumbling or unhappy
     bool Craving, // asks for the medicine by name and won't take substitutes
     bool Withdrawal, // shaking, sweating, irritable: missed their dose
-    bool Ruined); // spent beyond their means on the bottle and can no longer pay: one bottle at most
+    bool Ruined, // spent beyond their means on the bottle and can no longer pay: one bottle at most
+    // weaning off an old recipe: still craving one that had a narcotic in it, on a bottle that has
+    // none (Customer.Weaning); the craving fades within a season
+    bool Weaning = false);
 
 public sealed record ObservedDeath(
     string Id,
@@ -29,7 +32,9 @@ public sealed record ObservedDeath(
     // the cause as the ward and the coroner's register give it (ReportedCauses): overdose, wasting,
     // ailment (of the complaint they came in with), old_age or natural; whether the remedy hastened
     // a death that looked natural is not shown
-    string ReportedCause);
+    string ReportedCause,
+    // the label on their bottle claimed to cure the complaint they died with (a broken promise)
+    bool PromisedCure = false);
 
 public sealed record ObservedIngredient(string Id, double CostPerUnitCents);
 
@@ -257,11 +262,12 @@ public static class Machine
                 MoodFor(c.Satisfaction),
                 c.Body.Dependency > threshold,
                 c.InWithdrawal,
-                Market.IsRuined(c, content))).ToList(),
+                Market.IsRuined(c, content),
+                c.Weaning)).ToList(),
             CustomerCapacity = CustomersSystem.CustomerCapacity(state, content),
             Deaths = state.Deaths.Select(d => new ObservedDeath(
                 d.Id, d.Turn, d.Date, d.Name, d.Segment, d.Consumer, d.Anonymous, d.FormulaId, d.Inquest, d.Verdict,
-                d.Ailment, d.ReportedCause)).ToList(),
+                d.Ailment, d.ReportedCause, d.PromisedCure)).ToList(),
             PendingEvents = state.Events.Pending.Select(p =>
             {
                 var death = !string.IsNullOrEmpty(p.DeathId) ? state.Deaths.Find(d => d.Id == p.DeathId) : null;

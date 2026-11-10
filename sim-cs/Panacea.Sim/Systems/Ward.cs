@@ -38,12 +38,14 @@ public static class WardSystem
     public static double DeathWeight(DeathRecord d, ContentPack content)
     {
         var cfg = content.Config.Ward;
-        if (!d.ProductImplicated) return 0;
-        double w;
-        if (!BlamedOnTheBottle(d)) w = cfg.PerHastenedDeath;
-        else if (d.Anonymous) w = cfg.PerStrangerDeath;
-        else if (d.Consumer == Consumers.Infant) w = cfg.PerInfantDeath;
-        else w = cfg.PerDeath;
+        // the family keeps the label that said it cured what killed them
+        double promise = d.PromisedCure ? cfg.PerBrokenPromise : 0;
+        if (!d.ProductImplicated) return promise;
+        double w = promise;
+        if (!BlamedOnTheBottle(d)) w += cfg.PerHastenedDeath;
+        else if (d.Anonymous) w += cfg.PerStrangerDeath;
+        else if (d.Consumer == Consumers.Infant) w += cfg.PerInfantDeath;
+        else w += cfg.PerDeath;
         if (d.BadBatch) w += cfg.PerBadBatchDeath;
         return w;
     }

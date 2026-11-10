@@ -1,5 +1,5 @@
 {
-  "contentVersion": "0.12.0",
+  "contentVersion": "0.13.0",
   "startDate": {
     "year": 1885,
     "month": 1
@@ -25,7 +25,9 @@
     "wordHabitFloor": 3.5,
     "wordHabitCap": 8,
     "wardShareSlack": 3,
-    "carefulPerWary": 0.5
+    "carefulPerWary": 0.5,
+    "perNotoriety": 0.15,
+    "notorietyCap": 20
   },
   "maxRegulars": 30,
   "maxClaimsPerFormula": 4,
@@ -54,12 +56,17 @@
     "waryHabit": 2,
     "cleanAppeal": 2,
     "waryBoldness": 1.5,
-    "ordersShelfShare": 0.5
+    "ordersShelfShare": 0.5,
+    "promiseShare": 0.5,
+    "cureShare": 0.8,
+    "curePatience": 4,
+    "disappointment": 1
   },
   "advertising": {
     "visitorsPerSqrtCent": 0.8,
     "heatPerBoldness": 0.1,
-    "labelHeatPerBoldness": 0.2
+    "labelHeatPerBoldness": 0.2,
+    "curesHeat": 0.5
   },
   "batches": {
     "potencySpread": 0.08,
@@ -76,6 +83,7 @@
     "withdrawalHarm": 3,
     "habitFloor": 1,
     "mildDependencyCap": 0.25,
+    "weaningDecay": 0.4,
     "loadDecay": 0.1,
     "loadSafe": 10,
     "loadHarm": 0.2,
@@ -112,6 +120,17 @@
       "misadventure"
     ],
     "bribedVerdictHeat": 0,
+    "unimplicatedDeathShare": 0,
+    "heatPerBrokenPromise": 4,
+    "namedHeat": 24,
+    "namedReputation": 12,
+    "namedNotoriety": 8,
+    "clearedHeat": 3,
+    "testifiedReputation": 1,
+    "exposedHeat": 30,
+    "exposedReputation": 15,
+    "exposedNotoriety": 10,
+    "bribedNotoriety": 2,
     "shutdownGraceMonths": 2
   },
   "ward": {
@@ -125,6 +144,7 @@
     "perVerdict": 14,
     "perExposedBribe": 8,
     "perSeizure": 6,
+    "perBrokenPromise": 3,
     "walkInLoss": 0.6,
     "conversionLoss": 0.8,
     "leaveChance": 0.1,

@@ -107,6 +107,7 @@ public static class BodySystem
                 FormulaId = lastFormula ?? RecentFormula(state, c),
                 BadBatch = lastBadBatch,
                 Detectability = lastDetectability,
+                OwedCents = c.DebtCents,
             });
             if (c.Consumer == Consumers.Infant)
             {
@@ -143,8 +144,13 @@ public static class BodySystem
         }
         double habitTotal = 0;
         foreach (var cls in DrugClasses.All) habitTotal = habitTotal + habitIntake[cls];
-        double dependencyDecay = cfg.DependencyDecay * (habitTotal > 0 ? 0.3 : 1);
         double before = body.Dependency;
+        // Weaning (round 10): a regular still dependent on an old recipe whose bottles this month were
+        // all mild loses WeaningDecay of the dependency a month; otherwise a habit fades slowly, and
+        // slower still while anything habit-forming is taken.
+        bool weaning = bought.Count > 0 && strongestHabit < cfg.HabitFloor && before > cfg.MildDependencyCap;
+        double dependencyDecay = weaning ? cfg.WeaningDecay : cfg.DependencyDecay * (habitTotal > 0 ? 0.3 : 1);
+        c.Weaning = weaning;
         body.Dependency = Clamp01(
             before + cfg.DependencyGain * habitTotal * (1 - before) - dependencyDecay * before);
         // A mild bottle (habit under HabitFloor, as the assay reads it: "none") gives a taste for it,
@@ -191,7 +197,18 @@ public static class BodySystem
         {
             double felt = (reliefSum / bought.Count) * (1 + 0.5 * (bought.Count - 1));
             double relief = felt - (ailment?.Severity ?? 3);
-            c.Satisfaction = 0.6 * c.Satisfaction + 0.4 * DMath.Tanh(relief / 3);
+            // a label that claims to cure the complaint raised what they expected (round 10), less for
+            // a regular who craves the bottle (by then the label is not what they come in for)
+            double shortfall = 0;
+            double reads = 1 - body.Dependency;
+            foreach (var b in bought)
+            {
+                var claims = state.Lab.Formulas.Find(f => f.Id == b.FormulaId)?.Claims ?? (IReadOnlyList<string>)[];
+                shortfall += reads * Formulas.PromiseShortfall(claims, c.Ailment, relief, state.Meta.Turn - c.JoinedTurn, content) / bought.Count;
+            }
+            if (shortfall > 0) state.Month.Disappointed += 1;
+            double judged = relief - content.Config.Market.Disappointment * shortfall;
+            c.Satisfaction = 0.6 * c.Satisfaction + 0.4 * DMath.Tanh(judged / 3);
         }
         else
         {

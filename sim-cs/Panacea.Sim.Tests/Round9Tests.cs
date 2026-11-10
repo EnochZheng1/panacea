@@ -109,11 +109,11 @@ public class Round9Tests
     }
 
     [Fact]
-    public void AHabitAlreadyMadeFadesAsItWouldWhenTheBottleIsMadeMild()
+    public void AHabitAlreadyMadeIsNotRebuiltByAMildBottleItFadesWithinASeason()
     {
         var c = TwoYears(Mild, 0.8);
         Assert.True(c.Body.Dependency < 0.8);
-        Assert.True(c.Body.Dependency > C.Config.Body.MildDependencyCap);
+        Assert.True(c.Body.Dependency <= C.Config.Body.MildDependencyCap);
     }
 
     // --- the careful households ---------------------------------------------------------------

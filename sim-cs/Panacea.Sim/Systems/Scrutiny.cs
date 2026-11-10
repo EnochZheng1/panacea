@@ -15,6 +15,8 @@ public sealed class DeathInput
     public bool BadBatch { get; init; }
     /// <summary>Detectability of the bottle actually taken, if known.</summary>
     public double? Detectability { get; init; }
+    /// <summary>What they owed for spending beyond their means on the bottle (a regular's debt).</summary>
+    public double OwedCents { get; init; }
 }
 
 /// <summary>Scrutiny: heat, deaths and coroner's inquests (systems/scrutiny.ts).</summary>
@@ -50,6 +52,8 @@ public static class Scrutiny
                     ? Formulas.Analyze(formula.Components, formula.ProcessId, content).Properties.Detectability
                     : 0),
             Boldness = formula is not null ? Formulas.ClaimBoldness(formula.Claims, content) : 0,
+            PromisedCure = formula is not null && Formulas.PromisesCure(formula.Claims, input.Ailment, content),
+            OwedCents = input.OwedCents,
             Inquest = InquestStates.None,
             Verdict = null,
         };
@@ -61,7 +65,12 @@ public static class Scrutiny
             : input.Consumer == Consumers.Infant
                 ? cfg.HeatPerInfantDeath
                 : cfg.HeatPerDeath;
-        Ledger.Adjust(state, Metrics.Heat, input.ProductImplicated ? @base : @base / 2, Causes.Death, record.Id);
+        // a death the remedy had no part in is talked of only by UnimplicatedDeathShare (round 10: 0)
+        double talk = input.ProductImplicated ? @base : @base * cfg.UnimplicatedDeathShare;
+        if (talk > 0) Ledger.Adjust(state, Metrics.Heat, talk, Causes.Death, record.Id);
+        // a label that claimed to cure what they died of: the papers print it beside the notice
+        if (record.PromisedCure && cfg.HeatPerBrokenPromise > 0)
+            Ledger.Adjust(state, Metrics.Heat, cfg.HeatPerBrokenPromise, Causes.BrokenPromise, record.Id);
         if (!input.Anonymous) Ledger.Adjust(state, Metrics.Reputation, -1, Causes.Death, record.Id);
 
         if (!string.IsNullOrEmpty(input.FormulaId))
@@ -177,6 +186,7 @@ public static class Scrutiny
         var cfg = content.Config.Scrutiny;
         string outcome;
 
+        // the numbers are the ones the coroner's letter prints under each reply
         void Implicate(double heat, double reputation, double notoriety)
         {
             Ledger.Adjust(state, Metrics.Reputation, -reputation, Causes.Inquest, record.Id);
@@ -198,13 +208,13 @@ public static class Scrutiny
             if (rng.Chance(exposure))
             {
                 // the money is gone, and the jury hears where it went: worse than any verdict
-                Implicate(30, 15, 10);
+                Implicate(cfg.ExposedHeat, cfg.ExposedReputation, cfg.ExposedNotoriety);
                 state.Month.News.Add(new BribeExposedNews(record.Id));
                 outcome = InquestStates.Implicated;
             }
             else
             {
-                Ledger.Adjust(state, Metrics.Notoriety, 2, Causes.Inquest, record.Id);
+                Ledger.Adjust(state, Metrics.Notoriety, cfg.BribedNotoriety, Causes.Inquest, record.Id);
                 if (cfg.BribedVerdictHeat != 0)
                     Ledger.Adjust(state, Metrics.Heat, cfg.BribedVerdictHeat, Causes.Inquest, record.Id);
                 outcome = InquestStates.Bribed;
@@ -212,13 +222,13 @@ public static class Scrutiny
         }
         else if (rng.Chance(ImplicationChance(state, record, approach)))
         {
-            Implicate(24, 12, 8);
+            Implicate(cfg.NamedHeat, cfg.NamedReputation, cfg.NamedNotoriety);
             outcome = InquestStates.Implicated;
         }
         else
         {
-            Ledger.Adjust(state, Metrics.Heat, -3, Causes.Inquest, record.Id);
-            if (approach == "testify") Ledger.Adjust(state, Metrics.Reputation, 1, Causes.Inquest, record.Id);
+            Ledger.Adjust(state, Metrics.Heat, -cfg.ClearedHeat, Causes.Inquest, record.Id);
+            if (approach == "testify") Ledger.Adjust(state, Metrics.Reputation, cfg.TestifiedReputation, Causes.Inquest, record.Id);
             outcome = InquestStates.Cleared;
         }
 

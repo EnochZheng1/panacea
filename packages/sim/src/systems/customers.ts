@@ -52,6 +52,7 @@ export function initialCustomers(state: GameState, content: ContentPack, rng: Rn
       lastFormulaId: null,
       bottlesLastMonth: 0,
       inWithdrawal: false,
+      weaning: false,
       debtCents: 0,
       wary: r.wary,
     };
@@ -107,6 +108,7 @@ export function generateCustomer(
     lastFormulaId: null,
     bottlesLastMonth: 0,
     inWithdrawal: false,
+    weaning: false,
     debtCents: 0,
     wary,
   };

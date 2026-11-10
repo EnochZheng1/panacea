@@ -103,6 +103,60 @@ public static class Formulas
         return total;
     }
 
+    /// <summary>
+    /// How far a bottle fell short of its label for a buyer with this complaint who felt
+    /// <paramref name="relief"/> beyond it (formula.ts promiseShortfall, round 10). An ordinary claim
+    /// that names the complaint promised PromiseShare × its appeal, made good by that much relief (the
+    /// shortfall is at most the promise); a claim to cure (Claim.Cures) promised CureShare × its appeal,
+    /// which no bottle makes good, its part growing over CurePatience months as a regular.
+    /// </summary>
+    public static double PromiseShortfall(IReadOnlyList<string> claims, string ailmentId, double relief, double months, ContentPack content)
+    {
+        var m = content.Config.Market;
+        double promised = 0;
+        double cure = 0;
+        foreach (var id in claims)
+        {
+            if (!content.ById.Claims.TryGetValue(id, out var claim)) continue;
+            if (claim.Ailments.Count > 0 && !claim.Ailments.Contains(ailmentId)) continue;
+            if (claim.Cures) cure += m.CureShare * claim.Appeal;
+            else promised += m.PromiseShare * claim.Appeal;
+        }
+        double patience = m.CurePatience > 0 ? Math.Min(1, Math.Max(0, months) / m.CurePatience) : 1;
+        return Math.Min(promised, Math.Max(0, promised - relief)) + cure * patience;
+    }
+
+    /// <summary>A complaint that kills (its MortalityMultiplier is over 1).</summary>
+    private static bool IsDeadly(string ailmentId, ContentPack content) =>
+        (content.ById.Ailments.TryGetValue(ailmentId, out var a) ? a.MortalityMultiplier : 1) > 1;
+
+    /// <summary>
+    /// Whether a label claims to cure this complaint outright, and the complaint kills: a customer who
+    /// dies of it is a broken promise.
+    /// </summary>
+    public static bool PromisesCure(IReadOnlyList<string> claims, string? ailmentId, ContentPack content)
+    {
+        if (ailmentId is null || !IsDeadly(ailmentId, content)) return false;
+        foreach (var id in claims)
+        {
+            if (!content.ById.Claims.TryGetValue(id, out var claim) || !claim.Cures) continue;
+            if (claim.Ailments.Count == 0 || claim.Ailments.Contains(ailmentId)) return true;
+        }
+        return false;
+    }
+
+    /// <summary>Claims on a label to cure a deadly disease (AdvertisingConfig.CuresHeat).</summary>
+    public static int CureClaims(IReadOnlyList<string> claims, ContentPack content)
+    {
+        int n = 0;
+        foreach (var id in claims)
+        {
+            if (!content.ById.Claims.TryGetValue(id, out var claim) || !claim.Cures) continue;
+            if (claim.Ailments.Count == 0 || claim.Ailments.Any(a => IsDeadly(a, content))) n++;
+        }
+        return n;
+    }
+
     /// <summary>Returns an error message, or null if this set of claims may be printed right now.</summary>
     public static string? ValidateClaims(IReadOnlyList<string>? claims, GameState state, ContentPack content)
     {

@@ -4,7 +4,7 @@ import { tanh } from '../core/dmath.ts';
 import { adjust } from '../core/ledger.ts';
 import type { Rng } from '../core/rng.ts';
 import type { Bought, Customer, DeathCause, GameState, LeaveReason, Phase } from '../core/index.ts';
-import { analyzeFormula, type FormulaAnalysis } from './formula.ts';
+import { analyzeFormula, promiseShortfall, type FormulaAnalysis } from './formula.ts';
 import { isRuined } from './market.ts';
 import {
   acuteDanger,
@@ -147,6 +147,7 @@ function monthForCustomer(
       formulaId: lastFormula ?? recentFormula(state, c),
       badBatch: lastBadBatch,
       ...(lastDetectability === undefined ? {} : { detectability: lastDetectability }),
+      owedCents: c.debtCents,
     });
     if (c.consumer === 'infant') {
       state.stats.customersLost += 1;
@@ -185,8 +186,17 @@ function monthForCustomer(
       body.tolerance[cls] * (1 - cfg.toleranceDecay) + cfg.toleranceGain * habitIntake[cls];
   }
   const habitTotal = DRUG_CLASSES.reduce((s, cls) => s + habitIntake[cls], 0);
-  const dependencyDecay = cfg.dependencyDecay * (habitTotal > 0 ? 0.3 : 1);
   const before = body.dependency;
+  // Weaning (round 10): a regular still dependent on an old recipe whose bottles this month were
+  // all mild loses `weaningDecay` of the dependency a month, so the craving is gone within a
+  // season of the narcotic leaving the bottle. Otherwise a habit fades slowly, and slower still
+  // while anything habit-forming is taken.
+  const weaning =
+    bought.length > 0 && strongestHabit < cfg.habitFloor && before > cfg.mildDependencyCap;
+  const dependencyDecay = weaning
+    ? cfg.weaningDecay
+    : cfg.dependencyDecay * (habitTotal > 0 ? 0.3 : 1);
+  c.weaning = weaning;
   body.dependency = clamp01(
     before + cfg.dependencyGain * habitTotal * (1 - before) - dependencyDecay * before,
   );
@@ -229,11 +239,24 @@ function monthForCustomer(
     weak;
   if (rng.chance(hazard)) return die('natural', body.load > cfg.loadSafe || productHarm > 0);
 
-  // 5. Satisfaction.
+  // 5. Satisfaction. A label that claims to cure the complaint raised what they expected: what the
+  // bottle fell short of its promise counts against it (round 10), less for a regular who craves
+  // the bottle (by then the label is not what they come in for).
   if (bought.length > 0) {
     const felt = (reliefSum / bought.length) * (1 + 0.5 * (bought.length - 1));
     const relief = felt - (ailment?.severity ?? 3);
-    c.satisfaction = 0.6 * c.satisfaction + 0.4 * tanh(relief / 3);
+    let shortfall = 0;
+    const reads = 1 - body.dependency;
+    for (const b of bought) {
+      const claims = state.lab.formulas.find((f) => f.id === b.formulaId)?.claims ?? [];
+      shortfall +=
+        (reads *
+          promiseShortfall(claims, c.ailment, relief, state.meta.turn - c.joinedTurn, content)) /
+        bought.length;
+    }
+    if (shortfall > 0) state.month.disappointed += 1;
+    const judged = relief - content.config.market.disappointment * shortfall;
+    c.satisfaction = 0.6 * c.satisfaction + 0.4 * tanh(judged / 3);
   } else {
     c.satisfaction *= 0.8;
   }

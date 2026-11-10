@@ -121,6 +121,11 @@ export interface MonthInProgress {
    */
   refusedNarcotic: number;
   /**
+   * Regulars whose bottle this month fell short of what its label promised for their complaint
+   * (see `market.promiseShare`): they had been told it cured them.
+   */
+  disappointed: number;
+  /**
    * Callers at the shop this month, by where they came from: `ward` (the neighbourhood, by
    * reputation), `newspaper`, `subscriptions` (societies and the like), and each investment id.
    */
@@ -161,6 +166,8 @@ export interface LedgerEntry {
   turnedAwayByPrice: number;
   /** Wary callers who would not take a narcotic bottle (see `MonthInProgress.refusedNarcotic`). */
   refusedNarcotic: number;
+  /** Regulars the label disappointed (see `MonthInProgress.disappointed`). */
+  disappointed: number;
   /** Callers by source (see `MonthInProgress.callers`). */
   callers: Record<string, number>;
   wholesale: WholesaleMonth;
@@ -239,6 +246,12 @@ export interface Customer {
   bottlesLastMonth: number;
   inWithdrawal: boolean;
   /**
+   * Weaning off an old recipe: still dependent (above `body.mildDependencyCap`) on a bottle that
+   * had a narcotic in it, while this month's bottles were all mild. The craving fades by
+   * `body.weaningDecay` a month.
+   */
+  weaning: boolean;
+  /**
    * What the customer owes for spending beyond their means (the pawnshop, the grocer's slate), in
    * cents. Paid down in months they spend less than they can afford.
    */
@@ -290,6 +303,13 @@ export interface DeathRecord {
   detectability: number;
   /** Boldness of the label claims on the bottle. */
   boldness: number;
+  /**
+   * The label on their bottle claimed to cure their complaint (a `cures` claim that names it): a
+   * broken promise, which the papers print beside the notice.
+   */
+  promisedCure: boolean;
+  /** What the customer owed for spending beyond their means on the bottle when they died. */
+  owedCents: number;
   inquest: 'none' | 'pending' | InquestOutcome;
   verdict: string | null;
 }

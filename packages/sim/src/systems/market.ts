@@ -15,7 +15,14 @@ import type {
   WholesaleMonth,
 } from '../core/index.ts';
 import { pickAilment, pickSegment, customerCapacity, generateCustomer } from './customers.ts';
-import { analyzeFormula, claimAppeal, claimBoldness, type FormulaAnalysis } from './formula.ts';
+import {
+  analyzeFormula,
+  claimAppeal,
+  claimBoldness,
+  cureClaims,
+  promiseShortfall,
+  type FormulaAnalysis,
+} from './formula.ts';
 import {
   heldInvestments,
   investmentWalkIns,
@@ -376,6 +383,10 @@ export const advertisingPhase: Phase = {
     const labelBoldness = Math.max(0, ...onSale.map((f) => claimBoldness(f.claims, content)));
     if (labelBoldness > 0)
       adjust(state, 'heat', labelBoldness * labelHeatPerBoldness, CAUSES.claims);
+    // A label that cures consumption is read at the Board of Health and in Park Row (round 10).
+    const { curesHeat } = content.config.advertising;
+    const cures = Math.max(0, ...onSale.map((f) => cureClaims(f.claims, content)));
+    if (cures > 0 && curesHeat > 0) adjust(state, 'heat', cures * curesHeat, CAUSES.cureClaims);
     // An almanac prints every claim in the formula book, for a year, on every kitchen table.
     const printedBoldness = Math.max(
       0,
@@ -565,11 +576,20 @@ function walkIns(
   sell: (offer: Offer, cause: Cause) => Bought | undefined,
 ) {
   if (offers.length === 0) return;
-  const { base, perReputation, conversionChance } = content.config.walkIns;
+  const { base, perReputation, perNotoriety, notorietyCap, conversionChance } =
+    content.config.walkIns;
   const ward = content.config.ward;
   const caps = state.player.capabilities;
   const callers = state.month.callers;
-  callers['ward'] = rng.int(0, base + Math.floor(state.player.reputation * perReputation));
+  // the ward's callers: the good name brings them, and a name the papers print brings the curious
+  callers['ward'] = rng.int(
+    0,
+    base +
+      Math.floor(
+        state.player.reputation * perReputation +
+          Math.min(state.player.notoriety, notorietyCap) * perNotoriety,
+      ),
+  );
   callers['newspaper'] = scratch.adVisitors;
   callers['subscriptions'] = Math.max(0, caps['walk_in_bonus'] ?? 0);
   callers['word'] = wordOfStrength(offers, content);
@@ -623,10 +643,15 @@ function walkIns(
     const bought = sell(offer, CAUSES.salesWalkIn);
     if (!bought) continue;
 
-    // A walk-in who felt relief may come back as a regular.
+    // A walk-in who felt relief may come back as a regular, unless the label promised a cure the
+    // bottle did not make good (round 10).
     const ailment = content.byId.ailments.get(ailmentId);
-    const relief =
+    const felt =
       reliefScore(offer.analysis, buyer.tolerance, buyer.profile) - (ailment?.severity ?? 0);
+    const relief =
+      felt -
+      content.config.market.disappointment *
+        promiseShortfall(offer.formula.claims, ailmentId, felt, 0, content);
     const reputationFactor = 0.5 + state.player.reputation / 50;
     const pConvert =
       conversionChance *

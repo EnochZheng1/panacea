@@ -3,7 +3,7 @@ import { CAUSES } from '../core/causes.ts';
 import { adjust } from '../core/ledger.ts';
 import type { Rng } from '../core/rng.ts';
 import type { DeathCause, DeathRecord, GameState, InquestOutcome, Phase } from '../core/index.ts';
-import { claimBoldness, analyzeFormula } from './formula.ts';
+import { claimBoldness, analyzeFormula, promisesCure } from './formula.ts';
 import { reportedCauseOf } from './ward.ts';
 
 /**
@@ -32,6 +32,8 @@ export interface DeathInput {
   badBatch: boolean;
   /** Detectability of the bottle actually taken, if known. */
   detectability?: number;
+  /** What they owed for spending beyond their means on the bottle (a regular's debt). */
+  owedCents?: number;
 }
 
 /** Records a death in the human ledger, raises heat, and may convene an inquest. */
@@ -57,6 +59,8 @@ export function recordDeath(
         ? analyzeFormula(formula.components, formula.processId, content).properties.detectability
         : 0),
     boldness: formula ? claimBoldness(formula.claims, content) : 0,
+    promisedCure: formula ? promisesCure(formula.claims, input.ailment, content) : false,
+    owedCents: input.owedCents ?? 0,
     inquest: 'none',
     verdict: null,
   };
@@ -64,13 +68,19 @@ export function recordDeath(
   state.month.news.push({ kind: 'death', deathId: record.id });
 
   // How much talk a death causes depends on how it looked: a poisoning is visibly different
-  // from an old woman dying in her sleep.
+  // from an old woman dying in her sleep. A death the remedy had no part in is talked of only by
+  // `unimplicatedDeathShare` (round 10: not at all, so a fever never moves the suspicion).
   const base = input.anonymous
     ? cfg.heatPerAnonymousDeath
     : input.consumer === 'infant'
       ? cfg.heatPerInfantDeath
       : cfg.heatPerDeath;
-  adjust(state, 'heat', input.productImplicated ? base : base / 2, CAUSES.death, record.id);
+  const talk = input.productImplicated ? base : base * cfg.unimplicatedDeathShare;
+  if (talk > 0) adjust(state, 'heat', talk, CAUSES.death, record.id);
+  // A label that claimed to cure what they died of: the papers print it beside the notice.
+  if (record.promisedCure && cfg.heatPerBrokenPromise > 0) {
+    adjust(state, 'heat', cfg.heatPerBrokenPromise, CAUSES.brokenPromise, record.id);
+  }
   if (!input.anonymous) adjust(state, 'reputation', -1, CAUSES.death, record.id);
 
   // Was the medicine a regular part of this person's life? Then the coroner may take an interest.
@@ -195,6 +205,7 @@ export function resolveInquest(
   const cfg = content.config.scrutiny;
   let outcome: InquestOutcome;
 
+  // The numbers are the ones the coroner's letter prints under each reply.
   const implicate = (heat: number, reputation: number, notoriety: number) => {
     adjust(state, 'reputation', -reputation, CAUSES.inquest, record.id);
     adjust(state, 'heat', heat, CAUSES.inquest, record.id);
@@ -213,22 +224,24 @@ export function resolveInquest(
     state.scrutiny.lastBribeCents = cost;
     if (rng.chance(exposure)) {
       // the money is gone, and the jury hears where it went: worse than any verdict
-      implicate(30, 15, 10);
+      implicate(cfg.exposedHeat, cfg.exposedReputation, cfg.exposedNotoriety);
       state.month.news.push({ kind: 'bribe_exposed', deathId: record.id });
       outcome = 'implicated';
     } else {
-      adjust(state, 'notoriety', 2, CAUSES.inquest, record.id);
+      adjust(state, 'notoriety', cfg.bribedNotoriety, CAUSES.inquest, record.id);
       if (cfg.bribedVerdictHeat !== 0) {
         adjust(state, 'heat', cfg.bribedVerdictHeat, CAUSES.inquest, record.id);
       }
       outcome = 'bribed';
     }
   } else if (rng.chance(implicationChance(state, record, approach))) {
-    implicate(24, 12, 8);
+    implicate(cfg.namedHeat, cfg.namedReputation, cfg.namedNotoriety);
     outcome = 'implicated';
   } else {
-    adjust(state, 'heat', -3, CAUSES.inquest, record.id);
-    if (approach === 'testify') adjust(state, 'reputation', 1, CAUSES.inquest, record.id);
+    adjust(state, 'heat', -cfg.clearedHeat, CAUSES.inquest, record.id);
+    if (approach === 'testify') {
+      adjust(state, 'reputation', cfg.testifiedReputation, CAUSES.inquest, record.id);
+    }
     outcome = 'cleared';
   }
 

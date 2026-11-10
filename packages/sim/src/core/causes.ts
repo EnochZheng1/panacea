@@ -23,8 +23,12 @@ export const CAUSES = {
   complaints: 'body.complaints',
   death: 'scrutiny.death',
   inquest: 'scrutiny.inquest',
+  /** A customer died of a complaint the label claimed to cure (`Claim.cures`). */
+  brokenPromise: 'scrutiny.broken_promise',
   heatDecay: 'scrutiny.decay',
   claims: 'advertising.claims',
+  /** Claims to cure a deadly disease on bottles on sale (`advertising.curesHeat`). */
+  cureClaims: 'advertising.cure_claims',
   event: 'event',
   tradeLost: 'event.trade_lost',
   timeline: 'timeline',

@@ -421,6 +421,8 @@ public sealed partial class EditionWriter
             });
         if (f.TurnedAwayByPrice > 0)
             trade.Blocks.Add(new Block { Text = Frame("tradeTurned", ("n", Words(f.TurnedAwayByPrice))), Clip = books });
+        if (f.Disappointed > 0)
+            trade.Blocks.Add(new Block { Text = Frame("tradeDisappointed", ("n", Words(f.Disappointed))), Clip = books });
         if (f.RefusedNarcotic > 0)
             trade.Blocks.Add(new Block { Text = Frame("tradeRefusedNarcotic", ("n", Words(f.RefusedNarcotic))), Clip = books });
         if (TillFlat(f) is { } flat) trade.Blocks.Add(new Block { Lead = "WHERE THE MONEY WENT.—", Text = flat, Clip = books });

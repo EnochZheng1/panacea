@@ -307,6 +307,8 @@ function withInquest(productImplicated: boolean, detectability = 4, seed = 'inq'
     badBatch: false,
     detectability,
     boldness: 0,
+    promisedCure: false,
+    owedCents: 0,
     inquest: 'pending',
     verdict: null,
   });

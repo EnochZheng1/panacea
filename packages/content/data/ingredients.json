@@ -272,7 +272,7 @@
       "bitterness": 2,
       "detectability": 2
     },
-    "costPerUnitCents": 0.5,
+    "costPerUnitCents": 1,
     "tags": ["acid"],
     "appearance": {
       "color": "#e8f27a",

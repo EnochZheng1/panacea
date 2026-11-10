@@ -63,6 +63,8 @@ export function evaluateRequirement(
       return binary(remedyHolds(req, state, content));
     case 'remedies':
       return ratio(remediesSold(state), req.atLeast);
+    case 'regularDied':
+      return binary(regularDied(state, req.withinMonths, req.owing === true));
     case 'flag':
       return binary(state.player.flags[req.id] === true);
     case 'unlocked':
@@ -113,6 +115,21 @@ export function shopRemedy(state: GameState): Formula | null {
 export function remediesSold(state: GameState): number {
   const last = state.ledger[state.ledger.length - 1];
   return (last?.sales ?? []).filter((s) => s.bottles > 0).length;
+}
+
+/**
+ * Whether a regular (named, taking the bottle themselves) died in the last `withinMonths` months,
+ * and, with `owing`, owed for spending beyond their means on it: a letter about them is grounded.
+ */
+export function regularDied(state: GameState, withinMonths: number, owing: boolean): boolean {
+  return state.deaths.some(
+    (d) =>
+      !d.anonymous &&
+      d.customerId !== null &&
+      d.consumer === 'self' &&
+      state.meta.turn - d.turn <= withinMonths &&
+      (!owing || d.owedCents > 0),
+  );
 }
 
 /** Fluid ounces per bottle of the formula's ingredients of one drug class. */
@@ -271,6 +288,10 @@ export function requirementProgress(
       return [
         { kind: 'since', id: req.event, sense: 'atLeast', have, need: req.atLeast, met, via },
       ];
+    }
+    case 'regularDied': {
+      const met = regularDied(state, req.withinMonths, req.owing === true);
+      return [{ kind: req.type, id: null, sense: 'atLeast', have: met ? 1 : 0, need: 1, met, via }];
     }
     case 'remedyHabit':
     case 'remedyDrug':

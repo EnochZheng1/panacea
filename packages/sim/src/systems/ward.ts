@@ -41,12 +41,14 @@ export const blamedOnTheBottle = (d: Pick<DeathRecord, 'reportedCause'>): boolea
 /** How much one death adds to the ward's memory. */
 export function deathWeight(d: DeathRecord, content: ContentPack): number {
   const cfg = content.config.ward;
-  if (!d.productImplicated) return 0;
-  let w: number;
-  if (!blamedOnTheBottle(d)) w = cfg.perHastenedDeath;
-  else if (d.anonymous) w = cfg.perStrangerDeath;
-  else if (d.consumer === 'infant') w = cfg.perInfantDeath;
-  else w = cfg.perDeath;
+  // the family keeps the label that said it cured what killed them
+  const promise = d.promisedCure ? cfg.perBrokenPromise : 0;
+  if (!d.productImplicated) return promise;
+  let w = promise;
+  if (!blamedOnTheBottle(d)) w += cfg.perHastenedDeath;
+  else if (d.anonymous) w += cfg.perStrangerDeath;
+  else if (d.consumer === 'infant') w += cfg.perInfantDeath;
+  else w += cfg.perDeath;
   if (d.badBatch) w += cfg.perBadBatchDeath;
   return w;
 }

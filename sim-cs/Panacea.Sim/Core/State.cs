@@ -250,6 +250,11 @@ public sealed class MonthInProgress
     /// </summary>
     public int RefusedNarcotic { get; set; }
     /// <summary>
+    /// Regulars whose bottle this month fell short of what its label promised for their complaint
+    /// (MarketConfig.PromiseShare): they had been told it cured them.
+    /// </summary>
+    public int Disappointed { get; set; }
+    /// <summary>
     /// Callers at the shop this month by where they came from: ward, newspaper, subscriptions, and
     /// each investment id.
     /// </summary>
@@ -291,6 +296,8 @@ public sealed class LedgerEntry
     public int TurnedAwayByPrice { get; set; }
     /// <summary>Wary callers who would not take a narcotic bottle (see <see cref="MonthInProgress.RefusedNarcotic"/>).</summary>
     public int RefusedNarcotic { get; set; }
+    /// <summary>Regulars the label disappointed (see <see cref="MonthInProgress.Disappointed"/>).</summary>
+    public int Disappointed { get; set; }
     /// <summary>Callers by source (see <see cref="MonthInProgress.Callers"/>).</summary>
     public OrderedMap<int> Callers { get; set; } = new();
     /// <summary>The druggists under contract.</summary>
@@ -402,6 +409,11 @@ public sealed class Customer
     public string? LastFormulaId { get; set; }
     public int BottlesLastMonth { get; set; }
     public bool InWithdrawal { get; set; }
+    /// <summary>
+    /// Weaning off an old recipe this month: still dependent above BodyConfig.MildDependencyCap, on
+    /// bottles that were all mild. The craving fades by BodyConfig.WeaningDecay a month.
+    /// </summary>
+    public bool Weaning { get; set; }
     /// <summary>What the customer owes for spending beyond their means, in cents.</summary>
     public double DebtCents { get; set; }
     /// <summary>
@@ -434,6 +446,10 @@ public sealed class DeathRecord
     public bool BadBatch { get; set; }
     public double Detectability { get; set; }
     public double Boldness { get; set; }
+    /// <summary>The label on their bottle claimed to cure their (deadly) complaint: a broken promise.</summary>
+    public bool PromisedCure { get; set; }
+    /// <summary>What the customer owed for spending beyond their means on the bottle when they died.</summary>
+    public double OwedCents { get; set; }
     /// <summary><see cref="InquestStates"/>.</summary>
     public required string Inquest { get; set; }
     public string? Verdict { get; set; }

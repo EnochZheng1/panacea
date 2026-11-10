@@ -107,8 +107,12 @@ public static class Causes
     public const string Complaints = "body.complaints";
     public const string Death = "scrutiny.death";
     public const string Inquest = "scrutiny.inquest";
+    /// <summary>A customer died of a complaint the label claimed to cure (Claim.Cures).</summary>
+    public const string BrokenPromise = "scrutiny.broken_promise";
     public const string HeatDecay = "scrutiny.decay";
     public const string Claims = "advertising.claims";
+    /// <summary>Claims to cure a deadly disease on bottles on sale (AdvertisingConfig.CuresHeat).</summary>
+    public const string CureClaims = "advertising.cure_claims";
     public const string Event = "event";
     public const string TradeLost = "event.trade_lost";
     public const string Timeline = "timeline";
@@ -117,8 +121,8 @@ public static class Causes
     public static readonly IReadOnlyList<string> All =
     [
         SalesShop, SalesWalkIn, SalesWholesale, SalesPost, SalesCraving, Rent, Ingredients, Bottling, Advertising, Bribe, Retainer,
-        Investment, Upkeep, Mishap, WordOfMouth, ReputationDrift, Complaints, Death, Inquest, HeatDecay,
-        Claims, Event, TradeLost, Timeline, Unlock,
+        Investment, Upkeep, Mishap, WordOfMouth, ReputationDrift, Complaints, Death, Inquest, BrokenPromise, HeatDecay,
+        Claims, CureClaims, Event, TradeLost, Timeline, Unlock,
     ];
 }
 

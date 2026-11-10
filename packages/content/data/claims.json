@@ -27,19 +27,22 @@
     "id": "banishes_rheumatism",
     "ailments": ["rheumatism", "neuralgia"],
     "appeal": 2,
-    "boldness": 1.5
+    "boldness": 1.5,
+    "cures": true
   },
   {
     "id": "cures_consumption",
     "ailments": ["consumption", "cough", "catarrh"],
     "appeal": 3,
-    "boldness": 3
+    "boldness": 3,
+    "cures": true
   },
   {
     "id": "cures_everything",
     "ailments": [],
     "appeal": 3,
-    "boldness": 4
+    "boldness": 4,
+    "cures": true
   },
   {
     "id": "endorsed_by_physicians",

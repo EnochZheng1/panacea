@@ -134,6 +134,8 @@ public sealed class Regular
 	public string Mood = "content";
 	public bool Craving;
 	public bool Withdrawal;
+	/// <summary>Weaning off an old recipe: the bottle has no narcotic now, and the craving fades within a season.</summary>
+	public bool Weaning;
 	/// <summary>Has spent beyond their means on the bottle: one bottle at most, and the family complains.</summary>
 	public bool Ruined;
 	public int MonthsAsCustomer;

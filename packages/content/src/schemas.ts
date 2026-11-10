@@ -79,6 +79,11 @@ export type Requirement =
   | { type: 'remedyPrice'; atLeastCents: number }
   /** The shop sold at least this many different remedies last month: enough to mix them up. */
   | { type: 'remedies'; atLeast: number }
+  /**
+   * A regular (not a stranger, not an infant in their care) died in the last `withinMonths`
+   * months; with `owing`, one who owed for spending beyond their means on the bottle.
+   */
+  | { type: 'regularDied'; withinMonths: number; owing?: boolean }
   | { type: 'flag'; id: string }
   | { type: 'unlocked'; id: string }
   | { type: 'all'; of: Requirement[] }
@@ -116,6 +121,11 @@ export const RequirementSchema: z.ZodType<Requirement> = z.lazy(() =>
     z.strictObject({ type: z.literal('remedyClaim'), id: IdSchema }),
     z.strictObject({ type: z.literal('remedyPrice'), atLeastCents: z.number().int().min(0) }),
     z.strictObject({ type: z.literal('remedies'), atLeast: z.number().int().min(0) }),
+    z.strictObject({
+      type: z.literal('regularDied'),
+      withinMonths: z.number().int().min(1),
+      owing: z.boolean().optional(),
+    }),
     z.strictObject({ type: z.literal('flag'), id: IdSchema }),
     z.strictObject({ type: z.literal('unlocked'), id: IdSchema }),
     z.strictObject({ type: z.literal('all'), of: z.array(RequirementSchema).min(1) }),
@@ -361,6 +371,12 @@ export const ClaimSchema = z.strictObject({
   appeal: z.number().min(0),
   /** How much the claim draws scrutiny. */
   boldness: z.number().min(0),
+  /**
+   * A claim to cure a deadly disease (consumption; everything): it draws the Board's and the
+   * press's eye (`advertising.curesHeat`), and a customer who dies of a complaint it names is a
+   * broken promise (`scrutiny.heatPerBrokenPromise`, `ward.perBrokenPromise`).
+   */
+  cures: z.boolean().default(false),
   requiresUnlock: IdSchema.optional(),
 });
 export type Claim = z.infer<typeof ClaimSchema>;
@@ -499,6 +515,13 @@ export const ConfigSchema = z.strictObject({
      * all wary (`callers.careful`).
      */
     carefulPerWary: z.number().min(0),
+    /**
+     * A shop that is better known draws strangers who have heard the name: the ward's callers are
+     * drawn up to base + reputation × perReputation + min(notoriety, notorietyCap) × perNotoriety.
+     * A name the papers print for poisoning brings no more of the curious than a name well known.
+     */
+    perNotoriety: z.number().min(0),
+    notorietyCap: z.number().min(0),
   }),
   market: z.strictObject({
     /**
@@ -578,6 +601,22 @@ export const ConfigSchema = z.strictObject({
      * at most this share of what is left on the shelf; the walk-ins get the rest.
      */
     ordersShelfShare: z.number().min(0).max(1),
+    /**
+     * A label's promise (round-10 balance). A buyer whose complaint a claim speaks to expects
+     * promiseShare × the claims' appeal to them in relief beyond the complaint; what the bottle
+     * falls short of that (at most the whole promise) counts disappointment × against their
+     * satisfaction, and against a stranger's coming back. A claim the bottle makes good costs
+     * nothing.
+     */
+    promiseShare: z.number().min(0),
+    /**
+     * A claim to cure a deadly disease (`Claim.cures`) promises cureShare × its appeal, and no
+     * bottle makes it good: the buyer still has the complaint.
+     */
+    cureShare: z.number().min(0),
+    /** A cure is given this many months as a regular before it has wholly disappointed. 0: none. */
+    curePatience: z.number().min(0),
+    disappointment: z.number().min(0),
   }),
   advertising: z.strictObject({
     /** Extra walk-ins ≈ visitorsPerSqrtCent × √(monthly spend in cents). */
@@ -586,6 +625,11 @@ export const ConfigSchema = z.strictObject({
     heatPerBoldness: z.number().min(0),
     /** Heat per month per point of boldness printed on labels of bottles on sale. */
     labelHeatPerBoldness: z.number().min(0),
+    /**
+     * Heat per month for each claim to cure a deadly disease (`Claim.cures`) on a bottle on sale:
+     * the Board of Health and the press read that kind of label.
+     */
+    curesHeat: z.number().min(0),
   }),
   batches: z.strictObject({
     /** Standard deviation of batch potency around 1.0. */
@@ -610,6 +654,12 @@ export const ConfigSchema = z.strictObject({
      */
     habitFloor: z.number().min(0),
     mildDependencyCap: z.number().min(0).max(1),
+    /**
+     * Weaning: a regular whose bottles this month were all mild (habit under habitFloor) loses
+     * this share of a dependency above mildDependencyCap a month, so a craving made by an old
+     * recipe fades within a season once the narcotic is out of the bottle.
+     */
+    weaningDecay: z.number().min(0).max(1),
     loadDecay: z.number().min(0).max(1),
     loadSafe: z.number().min(0),
     loadHarm: z.number().min(0),
@@ -664,6 +714,30 @@ export const ConfigSchema = z.strictObject({
      * death that called the inquest has already raised it.
      */
     bribedVerdictHeat: z.number(),
+    /**
+     * A death the remedy did not cause or hasten raises the heat by this share of the usual
+     * (round 10: 0, the ward does not blame the shop for a fever).
+     */
+    unimplicatedDeathShare: z.number().min(0).max(1),
+    /**
+     * A customer dies of a complaint the label claimed to cure (`Claim.cures`): the papers print the
+     * label beside the notice. Heat, as for a death.
+     */
+    heatPerBrokenPromise: z.number().min(0),
+    /**
+     * What an inquest's verdict does, as the coroner's letter prints it: a jury that names the
+     * bottle (suspicion, good name lost, better known), a jury that clears it (suspicion off, and
+     * good name for a proprietor who testified), and an envelope found out.
+     */
+    namedHeat: z.number().min(0),
+    namedReputation: z.number().min(0),
+    namedNotoriety: z.number().min(0),
+    clearedHeat: z.number().min(0),
+    testifiedReputation: z.number().min(0),
+    exposedHeat: z.number().min(0),
+    exposedReputation: z.number().min(0),
+    exposedNotoriety: z.number().min(0),
+    bribedNotoriety: z.number().min(0),
   }),
   /**
    * The ward's memory of harm (0..100), apart from the heat: what the neighbours say. Each
@@ -688,6 +762,8 @@ export const ConfigSchema = z.strictObject({
     perExposedBribe: z.number().min(0),
     /** The Board of Health carried the bottles away. */
     perSeizure: z.number().min(0),
+    /** A customer died of what the label claimed to cure (`Claim.cures`). */
+    perBrokenPromise: z.number().min(0),
     /** At a memory of 100, strangers at the counter buy this much less often… */
     walkInLoss: z.number().min(0).max(1),
     /** …come back as regulars this much less often… */

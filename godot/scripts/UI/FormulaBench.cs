@@ -302,7 +302,11 @@ public partial class FormulaBench : HBoxContainer
 	{
 		var v = new VBoxContainer();
 		v.AddThemeConstantOverride("separation", 3);
-		v.AddChild(Print.Label("THE ASSAY", Print.Rye, 18, HorizontalAlignment.Center));
+		var assayHead = Print.Label("THE ASSAY", Print.Rye, 18, HorizontalAlignment.Center);
+		// "assay": a chemist's analysis of what is in the bottle and what it does
+		assayHead.TooltipText = "The assay: a chemist's reading of the mixture, what it does to whoever takes it and what a test would find in it.";
+		assayHead.MouseFilter = MouseFilterEnum.Pass;
+		v.AddChild(assayHead);
 		v.AddChild(Print.Rule(2.5f, 1, 2));
 		foreach (var (key, label) in Order)
 		{

@@ -236,6 +236,8 @@ describe('the coroner’s fee (balance pass 6)', () => {
         badBatch: false,
         detectability: 4,
         boldness: 0,
+        promisedCure: false,
+        owedCents: 0,
         inquest: 'pending',
         verdict: null,
       });

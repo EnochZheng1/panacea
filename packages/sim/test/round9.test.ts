@@ -148,10 +148,10 @@ describe('a mild bottle makes a taste for it, never a craving (round-9 balance)'
     expect(twoYears(QUARTER_OZ).body.dependency).toBeGreaterThan(withdrawalThreshold);
   });
 
-  it('a habit already made does not vanish when the bottle is made mild: it fades as it would', () => {
+  it('a habit already made is not rebuilt by a mild bottle: it fades (round 10: within a season)', () => {
     const c = twoYears(MILD, 0.8);
     expect(c.body.dependency).toBeLessThan(0.8);
-    expect(c.body.dependency).toBeGreaterThan(mildDependencyCap);
+    expect(c.body.dependency).toBeLessThanOrEqual(mildDependencyCap);
   });
 });
 
@@ -266,6 +266,8 @@ describe("the coroner's envelope (round-9 balance)", () => {
       badBatch: false,
       detectability: 5,
       boldness: 0,
+      promisedCure: false,
+      owedCents: 0,
       inquest: 'pending',
       verdict: null,
     });

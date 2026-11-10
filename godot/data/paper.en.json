@@ -3407,6 +3407,11 @@
     "OUT OF TOWN.—The Paterson coroner sat upon a millhand who had been dosing himself with a remedy from New-York. The jury could not agree on the remedy, but agreed on New-York."
   ],
   "callerSources": {
+    "careful": [
+      "sent by the careful households",
+      "on the word of a careful mother",
+      "who will not have a narcotic in the house"
+    ],
     "ward": [
       "from the ward",
       "from the street",
@@ -5590,6 +5595,11 @@
     "Wholesale: the druggists out of town ordered {ordered} and had none, the shelf being bare.",
     "The druggists out of town ordered {ordered}, and got nothing: there was none to send.",
     "Out of town, the druggists asked for {ordered}; the shop had none to send them."
+  ],
+  "tradeRefusedNarcotic": [
+    "Callers who read the label and would not have a narcotic in the house: {n}.",
+    "Careful callers who put the bottle down on reading the label: {n}.",
+    "Went away on reading what is in it: {n}."
   ],
   "tradeTurned": [
     "Callers who asked the price and went away: {n}.",

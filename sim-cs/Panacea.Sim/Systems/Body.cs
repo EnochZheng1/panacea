@@ -90,6 +90,7 @@ public static class BodySystem
         string? lastFormula = null;
         bool lastBadBatch = false;
         double? lastDetectability = null;
+        double strongestHabit = 0;
 
         MonthOutcome Die(string cause, bool productImplicated)
         {
@@ -122,6 +123,7 @@ public static class BodySystem
             lastFormula = b.FormulaId;
             lastDetectability = a.Properties.Detectability;
             lastBadBatch = lastBadBatch || b.BadBatch;
+            strongestHabit = Math.Max(strongestHabit, a.Properties.Habit);
             var dose = Pharmacology.DoseContextFor(c.Consumer, c.Segment, b.Potency, content);
             reliefSum += Pharmacology.ReliefScore(a, body.Tolerance, c.Profile);
             double danger = Pharmacology.AcuteDanger(a, body.Tolerance, dose, content);
@@ -142,10 +144,13 @@ public static class BodySystem
         double habitTotal = 0;
         foreach (var cls in DrugClasses.All) habitTotal = habitTotal + habitIntake[cls];
         double dependencyDecay = cfg.DependencyDecay * (habitTotal > 0 ? 0.3 : 1);
+        double before = body.Dependency;
         body.Dependency = Clamp01(
-            body.Dependency +
-            cfg.DependencyGain * habitTotal * (1 - body.Dependency) -
-            dependencyDecay * body.Dependency);
+            before + cfg.DependencyGain * habitTotal * (1 - before) - dependencyDecay * before);
+        // A mild bottle (habit under HabitFloor, as the assay reads it: "none") gives a taste for it,
+        // never a craving: it can build dependency up to MildDependencyCap and no further.
+        if (strongestHabit < cfg.HabitFloor && body.Dependency > before)
+            body.Dependency = Math.Max(before, Math.Min(body.Dependency, cfg.MildDependencyCap));
         bool withdrawal = body.Dependency > cfg.WithdrawalThreshold && habitTotal < body.Dependency * 2;
         c.InWithdrawal = withdrawal;
         if (withdrawal) body.Health -= cfg.WithdrawalHarm;

@@ -1,6 +1,7 @@
 [
   {
     "id": "mother",
+    "wary": 0.4,
     "weight": 2,
     "vulnerability": 1,
     "baseHealth": 75,
@@ -34,6 +35,7 @@
   },
   {
     "id": "labourer",
+    "wary": 0.15,
     "weight": 3,
     "vulnerability": 1,
     "baseHealth": 80,
@@ -71,6 +73,7 @@
   },
   {
     "id": "seamstress",
+    "wary": 0.25,
     "weight": 2,
     "vulnerability": 1,
     "baseHealth": 70,
@@ -108,6 +111,7 @@
   },
   {
     "id": "clerk",
+    "wary": 0.35,
     "weight": 2,
     "vulnerability": 1,
     "baseHealth": 75,
@@ -141,6 +145,7 @@
   },
   {
     "id": "elderly",
+    "wary": 0.25,
     "weight": 1.5,
     "vulnerability": 1.6,
     "baseHealth": 60,
@@ -174,6 +179,7 @@
   },
   {
     "id": "dockworker",
+    "wary": 0.1,
     "weight": 1.5,
     "vulnerability": 0.9,
     "baseHealth": 82,
@@ -207,6 +213,7 @@
   },
   {
     "id": "well_to_do",
+    "wary": 0.5,
     "weight": 0.5,
     "vulnerability": 1,
     "baseHealth": 85,

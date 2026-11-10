@@ -63,7 +63,7 @@ public class GameTests
     [Fact]
     public void EmbeddedContentLoads()
     {
-        Assert.Equal("0.11.0", C.Config.ContentVersion);
+        Assert.Equal("0.12.0", C.Config.ContentVersion);
         Assert.Equal(17, C.Ingredients.Count);
         Assert.Equal(3, C.Processes.Count);
         Assert.Equal(9, C.Unlocks.Count);
@@ -75,7 +75,7 @@ public class GameTests
         Assert.Equal(180, C.Events.Count);
         Assert.Equal(8, C.Timeline.Count);
         Assert.Equal(12, C.Regulars.Count);
-        Assert.Equal(952, C.Strings.Count);
+        Assert.Equal(953, C.Strings.Count);
         Assert.Equal(8, C.Investments.Count);
         Assert.Equal("narcotic_discount_pct", C.ById.Investments["laboratory"].Effects.OfType<CapabilityEffect>().Single().Id);
         Assert.Equal("system", C.ById.Events["inquest"].Trigger);
@@ -754,11 +754,11 @@ public class GameTests
         Assert.Equal(-C.Config.RentCents, report.Deltas.Where(d => d.Cause == Causes.Rent).Sum(d => d.Amount));
         var offer = Machine.Observe(left, C).Investments.Single(i => i.Id == "shop_next_door");
         Assert.True(offer.CanBuy);
-        Assert.Equal(500, offer.UpkeepCents);
+        Assert.Equal(300, offer.UpkeepCents);
         var taken = Act(left, new Invest("shop_next_door"));
         var (state, after) = Game.EndTurn(taken, C);
         Assert.Equal(taken.Meta.Turn, state.Unlocks.Unlocked["larger_shop"]);
-        Assert.Contains(after.Deltas, d => d.Cause == Causes.Upkeep && d.Amount == -500 && d.Detail == "shop_next_door");
+        Assert.Contains(after.Deltas, d => d.Cause == Causes.Upkeep && d.Amount == -300 && d.Detail == "shop_next_door");
         Assert.Equal(Machine.Observe(left, C).CustomerCapacity + 20, Machine.Observe(state, C).CustomerCapacity);
         Assert.NotEqual("not yet offered", Machine.Observe(state, C).Investments.Single(i => i.Id == "branch_shop").Refusal);
     }

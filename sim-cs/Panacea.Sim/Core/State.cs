@@ -245,6 +245,11 @@ public sealed class MonthInProgress
     /// </summary>
     public int TurnedAwayByPrice { get; set; }
     /// <summary>
+    /// Callers wary of narcotics (see <see cref="Customer.Wary"/>), walk-ins and regulars, who found
+    /// something on the shelf to their liking but would not take it for the opiate or coca in it.
+    /// </summary>
+    public int RefusedNarcotic { get; set; }
+    /// <summary>
     /// Callers at the shop this month by where they came from: ward, newspaper, subscriptions, and
     /// each investment id.
     /// </summary>
@@ -284,6 +289,8 @@ public sealed class LedgerEntry
     public int Complaints { get; set; }
     /// <summary>Callers who asked the price and left (see <see cref="MonthInProgress.TurnedAwayByPrice"/>).</summary>
     public int TurnedAwayByPrice { get; set; }
+    /// <summary>Wary callers who would not take a narcotic bottle (see <see cref="MonthInProgress.RefusedNarcotic"/>).</summary>
+    public int RefusedNarcotic { get; set; }
     /// <summary>Callers by source (see <see cref="MonthInProgress.Callers"/>).</summary>
     public OrderedMap<int> Callers { get; set; } = new();
     /// <summary>The druggists under contract.</summary>
@@ -397,6 +404,11 @@ public sealed class Customer
     public bool InWithdrawal { get; set; }
     /// <summary>What the customer owes for spending beyond their means, in cents.</summary>
     public double DebtCents { get; set; }
+    /// <summary>
+    /// Wary of narcotics (see <see cref="Segment.Wary"/>): will not take a bottle whose opiates and
+    /// coca make a habit of Market.WaryHabit or more, and trusts one with none in it.
+    /// </summary>
+    public bool Wary { get; set; }
 }
 
 /// <summary>The human ledger. Truth fields are hidden from the player.</summary>

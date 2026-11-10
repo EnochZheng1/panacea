@@ -469,6 +469,11 @@ public sealed class Segment
     public required IReadOnlyList<string> Titles { get; init; }
     public required IReadOnlyList<SegmentAilment> Ailments { get; init; }
     public required BuyerProfile Profile { get; init; }
+    /// <summary>
+    /// The share of these households wary of a remedy with a narcotic in it (the temperance and
+    /// chapel households, the mothers who have read of soothing syrups, the respectable trade).
+    /// </summary>
+    public double Wary { get; init; }
 }
 
 public sealed class Names
@@ -502,6 +507,8 @@ public sealed class Regular
     public required string Segment { get; init; }
     public required string Ailment { get; init; }
     public required BuyerProfile Profile { get; init; }
+    /// <summary>Wary of narcotics (see <see cref="Segment.Wary"/>).</summary>
+    public bool Wary { get; init; }
 }
 
 public sealed class Background
@@ -588,6 +595,12 @@ public sealed class WalkInsConfig
     /// WardShareSlack × its capacity × the kind's share of the ward of any one kind. 0: no limit.
     /// </summary>
     public double WardShareSlack { get; init; }
+    /// <summary>
+    /// While the shelf holds a bottle the careful households trust (no narcotic, a modest label),
+    /// each wary regular pleased with the shop sends CarefulPerWary callers a month (rounded down),
+    /// all wary ("careful").
+    /// </summary>
+    public double CarefulPerWary { get; init; }
 }
 
 public sealed class MarketConfig
@@ -640,6 +653,14 @@ public sealed class MarketConfig
     public double DearElasticity { get; init; }
     public double DearHabitHold { get; init; }
     /// <summary>
+    /// A wary buyer will not take a bottle whose opiates and cocaine make a habit of WaryHabit or
+    /// more, and finds a bottle with no opiate or coca in it and a label no bolder than WaryBoldness
+    /// worth CleanAppeal more, as a claim on its label would be.
+    /// </summary>
+    public double WaryHabit { get; init; }
+    public double CleanAppeal { get; init; }
+    public double WaryBoldness { get; init; }
+    /// <summary>
     /// Orders from away are filled after the regulars have had theirs, from at most this share of
     /// what is left on the shelf; the walk-ins get the rest.
     /// </summary>
@@ -669,6 +690,12 @@ public sealed class BodyConfig
     public double DependencyDecay { get; init; }
     public double WithdrawalThreshold { get; init; }
     public double WithdrawalHarm { get; init; }
+    /// <summary>
+    /// A bottle whose habit is under HabitFloor (the assay's "none") makes a taste for it, not a
+    /// craving: a month of such bottles builds dependency up to MildDependencyCap and no further.
+    /// </summary>
+    public double HabitFloor { get; init; }
+    public double MildDependencyCap { get; init; }
     public double LoadDecay { get; init; }
     public double LoadSafe { get; init; }
     public double LoadHarm { get; init; }
@@ -702,11 +729,17 @@ public sealed class ScrutinyConfig
     public long BribeMinRiseCents { get; init; }
     /// <summary>The fee is multiplied by 1 + heat / BribeHeatDoubling: a notorious case costs more.</summary>
     public double BribeHeatDoubling { get; init; }
-    /// <summary>Chance a bribe comes out: per bribe already paid, plus per point of notoriety, up to the max.</summary>
+    /// <summary>
+    /// Chance a bribe comes out: a base chance, plus per bribe already paid, plus per point of
+    /// notoriety, up to the max.
+    /// </summary>
+    public double BribeExposureBase { get; init; }
     public double BribeExposurePerBribe { get; init; }
     public double BribeExposurePerNotoriety { get; init; }
     public double BribeExposureMax { get; init; }
     public required IReadOnlyList<string> BenignVerdicts { get; init; }
+    /// <summary>What a bought verdict does to the heat (0: the envelope stops the talk rising, no more).</summary>
+    public double BribedVerdictHeat { get; init; }
 }
 
 /// <summary>

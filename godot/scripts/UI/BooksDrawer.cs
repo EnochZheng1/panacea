@@ -37,6 +37,7 @@ public partial class BooksDrawer : VBoxContainer
 		["Newspaper advertising"] = "space in the Gazette",
 		["Upkeep of the ventures (rent, wages)"] = "the ventures' rent and wages",
 		["Letters answered"] = "what the letters cost",
+		["Trade given up to answer letters"] = "trade given up to answer letters",
 		["Outlays on the business"] = "ventures taken up",
 	};
 

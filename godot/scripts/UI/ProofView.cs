@@ -871,7 +871,7 @@ public partial class ProofView : Control
 		healthLabel.SizeFlagsHorizontal = SizeFlags.ExpandFill;
 		healthLabel.MouseFilter = MouseFilterEnum.Ignore;
 		health.AddChild(healthLabel);
-		health.TooltipText = "How the regulars look across the counter: " + (frail.Count > 0 ? string.Join(", ", frail) : "all well") + ". The gravely ill and the poorly are the ones most likely to die: of their ailments, of age, or of a strong bottle taken once too often. Craving: they ask for the remedy by name and take more each month; any habit does it, the spirit in a bottle too, a little at a time.";
+		health.TooltipText = "How the regulars look across the counter: " + (frail.Count > 0 ? string.Join(", ", frail) : "all well") + ". The gravely ill and the poorly are the ones most likely to die: of their ailments, of age, or of a strong bottle taken once too often. Craving: they ask for the remedy by name and take more each month. A bottle whose habit the assay calls \"slight\" never does it; a stronger habit does, a little at a time.";
 		health.MouseFilter = MouseFilterEnum.Pass;
 		grid.AddChild(left);
 		var books = new VBoxContainer();
@@ -882,6 +882,14 @@ public partial class ProofView : Control
 		standing.TooltipText = "Standing: what the ward thinks of the shop. A good name brings callers and keeps regulars; letters and deaths move it. A letter's \"standing +1\" adds to this figure.";
 		standing.MouseFilter = MouseFilterEnum.Pass;
 		books.AddChild(standing);
+		// notoriety is moved only by letters and inquests, and matters only to a bought verdict
+		if (m.Notoriety >= 0.5)
+		{
+			var known = Print.Label($"better known: {m.Notoriety:0}", Print.FellIt, 13, HorizontalAlignment.Right, wrap: false);
+			known.TooltipText = "How well known the shop is, from letters answered and inquests sat. It does no harm by itself, but the better known the shop, the likelier a verdict bought from the coroner is to come out. A letter's \"better known +1\" adds to this figure.";
+			known.MouseFilter = MouseFilterEnum.Pass;
+			books.AddChild(known);
+		}
 		grid.AddChild(books);
 		v.AddChild(grid);
 		// the regulars' health has the width of the slip, so the worst of it is never cut off

@@ -111,7 +111,8 @@ public static class Scrutiny
     {
         var cfg = content.Config.Scrutiny;
         return Math.Min(cfg.BribeExposureMax,
-            state.Scrutiny.BribesPaid * cfg.BribeExposurePerBribe + state.Player.Notoriety * cfg.BribeExposurePerNotoriety);
+            cfg.BribeExposureBase + state.Scrutiny.BribesPaid * cfg.BribeExposurePerBribe +
+            state.Player.Notoriety * cfg.BribeExposurePerNotoriety);
     }
 
     /// <summary>
@@ -204,7 +205,8 @@ public static class Scrutiny
             else
             {
                 Ledger.Adjust(state, Metrics.Notoriety, 2, Causes.Inquest, record.Id);
-                Ledger.Adjust(state, Metrics.Heat, -2, Causes.Inquest, record.Id);
+                if (cfg.BribedVerdictHeat != 0)
+                    Ledger.Adjust(state, Metrics.Heat, cfg.BribedVerdictHeat, Causes.Inquest, record.Id);
                 outcome = InquestStates.Bribed;
             }
         }

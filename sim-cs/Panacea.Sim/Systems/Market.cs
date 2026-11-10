@@ -3,7 +3,8 @@ namespace Panacea.Sim;
 /// <summary>A formula on the shelf, judged by the lot a buyer would be sold (the oldest).</summary>
 public sealed record Offer(Formula Formula, FormulaAnalysis Analysis);
 
-public sealed record Buyer(BuyerProfile Profile, string Ailment, DrugValues Tolerance, double Dependency);
+/// <summary>A buyer at the counter. Wary: wary of narcotics (see <see cref="Market.RefusesNarcotic"/>).</summary>
+public sealed record Buyer(BuyerProfile Profile, string Ailment, DrugValues Tolerance, double Dependency, bool Wary);
 
 /// <summary>The shop's market (systems/market.ts).</summary>
 public static class Market
@@ -18,6 +19,46 @@ public static class Market
             if (lot is not null) offers.Add(new Offer(f, Formulas.Analyze(lot.Components, lot.ProcessId, content)));
         }
         return offers;
+    }
+
+    /// <summary>
+    /// Whether a buyer wary of narcotics will not take this bottle (market.ts refusesNarcotic,
+    /// round-9 balance): its opiates and cocaine make a habit of WaryHabit or more. The mother who has
+    /// read of soothing syrups knows the poppy when she smells it; a trace in a tonic passes.
+    /// </summary>
+    public static bool RefusesNarcotic(Buyer buyer, FormulaAnalysis a, ContentPack content) =>
+        buyer.Wary && NarcoticHabit(a) >= content.Config.Market.WaryHabit;
+
+    /// <summary>
+    /// Whether the careful households trust this bottle (market.ts trustedByWary): no opiate or coca
+    /// in it at all, and a modest label (its claims' boldness at most WaryBoldness).
+    /// </summary>
+    public static bool TrustedByWary(Offer o, ContentPack content) =>
+        NarcoticHabit(o.Analysis) <= 0 &&
+        Formulas.ClaimBoldness(o.Formula.Claims, content) <= content.Config.Market.WaryBoldness;
+
+    /// <summary>
+    /// What a bottle's label is worth to this buyer (market.ts labelAppeal): its claims that speak to
+    /// their complaint, and, to a wary buyer, CleanAppeal more for a bottle they trust.
+    /// </summary>
+    public static double LabelAppeal(Offer o, Buyer buyer, ContentPack content)
+    {
+        double claims = Formulas.ClaimAppeal(o.Formula.Claims, buyer.Ailment, content);
+        return buyer.Wary && TrustedByWary(o, content) ? claims + content.Config.Market.CleanAppeal : claims;
+    }
+
+    /// <summary>
+    /// Callers sent by the careful households ("careful", market.ts carefulCallers): while the shelf
+    /// holds a bottle they trust, every wary regular pleased with it sends CarefulPerWary callers a
+    /// month (rounded down), all of them wary.
+    /// </summary>
+    public static int CarefulCallers(GameState state, IReadOnlyList<Offer> offers, ContentPack content)
+    {
+        double per = content.Config.WalkIns.CarefulPerWary;
+        if (per <= 0 || !offers.Any(o => TrustedByWary(o, content))) return 0;
+        int pleased = 0;
+        foreach (var c in state.Customers) if (c.Wary && c.Satisfaction > 0) pleased += 1;
+        return (int)Math.Floor(per * pleased);
     }
 
     /// <summary>
@@ -41,8 +82,9 @@ public static class Market
         foreach (var o in offers)
         {
             if (o.Formula.PriceCents > maxPriceCents || Lab.StockOf(state, o.Formula.Id) <= 0) continue;
+            if (RefusesNarcotic(buyer, o.Analysis, content)) continue;
             double a = Pharmacology.Appeal(o.Analysis, buyer.Tolerance, buyer.Profile, buyer.Dependency,
-                Formulas.ClaimAppeal(o.Formula.Claims, buyer.Ailment, content));
+                LabelAppeal(o, buyer, content));
             if (a <= 0 || o.Formula.PriceCents > WillingnessToPay(buyer, a, content)) continue;
             double score = a / Math.Max(1, o.Formula.PriceCents);
             if (score > bestScore)
@@ -63,12 +105,36 @@ public static class Market
     {
         foreach (var o in offers)
         {
-            if (Lab.StockOf(state, o.Formula.Id) <= 0) continue;
+            if (Lab.StockOf(state, o.Formula.Id) <= 0 || RefusesNarcotic(buyer, o.Analysis, content)) continue;
             double a = Pharmacology.Appeal(o.Analysis, buyer.Tolerance, buyer.Profile, buyer.Dependency,
-                Formulas.ClaimAppeal(o.Formula.Claims, buyer.Ailment, content));
+                LabelAppeal(o, buyer, content));
             if (a > 0) return true;
         }
         return false;
+    }
+
+    /// <summary>
+    /// Whether a wary buyer who left empty-handed did so for the narcotic in the bottle (market.ts
+    /// refusedForNarcotic). Call it only when ChooseOffer found nothing and TurnedAwayByPrice is false.
+    /// </summary>
+    public static bool RefusedForNarcotic(GameState state, IReadOnlyList<Offer> offers, Buyer buyer, ContentPack content)
+    {
+        if (!buyer.Wary) return false;
+        foreach (var o in offers)
+        {
+            if (Lab.StockOf(state, o.Formula.Id) <= 0 || !RefusesNarcotic(buyer, o.Analysis, content)) continue;
+            double a = Pharmacology.Appeal(o.Analysis, buyer.Tolerance, buyer.Profile, buyer.Dependency,
+                LabelAppeal(o, buyer, content));
+            if (a > 0) return true;
+        }
+        return false;
+    }
+
+    /// <summary>Counts a caller who found nothing to buy: put off by the price, or (wary) by the narcotic.</summary>
+    private static void CountTurnedAway(GameState state, IReadOnlyList<Offer> offers, Buyer buyer, ContentPack content)
+    {
+        if (TurnedAwayByPrice(state, offers, buyer, content)) state.Month.TurnedAwayByPrice += 1;
+        else if (RefusedForNarcotic(state, offers, buyer, content)) state.Month.RefusedNarcotic += 1;
     }
 
     /// <summary>
@@ -212,7 +278,7 @@ public static class Market
         return (int)Math.Floor(w.WordPerHabit * Math.Min(w.WordHabitCap, Math.Max(0, habit - w.WordHabitFloor)));
     }
 
-    private static Buyer CustomerAsBuyer(Customer c) => new(c.Profile, c.Ailment, c.Body.Tolerance, c.Body.Dependency);
+    private static Buyer CustomerAsBuyer(Customer c) => new(c.Profile, c.Ailment, c.Body.Tolerance, c.Body.Dependency, c.Wary);
 
     private static double MaxBoldness(IEnumerable<Formula> formulas, ContentPack content)
     {
@@ -315,8 +381,7 @@ public static class Market
                         k == 0 ? double.PositiveInfinity : budget);
                     if (offer is null)
                     {
-                        if (k == 0 && TurnedAwayByPrice(state, offers, CustomerAsBuyer(c), content))
-                            state.Month.TurnedAwayByPrice += 1;
+                        if (k == 0) CountTurnedAway(state, offers, CustomerAsBuyer(c), content);
                         break;
                     }
                     // A dear bottle: the regular asks the price and makes the last one do this month.
@@ -507,21 +572,29 @@ public static class Market
         foreach (var inv in Investments.Held(state, content))
             if (inv.WalkInsPerMonth > 0) callers[inv.Id] = inv.WalkInsPerMonth;
         foreach (var (source, n) in LetterCallers(state, content)) callers[source] = n;
+        // the careful households' callers come last, and are all wary
+        int careful = CarefulCallers(state, offers, content);
+        if (careful > 0) callers["careful"] = careful;
         int visitors = 0;
         foreach (var kv in callers) visitors += kv.Value;
+        var waryHouseholds = content.Segments.Select(s => (s, s.Weight * s.Wary)).ToList();
         // A rival's sale: a share of the callers whose bottle costs more than his go to him instead.
         double rivalShare = (double)Math.Min(100, caps.GetOr("rival_share_pct", 0)) / 100;
         int rivalPrice = caps.GetOr("rival_price_cents", 0);
         int capacity = CustomersSystem.CustomerCapacity(state, content);
         for (int i = 0; i < visitors; i++)
         {
-            var segment = CustomersSystem.PickSegment(content, rng);
+            bool sentByCareful = i >= visitors - careful;
+            var segment = sentByCareful
+                ? rng.Weighted(waryHouseholds) ?? CustomersSystem.PickSegment(content, rng)
+                : CustomersSystem.PickSegment(content, rng);
             string ailmentId = CustomersSystem.PickAilment(segment, rng);
-            var buyer = new Buyer(segment.Profile, ailmentId, Pharmacology.ZeroTolerance(), 0);
+            bool wary = sentByCareful || (segment.Wary > 0 && rng.Chance(segment.Wary));
+            var buyer = new Buyer(segment.Profile, ailmentId, Pharmacology.ZeroTolerance(), 0, wary);
             var offer = ChooseOffer(state, offers, buyer, content);
             if (offer is null)
             {
-                if (TurnedAwayByPrice(state, offers, buyer, content)) state.Month.TurnedAwayByPrice += 1;
+                CountTurnedAway(state, offers, buyer, content);
                 continue;
             }
             if (rivalShare > 0 && offer.Formula.PriceCents > rivalPrice && rng.Chance(rivalShare))
@@ -529,7 +602,7 @@ public static class Market
                 state.Month.TurnedAwayByPrice += 1;
                 continue;
             }
-            double claims = Formulas.ClaimAppeal(offer.Formula.Claims, ailmentId, content);
+            double claims = LabelAppeal(offer, buyer, content);
             // A stranger hesitates over a bottle priced near the most they would pay.
             double wtp = WillingnessToPay(buyer,
                 Pharmacology.Appeal(offer.Analysis, buyer.Tolerance, buyer.Profile, 0, claims), content);
@@ -550,7 +623,7 @@ public static class Market
             if (relief > 0 && state.Customers.Count < capacity &&
                 WardHasRoomFor(state, content, segment.Id, capacity) && rng.Chance(Math.Min(0.9, pConvert)))
             {
-                var customer = CustomersSystem.GenerateCustomer(state, content, rng, segment, ailmentId);
+                var customer = CustomersSystem.GenerateCustomer(state, content, rng, segment, ailmentId, buyer.Wary);
                 state.Customers.Add(customer);
                 state.Stats.CustomersJoined += 1;
                 scratch.Purchases[customer.Id] = [bought];

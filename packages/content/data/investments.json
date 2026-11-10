@@ -2,7 +2,7 @@
   {
     "id": "shop_next_door",
     "costCents": 0,
-    "upkeepCents": 500,
+    "upkeepCents": 300,
     "requires": { "type": "regulars", "atLeast": 25 },
     "effects": [
       { "type": "capability", "id": "shop_capacity", "delta": 20 },

@@ -182,6 +182,9 @@ describe('market', () => {
       const [a, b] = state.customers;
       a!.body.dependency = 0.9;
       b!.body.dependency = 0;
+      // neither is wary of the laudanum in it (round-9 balance)
+      a!.wary = false;
+      b!.wary = false;
       const ctx: TurnContext = {
         state,
         content,
@@ -487,11 +490,18 @@ describe('the habit, the coroner and the post (balance pass 2)', () => {
   it('a bribe can come out: the fee is gone and the verdict goes against you', () => {
     const base = withInquest(true);
     base.unlocks.unlocked['coroner_fees'] = 0;
-    expect(bribeExposureChance(base, content)).toBe(0);
-    base.scrutiny.bribesPaid = 10;
+    // even the first envelope can come out (round-9 balance)
+    const { bribeExposureBase, bribeExposurePerBribe, bribeExposurePerNotoriety } =
+      content.config.scrutiny;
+    expect(bribeExposureChance(base, content)).toBeCloseTo(bribeExposureBase);
+    expect(bribeExposureBase).toBeGreaterThan(0);
+    base.scrutiny.bribesPaid = 5;
     base.player.notoriety = 40;
     base.month.startNotoriety = 40;
     const chance = bribeExposureChance(base, content);
+    expect(chance).toBeCloseTo(
+      bribeExposureBase + 5 * bribeExposurePerBribe + 40 * bribeExposurePerNotoriety,
+    );
     expect(chance).toBeCloseTo(0.4);
     expect(observe(base, content).pendingEvents[0]!.bribeExposureChance).toBeCloseTo(chance);
     let exposed = 0;

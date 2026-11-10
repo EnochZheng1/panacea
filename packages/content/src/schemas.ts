@@ -327,6 +327,13 @@ export const SegmentSchema = z.strictObject({
   titles: z.array(z.string().min(1)).min(1),
   ailments: z.array(z.strictObject({ id: IdSchema, weight: z.number().positive() })).min(1),
   profile: BuyerProfileSchema,
+  /**
+   * The share of these households wary of a remedy with a narcotic in it: the temperance and
+   * chapel households, the mothers who have read of soothing syrups, the respectable trade. A wary
+   * buyer will not take a bottle whose opiates and cocaine make a habit of `market.waryHabit` or
+   * more, and takes a bottle with none at all on its own recommendation (`market.cleanAppeal`).
+   */
+  wary: z.number().min(0).max(1).default(0),
 });
 export type Segment = z.infer<typeof SegmentSchema>;
 
@@ -365,6 +372,8 @@ export const RegularSchema = z.strictObject({
   segment: IdSchema,
   ailment: IdSchema,
   profile: BuyerProfileSchema,
+  /** Wary of narcotics (see `Segment.wary`). */
+  wary: z.boolean().default(false),
 });
 export type Regular = z.infer<typeof RegularSchema>;
 
@@ -484,6 +493,12 @@ export const ConfigSchema = z.strictObject({
      * weight) regulars of that kind. 0: no limit.
      */
     wardShareSlack: z.number().min(0),
+    /**
+     * While the shelf holds a bottle the careful households trust (no narcotic, a modest label),
+     * each wary regular pleased with the shop sends carefulPerWary callers a month (rounded down),
+     * all wary (`callers.careful`).
+     */
+    carefulPerWary: z.number().min(0),
   }),
   market: z.strictObject({
     /**
@@ -549,6 +564,16 @@ export const ConfigSchema = z.strictObject({
     dearElasticity: z.number().min(0),
     dearHabitHold: z.number().positive(),
     /**
+     * A buyer wary of narcotics (`Segment.wary`) will not take a bottle whose opiates and cocaine
+     * make a habit of waryHabit or more (a third of an ounce of laudanum at 2), and finds a bottle
+     * with no opiate or coca in it and a modest label worth cleanAppeal more, as a claim on its
+     * label would be.
+     */
+    waryHabit: z.number().positive(),
+    cleanAppeal: z.number().min(0),
+    /** A label bolder than this (its claims' total boldness) the careful households do not trust. */
+    waryBoldness: z.number().min(0),
+    /**
      * Orders from away (druggists, the post) are filled after the regulars have had theirs, from
      * at most this share of what is left on the shelf; the walk-ins get the rest.
      */
@@ -578,6 +603,13 @@ export const ConfigSchema = z.strictObject({
     /** Dependency above which missing doses cause withdrawal. */
     withdrawalThreshold: z.number().min(0).max(1),
     withdrawalHarm: z.number().min(0),
+    /**
+     * A bottle whose habit is under habitFloor (the assay's "none") makes a taste for it, not a
+     * craving: a month of such bottles builds dependency up to mildDependencyCap (under
+     * withdrawalThreshold) and no further. 0: no floor.
+     */
+    habitFloor: z.number().min(0),
+    mildDependencyCap: z.number().min(0).max(1),
     loadDecay: z.number().min(0).max(1),
     loadSafe: z.number().min(0),
     loadHarm: z.number().min(0),
@@ -619,13 +651,19 @@ export const ConfigSchema = z.strictObject({
     /** The fee is multiplied by 1 + heat / bribeHeatDoubling: a notorious case costs more. */
     bribeHeatDoubling: z.number().positive(),
     /**
-     * Chance a bribe comes out (the coroner's clerk talks): per bribe already paid, plus per
-     * point of notoriety, up to the max. An exposed bribe is a verdict against you, and worse.
+     * Chance a bribe comes out (the coroner's clerk talks): a base chance, plus per bribe already
+     * paid, plus per point of notoriety, up to the max. An exposed bribe is a verdict against you, and worse.
      */
+    bribeExposureBase: z.number().min(0),
     bribeExposurePerBribe: z.number().min(0),
     bribeExposurePerNotoriety: z.number().min(0),
     bribeExposureMax: z.number().min(0).max(1),
     benignVerdicts: z.array(IdSchema).min(1),
+    /**
+     * What a bought verdict does to the heat (0: the envelope stops the talk rising, no more). The
+     * death that called the inquest has already raised it.
+     */
+    bribedVerdictHeat: z.number(),
   }),
   /**
    * The ward's memory of harm (0..100), apart from the heat: what the neighbours say. Each

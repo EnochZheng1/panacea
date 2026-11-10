@@ -56,6 +56,54 @@ export interface Buyer {
   ailment: string;
   tolerance: Record<DrugClass, number>;
   dependency: number;
+  /** Wary of narcotics (see `refusesNarcotic`). */
+  wary: boolean;
+}
+
+/**
+ * Whether a buyer wary of narcotics will not take this bottle (round-9 balance): its opiates and
+ * cocaine make a habit of `waryHabit` or more. The mother who has read of soothing syrups knows
+ * the poppy when she smells it; a trace in a tonic of spirits and herbs passes.
+ */
+export const refusesNarcotic = (buyer: Buyer, a: FormulaAnalysis, content: ContentPack): boolean =>
+  buyer.wary && narcoticHabit(a) >= content.config.market.waryHabit;
+
+/**
+ * Whether the careful households trust this bottle: no opiate or coca in it at all, and a modest
+ * label (its claims' boldness at most `waryBoldness`). A label that cures consumption and
+ * everything else is the quack's, whatever is in the bottle.
+ */
+export const trustedByWary = (o: Offer, content: ContentPack): boolean =>
+  narcoticHabit(o.analysis) <= 0 &&
+  claimBoldness(o.formula.claims, content) <= content.config.market.waryBoldness;
+
+/**
+ * What a bottle's label is worth to this buyer: its claims that speak to their complaint, and, to
+ * a buyer wary of narcotics, `cleanAppeal` more for a bottle they trust (see `trustedByWary`): it
+ * is its own recommendation.
+ */
+export function labelAppeal(o: Offer, buyer: Buyer, content: ContentPack): number {
+  const claims = claimAppeal(o.formula.claims, buyer.ailment, content);
+  return buyer.wary && trustedByWary(o, content)
+    ? claims + content.config.market.cleanAppeal
+    : claims;
+}
+
+/**
+ * Callers sent by the careful households (`callers.careful`): while the shelf holds a bottle they
+ * trust, every wary regular who is pleased with it tells the neighbours, `carefulPerWary` callers
+ * a month each (rounded down), all of them wary.
+ */
+export function carefulCallers(
+  state: GameState,
+  offers: readonly Offer[],
+  content: ContentPack,
+): number {
+  const per = content.config.walkIns.carefulPerWary;
+  if (per <= 0 || !offers.some((o) => trustedByWary(o, content))) return 0;
+  let pleased = 0;
+  for (const c of state.customers) if (c.wary && c.satisfaction > 0) pleased += 1;
+  return Math.floor(per * pleased);
 }
 
 /**
@@ -86,12 +134,13 @@ export function chooseOffer(
   let bestScore = Number.NEGATIVE_INFINITY;
   for (const o of offers) {
     if (o.formula.priceCents > maxPriceCents || stockOf(state, o.formula.id) <= 0) continue;
+    if (refusesNarcotic(buyer, o.analysis, content)) continue;
     const a = appeal(
       o.analysis,
       buyer.tolerance,
       buyer.profile,
       buyer.dependency,
-      claimAppeal(o.formula.claims, buyer.ailment, content),
+      labelAppeal(o, buyer, content),
     );
     if (a <= 0 || o.formula.priceCents > willingnessToPay(buyer, a, content)) continue;
     const score = a / Math.max(1, o.formula.priceCents);
@@ -115,13 +164,39 @@ export function turnedAwayByPrice(
   content: ContentPack,
 ): boolean {
   for (const o of offers) {
-    if (stockOf(state, o.formula.id) <= 0) continue;
+    if (stockOf(state, o.formula.id) <= 0 || refusesNarcotic(buyer, o.analysis, content)) continue;
     const a = appeal(
       o.analysis,
       buyer.tolerance,
       buyer.profile,
       buyer.dependency,
-      claimAppeal(o.formula.claims, buyer.ailment, content),
+      labelAppeal(o, buyer, content),
+    );
+    if (a > 0) return true;
+  }
+  return false;
+}
+
+/**
+ * Whether a wary buyer who left empty-handed did so for the narcotic in the bottle: some bottle on
+ * the shelf they would otherwise have looked at, they would not take. (Call it only when
+ * `chooseOffer` with no price cap found nothing and `turnedAwayByPrice` is false.)
+ */
+export function refusedForNarcotic(
+  state: GameState,
+  offers: readonly Offer[],
+  buyer: Buyer,
+  content: ContentPack,
+): boolean {
+  if (!buyer.wary) return false;
+  for (const o of offers) {
+    if (stockOf(state, o.formula.id) <= 0 || !refusesNarcotic(buyer, o.analysis, content)) continue;
+    const a = appeal(
+      o.analysis,
+      buyer.tolerance,
+      buyer.profile,
+      buyer.dependency,
+      labelAppeal(o, buyer, content),
     );
     if (a > 0) return true;
   }
@@ -289,6 +364,7 @@ const customerAsBuyer = (c: Customer): Buyer => ({
   ailment: c.ailment,
   tolerance: c.body.tolerance,
   dependency: c.body.dependency,
+  wary: c.wary,
 });
 
 /** Turn phase: claims on labels draw notice; newspaper advertising amplifies them. */
@@ -393,9 +469,7 @@ export const salesPhase: Phase = {
             k === 0 ? Number.POSITIVE_INFINITY : budget,
           );
           if (!offer) {
-            if (k === 0 && turnedAwayByPrice(state, offers, customerAsBuyer(c), content)) {
-              state.month.turnedAwayByPrice += 1;
-            }
+            if (k === 0) countTurnedAway(state, offers, customerAsBuyer(c), content);
             break;
           }
           // A dear bottle: the regular asks the price and makes the last one do this month (they
@@ -474,6 +548,17 @@ export function letterTrust(state: GameState, content: ContentPack): number {
   );
 }
 
+/** Counts a caller who found nothing to buy: put off by the price, or (wary) by the narcotic. */
+function countTurnedAway(
+  state: GameState,
+  offers: readonly Offer[],
+  buyer: Buyer,
+  content: ContentPack,
+): void {
+  if (turnedAwayByPrice(state, offers, buyer, content)) state.month.turnedAwayByPrice += 1;
+  else if (refusedForNarcotic(state, offers, buyer, content)) state.month.refusedNarcotic += 1;
+}
+
 function walkIns(
   { state, content, rng, scratch }: TurnContext,
   offers: Offer[],
@@ -490,30 +575,38 @@ function walkIns(
   callers['word'] = wordOfStrength(offers, content);
   for (const [id, n] of investmentWalkIns(state, content)) callers[id] = n;
   for (const [id, n] of letterCallers(state, content)) callers[id] = n;
+  // the careful households' callers come last, and are all wary
+  const careful = carefulCallers(state, offers, content);
+  if (careful > 0) callers['careful'] = careful;
   const visitors = Object.values(callers).reduce((a, b) => a + b, 0);
+  const waryHouseholds = content.segments.map((s) => ({ item: s, weight: s.weight * s.wary }));
   // A rival's sale: a share of the callers whose bottle costs more than his go to him instead.
   const rivalShare = Math.min(100, caps['rival_share_pct'] ?? 0) / 100;
   const rivalPrice = caps['rival_price_cents'] ?? 0;
   const capacity = customerCapacity(state, content);
   for (let i = 0; i < visitors; i++) {
-    const segment = pickSegment(content, rng);
+    const sentByCareful = i >= visitors - careful;
+    const segment = sentByCareful
+      ? (rng.weighted(waryHouseholds) ?? pickSegment(content, rng))
+      : pickSegment(content, rng);
     const ailmentId = pickAilment(segment, rng);
     const buyer: Buyer = {
       profile: segment.profile,
       ailment: ailmentId,
       tolerance: zeroTolerance(),
       dependency: 0,
+      wary: sentByCareful || (segment.wary > 0 && rng.chance(segment.wary)),
     };
     const offer = chooseOffer(state, offers, buyer, content);
     if (!offer) {
-      if (turnedAwayByPrice(state, offers, buyer, content)) state.month.turnedAwayByPrice += 1;
+      countTurnedAway(state, offers, buyer, content);
       continue;
     }
     if (rivalShare > 0 && offer.formula.priceCents > rivalPrice && rng.chance(rivalShare)) {
       state.month.turnedAwayByPrice += 1;
       continue;
     }
-    const claims = claimAppeal(offer.formula.claims, ailmentId, content);
+    const claims = labelAppeal(offer, buyer, content);
     // A stranger hesitates over a bottle priced near the most they would pay.
     const wtp = willingnessToPay(
       buyer,
@@ -546,7 +639,7 @@ function walkIns(
       wardHasRoomFor(state, content, segment.id, capacity) &&
       rng.chance(Math.min(0.9, pConvert))
     ) {
-      const customer = generateCustomer(state, content, rng, segment, ailmentId);
+      const customer = generateCustomer(state, content, rng, segment, ailmentId, buyer.wary);
       state.customers.push(customer);
       state.stats.customersJoined += 1;
       scratch.purchases.set(customer.id, [bought]);

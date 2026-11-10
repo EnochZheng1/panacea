@@ -285,15 +285,14 @@ export function resolveEvent(
  * The ledger line a reply's money is booked under, by its `ledger` tag: a gilt sign is laid out
  * on the business, the Jersey distiller's spirit is an ingredient, the inspector's three dollars
  * a consulting fee, the parish's dozen a subscription. Untagged money (a pound of tea, a gallon
- * sold for a mare) is "letters answered", and so, for now, is trade given up (see the round-9
- * letters write-up: it wants a cause of its own).
+ * sold for a mare) is "letters answered"; trade given up has its own line.
  */
 export const LETTER_LEDGER: Record<LedgerTag, Cause> = {
   outlay: CAUSES.investment,
   supplies: CAUSES.ingredients,
   fees: CAUSES.bribe,
   subscriptions: CAUSES.retainer,
-  trade: CAUSES.event,
+  trade: CAUSES.tradeLost,
 };
 
 /**

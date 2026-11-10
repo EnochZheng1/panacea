@@ -110,6 +110,7 @@ public static class Causes
     public const string HeatDecay = "scrutiny.decay";
     public const string Claims = "advertising.claims";
     public const string Event = "event";
+    public const string TradeLost = "event.trade_lost";
     public const string Timeline = "timeline";
     public const string Unlock = "unlock";
 
@@ -117,7 +118,7 @@ public static class Causes
     [
         SalesShop, SalesWalkIn, SalesWholesale, SalesPost, SalesCraving, Rent, Ingredients, Bottling, Advertising, Bribe, Retainer,
         Investment, Upkeep, Mishap, WordOfMouth, ReputationDrift, Complaints, Death, Inquest, HeatDecay,
-        Claims, Event, Timeline, Unlock,
+        Claims, Event, TradeLost, Timeline, Unlock,
     ];
 }
 

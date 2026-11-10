@@ -135,6 +135,7 @@ public static class CustomersSystem
                 BottlesLastMonth = 0,
                 InWithdrawal = false,
                 DebtCents = 0,
+                Wary = r.Wary,
             };
         }).ToList();
 
@@ -149,7 +150,8 @@ public static class CustomersSystem
         content.Config.MaxRegulars + state.Player.Capabilities.GetOr("shop_capacity", 0);
 
     /// <summary>Creates a new regular from a walk-in of the given segment and ailment.</summary>
-    public static Customer GenerateCustomer(GameState state, ContentPack content, Rng rng, Segment segment, string ailmentId)
+    public static Customer GenerateCustomer(GameState state, ContentPack content, Rng rng, Segment segment, string ailmentId,
+        bool wary)
     {
         bool female = segment.Gender == "female" || (segment.Gender == "any" && rng.Chance(0.5));
         IReadOnlyList<string> titles = segment.Titles;
@@ -181,6 +183,7 @@ public static class CustomersSystem
             BottlesLastMonth = 0,
             InWithdrawal = false,
             DebtCents = 0,
+            Wary = wary,
         };
     }
 }

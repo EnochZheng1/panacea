@@ -126,6 +126,14 @@ public partial class Prospectus : VBoxContainer
 		if (r.MishapChance is double mc && mc > 0) risks.Add($"about one month in {Math.Max(2, (int)Math.Round(1 / mc))} something catches fire");
 		if (brings.Count > 0) v.AddChild(Print.Label(EditionWriter.Set("It brings " + string.Join(", and ", brings) + "."), Print.FellIt, 14));
 		if (risks.Count > 0) v.AddChild(Print.Label("Mark well: " + string.Join("; ", risks) + ".", Print.FellIt, 14));
+		// a bigger copper or another still pays only once the stills the shop has are kept full
+		if (!r.Held && r.Id is "larger_copper" or "fourth_still" && d.Stills > 0 && !_game.Facts.FirstEdition)
+		{
+			var can = d.Stills * d.StillBottles;
+			var sold = _game.Facts.SoldLastMonth;
+			if (sold < can * 0.85)
+				v.AddChild(Print.Label(EditionWriter.Set($"Mark well: your stills are not yet full. Last month the shop sold {EditionWriter.Words(sold)} bottle{(sold == 1 ? "" : "s")}, and the stills it has can make {EditionWriter.Words(can)}; this pays only once they are kept busy."), Print.FellIt, 14));
+		}
 
 		if (r.Held)
 		{

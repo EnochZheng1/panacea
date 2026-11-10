@@ -53,6 +53,7 @@ export function initialCustomers(state: GameState, content: ContentPack, rng: Rn
       bottlesLastMonth: 0,
       inWithdrawal: false,
       debtCents: 0,
+      wary: r.wary,
     };
   });
 }
@@ -78,6 +79,7 @@ export function generateCustomer(
   rng: Rng,
   segment: Segment,
   ailmentId: string,
+  wary: boolean,
 ): Customer {
   const female = segment.gender === 'female' || (segment.gender === 'any' && rng.chance(0.5));
   let titles = segment.titles;
@@ -106,5 +108,6 @@ export function generateCustomer(
     bottlesLastMonth: 0,
     inWithdrawal: false,
     debtCents: 0,
+    wary,
   };
 }

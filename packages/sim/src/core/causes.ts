@@ -26,6 +26,7 @@ export const CAUSES = {
   heatDecay: 'scrutiny.decay',
   claims: 'advertising.claims',
   event: 'event',
+  tradeLost: 'event.trade_lost',
   timeline: 'timeline',
   unlock: 'unlock',
 } as const;

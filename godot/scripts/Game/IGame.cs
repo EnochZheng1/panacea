@@ -43,6 +43,8 @@ public sealed class DeskModel
 	public long CashCents;
 	public double Reputation;
 	public double Heat;
+	/// <summary>How well known the shop is ("better known +1" in a letter): a bought verdict is likelier to come out.</summary>
+	public double Notoriety;
 	public int StillsFree;
 	/// <summary>Stills the shop has, and the most bottles one makes a batch.</summary>
 	public int Stills;

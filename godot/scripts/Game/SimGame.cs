@@ -190,6 +190,7 @@ public sealed class SimGame : IGame
 			CashCents = o.CashCents,
 			Reputation = o.Reputation,
 			Heat = o.Heat,
+			Notoriety = o.Notoriety,
 			StillsFree = o.StillsFree,
 			Stills = o.Stills,
 			StillBottles = o.StillBottles,
@@ -475,6 +476,7 @@ public sealed class SimGame : IGame
 		{
 			f.CashStartCents = report.CashStartCents;
 			f.TurnedAwayByPrice = report.TurnedAwayByPrice;
+			f.RefusedNarcotic = report.RefusedNarcotic;
 			// money laid out rather than lost to trade: ventures (a letter's outlay is booked as one), bribes, retainers; not trade given up to answer a letter
 			f.InvestedCents = -(long)Math.Round(report.Deltas.Where(x => x.Metric == "cash" && x.Amount < 0
 				&& x.Cause is "expense.investment" or "expense.bribe" or "expense.retainer").Sum(x => x.Amount));

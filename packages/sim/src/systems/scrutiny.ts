@@ -120,7 +120,8 @@ export function bribeExposureChance(state: GameState, content: ContentPack): num
   const cfg = content.config.scrutiny;
   return Math.min(
     cfg.bribeExposureMax,
-    state.scrutiny.bribesPaid * cfg.bribeExposurePerBribe +
+    cfg.bribeExposureBase +
+      state.scrutiny.bribesPaid * cfg.bribeExposurePerBribe +
       state.player.notoriety * cfg.bribeExposurePerNotoriety,
   );
 }
@@ -217,7 +218,9 @@ export function resolveInquest(
       outcome = 'implicated';
     } else {
       adjust(state, 'notoriety', 2, CAUSES.inquest, record.id);
-      adjust(state, 'heat', -2, CAUSES.inquest, record.id);
+      if (cfg.bribedVerdictHeat !== 0) {
+        adjust(state, 'heat', cfg.bribedVerdictHeat, CAUSES.inquest, record.id);
+      }
       outcome = 'bribed';
     }
   } else if (rng.chance(implicationChance(state, record, approach))) {

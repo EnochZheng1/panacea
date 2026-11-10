@@ -132,6 +132,7 @@ function monthForCustomer(
   let lastFormula: string | null = null;
   let lastBadBatch = false;
   let lastDetectability: number | undefined;
+  let strongestHabit = 0;
 
   const die = (cause: DeathCause, productImplicated: boolean): MonthOutcome => {
     recordDeath(state, content, rng, {
@@ -165,6 +166,7 @@ function monthForCustomer(
     lastFormula = b.formulaId;
     lastDetectability = a.properties.detectability;
     lastBadBatch = lastBadBatch || b.badBatch;
+    strongestHabit = Math.max(strongestHabit, a.properties.habit);
     const dose = doseContextFor(c, b.potency, content);
     reliefSum += reliefScore(a, body.tolerance, c.profile);
     const danger = acuteDanger(a, body.tolerance, dose, content);
@@ -184,11 +186,15 @@ function monthForCustomer(
   }
   const habitTotal = DRUG_CLASSES.reduce((s, cls) => s + habitIntake[cls], 0);
   const dependencyDecay = cfg.dependencyDecay * (habitTotal > 0 ? 0.3 : 1);
+  const before = body.dependency;
   body.dependency = clamp01(
-    body.dependency +
-      cfg.dependencyGain * habitTotal * (1 - body.dependency) -
-      dependencyDecay * body.dependency,
+    before + cfg.dependencyGain * habitTotal * (1 - before) - dependencyDecay * before,
   );
+  // A mild bottle (habit under `habitFloor`, as the assay reads it: "none") gives a taste for it,
+  // never a craving: it can build dependency up to `mildDependencyCap` and no further.
+  if (strongestHabit < cfg.habitFloor && body.dependency > before) {
+    body.dependency = Math.max(before, Math.min(body.dependency, cfg.mildDependencyCap));
+  }
   const withdrawal = body.dependency > cfg.withdrawalThreshold && habitTotal < body.dependency * 2;
   c.inWithdrawal = withdrawal;
   if (withdrawal) body.health -= cfg.withdrawalHarm;

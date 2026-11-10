@@ -116,6 +116,11 @@ export interface MonthInProgress {
    */
   turnedAwayByPrice: number;
   /**
+   * Callers wary of narcotics (see `Customer.wary`), walk-ins and regulars, who found something
+   * on the shelf to their liking but would not take it for the opiate or coca in it.
+   */
+  refusedNarcotic: number;
+  /**
    * Callers at the shop this month, by where they came from: `ward` (the neighbourhood, by
    * reputation), `newspaper`, `subscriptions` (societies and the like), and each investment id.
    */
@@ -154,6 +159,8 @@ export interface LedgerEntry {
   complaints: number;
   /** Callers who asked the price and left (see `MonthInProgress.turnedAwayByPrice`). */
   turnedAwayByPrice: number;
+  /** Wary callers who would not take a narcotic bottle (see `MonthInProgress.refusedNarcotic`). */
+  refusedNarcotic: number;
   /** Callers by source (see `MonthInProgress.callers`). */
   callers: Record<string, number>;
   wholesale: WholesaleMonth;
@@ -236,6 +243,11 @@ export interface Customer {
    * cents. Paid down in months they spend less than they can afford.
    */
   debtCents: number;
+  /**
+   * Wary of narcotics (see `Segment.wary` in the content): will not take a bottle whose opiates and
+   * coca make a habit of `market.waryHabit` or more, and trusts one with none in it.
+   */
+  wary: boolean;
 }
 
 export type DeathCause = 'overdose' | 'poisoning' | 'disease' | 'natural';

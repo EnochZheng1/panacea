@@ -229,7 +229,7 @@ public partial class FormulaBench : HBoxContainer
 	{
 		["kick"] = "Kick: how hard the bottle hits, what the customer feels on the tongue and in the head. More kick sells.",
 		["calm"] = "Calm: how much it soothes and sends them to sleep. More calm sells, to the nervous and the sleepless.",
-		["habit"] = "Habit: how strongly the bottle draws a regular back. Anything above none can make a regular crave it in time, ask for it by name and take more: the spirit in a bottle too, a little at a time.",
+		["habit"] = "Habit: how strongly the bottle draws a regular back. A slight habit (the spirit in most tonics) makes regulars fond of it but never a craving; anything stronger can make a regular crave it in time, ask for it by name and take more.",
 		["acuteToxicity"] = "Danger: how much one bottle may harm the drinker. Infants and the frail are harmed first; enough of it kills outright.",
 		["bitterness"] = "Taste: sweet sells better than bitter.",
 		["accumulation"] = "Builds up: whether it stays in the body from bottle to bottle (metals, mostly). What builds up wastes a regular slowly.",
@@ -308,11 +308,11 @@ public partial class FormulaBench : HBoxContainer
 		}
 		_cost.Text = p.Error == null ? $"Costs {EditionWriter.Money(p.UnitCostCents)} a bottle to make." : "";
 		_verdict.Text = p.Error != null ? $"[b]Not yet.[/b] [i]{Print.Escape(Plain(p.Error))}[/i]" : Verdict(p.Properties);
-		// a slight habit is still a habit: say so where the mixture is called honest
+		// a slight habit is a habit, but never a craving (the sim needs a habit of 1 for that): say both
 		if (p.Error == null && p.Properties.GetValueOrDefault("habit") is > 0 and < 1)
 			_verdict.Text += SpiritOnly(Recipe(), d)
-				? " [i]The spirit in it makes a slight habit: a regular who takes it month after month may come to ask for it by name.[/i]"
-				: " [i]It makes a slight habit: a regular who takes it month after month may come to ask for it by name.[/i]";
+				? " [i]The spirit in it makes a slight habit: regulars grow fond of it, but none will come to crave it.[/i]"
+				: " [i]It makes a slight habit: regulars grow fond of it, but none will come to crave it.[/i]";
 
 		foreach (var c in _actions.GetChildren()) { _actions.RemoveChild(c); c.QueueFree(); }
 		// one page in the book for each remedy, and a blank page for a new one
@@ -437,7 +437,7 @@ public partial class FormulaBench : HBoxContainer
 		"kick" => v < 2 ? "does nothing" : v < 5 ? "you feel it" : v < 9 ? "a warm wallop" : "knocks them flat",
 		"calm" => v < 2 ? "no comfort" : v < 6 ? "soothing" : v < 11 ? "they sleep" : "they sleep very soundly",
 		// any habit at all can make a regular crave the bottle in time: "none" only for none
-		"habit" => v <= 0.001 ? "none" : v < 1 ? (spiritOnly ? "slight: the spirit in it" : "slight") : v < 3 ? "they may come back" : v < 6 ? "most will come back" : "hard to give up",
+		"habit" => v <= 0.001 ? "none" : v < 1 ? (spiritOnly ? "slight (the spirit); never a craving" : "slight; never a craving") : v < 3 ? "they may come back" : v < 6 ? "most will come back" : "hard to give up",
 		// danger climbs in steps a reader can feel, so a doubled dose never reads the same
 		"acuteToxicity" => v < 0.8 ? "harmless" : v < 1.6 ? "a risk to infants" : v < 2.8 ? "a risk to the frail"
 			: v < 4.5 ? "dangerous to anyone weak" : v < 7 ? "fatal in a large dose" : v < 11 ? "fatal in an ordinary dose" : "a spoonful may kill",

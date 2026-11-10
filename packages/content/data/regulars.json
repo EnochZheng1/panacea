@@ -1,6 +1,7 @@
 [
   {
     "id": "mrs_halloran",
+    "wary": true,
     "displayName": "Mrs. Bridget Halloran",
     "segment": "mother",
     "ailment": "teething_infant",
@@ -49,6 +50,7 @@
   },
   {
     "id": "mr_finch",
+    "wary": true,
     "displayName": "Mr. Horace Finch",
     "segment": "clerk",
     "ailment": "dyspepsia",
@@ -97,6 +99,7 @@
   },
   {
     "id": "mrs_vanderhoef",
+    "wary": true,
     "displayName": "Mrs. Cornelia Vanderhoef",
     "segment": "well_to_do",
     "ailment": "melancholy",

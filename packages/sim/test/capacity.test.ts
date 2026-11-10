@@ -188,13 +188,13 @@ describe('the shop next door (balance pass 6)', () => {
       { metric: 'cash', amount: -content.config.rentCents, cause: 'expense.rent' },
     ]);
     const offer = observe(left.state, content).investments.find((i) => i.id === 'shop_next_door')!;
-    expect(offer).toMatchObject({ canBuy: true, upkeepCents: 500 });
+    expect(offer).toMatchObject({ canBuy: true, upkeepCents: 300 });
     const taken = act(left.state, { type: 'Invest', investmentId: 'shop_next_door' });
     const { state, report } = endTurn(taken, content);
     expect(state.unlocks.unlocked['larger_shop']).toBe(taken.meta.turn);
     expect(report.deltas).toContainEqual({
       metric: 'cash',
-      amount: -500,
+      amount: -300,
       cause: 'expense.upkeep',
       detail: 'shop_next_door',
     });

@@ -531,7 +531,7 @@ public static class Progression
 
     /// <summary>
     /// The ledger line a reply's money is booked under, by its ledger tag (progression.ts
-    /// LETTER_LEDGER). Untagged money is "letters answered", and so, for now, is trade given up.
+    /// LETTER_LEDGER). Untagged money is "letters answered"; trade given up has its own line.
     /// </summary>
     public static readonly IReadOnlyDictionary<string, string> LetterLedger = new Dictionary<string, string>
     {
@@ -539,7 +539,7 @@ public static class Progression
         ["supplies"] = Causes.Ingredients,
         ["fees"] = Causes.Bribe,
         ["subscriptions"] = Causes.Retainer,
-        ["trade"] = Causes.Event,
+        ["trade"] = Causes.TradeLost,
     };
 
     /// <summary>

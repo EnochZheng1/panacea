@@ -397,6 +397,8 @@ public sealed partial class EditionWriter
             });
         if (f.TurnedAwayByPrice > 0)
             trade.Blocks.Add(new Block { Text = Frame("tradeTurned", ("n", Words(f.TurnedAwayByPrice))), Clip = books });
+        if (f.RefusedNarcotic > 0)
+            trade.Blocks.Add(new Block { Text = Frame("tradeRefusedNarcotic", ("n", Words(f.RefusedNarcotic))), Clip = books });
         if (TillFlat(f) is { } flat) trade.Blocks.Add(new Block { Lead = "WHERE THE MONEY WENT.—", Text = flat, Clip = books });
         if (!f.FirstEdition && f.CashLines.Count > 0)
         {
@@ -892,6 +894,7 @@ public sealed partial class EditionWriter
             "expense.bottling" => "bottles, corks and labels",
             "expense.advertising" => "the Gazette's space",
             "event" => "the letters answered",
+            "event.trade_lost" => "trade given up to answer letters",
             "expense.bribe" => "consulting fees",
             "expense.retainer" => "subscriptions and retainers",
             "expense.investment" => "a venture taken up",

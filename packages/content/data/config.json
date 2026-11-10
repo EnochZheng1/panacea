@@ -1,5 +1,5 @@
 {
-  "contentVersion": "0.11.0",
+  "contentVersion": "0.12.0",
   "startDate": {
     "year": 1885,
     "month": 1
@@ -24,7 +24,8 @@
     "wordPerHabit": 3,
     "wordHabitFloor": 3.5,
     "wordHabitCap": 8,
-    "wardShareSlack": 3
+    "wardShareSlack": 3,
+    "carefulPerWary": 0.5
   },
   "maxRegulars": 30,
   "maxClaimsPerFormula": 4,
@@ -50,6 +51,9 @@
     "dearAbove": 1.15,
     "dearElasticity": 1.5,
     "dearHabitHold": 3,
+    "waryHabit": 2,
+    "cleanAppeal": 2,
+    "waryBoldness": 1.5,
     "ordersShelfShare": 0.5
   },
   "advertising": {
@@ -70,6 +74,8 @@
     "dependencyDecay": 0.06,
     "withdrawalThreshold": 0.3,
     "withdrawalHarm": 3,
+    "habitFloor": 1,
+    "mildDependencyCap": 0.25,
     "loadDecay": 0.1,
     "loadSafe": 10,
     "loadHarm": 0.2,
@@ -91,10 +97,11 @@
     "letterCallerLoss": 1.5,
     "inquestBaseChance": 0.25,
     "bribeBaseCents": 1500,
-    "bribeRisePerBribe": 0.1,
+    "bribeRisePerBribe": 0.5,
     "bribeMinRiseCents": 500,
     "bribeHeatDoubling": 100,
-    "bribeExposurePerBribe": 0.03,
+    "bribeExposureBase": 0.1,
+    "bribeExposurePerBribe": 0.04,
     "bribeExposurePerNotoriety": 0.0025,
     "bribeExposureMax": 0.5,
     "benignVerdicts": [
@@ -104,6 +111,7 @@
       "natural_causes",
       "misadventure"
     ],
+    "bribedVerdictHeat": 0,
     "shutdownGraceMonths": 2
   },
   "ward": {

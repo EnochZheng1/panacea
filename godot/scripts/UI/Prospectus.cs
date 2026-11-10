@@ -34,6 +34,23 @@ public partial class Prospectus : VBoxContainer
 		["almanac"] = "Offered once the Gazette will sell you space.",
 	};
 
+	/// <summary>
+	/// What a venture waits on, in two kinds of line: "Waits on: a second still, 9 of 200 bottles
+	/// sold" (the condition) and "Its price: $150.00 of the $200.00 in hand" (the money).
+	/// </summary>
+	private static System.Collections.Generic.IEnumerable<string> ProgressLines(System.Collections.Generic.List<string> progress)
+	{
+		foreach (var raw in progress)
+		{
+			var p = raw.Replace("for the shop next door, the shop next door taken (in VENTURES)", "the shop next door, which is not yet taken up (it is above)")
+				.Replace("the shop next door taken (in VENTURES)", "the shop next door, not yet taken up (above)");
+			if (p.Contains(" in hand", StringComparison.Ordinal)) yield return $"Its price: {p}.";
+			else if (p.StartsWith("for ", StringComparison.Ordinal)) yield return $"Waits on {p[4..]}.";
+			else if (p.StartsWith("waits on ", StringComparison.Ordinal)) yield return $"Waits on {p[9..]}.";
+			else yield return $"So far: {p}.";
+		}
+	}
+
 	public Prospectus(IGame game)
 	{
 		_game = game;
@@ -121,8 +138,9 @@ public partial class Prospectus : VBoxContainer
 			if (!r.Description.Contains("Offered", StringComparison.Ordinal))
 				v.AddChild(Print.Label(Waits.TryGetValue(r.Id, out var w) ? w : why, Print.FellIt, 14, HorizontalAlignment.Right, new Color(Print.Ink, 0.85f)));
 			// and how far the house has come toward it
-			if (r.Progress.Count > 0)
-				v.AddChild(Print.Label(EditionWriter.Set("So far: " + string.Join("; ", r.Progress) + "."), Print.Fell, 13, HorizontalAlignment.Right));
+			// the thing it waits on, and its price, set apart: a price is not a condition of the thing before it
+			foreach (var line in ProgressLines(r.Progress))
+				v.AddChild(Print.Label(EditionWriter.Set(line), Print.Fell, 14, HorizontalAlignment.Right));
 		}
 		else
 		{
@@ -153,7 +171,10 @@ public partial class Prospectus : VBoxContainer
 				}
 				_asking = null;
 				var err = _game.Invest(id);
-				_note = err != null ? "Refused: " + err : $"Taken up: {name}, for {EditionWriter.Money(cost)}. It will be in the next edition.";
+				var upkeep = r.UpkeepCents > 0 ? $", and {EditionWriter.Money(r.UpkeepCents)} a month after" : "";
+				_note = err != null ? "Refused: " + err
+					: cost == 0 ? $"Taken up: {name}, nothing down{upkeep}. The next edition will report it."
+					: $"Taken up: {name}, for {EditionWriter.Money(cost)}{upkeep}. The next edition will report it.";
 				Main.Guard(800);
 				Refresh();
 				if (err == null) Changed?.Invoke();
@@ -171,7 +192,6 @@ public partial class Prospectus : VBoxContainer
 		}
 		var s = Print.Panel(v, Print.Box(new Color(0, 0, 0, 0), new Color(0, 0, 0, 0), 2, 8));
 		s.FocusMode = FocusModeEnum.All;
-		s.TooltipText = r.Name;
 		var plain = s.GetThemeStylebox("panel");
 		s.FocusEntered += () => s.AddThemeStyleboxOverride("panel", Print.Box(new Color(0, 0, 0, 0), Print.Ink, 3, 8));
 		s.FocusExited += () => s.AddThemeStyleboxOverride("panel", plain);

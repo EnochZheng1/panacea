@@ -86,7 +86,8 @@ public partial class OrderForm : VBoxContainer
 			name.MouseFilter = MouseFilterEnum.Pass;
 			grid.AddChild(name);
 			grid.AddChild(Print.Label(i.CostPerOunceCents == 0 ? "free" : EditionWriter.Money(i.CostPerOunceCents), Print.Fell, 14, HorizontalAlignment.Right, wrap: false));
-			grid.AddChild(Print.Label($"{i.OnHand:0.#} oz", Print.Fell, 14, HorizontalAlignment.Right, wrap: false));
+			// what is free comes from the pump, and is always on hand: THE STILL draws it as it lights
+			grid.AddChild(Print.Label(i.CostPerOunceCents == 0 ? "the pump" : $"{i.OnHand:0.#} oz", Print.Fell, 14, HorizontalAlignment.Right, wrap: false));
 			var q = new HBoxContainer();
 			q.AddThemeConstantOverride("separation", 3);
 			// the quantity is written in, by hand, between the marks

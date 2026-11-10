@@ -79,14 +79,34 @@ public partial class FormulaBench : HBoxContainer
 		var v = new VBoxContainer();
 		v.AddThemeConstantOverride("separation", 6);
 		v.AddChild(Print.Label("THE DRUG SHELF", Print.Rye, 18, HorizontalAlignment.Center));
-		v.AddChild(Print.Body("[i]Click a jar to pour half an ounce (the dear drugs by the eighth); hold Shift for half as much. Right-click to take it back. By keyboard: the arrows walk the shelf, Enter pours, Backspace takes it back.[/i]", 13, centre: true));
-		var scroll = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled, SizeFlagsVertical = SizeFlags.ExpandFill, CustomMinimumSize = new Vector2(0, 380) };
+		var how = Print.Body("[i]Click a jar to pour ½ oz (dear drugs by the ⅛); Shift for half. Right-click takes it back.[/i]", 13, centre: true);
+		how.TooltipText = "By keyboard: the arrows walk the shelf, Enter pours, Backspace takes it back.";
+		v.AddChild(how);
+		// the shelf scrolls inside its own frame, which ends inside the drawer: what is below says so
+		var scroll = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled, SizeFlagsVertical = SizeFlags.ExpandFill, CustomMinimumSize = new Vector2(0, 200) };
 		Print.QuietScrollbar(scroll);
 		_shelf = new GridContainer { Columns = 3, SizeFlagsHorizontal = SizeFlags.ExpandFill };
 		_shelf.AddThemeConstantOverride("h_separation", 6);
 		_shelf.AddThemeConstantOverride("v_separation", 6);
 		scroll.AddChild(_shelf);
 		v.AddChild(scroll);
+		var more = Print.Label("more jars below ▼ (scroll)", Print.FellIt, 13, HorizontalAlignment.Center);
+		v.AddChild(more);
+		void ShowMore()
+		{
+			if (!IsInstanceValid(scroll) || !IsInstanceValid(more)) return;
+			var bar = scroll.GetVScrollBar();
+			var below = bar.MaxValue - bar.Page > 4 && bar.Value < bar.MaxValue - bar.Page - 4;
+			more.Text = below ? "more jars below ▼ (scroll)" : bar.MaxValue - bar.Page > 4 ? "▲ the top of the shelf above" : "";
+		}
+		scroll.GetVScrollBar().Changed += ShowMore;
+		scroll.GetVScrollBar().ValueChanged += _ =>
+		{
+			ShowMore();
+			// a jar's tooltip does not stay floating over the jar that has scrolled under it
+			var at = GetViewport().GetMousePosition();
+			Input.ParseInputEvent(new InputEventMouseMotion { Position = at, GlobalPosition = at });
+		};
 		BuildShelf(d);
 		return v;
 	}
@@ -122,7 +142,7 @@ public partial class FormulaBench : HBoxContainer
 		ring.ExpandMarginLeft = ring.ExpandMarginRight = ring.ExpandMarginTop = ring.ExpandMarginBottom = 3;
 		box.FocusEntered += () => box.AddThemeStyleboxOverride("panel", ring);
 		box.FocusExited += () => box.AddThemeStyleboxOverride("panel", plain);
-		box.TooltipText = $"{i.Name}: {EditionWriter.Money(i.CostPerOunceCents)} the ounce, {i.OnHand:0.#} oz on hand.\n{i.Description}";
+		box.TooltipText = (i.CostPerOunceCents == 0 ? $"{i.Name}: free, from the pump, and always on hand." : $"{i.Name}: {EditionWriter.Money(i.CostPerOunceCents)} the ounce, {i.OnHand:0.#} oz on hand.") + $"\n{i.Description}";
 		var v = new VBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
 		v.AddThemeConstantOverride("separation", 0);
 		var tex = Print.Cut(JarCut(i));
@@ -136,7 +156,7 @@ public partial class FormulaBench : HBoxContainer
 		var name = Print.Label(i.Name, Print.Fell, 13, HorizontalAlignment.Center);
 		name.MouseFilter = MouseFilterEnum.Ignore;
 		v.AddChild(name);
-		var sub = Print.Label(on ? $"{inGlass:0.###} oz in the glass" : (i.CostPerOunceCents == 0 ? "free" : $"{EditionWriter.Money(i.CostPerOunceCents)}/oz" + (i.CostPerOunceCents >= 200 ? " · by the ⅛" : "")), Print.FellIt, 11, HorizontalAlignment.Center);
+		var sub = Print.Label(on ? $"{inGlass:0.###} oz in the glass" : (i.CostPerOunceCents == 0 ? "free" : $"{EditionWriter.Money(i.CostPerOunceCents)}/oz" + (i.CostPerOunceCents >= 200 ? " · by the ⅛" : "")), Print.Fell, 13, HorizontalAlignment.Center);
 		sub.MouseFilter = MouseFilterEnum.Ignore;
 		v.AddChild(sub);
 		box.AddChild(v);
@@ -201,18 +221,30 @@ public partial class FormulaBench : HBoxContainer
 	private static readonly (string Key, string Label)[] Order =
 	{
 		("kick", "Kick"), ("calm", "Calm"), ("habit", "Habit"), ("acuteToxicity", "Danger"),
-		("bitterness", "Taste"), ("accumulation", "Lingers"), ("detectability", "In an assay"),
+		("bitterness", "Taste"), ("accumulation", "Builds up"), ("detectability", "A chemist"),
+	};
+
+	/// <summary>What each reading is, in a sentence, for the gauge's tooltip.</summary>
+	private static readonly Dictionary<string, string> Help = new()
+	{
+		["kick"] = "Kick: how hard the bottle hits, what the customer feels on the tongue and in the head. More kick sells.",
+		["calm"] = "Calm: how much it soothes and sends them to sleep. More calm sells, to the nervous and the sleepless.",
+		["habit"] = "Habit: how strongly the bottle draws a regular back. Anything above none can make a regular crave it in time, ask for it by name and take more: the spirit in a bottle too, a little at a time.",
+		["acuteToxicity"] = "Danger: how much one bottle may harm the drinker. Infants and the frail are harmed first; enough of it kills outright.",
+		["bitterness"] = "Taste: sweet sells better than bitter.",
+		["accumulation"] = "Builds up: whether it stays in the body from bottle to bottle (metals, mostly). What builds up wastes a regular slowly.",
+		["detectability"] = "A chemist: whether a chemist's test at an inquest would find what is in it.",
 	};
 
 	private Control AssayColumn(DeskModel d)
 	{
 		var v = new VBoxContainer();
-		v.AddThemeConstantOverride("separation", 6);
+		v.AddThemeConstantOverride("separation", 3);
 		v.AddChild(Print.Label("THE ASSAY", Print.Rye, 18, HorizontalAlignment.Center));
 		v.AddChild(Print.Rule(2.5f, 1, 2));
 		foreach (var (key, label) in Order)
 		{
-			var g = new Gauge(label);
+			var g = new Gauge(label) { Help = Help.GetValueOrDefault(key, "") };
 			_gauges[key] = g;
 			v.AddChild(g);
 		}
@@ -225,7 +257,7 @@ public partial class FormulaBench : HBoxContainer
 		_procs.AddThemeConstantOverride("separation", 4);
 		v.AddChild(_procs);
 		_actions = new VBoxContainer();
-		_actions.AddThemeConstantOverride("separation", 5);
+		_actions.AddThemeConstantOverride("separation", 4);
 		v.AddChild(_actions);
 		return v;
 	}
@@ -238,6 +270,13 @@ public partial class FormulaBench : HBoxContainer
 		foreach (var (id, name) in d.Processes)
 		{
 			var b = Print.Button(name.ToUpperInvariant(), 11, solid: id == _process);
+			b.TooltipText = id switch
+			{
+				"simple_mix" => "Simple mixture: combine, shake and bottle. Nothing added to the cost.",
+				"steep" => "Steeping: the herbs stand a week in the spirit. A little more kick and calm (a tenth), and more bitter; 1c. more a bottle.",
+				"percolate" => "Percolation: spirit dripped slowly through the drugs in the glass percolator. A quarter more kick and calm, a tenth more habit, a little more bitter; 2c. more a bottle.",
+				_ => name,
+			};
 			var pid = id;
 			b.Pressed += () => { _process = pid; Refresh(); };
 			_procs.AddChild(b);
@@ -265,10 +304,15 @@ public partial class FormulaBench : HBoxContainer
 			g.Modulate = new Color(1, 1, 1, p.Error == null ? 1f : 0.35f);
 			if (p.Error != null) continue;
 			var value = p.Properties.GetValueOrDefault(key);
-			g.Set(value, Words(key, value), animateFrom);
+			g.Set(value, Words(key, value, SpiritOnly(Recipe(), d)), animateFrom);
 		}
 		_cost.Text = p.Error == null ? $"Costs {EditionWriter.Money(p.UnitCostCents)} a bottle to make." : "";
 		_verdict.Text = p.Error != null ? $"[b]Not yet.[/b] [i]{Print.Escape(Plain(p.Error))}[/i]" : Verdict(p.Properties);
+		// a slight habit is still a habit: say so where the mixture is called honest
+		if (p.Error == null && p.Properties.GetValueOrDefault("habit") is > 0 and < 1)
+			_verdict.Text += SpiritOnly(Recipe(), d)
+				? " [i]The spirit in it makes a slight habit: a regular who takes it month after month may come to ask for it by name.[/i]"
+				: " [i]It makes a slight habit: a regular who takes it month after month may come to ask for it by name.[/i]";
 
 		foreach (var c in _actions.GetChildren()) { _actions.RemoveChild(c); c.QueueFree(); }
 		// one page in the book for each remedy, and a blank page for a new one
@@ -303,16 +347,18 @@ public partial class FormulaBench : HBoxContainer
 		nameEdit.TextChanged += t => _name = t;
 		var editing = d.Formulas.FirstOrDefault(f => f.Id == _editing);
 		if (editing == null) _actions.AddChild(nameEdit);
-		var priceRow = new HBoxContainer();
-		priceRow.AddThemeConstantOverride("separation", 4);
 		var shown = editing?.PriceCents ?? _price;
 		// say whose price the buttons change: the remedy on the shelf, or the one being entered
-		var priceLabel = Print.Label(editing != null ? $"{editing.Name}, on the shelf at {EditionWriter.Money(shown)}" : $"The new remedy, to sell at {EditionWriter.Money(shown)}", Print.Fell, 15);
-		priceLabel.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-		priceRow.AddChild(priceLabel);
+		_actions.AddChild(Print.Label(editing != null ? $"{editing.Name}, on the shelf at:" : "The new remedy, to sell at:", Print.Fell, 15));
+		var priceRow = new HBoxContainer();
+		priceRow.AddThemeConstantOverride("separation", 6);
+		var priceFig = Print.Label(EditionWriter.Money(shown), Print.Rye, 18, HorizontalAlignment.Center, wrap: false);
+		priceFig.CustomMinimumSize = new Vector2(70, 0);
 		foreach (var step in new[] { -5, 5 })
 		{
-			var b = Print.Button(step > 0 ? $"+{step}c" : $"{step}c", 11);
+			var b = Print.Button(step > 0 ? $"+{step}c" : $"{step}c", 12);
+			b.CustomMinimumSize = new Vector2(52, 28);
+			b.SizeFlagsVertical = SizeFlags.ShrinkCenter;
 			b.TooltipText = editing != null ? $"Changes the price of {editing.Name} on the shelf, from this month." : "Changes the price the new remedy will be entered at.";
 			var s = step;
 			b.Pressed += () =>
@@ -324,6 +370,7 @@ public partial class FormulaBench : HBoxContainer
 				Refresh();
 				Changed?.Invoke();
 			};
+			if (step > 0) priceRow.AddChild(priceFig);
 			priceRow.AddChild(b);
 			if (_focusPrice == step)
 			{
@@ -332,11 +379,21 @@ public partial class FormulaBench : HBoxContainer
 			}
 		}
 		_actions.AddChild(priceRow);
+		// what the price did last month, so the control is not pressed blind
+		if (editing != null && !_game.Facts.FirstEdition)
+		{
+			var away = _game.Facts.TurnedAwayByPrice;
+			var then = _game.Facts.Products.FirstOrDefault(x => x.Id == editing.Id)?.PriceCents;
+			var when = then is long c && _game.Facts.Products.Count == 1 ? $"At {EditionWriter.Money(c)} last month" : "Last month";
+			_actions.AddChild(Print.Label(away > 0
+				? $"{when}, {EditionWriter.Words(away)} asked the price and went away."
+				: $"{when}, nobody went away over the price.", Print.FellIt, 14));
+		}
 		if (editing != null)
 		{
-			var re = Print.Button($"CHANGE THE RECIPE OF {editing.Name.ToUpperInvariant()}", 13, solid: true, sound: "lever");
+			var re = Print.Button(editing.Name.Length > 18 ? "CHANGE THIS RECIPE" : $"CHANGE THE RECIPE OF {editing.Name.ToUpperInvariant()}", 13, solid: true, sound: "lever");
 			re.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-			re.TooltipText = "Change what goes in the bottle. The label stays the same; stock already brewed is unaffected.";
+			re.TooltipText = $"Change what goes in the bottle of {editing.Name}. The label stays the same; stock already brewed is unaffected.";
 			re.Disabled = p.Error != null;
 			re.Pressed += () => { _note = _game.Reformulate(editing.Id, Recipe(), _process) ?? "Reformulated. The next batch will be the new recipe; the customers will not be told."; Refresh(); Changed?.Invoke(); };
 			_actions.AddChild(re);
@@ -368,17 +425,25 @@ public partial class FormulaBench : HBoxContainer
 	private static string Short(string name) => (name.Length > 22 ? name[..20].TrimEnd() + "…" : name).ToUpperInvariant();
 
 	/// <summary>What each reading means, in the words a druggist would use.</summary>
-	public static string Words(string key, double v) => key switch
+	/// <summary>True when what habit the glass has comes from spirits alone.</summary>
+	private static bool SpiritOnly(List<(string, double)> recipe, DeskModel d)
+	{
+		var cls = recipe.Select(r => d.Ingredients.FirstOrDefault(i => i.Id == r.Item1)?.DrugClass ?? "").ToList();
+		return cls.Contains("alcohol") && !cls.Any(c => c is "opiate" or "cocaine");
+	}
+
+	public static string Words(string key, double v, bool spiritOnly = false) => key switch
 	{
 		"kick" => v < 2 ? "does nothing" : v < 5 ? "you feel it" : v < 9 ? "a warm wallop" : "knocks them flat",
 		"calm" => v < 2 ? "no comfort" : v < 6 ? "soothing" : v < 11 ? "they sleep" : "they sleep very soundly",
-		"habit" => v < 1 ? "none" : v < 3 ? "they may come back" : v < 6 ? "most will come back" : "hard to give up",
+		// any habit at all can make a regular crave the bottle in time: "none" only for none
+		"habit" => v <= 0.001 ? "none" : v < 1 ? (spiritOnly ? "slight: the spirit in it" : "slight") : v < 3 ? "they may come back" : v < 6 ? "most will come back" : "hard to give up",
 		// danger climbs in steps a reader can feel, so a doubled dose never reads the same
 		"acuteToxicity" => v < 0.8 ? "harmless" : v < 1.6 ? "a risk to infants" : v < 2.8 ? "a risk to the frail"
 			: v < 4.5 ? "dangerous to anyone weak" : v < 7 ? "fatal in a large dose" : v < 11 ? "fatal in an ordinary dose" : "a spoonful may kill",
 		"bitterness" => v < 1 ? "sweet" : v < 3 ? "medicinal" : v < 6 ? "bitter" : "undrinkable",
-		"accumulation" => v < 0.3 ? "passes through" : v < 1.5 ? "builds up slowly" : "builds up in the body",
-		"detectability" => v < 2 ? "hard to find" : v < 5 ? "a chemist might find it" : "any chemist would find it",
+		"accumulation" => v < 0.3 ? "passes through" : v < 1.5 ? "slowly" : "in the body",
+		"detectability" => v < 2 ? "would not find it" : v < 5 ? "might find it" : "would find it",
 		_ => "",
 	};
 
@@ -402,6 +467,7 @@ public partial class FormulaBench : HBoxContainer
 		private readonly Label _value;
 		private Tween? _t;
 		private const float Track = 190f;
+		public string Help = "";
 
 		public Gauge(string label)
 		{
@@ -437,7 +503,7 @@ public partial class FormulaBench : HBoxContainer
 			_words.Text = words;
 			// the figure is the chemist's pencil note, not print: on hover only
 			_value.Text = "";
-			TooltipText = $"The chemist's figure: {value:0.0} on a scale of 15.";
+			TooltipText = (Help.Length > 0 ? Help + "\n" : "") + $"The chemist's figure: {value:0.0} on a scale of 15.";
 			MouseFilter = MouseFilterEnum.Pass;
 		}
 	}

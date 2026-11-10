@@ -90,14 +90,22 @@ public partial class StillBench : HBoxContainer
 			_right.AddChild(Print.Body($"[i]Every still is on the fire ({Print.Escape(lit)}). The bottles will be on the shelf by press time; send the paper to press when you are ready.[/i]", 15, justify: false));
 			return;
 		}
-		var stills = d.StillsFree == 1 ? "One still is free" : d.StillsFree == 2 ? "Two stills are free" : $"{EditionWriter.Words(d.StillsFree)} stills are free";
+		var stills = d.StillsFree == 1 ? "One still is free" : d.StillsFree == 2 ? "Two stills are free" : $"{Cap(EditionWriter.Words(d.StillsFree))} stills are free";
 		_right.AddChild(Print.Body($"[i]{stills} this month, {EditionWriter.Words(d.StillBottles)} bottles a batch at most. A batch is bottled by the time the paper goes to press.[/i]", 14, justify: false));
 		// the ladder: what the next still (or a larger copper) waits for
 		if (d.NextCapacity != null) _right.AddChild(Print.Body($"[i]{Print.Escape(EditionWriter.Set(d.NextCapacity))}[/i]", 13, justify: false));
-		foreach (var (name, onFire) in d.Brewing)
-			_right.AddChild(Print.Label($"On the fire: {onFire} bottles of {name}", Print.FellIt, 15));
 
-		var max = Math.Max(0, f.MaxBrewable);
+		var stock = d.Ingredients.ToDictionary(i => i.Id, i => i);
+		// what the shelf allows, counting the free things (water from the pump) as always on hand
+		int Allows() => f.Components.Where(c => c.Ounces > 0 && !(stock.TryGetValue(c.IngredientId, out var fi) && fi.CostPerOunceCents == 0))
+			.Select(c => stock.TryGetValue(c.IngredientId, out var i) ? (int)Math.Floor(i.OnHand / c.Ounces + 1e-9) : 0)
+			.DefaultIfEmpty(int.MaxValue).Min();
+		var freeComps = f.Components.Where(c => c.Ounces > 0 && stock.TryGetValue(c.IngredientId, out var fi) && fi.CostPerOunceCents == 0).ToList();
+		var pumpLimit = freeComps.Select(c => (int)Math.Floor(stock[c.IngredientId].OnHand / c.Ounces + 1e-9)).DefaultIfEmpty(int.MaxValue).Min();
+		// the sim's figure, unless the water is what holds it back: then the shelf, the still and the cash for the glass
+		var perBottle = d.BottleCostCents + (f.ProcessId switch { "steep" => 1, "percolate" => 2, _ => 0 });
+		var max = f.MaxBrewable < pumpLimit || d.StillsFree <= 0 ? Math.Max(0, f.MaxBrewable)
+			: (int)Math.Max(0, Math.Min(Math.Min(Allows(), d.StillBottles), perBottle > 0 ? d.CashCents / perBottle : int.MaxValue));
 		// the batch you want may be more than the shelf allows: the order button makes up the rest
 		// a still makes at most so many bottles a batch (48, or more with a larger copper)
 		var cap = Math.Max(1, d.StillBottles);
@@ -118,7 +126,6 @@ public partial class StillBench : HBoxContainer
 		var bottles = n * d.BottleCostCents;
 		// the ingredients were paid for when they were ordered: lighting the fire costs only the glass
 		var stuff = Math.Max(0, n * f.UnitCostCents - bottles);
-		var stock = d.Ingredients.ToDictionary(i => i.Id, i => i);
 		(List<(string Id, double Oz)> Needs, long Cost) Shortfall(int batch)
 		{
 			var list = new List<(string Id, double Oz)>();
@@ -127,7 +134,7 @@ public partial class StillBench : HBoxContainer
 			{
 				var have = stock.TryGetValue(c.IngredientId, out var i) ? i.OnHand : 0;
 				var need = Math.Ceiling(Math.Max(0, c.Ounces * batch - have));
-				if (need <= 0) continue;
+				if (need <= 0 || (i != null && i.CostPerOunceCents == 0)) continue;
 				list.Add((c.IngredientId, need));
 				total += (long)Math.Round(need * (i?.CostPerOunceCents ?? 0));
 			}
@@ -136,20 +143,31 @@ public partial class StillBench : HBoxContainer
 		var Batch = want > max ? want : Math.Min(24, cap);
 		var (needs, cost) = Shortfall(Batch);
 		var fid = f.Id; var fname = f.Name;
+		string? Pump(int batch)
+		{
+			string? err = null;
+			foreach (var c in f.Components.Where(c => c.Ounces > 0))
+			{
+				if (!stock.TryGetValue(c.IngredientId, out var i) || i.CostPerOunceCents != 0) continue;
+				var need = Math.Ceiling(Math.Max(0, c.Ounces * batch - i.OnHand));
+				if (need > 0) err ??= _game.Buy(c.IngredientId, need);
+			}
+			return err;
+		}
 
 		// the buttons sit in fixed places right under the shelf: nothing above them changes when
 		// stock is ordered, and a button with nothing to do stays where it is, greyed, rather
 		// than leaving a gap for the next one to slide into
 		var row = new HBoxContainer();
 		row.AddThemeConstantOverride("separation", 8);
-		var fire = Print.Button(n > 0 ? $"LIGHT THE FIRE · {n} BOTTLES" : "LIGHT THE FIRE", 14, solid: true, sound: "lever");
+		var fire = Print.Button(n > 0 ? $"LIGHT THE FIRE · {n} · {EditionWriter.Money(bottles)} GLASS" : "LIGHT THE FIRE", 13, solid: true, sound: "lever");
 		fire.CustomMinimumSize = new Vector2(214, 0);
 		fire.Disabled = n <= 0;
-		fire.TooltipText = n <= 0 ? (want > 0 ? "Not enough stock on the shelf: order first." : "Choose a batch on the shelf.") : "Brews the batch on one still; it is bottled by press time.";
+		fire.TooltipText = n <= 0 ? (want > 0 ? "Not enough stock on the shelf: order first." : "Choose a batch on the shelf.") : $"Brews {n} bottles on one still; they are bottled by press time. The bottles, corks and labels cost {EditionWriter.Money(bottles)} when the fire is lit; the water comes free from the pump.";
 		var count = n;
 		fire.Pressed += () =>
 		{
-			var err = _game.Brew(fid, count);
+			var err = Pump(count) ?? _game.Brew(fid, count);
 			_note = err ?? $"The fire is lit: {count} bottles of {fname} will be ready by press time.";
 			if (err == null) { _still.Lit = true; _still.Flare(); Sfx.Play("pour", -2f, 0.05f, 0.6f); }
 			Callable.From(() => { if (IsInsideTree()) Print.Focusables(this).FirstOrDefault()?.GrabFocus(); }).CallDeferred();
@@ -158,9 +176,10 @@ public partial class StillBench : HBoxContainer
 		};
 		row.AddChild(fire);
 		var buy = Print.Button(needs.Count > 0 ? $"ORDER FOR {Batch} · {EditionWriter.Money(cost)}" : "THE STOCK IS IN HAND", 12);
+		buy.CustomMinimumSize = new Vector2(0, 0);
 		buy.SizeFlagsHorizontal = SizeFlags.ExpandFill;
 		Print.SetLive(buy, needs.Count > 0);
-		buy.TooltipText = needs.Count > 0 ? $"Orders from Pearl street whatever the recipe is short of, for a batch of {Batch}." : "There is enough on the shelf for this batch.";
+		buy.TooltipText = needs.Count > 0 ? $"Orders from Pearl street whatever the recipe is short of, for a batch of {Batch}: {EditionWriter.Money(cost)} of stock. The glass ({EditionWriter.Money(Batch * d.BottleCostCents)}) is paid when the fire is lit." : "There is enough on the shelf for this batch.";
 		buy.Pressed += () =>
 		{
 			string? err = null;
@@ -189,7 +208,8 @@ public partial class StillBench : HBoxContainer
 			// what the press costs in all: the stock ordered and the bottles and corks for every batch
 			var glassAll = all * d.BottleCostCents;
 			var which = free == 2 ? "BOTH STILLS" : $"ALL {EditionWriter.Words(free).ToUpperInvariant()} STILLS";
-			var many = Print.Button(costAll > 0 ? $"{which} · ORDER AND LIGHT {want} EACH · {EditionWriter.Money(costAll + glassAll)}" : $"{which} · LIGHT {want} EACH · {EditionWriter.Money(glassAll)}", 12);
+			var many = Print.Button(costAll > 0 ? $"{which} · ORDER AND LIGHT {want} EACH · {EditionWriter.Money(costAll)} + {EditionWriter.Money(glassAll)} GLASS" : $"{which} · LIGHT {want} EACH · {EditionWriter.Money(glassAll)} GLASS", 12);
+			many.AutowrapMode = TextServer.AutowrapMode.WordSmart;
 			many.SizeFlagsHorizontal = SizeFlags.ExpandFill;
 			many.TooltipText = $"Every free still brews {f.Name}: orders what {all} bottles are short of{(costAll > 0 ? $" ({EditionWriter.Money(costAll)})" : "")}, then lights {EditionWriter.Words(free)} stills of {want} bottles each ({EditionWriter.Money(glassAll)} for bottles and corks).";
 			many.Pressed += () =>
@@ -197,6 +217,7 @@ public partial class StillBench : HBoxContainer
 				string? err = null;
 				foreach (var (id, oz) in needsAll) err ??= _game.Buy(id, oz);
 				var lit = 0;
+				err ??= Pump(all);
 				for (var k = 0; k < free && err == null; k++) { err = _game.Brew(fid, want); if (err == null) lit++; }
 				_note = lit > 0
 					? $"{(lit == 1 ? "One fire is" : $"{EditionWriter.Words(lit)} fires are")} lit: {lit * want} bottles of {fname} will be ready by press time{(costAll > 0 ? $", and {EditionWriter.Money(costAll)} of stock was ordered" : "")}.{(err != null ? " " + err : "")}"
@@ -209,11 +230,14 @@ public partial class StillBench : HBoxContainer
 			_right.AddChild(many);
 		}
 
+		foreach (var (name, onFire) in d.Brewing)
+			_right.AddChild(Print.Label($"On the fire: {onFire} bottles of {name}", Print.FellIt, 15));
 		// what the batch costs and what limits it, under the buttons, where its changing length moves nothing
 		_right.AddChild(Print.Label(want > max
 			? $"You have marked {want}; the ingredients on hand make {(max == 0 ? "none" : max.ToString(CultureInfo.InvariantCulture))}. {(max == 0 ? "Order the rest to light the fire." : $"Order the rest, or light the fire for {max}.")}"
 			: $"{n} bottle{(n == 1 ? "" : "s")} · {EditionWriter.Money(bottles)} for bottles and corks when lit · {(stuff > 0 ? $"takes {EditionWriter.Money(stuff)} of stock off the shelf · " : "")}most the stock allows: {max}", Print.Fell, 15));
-		var limits = f.Components.Where(c => c.Ounces > 0).Select(c => (c, can: stock.TryGetValue(c.IngredientId, out var i) ? (int)Math.Floor(i.OnHand / c.Ounces + 1e-9) : 0)).ToList();
+		// (the water is not short: it comes from the pump)
+		var limits = f.Components.Where(c => c.Ounces > 0 && !(stock.TryGetValue(c.IngredientId, out var fr) && fr.CostPerOunceCents == 0)).Select(c => (c, can: stock.TryGetValue(c.IngredientId, out var i) ? (int)Math.Floor(i.OnHand / c.Ounces + 1e-9) : 0)).ToList();
 		var shortest = limits.OrderBy(x => x.can).FirstOrDefault();
 		if (limits.Count > 0 && shortest.can < want)
 		{
@@ -222,6 +246,8 @@ public partial class StillBench : HBoxContainer
 		}
 		if (_note != null) _right.AddChild(Print.Body($"[i]{Print.Escape(_note)}[/i]", 15, justify: false));
 	}
+
+	private static string Cap(string t) => t.Length == 0 ? t : char.ToUpperInvariant(t[0]) + t[1..];
 
 	/// <summary>Bottles in rows of twelve: the chosen ones printed, the possible ones outlined.</summary>
 	private sealed partial class BottleShelf : Control, Print.IArrowKeys
@@ -285,13 +311,29 @@ public partial class StillBench : HBoxContainer
 				// a Boston round in outline: body, shoulder, neck, cork
 				var body = new Rect2(x, y + 12 * S, W, H - 12 * S);
 				// beyond what the stock allows, a wanted bottle is only pencilled in
-				if (filled) DrawRect(body, !possible ? new Color(Print.Green, 0.2f) : _hover > 0 && i >= Count ? new Color(Print.Green, 0.45f) : Print.Green);
+				var pencilled = filled && (!possible || (_hover > 0 && i >= Count));
+				if (filled && !pencilled) DrawRect(body, ink);
+				else if (pencilled)
+				{
+					// hatched: wanted, but not yet to be had (or only under the hand)
+					for (var hx = -body.Size.Y; hx < body.Size.X; hx += 4 * S + 1)
+					{
+						var a0 = new Vector2(body.Position.X + Math.Max(0, hx), body.Position.Y + Math.Max(0, -hx));
+						var len = Math.Min(body.Size.X - Math.Max(0, hx), body.Size.Y - Math.Max(0, -hx));
+						if (len > 0) DrawLine(a0, a0 + new Vector2(len, len), new Color(ink, 0.75f), 1.2f);
+					}
+				}
 				var c = possible ? ink : new Color(ink, 0.5f);
 				DrawRect(body, c, false, 1.6f);
 				DrawLine(new Vector2(x, y + 12 * S), new Vector2(x + W * 0.35f, y + 5 * S), c, 1.6f);
 				DrawLine(new Vector2(x + W, y + 12 * S), new Vector2(x + W * 0.65f, y + 5 * S), c, 1.6f);
 				DrawRect(new Rect2(x + W * 0.35f, y, W * 0.3f, 5 * S), possible ? ink : c);
-				if (filled) DrawRect(new Rect2(x + 3 * S, y + 20 * S, W - 6 * S, 10 * S), Print.Paper);
+				// the marked bottle's label: paper on the ink, with a green rule for the product
+				if (filled && !pencilled)
+				{
+					DrawRect(new Rect2(x + 3 * S, y + 20 * S, W - 6 * S, 10 * S), Print.Paper);
+					DrawRect(new Rect2(x + 3 * S, y + 24 * S, W - 6 * S, 2 * S), Print.Green);
+				}
 				if (i % PerRow == PerRow - 1 || i == Capacity - 1) DrawLine(new Vector2(0, y + H + 2), new Vector2(PerRow * (W + Gap) - Gap, y + H + 2), ink, 3f);
 			}
 			if (HasFocus()) DrawRect(new Rect2(-4, -4, Size.X + 8, Size.Y + 8), ink, false, 2f);

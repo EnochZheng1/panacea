@@ -48,7 +48,7 @@ public partial class ProofView : Control
 		DropBench();
 		Rebuild();
 		// the keyboard goes back to the button that opened the drawer, never to the press
-		var opener = was switch { "still" => "THE STILL", "formula" => "FORMULA", "supplies" => "SUPPLIES", "ventures" => "VENTURES", "letters" => "OPEN THE LETTERS", _ => "" };
+		var opener = was switch { "still" => "THE STILL", "formula" => "FORMULA", "supplies" => "SUPPLIES", "ventures" => "VENTURES", "books" => "BOOKS", "letters" => "OPEN THE LETTERS", _ => "" };
 		Callable.From(() =>
 		{
 			// (the letters button is gone once the post is answered: then the works, not the press)
@@ -195,8 +195,11 @@ public partial class ProofView : Control
 		left.SetAnchorsPreset(LayoutPreset.FullRect);
 		left.AddThemeConstantOverride("separation", 12);
 		leftStack.AddChild(left);
-		left.AddChild(ProofPage(m));
-		left.AddChild(Counter(m));
+		// the counter first: it decides whom Death stands beside, and the notes on the proof say why
+		var counterStrip = Counter(m);
+		var warn = Warnings(m, out var nothing, out var unansweredInquests);
+		left.AddChild(ProofPage(m, warn));
+		left.AddChild(counterStrip);
 
 		var bench = new VBoxContainer { CustomMinimumSize = new Vector2(BenchWidth, 0) };
 		bench.AddThemeConstantOverride("separation", 10);
@@ -208,52 +211,47 @@ public partial class ProofView : Control
 		slipsFrame.Ready += () => Callable.From(() => { if (IsInstanceValid(slipsFrame)) slipsFrame.ScrollVertical = keepScroll; }).CallDeferred();
 		slipsFrame.GetVScrollBar().ValueChanged += v => _slipsScroll = (int)v;
 		Print.QuietScrollbar(slipsFrame);
-		bench.AddChild(slipsFrame);
 		var slips = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
 		slips.AddThemeConstantOverride("separation", 10);
 		slipsFrame.AddChild(slips);
 		slips.AddChild(TypeCase(m));
-		// the post and the works hold the drawers' buttons: always in view, never scrolled away
-		// fixed heights, so the buttons stay where the hand left them from month to month
+		// room at the foot, so the last claim scrolls clear of the "more below" slug
+		slips.AddChild(new Control { CustomMinimumSize = new Vector2(0, 22) });
+		// a case that runs on below the frame says so at its foot, in print, not only in a hairline scrollbar
+		var more = Print.Panel(Print.Label("MORE CLAIMS BELOW ▼  (scroll)", Print.Rye, 11, HorizontalAlignment.Center, Print.Paper, wrap: false), Print.Box(Print.Ink, Print.Ink, 0, 3));
+		more.MouseFilter = MouseFilterEnum.Ignore;
+		more.Visible = false;
+		var caseStack = new Control { SizeFlagsVertical = SizeFlags.ExpandFill };
+		slipsFrame.SizeFlagsVertical = SizeFlags.ExpandFill;
+		slipsFrame.SetAnchorsPreset(LayoutPreset.FullRect);
+		caseStack.AddChild(slipsFrame);
+		more.AnchorLeft = 0; more.AnchorRight = 1; more.AnchorTop = more.AnchorBottom = 1;
+		more.OffsetLeft = 10; more.OffsetRight = -18; more.OffsetTop = -22; more.OffsetBottom = -2;
+		caseStack.AddChild(more);
+		void ShowMore()
+		{
+			if (!IsInstanceValid(slipsFrame) || !IsInstanceValid(more)) return;
+			var bar = slipsFrame.GetVScrollBar();
+			more.Visible = bar.MaxValue - bar.Page > 4 && bar.Value < bar.MaxValue - bar.Page - 4;
+		}
+		slipsFrame.GetVScrollBar().Changed += ShowMore;
+		slipsFrame.GetVScrollBar().ValueChanged += _ => { ShowMore(); Untip(); };
+		bench.AddChild(caseStack);
+
+		// the notes are on the proof (the lead story's box); the post, the works and the lever are of
+		// fixed height, stacked from the foot of the bench, so the drawer buttons never move
 		var post = LettersSlip(m);
-		post.CustomMinimumSize = new Vector2(0, 104);
+		post.CustomMinimumSize = new Vector2(0, PostHeight);
 		bench.AddChild(post);
 		bench.AddChild(WorksSlip(m));
-		var warn = new List<string>();
-		var unansweredInquests = m.Letters.Count(l => l.Title.StartsWith("Inquest", StringComparison.Ordinal));
-		if (unansweredInquests > 0) warn.Add($"{Spell(unansweredInquests)} inquest{(unansweredInquests == 1 ? "" : "s")} unanswered: the coroner will proceed without you.");
-		else if (m.Letters.Count > 0) warn.Add($"{Spell(m.Letters.Count)} letter{(m.Letters.Count == 1 ? "" : "s")} unanswered: the usual reply will go out for you.");
-		if (_deathRegular is { } dr)
-		{
-			// say why he stands there: what the frail customer looks like and how much they take
-			var how = dr.Looks == "gravely_ill" ? "gravely ill" : "poorly";
-			var took = dr.BottlesLastMonth > 0 ? $", {Spell(dr.BottlesLastMonth).ToLowerInvariant()} bottle{(dr.BottlesLastMonth == 1 ? "" : "s")} last month" : "";
-			var habit = dr.Withdrawal ? ", in want of the bottle" : dr.Craving ? ", craving it" : "";
-			var opiate = m.Formulas.Any(f => f.Components.Any(c => c.Ounces > 0 && m.Ingredients.FirstOrDefault(i => i.Id == c.IngredientId)?.DrugClass is "opiate" or "cocaine"));
-			warn.Add($"Death waits beside {dr.Name}: {how}{took}{habit}. {(opiate ? "Each strong bottle a frail customer takes may be the last; a milder recipe is safer." : "Frail customers die of their ailments and of age as well; the assay's danger says how much the bottle adds.")}");
-		}
-		var nothing = m.Formulas.Sum(f => f.Stock) == 0 && m.Brewing.Count == 0;
-		// the first month: say where to begin, in so many words
-		if (m.Formulas.Count == 0) warn.Add("Begin with the FORMULA book: pour a remedy and enter it. Then light THE STILL, and send the paper to press.");
-		else if (nothing) warn.Add("Nothing on the shelf and nothing on the still: light THE STILL, or the shop will sell nothing this month.");
-		// a shelf that keeps ending bare is money left on the counter, and orders left unfilled
-		if (m.ShelfBareMonths >= 2 && !nothing)
-			warn.Add($"The shelf ended bare in {Spell(m.ShelfBareMonths)} of the last three months: brew more, or look in THE STILL for what the next still waits on.");
-		// space the shop cannot pay for is not printed: say so before the press, not after
-		if (m.CanAdvertise && m.AdSpendCents > m.CashCents)
-			warn.Add($"The notice costs {EditionWriter.Money(m.AdSpendCents)} and you have {EditionWriter.Money(m.CashCents)}: the Gazette will not print it unpaid.");
-		// the warnings sit in a box of fixed depth under the lever's row, so they never move it
-		var warnings = new VBoxContainer { CustomMinimumSize = new Vector2(0, 76) };
-		warnings.AddThemeConstantOverride("separation", 1);
-		foreach (var w in warn.Take(4)) warnings.AddChild(Print.Label("☞ " + w, Print.FellIt, 13, color: Print.Paper));
-		bench.AddChild(warnings);
 		bench.AddChild(Lever(nothing || unansweredInquests > 0));
 
 		if (_drawer != null)
 		{
 			leftStack.AddChild(Drawer(_drawer));
 			// while a drawer is open the bench is out of reach of the mouse as well as the keyboard
-			bench.Modulate = new Color(1, 1, 1, 0.6f);
+			// (dimmed only a little: the cash and the suspicion stay readable while a letter asks for money)
+			bench.Modulate = new Color(1, 1, 1, 0.8f);
 			void Lock(Node n) { foreach (var k in n.GetChildren()) { if (k is Control c) c.MouseFilter = MouseFilterEnum.Ignore; Lock(k); } }
 			Lock(bench);
 		}
@@ -262,9 +260,95 @@ public partial class ProofView : Control
 		Changed?.Invoke();
 	}
 
+	private const int PostHeight = 104;
+
+	/// <summary>
+	/// A tooltip left standing over a list that has scrolled under it is put away: the pointer is
+	/// "moved" where it already is, so the tooltip follows whatever is under it now.
+	/// </summary>
+	private void Untip()
+	{
+		if (!IsInsideTree()) return;
+		var at = GetViewport().GetMousePosition();
+		Input.ParseInputEvent(new InputEventMouseMotion { Position = at, GlobalPosition = at });
+	}
+
+	/// <summary>The compositor's notes under the case, most urgent first.</summary>
+	private List<string> Warnings(DeskModel m, out bool nothing, out int unansweredInquests)
+	{
+		var warn = new List<string>();
+		unansweredInquests = m.Letters.Count(l => l.Title.StartsWith("Inquest", StringComparison.Ordinal));
+		if (unansweredInquests > 0) warn.Add($"{Cap(Spell(unansweredInquests))} inquest{(unansweredInquests == 1 ? "" : "s")} unanswered: the coroner will proceed without you.");
+		else if (m.Letters.Count > 0) warn.Add($"{Cap(Spell(m.Letters.Count))} letter{(m.Letters.Count == 1 ? "" : "s")} unanswered: the usual reply will go out for you.");
+		// every regular at real risk, not only the one he stands beside
+		var frail = m.Regulars.Where(r => r.Looks is "gravely_ill" or "poorly").OrderByDescending(Risk).ToList();
+		if (_deathRegular is { } dr)
+		{
+			// say why he stands there: what the frail customer looks like and how much they take
+			var how = dr.Looks == "gravely_ill" ? "gravely ill" : "poorly";
+			var took = dr.BottlesLastMonth > 0 ? $", {Spell(dr.BottlesLastMonth).ToLowerInvariant()} bottle{(dr.BottlesLastMonth == 1 ? "" : "s")} last month" : "";
+			var habit = dr.Withdrawal ? ", in want of the bottle" : dr.Craving ? ", craving it" : "";
+			var others = frail.Where(r => r != dr).ToList();
+			var rest = others.Count == 0 ? "" : others.Count <= 2
+				? $" Also at risk: {string.Join(" and ", others.Select(r => r.Name))}."
+				: $" {Cap(Spell(others.Count))} more are poorly or gravely ill, and at risk as well.";
+			var opiate = m.Formulas.Any(f => f.Components.Any(c => c.Ounces > 0 && m.Ingredients.FirstOrDefault(i => i.Id == c.IngredientId)?.DrugClass is "opiate" or "cocaine"));
+			warn.Add($"Death waits beside {dr.Name}: {how}{took}{habit}.{rest} {(opiate ? "Each strong bottle a frail customer takes may be the last; a milder recipe is safer." : "Any regular may die of age or illness, whatever the bottle; the frail most of all.")}");
+		}
+		nothing = m.Formulas.Sum(f => f.Stock) == 0 && m.Brewing.Count == 0;
+		// the first month: say where to begin, in so many words
+		if (m.Formulas.Count == 0) warn.Add("Begin with the FORMULA book: pour a remedy and enter it. Then light THE STILL, and send the paper to press.");
+		else if (nothing) warn.Add("Nothing on the shelf and nothing on the still: light THE STILL, or the shop will sell nothing this month.");
+		else if (LowStock(m) is { } low) warn.Add(low);
+		// what the shop earned last month and was not told about: a still, a percolator, the Gazette's space
+		foreach (var (id, title, _) in _game.Facts.Unlocks)
+			if (NewThing(id, title) is { } news) warn.Add(news);
+		// a shelf that keeps ending bare is money left on the counter, and orders left unfilled
+		if (m.ShelfBareMonths >= 2 && !nothing)
+			warn.Add($"The shelf ended bare in {Spell(m.ShelfBareMonths)} of the last three months: brew more, or look in THE STILL for what the next still waits on.");
+		// space the shop cannot pay for is not printed: say so before the press, not after
+		if (m.CanAdvertise && m.AdSpendCents > m.CashCents)
+			warn.Add($"The notice costs {EditionWriter.Money(m.AdSpendCents)} and you have {EditionWriter.Money(m.CashCents)}: the Gazette will not print it unpaid.");
+		return warn;
+	}
+
+	private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+
+	/// <summary>
+	/// The shelf will not last the month: what is on it and on the fire is fewer bottles than last
+	/// month sold (or no more, when last month sold the shelf out and could have sold more).
+	/// </summary>
+	private string? LowStock(DeskModel m)
+	{
+		var f = _game.Facts;
+		if (f.FirstEdition) return null;
+		var sold = f.Sales.Sum(s => s.Bottles);
+		if (sold <= 0) return null;
+		var stock = m.Formulas.Sum(x => x.Stock);
+		var brewing = m.Brewing.Sum(b => b.Bottles);
+		var have = stock + brewing;
+		var want = sold + Math.Max(2, sold / 10);
+		if (have >= want) return null;
+		var on = brewing > 0 ? $"{Spell(stock)} on the shelf and {Spell(brewing)} on the fire" : $"{Spell(stock)} bottle{(stock == 1 ? "" : "s")} on the shelf and nothing on the fire";
+		return $"Low stock: {on}, and last month sold {Spell(sold)}. {(m.StillsFree > 0 ? "Light THE STILL" : "Every still is busy; brew more next month")}, or the shelf will be bare before the month is out.";
+	}
+
+	/// <summary>What a newly earned thing is, and where it is, the month it arrives.</summary>
+	private static string? NewThing(string id, string title) => id switch
+	{
+		"second_still" => "New: a second still is yours, earned by two hundred bottles sold. Two batches a month now: light both in THE STILL.",
+		"third_still" => "New: a third still is yours, earned by six hundred bottles sold. THE STILL can light all three at once.",
+		"percolator" => "New: a glass percolator, earned by running ten batches. PERCOLATION is now in the FORMULA book: a stronger draw, at 2c. more a bottle. Nothing was spent.",
+		"newspaper_ads" => "New: the Gazette will sell you space. Choose a size in THE TYPE CASE; it is paid at press.",
+		"bulk_supplier" => "New: a wholesale supplier on Pearl street, fifteen per cent off every order.",
+		"quality_control" => "New: an assistant tests each batch, and pours away a bad one before it reaches a customer.",
+		"coroner_fees" => null,
+		_ => title.Length > 0 ? $"New: {title}." : null,
+	};
+
 	// ---------- the proof page ----------
 
-	private Control ProofPage(DeskModel m)
+	private Control ProofPage(DeskModel m, List<string> notes)
 	{
 		var page = new VBoxContainer { SizeFlagsVertical = SizeFlags.ExpandFill };
 		page.AddThemeConstantOverride("separation", 4);
@@ -288,7 +372,8 @@ public partial class ProofView : Control
 		lc.AddChild(Print.Label("set after press", Print.FellIt, 12, HorizontalAlignment.Center));
 		// last month's matter, struck out in proof marks, waits for this month's type
 		var last = _game.Facts;
-		Struck(lc, last.Deaths.Select(d => d.Anonymous ? "UNKNOWN.—A body, unclaimed." : d.Infant ? $"{SurnameOf(d.Name)}.—The infant of {d.Name}." : $"{SurnameOf(d.Name)}.—{d.Name}."), "No deaths last month.");
+		Struck(lc, last.Deaths.Select(d => d.Anonymous ? "UNKNOWN.—A body, unclaimed." : d.Infant ? $"{SurnameOf(d.Name)}.—The infant of {d.Name}." : $"{SurnameOf(d.Name)}.—{d.Name}."), "No deaths last month.",
+			last.Deaths.Select(d => BottleNote(d, last, m)).ToList());
 		lc.AddChild(Head("CORONER'S COURT."));
 		var inquests = m.Letters.Where(l => l.Title.StartsWith("Inquest", StringComparison.Ordinal)).ToList();
 		if (inquests.Count == 0) lc.AddChild(Print.Label("set after press", Print.FellIt, 12, HorizontalAlignment.Center));
@@ -317,12 +402,34 @@ public partial class ProofView : Control
 		}
 		else
 		{
-			lv.AddChild(Print.Label("THE LEAD STORY", Print.Rye, 26, HorizontalAlignment.Center, new Color(Print.Ink, 0.72f)));
-			lv.AddChild(Print.Body("[i]The editor sets it when the month is out. Whatever happens in the ward, it will be printed here.[/i]", 14, new Color(Print.Ink, 0.88f), centre: true));
+			lv.AddChild(Print.Label("THE LEAD STORY", Print.Rye, 22, HorizontalAlignment.Center, new Color(Print.Ink, 0.72f)));
+			lv.AddChild(Print.Body("[i]The editor sets it when the month is out, from whatever happens in the ward.[/i]", 13, new Color(Print.Ink, 0.88f), centre: true));
 		}
+		var soFar = MonthBook.SoFar(_game, m);
+		// the compositor's notes to the proprietor, in the margin of the proof: what wants doing
+		if (notes.Count > 0)
+		{
+			var nv = new VBoxContainer();
+			nv.AddThemeConstantOverride("separation", 2);
+			nv.AddChild(Print.Label("NOTES FOR THE PROPRIETOR", Print.Rye, 13, HorizontalAlignment.Center));
+			nv.AddChild(Print.Dash(60));
+			foreach (var w in notes.Take(5)) nv.AddChild(Print.Label("☞ " + w, Print.FellIt, 13));
+			lv.AddChild(nv);
+		}
+		// the copy-hook: what has been done this month, for a proprietor back at the bench
+		var hook = new VBoxContainer();
+		hook.AddThemeConstantOverride("separation", 0);
+		hook.AddChild(Print.Label("THE MONTH SO FAR", Print.Rye, 13, HorizontalAlignment.Center));
+		hook.AddChild(Print.Dash(60));
+		if (soFar.Count == 0) hook.AddChild(Print.Label("Nothing done yet this month.", Print.FellIt, 13, HorizontalAlignment.Center));
+		foreach (var line in soFar.Take(7)) hook.AddChild(Print.Label("· " + line, Print.Fell, 13));
+		if (soFar.Count > 7) hook.AddChild(Print.Label($"And {Spell(soFar.Count - 7)} more.", Print.FellIt, 13));
+		lv.AddChild(hook);
+		// with nothing to note, the box holds the editor's ghost of the month's dead
 		var ghostDeath = Print.Cut("wc_death");
-		if (ghostDeath != null)
-			lv.AddChild(new TextureRect { Texture = ghostDeath, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered, CustomMinimumSize = new Vector2(0, 150), Modulate = new Color(1, 1, 1, 0.16f) });
+		if (ghostDeath != null && notes.Count == 0 && soFar.Count == 0)
+			lv.AddChild(new TextureRect { Texture = ghostDeath, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered, CustomMinimumSize = new Vector2(0, 120), Modulate = new Color(1, 1, 1, 0.16f) });
+		if (notes.Count > 0 || soFar.Count > 0) lv.Alignment = BoxContainer.AlignmentMode.Begin;
 		lead.AddChild(lv);
 		centre.AddChild(lead);
 		cols.AddChild(centre);
@@ -438,7 +545,8 @@ public partial class ProofView : Control
 			{
 				Anim.Sway(death, 1.4f, 4.2f, lean: 3.5f);
 				death.MouseFilter = _drawer == null ? MouseFilterEnum.Pass : MouseFilterEnum.Ignore;
-				death.TooltipText = $"Death, at the shoulder of {r.Name}, who is {(r.Looks == "gravely_ill" ? "gravely ill" : "poorly")}. He stands beside whoever is nearest the end.";
+				var alsoFrail = m.Regulars.Count(o => o != r && o.Looks is "gravely_ill" or "poorly");
+				death.TooltipText = $"Death, at the shoulder of {r.Name}, who is {(r.Looks == "gravely_ill" ? "gravely ill" : "poorly")}. He stands beside whoever looks nearest the end{(alsoFrail > 0 ? $"; {Spell(alsoFrail)} more regular{(alsoFrail == 1 ? " is" : "s are")} poorly or gravely ill too" : "")}. Any regular may die of age or illness; the frail most of all.";
 			}
 			// the same stock cut twice in a row is printed the other way round
 			var cut = CutFor(r);
@@ -473,7 +581,7 @@ public partial class ProofView : Control
 			tag.CustomMinimumSize = new Vector2(slot - 10, 0);
 			// what the mouse would show on hover, for the keyboard (see below)
 			var about = $"{r.Name}: a regular for {Spell(r.MonthsAsCustomer)} month{(r.MonthsAsCustomer == 1 ? "" : "s")}; {Panacea.Game.SimGame.Describe(r)}.";
-			tag.TooltipText = _drawer != null ? "" : fig?.TooltipText ?? about;
+			tag.TooltipText = _drawer != null ? "" : (fig?.TooltipText ?? about) + "\n" + LooksKey;
 			if (_drawer != null) tag.MouseFilter = MouseFilterEnum.Ignore;
 			strip.AddChild(tag);
 			tags.Add((tag, about));
@@ -520,7 +628,7 @@ public partial class ProofView : Control
 		{
 			Anim.Sway(waiting, 0.8f, 5.5f);
 			waiting.MouseFilter = _drawer == null ? MouseFilterEnum.Pass : MouseFilterEnum.Ignore;
-			waiting.TooltipText = "Death, at the far end of the counter. Nobody is near enough for him yet; when someone falls poorly he comes and stands beside them.";
+			waiting.TooltipText = "Death, at the far end of the counter. Nobody looks near the end; but any regular may die of age or illness, the peaky sooner than the hale. When someone falls poorly he comes and stands beside them.";
 		}
 		return strip;
 	}
@@ -572,6 +680,9 @@ public partial class ProofView : Control
 		_ => female ? "wc_widow" : "wc_oldman",
 	};
 
+	/// <summary>What each look means, for the card's tooltip.</summary>
+	public const string LooksKey = "Hale: well. Peaky: a little pale and off colour, not yet in danger. POORLY: ill, and may die. GRAVELY ILL (white on black): near the end.";
+
 	private static Control Tag(Regular r)
 	{
 		var v = new VBoxContainer();
@@ -580,16 +691,27 @@ public partial class ProofView : Control
 		name.SizeFlagsHorizontal = SizeFlags.ExpandFill;
 		v.AddChild(name);
 		v.AddChild(Print.Label((r.Infant ? "for " : "") + r.Ailment.ToLowerInvariant(), Print.Fell, 12, wrap: false));
-		var status = new List<string>
+		// the health is the danger: set heavier as it worsens, so it reads without the words
+		// (hale in italic, peaky in roman, POORLY in capitals, GRAVELY ILL reversed, white on black)
+		var line = new HBoxContainer();
+		line.AddThemeConstantOverride("separation", 3);
+		var who = r.Infant ? "infant " : "";
+		Control looks = r.Looks switch
 		{
-			(r.Infant ? "infant " : "") + r.Looks switch { "gravely_ill" => "gravely ill", "poorly" => "poorly", "peaky" => "peaky", _ => "hale" },
+			"gravely_ill" => Print.Panel(Print.Label((who + "gravely ill").ToUpperInvariant(), Print.Rye, 11, color: Print.Paper, wrap: false), Print.Box(Print.Ink, Print.Ink, 0, 2)),
+			"poorly" => Print.Label((who + "poorly").ToUpperInvariant(), Print.Rye, 12, wrap: false),
+			"peaky" => Print.Label(who + "peaky", Print.Fell, 12, wrap: false),
+			_ => Print.Label(who + "hale", Print.FellIt, 12, wrap: false),
 		};
-		if (r.Ruined) status.Add("ruined by it");
-		else if (r.Withdrawal) status.Add("shaking");
-		else if (r.Craving) status.Add("asks for it by name");
-		else if (r.MonthsAsCustomer == 0) status.Add("new");
-		else status.Add(r.Mood);
-		v.AddChild(Print.Label(string.Join(" · ", status), Print.FellIt, 12, wrap: false));
+		looks.SizeFlagsVertical = SizeFlags.ShrinkCenter;
+		line.AddChild(looks);
+		var mood = r.Ruined ? "ruined by it" : r.Withdrawal ? "shaking" : r.Craving ? "asks by name" : r.MonthsAsCustomer == 0 ? "new" : r.Mood;
+		var rest = Print.Label("· " + mood, Print.FellIt, 12, wrap: false);
+		rest.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
+		rest.ClipText = true;
+		rest.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+		line.AddChild(rest);
+		v.AddChild(line);
 		return v;
 	}
 
@@ -677,14 +799,24 @@ public partial class ProofView : Control
 
 	private Control LettersSlip(DeskModel m)
 	{
-		var v = SlipBody(m.Letters.Count == 0 ? "NO LETTERS" : m.Letters.Count == 1 ? "ONE LETTER" : $"{Spell(m.Letters.Count).ToUpperInvariant()} LETTERS");
-		if (m.Letters.Count == 0) v.AddChild(Print.Body("[i]Nothing in the post but a circular for galvanic belts.[/i]", 13, justify: false));
+		var answered = MonthBook.LettersAnswered(_game);
+		var v = SlipBody(m.Letters.Count == 0 ? (answered > 0 ? "THE POST IS ANSWERED" : "NO LETTERS") : m.Letters.Count == 1 ? "ONE LETTER" : $"{Spell(m.Letters.Count).ToUpperInvariant()} LETTERS");
+		v.AddThemeConstantOverride("separation", 3);
+		if (m.Letters.Count == 0)
+			v.AddChild(Print.Body(answered > 0
+				? $"[i]{Cap(Spell(answered))} letter{(answered == 1 ? "" : "s")} answered this month; nothing more in the post.[/i]"
+				: "[i]Nothing in the post this month but a circular for galvanic belts.[/i]", 13, justify: false));
 		foreach (var l in m.Letters.Take(1))
 		{
 			// one line, cut short if need be: the whole post is in the drawer
 			var title = EditionWriter.Set(l.Title);
 			if (title.Length > 40) title = title[..38].TrimEnd(' ', ',') + "…";
-			var line = Print.Label(title + (m.Letters.Count > 1 ? $"; and {Spell(m.Letters.Count - 1)} more." : "."), Print.Fell, 13);
+			var tail = m.Letters.Count > 1 ? $"; and {Spell(m.Letters.Count - 1)} more" : "";
+			if (answered > 0) tail += $" ({Spell(answered)} answered)";
+			var line = Print.Label(title + tail + ".", Print.Fell, 13, wrap: false);
+			line.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
+			line.ClipText = true;
+			line.SizeFlagsHorizontal = SizeFlags.ExpandFill;
 			line.TooltipText = string.Join("\n", m.Letters.Select(x => x.Title));
 			line.MouseFilter = MouseFilterEnum.Pass;
 			v.AddChild(line);
@@ -701,14 +833,16 @@ public partial class ProofView : Control
 	private Control WorksSlip(DeskModel m)
 	{
 		var v = SlipBody("THE WORKS");
+		v.AddThemeConstantOverride("separation", 3);
+		// a slip of one height whatever it holds: the drawer buttons at its foot never move
 		var grid = new HBoxContainer();
 		grid.AddThemeConstantOverride("separation", 14);
 		var left = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
 		left.AddThemeConstantOverride("separation", 0);
 		var stock = m.Formulas.Sum(f => f.Stock);
 		var brewing = m.Brewing.Sum(b => b.Bottles);
-		left.AddChild(Print.Label($"{stock} bottle{(stock == 1 ? "" : "s")} on the shelf", Print.Fell, 14));
-		left.AddChild(Print.Label(brewing > 0 ? $"{brewing} brewing" : m.StillsFree > 0 ? "the still is cold" : "the still is busy", Print.FellIt, 13));
+		left.AddChild(Print.Label($"{stock} bottle{(stock == 1 ? "" : "s")} on the shelf", Print.Fell, 14, wrap: false));
+		left.AddChild(Print.Label(brewing > 0 ? $"{brewing} brewing" : m.StillsFree > 0 ? "the still is cold" : "the still is busy", Print.FellIt, 13, wrap: false));
 		// the regulars' health at a glance: where the next deaths will come from
 		var frail = new List<string>();
 		var grave = m.Regulars.Count(r => r.Looks == "gravely_ill");
@@ -717,54 +851,159 @@ public partial class ProofView : Control
 		if (grave > 0) frail.Add($"{grave} gravely ill");
 		if (poorly > 0) frail.Add($"{poorly} poorly");
 		if (craving > 0) frail.Add($"{craving} craving");
-		var health = Print.Label(frail.Count > 0 ? string.Join(" · ", frail) : "the regulars look well", Print.FellIt, 13);
-		health.TooltipText = "How the regulars look across the counter. The gravely ill and the poorly are the ones who die: of their ailments, of age, or of a strong bottle taken once too often. Craving regulars take more bottles each month, and each one is another chance.";
+		// the worse it is, the heavier it is set: italic when well, roman when someone is poorly,
+		// and the gravely ill in a reversed slug, white on black, ahead of the rest
+		var health = new HBoxContainer();
+		health.AddThemeConstantOverride("separation", 4);
+		var restOf = new List<string>(frail);
+		if (grave > 0)
+		{
+			restOf.RemoveAt(0);
+			var slug = Print.Panel(Print.Label($"{grave} GRAVELY ILL", Print.Rye, 11, color: Print.Paper, wrap: false), Print.Box(Print.Ink, Print.Ink, 0, 2));
+			slug.SizeFlagsVertical = SizeFlags.ShrinkCenter;
+			slug.MouseFilter = MouseFilterEnum.Ignore;
+			health.AddChild(slug);
+		}
+		var healthText = frail.Count == 0 ? "the regulars look well" : string.Join(" · ", restOf);
+		var healthLabel = Print.Label((grave > 0 && restOf.Count > 0 ? "· " : "") + healthText, frail.Count == 0 ? Print.FellIt : Print.Fell, frail.Count == 0 ? 13 : 14, wrap: false);
+		healthLabel.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
+		healthLabel.ClipText = true;
+		healthLabel.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+		healthLabel.MouseFilter = MouseFilterEnum.Ignore;
+		health.AddChild(healthLabel);
+		health.TooltipText = "How the regulars look across the counter: " + (frail.Count > 0 ? string.Join(", ", frail) : "all well") + ". The gravely ill and the poorly are the ones most likely to die: of their ailments, of age, or of a strong bottle taken once too often. Craving: they ask for the remedy by name and take more each month; any habit does it, the spirit in a bottle too, a little at a time.";
 		health.MouseFilter = MouseFilterEnum.Pass;
-		left.AddChild(health);
 		grid.AddChild(left);
 		var books = new VBoxContainer();
 		books.AddThemeConstantOverride("separation", -2);
 		books.AddChild(Print.Label(EditionWriter.Money(m.CashCents), Print.Rye, 22, HorizontalAlignment.Right, wrap: false));
-		var talk = Print.Label($"suspicion: {DeskView.Talk(m.Heat)} ({m.Heat:0} of 100)", Print.FellIt, 13, HorizontalAlignment.Right, wrap: false);
-		talk.TooltipText = "What the ward says about your bottles. The more it talks, the more inquests the coroner calls; at 100 the Board of Health moves to close the shop.";
-		talk.MouseFilter = MouseFilterEnum.Pass;
-		books.AddChild(talk);
 		// standing is moved by letters and deaths: show it, not only suspicion
-		var standing = Print.Label($"standing in the ward: {m.Reputation:0}", Print.FellIt, 13, HorizontalAlignment.Right, wrap: false);
-		standing.TooltipText = "What the ward thinks of the shop. Good standing brings callers and keeps regulars; letters and deaths move it.";
+		var standing = Print.Label($"good name in the ward: {m.Reputation:0} of 100", Print.FellIt, 13, HorizontalAlignment.Right, wrap: false);
+		standing.TooltipText = "Standing: what the ward thinks of the shop. A good name brings callers and keeps regulars; letters and deaths move it. A letter's \"standing +1\" adds to this figure.";
 		standing.MouseFilter = MouseFilterEnum.Pass;
 		books.AddChild(standing);
 		grid.AddChild(books);
 		v.AddChild(grid);
+		// the regulars' health has the width of the slip, so the worst of it is never cut off
+		v.AddChild(health);
+		v.AddChild(Suspicion(m.Heat));
+		// where last month's money went, in one line; THE BOOKS has the rest
+		if (TillLine() is { } till)
+		{
+			var t = Print.Label(till, Print.FellIt, 13, wrap: false);
+			t.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
+			t.ClipText = true;
+			t.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+			t.TooltipText = "Last month's takings and the books, from the edition. Open THE BOOKS for where every cent went, what a bottle earns, and the months before.";
+			t.MouseFilter = MouseFilterEnum.Pass;
+			v.AddChild(t);
+		}
+		var spacer = new Control { SizeFlagsVertical = SizeFlags.ExpandFill };
+		v.AddChild(spacer);
 		var row = new HBoxContainer();
 		row.AddThemeConstantOverride("separation", 4);
 		// the house's long game sits beside the works: the prospectus of improvements
-		// something new behind a drawer (a still, a venture on offer) is printed in reverse until looked at
+		// something new behind a drawer (a still, a venture on offer, a new method) is printed in reverse until looked at
 		var stills = m.Stills > 0 ? m.Stills : m.StillsFree + m.Brewing.Count;
 		if (_seenStills == 0) _seenStills = stills;
 		var offers = m.Investments.Count(i => !i.Held && i.CanBuy);
+		var procs = m.Processes.Count;
+		if (_seenProcs == 0) _seenProcs = procs;
 		var fresh = new Dictionary<string, bool>
 		{
 			["still"] = stills > _seenStills && _seenStills > 0,
+			["formula"] = procs > _seenProcs && _seenProcs > 0,
 			["ventures"] = offers > _seenOffers,
 		};
-		foreach (var (key, label) in new[] { ("still", "THE STILL"), ("formula", "FORMULA"), ("supplies", "SUPPLIES"), ("ventures", "VENTURES") })
+		foreach (var (key, label) in new[] { ("still", "THE STILL"), ("formula", "FORMULA"), ("supplies", "SUPPLIES"), ("ventures", "VENTURES"), ("books", "BOOKS") })
 		{
 			var isNew = fresh.GetValueOrDefault(key);
 			var b = Print.Button(label, 11, solid: isNew);
-			if (isNew) b.TooltipText = key == "still" ? "New: another still is yours." : "New: a venture is on offer.";
+			b.TooltipText = isNew
+				? key switch { "still" => "New: another still is yours.", "formula" => "New: a method of making in the formula book.", _ => "New: a venture is on offer." }
+				: key switch
+				{
+					"still" => "Light the still: brew bottles for the shelf.",
+					"formula" => "The formula book: the recipe, its price, and what the assay finds in it.",
+					"supplies" => "Order drugs from the wholesale druggist on Pearl street.",
+					"ventures" => "The prospectus: improvements a growing house may take up.",
+					_ => "The books: where last month's money went, and every month before.",
+				};
 			b.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+			Tight(b, 4);
 			var k = key;
 			b.Pressed += () =>
 			{
 				if (k == "still") _seenStills = stills;
 				if (k == "ventures") _seenOffers = offers;
+				if (k == "formula") _seenProcs = procs;
 				OpenDrawer(k);
 			};
 			row.AddChild(b);
 		}
 		v.AddChild(row);
-		return Print.Slip(v, 10);
+		var slip = Print.Slip(v, 10);
+		slip.CustomMinimumSize = new Vector2(0, WorksHeight);
+		return slip;
+	}
+
+	private const int WorksHeight = 184;
+
+	/// <summary>A ticket set close: narrower side margins, so five fit across the bench.</summary>
+	private static void Tight(Button b, int lr)
+	{
+		foreach (var st in new[] { "normal", "hover", "pressed", "hover_pressed", "disabled", "focus" })
+			if (b.GetThemeStylebox(st) is StyleBoxFlat f) { f.ContentMarginLeft = lr; f.ContentMarginRight = lr; }
+	}
+	private int _seenProcs;
+
+	/// <summary>
+	/// Suspicion, set heavier as it climbs, so it reads without the words: a pencilled italic line,
+	/// then roman, then a ruled box in capitals, then a reversed slug, white on black, at its worst
+	/// larger still; with a rule of ink beside it that fills toward the hundred.
+	/// </summary>
+	private static Control Suspicion(double heat)
+	{
+		var talk = DeskView.Talk(heat);
+		var n = $"{heat:0} of 100";
+		// at its worst the slug runs the width of the slip, and the gauge goes under it
+		var worst = heat >= 40;
+		BoxContainer h = worst ? new VBoxContainer() : new HBoxContainer();
+		h.AddThemeConstantOverride("separation", worst ? 3 : 8);
+		Control slug;
+		if (heat < 3) slug = Print.Label($"suspicion: {talk} ({n})", Print.FellIt, 13, wrap: false);
+		else if (heat < 15) slug = Print.Label($"suspicion: {talk} ({n})", Print.Fell, 14, wrap: false);
+		else if (heat < 40) slug = Print.Panel(Print.Label($"SUSPICION: {talk.ToUpperInvariant()} · {n.ToUpperInvariant()}", Print.Rye, 12, wrap: false), Print.Box(new Color(0, 0, 0, 0), Print.Ink, 2, 3));
+		else slug = Print.Panel(Print.Label($"☞ SUSPICION {heat:0} OF 100 · {talk.ToUpperInvariant()}", Print.Rye, heat < 70 ? 14 : 16, HorizontalAlignment.Center, Print.Paper), Print.Box(Print.Ink, Print.Ink, 0, 4));
+		slug.SizeFlagsHorizontal = worst ? SizeFlags.ExpandFill : SizeFlags.ShrinkBegin;
+		slug.SizeFlagsVertical = SizeFlags.ShrinkCenter;
+		h.AddChild(slug);
+		// the gauge: a ruled track, filled with ink to the figure
+		var track = new Control { CustomMinimumSize = new Vector2(0, worst ? 10 : 12), SizeFlagsHorizontal = SizeFlags.ExpandFill, SizeFlagsVertical = SizeFlags.ShrinkCenter, MouseFilter = MouseFilterEnum.Ignore };
+		var frame = new Panel { MouseFilter = MouseFilterEnum.Ignore };
+		frame.SetAnchorsPreset(LayoutPreset.FullRect);
+		frame.AddThemeStyleboxOverride("panel", Print.Box(new Color(0, 0, 0, 0), Print.Ink, 1, 0));
+		track.AddChild(frame);
+		var fill = new ColorRect { Color = Print.Ink, AnchorTop = 0, AnchorBottom = 1, AnchorLeft = 0, AnchorRight = (float)Math.Clamp(heat / 100.0, 0.02, 1), MouseFilter = MouseFilterEnum.Ignore };
+		track.AddChild(fill);
+		h.AddChild(track);
+		h.TooltipText = $"Suspicion, {n}: what the ward and the authorities say about your bottles. The more it talks, the more inquests the coroner calls; at 100 the Board of Health moves to close the shop.";
+		h.MouseFilter = MouseFilterEnum.Pass;
+		slug.MouseFilter = MouseFilterEnum.Pass;
+		slug.TooltipText = h.TooltipText;
+		return h;
+	}
+
+	/// <summary>Last month's books in one line a non-gamer reads: what came in, and what was left.</summary>
+	private string? TillLine()
+	{
+		var f = _game.Facts;
+		if (f.FirstEdition || f.CashLines.Count == 0) return null;
+		var tookIn = f.CashLines.Where(x => x.Cents > 0).Sum(x => x.Cents);
+		var net = f.CashCents - f.CashStartCents;
+		var fixedCents = -f.CashLines.Where(x => BooksDrawer.Fixed.Contains(x.Label)).Sum(x => x.Cents);
+		var kept = net >= 0 ? $"kept {EditionWriter.Money(net)}" : $"lost {EditionWriter.Money(-net)}";
+		return $"Last month: took {EditionWriter.Money(tookIn)}, {kept}" + (fixedCents > 0 ? $"; rent and charges {EditionWriter.Money(fixedCents)}." : ".");
 	}
 
 	private bool _armed;
@@ -772,7 +1011,7 @@ public partial class ProofView : Control
 	private Control Lever(bool nothingToSell)
 	{
 		var b = Print.Button("SEND TO PRESS ☞", 28, solid: true, sound: null);
-		b.CustomMinimumSize = new Vector2(0, 70);
+		b.CustomMinimumSize = new Vector2(0, 58);
 		b.TooltipText = "End the month. The lead story is written by what happens.";
 		b.AddThemeStyleboxOverride("normal", Print.Box(Print.Ink, Print.Paper, 3, 10));
 		b.AddThemeStyleboxOverride("hover", Print.Box(Print.Paper, Print.Paper, 3, 10));
@@ -830,6 +1069,7 @@ public partial class ProofView : Control
 			// a scroll frame holds the bench at the drawer's size, whatever its text asks for
 			var frame = new ScrollContainer { SizeFlagsVertical = SizeFlags.ExpandFill, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled, FollowFocus = true };
 			Print.QuietScrollbar(frame);
+			frame.GetVScrollBar().ValueChanged += _ => Untip();
 			_bench.SizeFlagsHorizontal = SizeFlags.ExpandFill;
 			frame.AddChild(_bench);
 			holder.AddChild(frame);
@@ -845,6 +1085,7 @@ public partial class ProofView : Control
 					case "letters": { var t = new LettersDesk(_game); t.Changed += Rebuild; _tool = t; break; }
 					case "still": { var t = new StillBench(_game); t.Changed += Rebuild; _tool = t; break; }
 					case "ventures": { var t = new Prospectus(_game); t.Changed += Rebuild; _tool = t; break; }
+					case "books": { _tool = new BooksDrawer(_game); break; }
 					default: { var t = new OrderForm(_game); t.Changed += Rebuild; _tool = t; break; }
 				}
 				_toolKind = which;
@@ -853,6 +1094,8 @@ public partial class ProofView : Control
 			_tool.GetParent()?.RemoveChild(_tool);
 			var frame = new ScrollContainer { SizeFlagsVertical = SizeFlags.ExpandFill, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled, FollowFocus = true };
 			Print.QuietScrollbar(frame);
+			// a tooltip does not stay floating over the list once it has scrolled from under it
+			frame.GetVScrollBar().ValueChanged += _ => Untip();
 			frame.AddChild(_tool);
 			holder.AddChild(frame);
 		}
@@ -913,15 +1156,50 @@ public partial class ProofView : Control
 		return v;
 	}
 
-	/// <summary>Last month's lines, struck through, with the proofreader's "dele" in the margin.</summary>
-	private static void Struck(VBoxContainer col, IEnumerable<string> lines, string none)
+
+	/// <summary>Last month's lines, struck through by the printer (nothing for the proprietor to do), with a note under each if given.</summary>
+	private static void Struck(VBoxContainer col, IEnumerable<string> lines, string none, IReadOnlyList<string>? notes = null)
 	{
 		var all = lines.ToList();
 		var list = all.Take(3).ToList();
 		if (list.Count == 0) { col.AddChild(Print.Label(none, Print.FellIt, 12, HorizontalAlignment.Center, new Color(Print.Ink, 0.75f))); return; }
 		if (all.Count > 3) list[^1] += $" And {Spell(all.Count - 3)} more.";
-		foreach (var l in list)
-			col.AddChild(Print.Body($"[s]{Print.Escape(EditionWriter.Set(l))}[/s] [i]dele (strike out)[/i]", 12, new Color(Print.Ink, 0.82f), justify: false));
+		var key = Print.Label("last month's, struck out by the printer", Print.FellIt, 12, HorizontalAlignment.Center, new Color(Print.Ink, 0.75f));
+		key.TooltipText = "The printer strikes last month's matter from the proof (\"dele\") and sets this month's after press. Nothing for you to do.";
+		key.MouseFilter = MouseFilterEnum.Pass;
+		col.AddChild(key);
+		for (var i = 0; i < list.Count; i++)
+		{
+			col.AddChild(Print.Body($"[s]{Print.Escape(EditionWriter.Set(list[i]))}[/s]", 12, new Color(Print.Ink, 0.82f), justify: false));
+			if (notes != null && i < notes.Count && notes[i].Length > 0)
+				col.AddChild(Print.Body($"[i]{Print.Escape(notes[i])}[/i]", 12, justify: false));
+		}
+	}
+
+	/// <summary>
+	/// Whether the shop's bottle played a part in a death, as far as the proprietor can know it: the
+	/// register's cause, what the assay says of the remedy, and whether an inquest was called.
+	/// </summary>
+	private static string BottleNote(PersonFact d, PaperFacts f, DeskModel m)
+	{
+		var product = f.Products.FirstOrDefault(p => p.Name == d.Product) ?? (d.Product != null ? f.Products.FirstOrDefault() : null);
+		var blamed = d.Cause is "overdose" or "wasting";
+		var cause = d.Cause switch
+		{
+			"overdose" => "Found insensible after a dose: the register blames the bottle.",
+			"wasting" => "Wasted away, as from a slow poison: the register blames the bottle.",
+			"old_age" => "Of age, the register says.",
+			"ailment" => d.Ailment.Length > 0 ? $"Of the {d.Ailment.ToLowerInvariant()}, the register says." : "Of the complaint, the register says.",
+			_ => "Of a fever going about, the register says.",
+		};
+		var part = blamed ? ""
+			: d.Product == null ? " Nothing had been bought at the shop in six months."
+			: product != null && product.Danger < 0.8 && product.Accumulation < 0.3 && !d.Craving ? " The remedy is harmless by the assay; the bottle is not blamed."
+			: " A strong bottle may have hastened it; nobody can say.";
+		var q = f.Inquests.FirstOrDefault(x => x.Person.Id == d.Id);
+		var sits = m.Letters.Any(l => l.Title.StartsWith("Inquest", StringComparison.Ordinal) && !d.Anonymous && d.Name.Length > 0 && l.Title.Contains(SurnameOf(d.Name), StringComparison.OrdinalIgnoreCase));
+		var inquest = q != null ? $" The jury found: \u201c{q.Verdict}.\u201d" : sits ? " An inquest sits: see your letters." : " No inquest was called.";
+		return cause + part + inquest;
 	}
 
 	private static string SurnameOf(string name)

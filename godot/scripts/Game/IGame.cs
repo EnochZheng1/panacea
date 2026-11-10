@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Panacea.Paper;
 
@@ -71,6 +72,17 @@ public sealed class DeskModel
 	public Dictionary<string, double> ClaimBoldness = new();
 	/// <summary>Every investment in the content, held or not, in content order.</summary>
 	public List<InvestmentRow> Investments = new();
+	/// <summary>The wholesale house the shop buys from now (Hobart's of Pearl street, or a rival on trial).</summary>
+	public Supplier Supplier = Supplier.Hobart;
+	/// <summary>What the stock ordered this month cost, as the books record it (the free water is not an order).</summary>
+	public long StockOrderedCents;
+}
+
+/// <summary>A wholesale druggist: its letterhead, and the street the shop sends to.</summary>
+public sealed record Supplier(string Name, string Address, string Street, string Seal)
+{
+	public static readonly Supplier Hobart = new("J. & W. HOBART & CO.", "Wholesale Druggists & Importers of Drugs · 81 Pearl Street, New-York", "Pearl street", "seal_hobart");
+	public static readonly Supplier LehmannStroud = new("LEHMANN & STROUD", "Wholesale Druggists · Drugs, Chemicals & Sundries · Maiden Lane, New-York", "Maiden Lane", "");
 }
 
 /// <summary>Something the proprietor can buy that pays back over months or years.</summary>
@@ -134,7 +146,15 @@ public sealed class IngredientRow
 	public string Name = "";
 	public string Description = "";
 	public double OnHand;
+	/// <summary>The price of an ounce in whole cents, as a price current prints it; never 0 for a good that costs anything.</summary>
 	public long CostPerOunceCents;
+	/// <summary>The exact price of an ounce (after any discount), as an order charges it; null: <see cref="CostPerOunceCents"/>.</summary>
+	public double? CostPerOunceExact;
+	public double CostPerOunce => CostPerOunceExact ?? CostPerOunceCents;
+	/// <summary>Free, from the pump in the yard: always on hand, never ordered.</summary>
+	public bool Free => CostPerOunce <= 0;
+	/// <summary>What an order of so many ounces charges: each article's amount rounded to the cent, as the house bills it.</summary>
+	public long OrderCents(double ounces) => (long)Panacea.Sim.JsMath.Round(Math.Round(ounces) * CostPerOunce);
 	/// <summary>0..1: how much the drug colours the liquid (from the content's appearance).</summary>
 	public double Opacity = 0.5;
 	/// <summary>alcohol, opiate, cocaine, or empty.</summary>
@@ -153,6 +173,10 @@ public sealed class FormulaRow
 	public Dictionary<string, double> Properties = new();
 	public List<(string IngredientId, double Ounces)> Components = new();
 	public string ProcessId = "simple_mix";
+	/// <summary>Bottles of it sold last month, and what those bottles cost to make (the recipes they were
+	/// brewed to, at the prices when the paper went to press); null before any were sold.</summary>
+	public int SoldLastMonth;
+	public long? SoldUnitCostCents;
 }
 
 public sealed class Letter

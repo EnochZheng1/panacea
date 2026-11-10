@@ -366,9 +366,19 @@ public partial class Main : Control
 	/// <summary>Whether the shop on the table is the one on the books (so CONTINUE has only to lift the card).</summary>
 	private bool _backdropIsSave;
 
+	/// <summary>Set when a save is laid out mid-month: CONTINUE then opens on the proof the player was
+	/// working, with last month's edition one press away; a save from a month's start opens on the edition.</summary>
+	private bool _landOnProof;
+
 	private void ContinueSaved()
 	{
-		if (_backdropIsSave || LoadSaved()) { CloseCard(); _backdropIsSave = false; }
+		if (_backdropIsSave || LoadSaved())
+		{
+			CloseCard();
+			_backdropIsSave = false;
+			if (_landOnProof && !_game.Ended) SetDesk(true, slide: false);
+			_landOnProof = false;
+		}
 		else ShowTitle();
 	}
 
@@ -390,6 +400,8 @@ public partial class Main : Control
 		_backdropIsSave = true;
 		_inPlay = true;
 		_savedActions = loaded.Actions;
+		// anything done since the last press (a letter, a price, a fire) means the month is under way
+		_landOnProof = MonthBook.ThisMonth(loaded).Count > 0;
 		return true;
 	}
 
@@ -398,6 +410,7 @@ public partial class Main : Control
 	{
 		if (!_dev) SaveStore.Delete();
 		_backdropIsSave = false;
+		_landOnProof = false;
 		_inPlay = true;
 		_monthDelta = null;
 		using (var f = FileAccess.Open("res://data/paper.en.json", FileAccess.ModeFlags.Read))
@@ -828,8 +841,13 @@ public partial class Main : Control
 	/// <summary>The footer line; <paramref name="cash"/> overrides the figure while it counts.</summary>
 	private long? _monthDelta;
 
-	/// <summary>The footer's pieces, most needed first; each with how readily it is left out when the line is too long (0: never).</summary>
-	private readonly List<(string Text, int Drop)> _statusParts = new();
+	/// <summary>
+	/// The footer's pieces, most needed first; each with a shorter form (or null) and how readily it
+	/// is left out when the line is too long (0: never). The cash, the suspicion, the letters waiting
+	/// and the regulars are never left out: when the line is too long the decoration is shortened
+	/// first, then left out, and only then are the needed pieces set in their short forms.
+	/// </summary>
+	private readonly List<(string Text, int Drop, string? Short)> _statusParts = new();
 
 	private void UpdateStatus(long? cash)
 	{
@@ -843,20 +861,22 @@ public partial class Main : Control
 		var parts = _statusParts;
 		parts.Clear();
 		var letters = d.Letters.Count == 0 ? null : $"{d.Letters.Count} letter{(d.Letters.Count == 1 ? "" : "s")} waiting";
-		if (_pressing) parts.Add(("☞ Click, or press any key, to see the edition.", 0));
+		var shortMonth = new System.DateTime(d.Year, d.Month, 1).ToString("MMM. yyyy", inv).Replace("May.", "May");
+		var lettersShort = d.Letters.Count == 0 ? null : $"{d.Letters.Count} letter{(d.Letters.Count == 1 ? "" : "s")}";
+		if (_pressing) parts.Add(("☞ Click, or press any key, to see the edition.", 0, null));
 		else if (_game.Ended)
 			parts.Add((_game.Facts.Career is { } c
 				? $"The business is closed after {(c.Months >= 24 ? $"{c.Months / 12} years" : $"{c.Months} months")}: {c.Bottles:N0} bottles sold, {c.Deaths} dead. The paper has the last word."
-				: "The business is closed. The paper has the last word.", 0));
+				: "The business is closed. The paper has the last word.", 0, null));
 		else if (_onDesk)
 		{
 			// at the bench: the money and the talk, which a drawer's letter may ask about, kept in view
-			// here on the black, where an open drawer never dims them
-			parts.Add((month, 0));
-			parts.Add(($"cash now {EditionWriter.Money(cash ?? d.CashCents)}", 0));
-			parts.Add(($"suspicion: {DeskView.Talk(d.Heat)} ({d.Heat:0} of 100)", 1));
-			if (letters != null) parts.Add((letters, 2));
-			parts.Add(($"{d.Customers} regulars", 3));
+			// here on the black, where an open drawer never dims them; the month is on the proof's head
+			parts.Add((month, 1, shortMonth));
+			parts.Add(($"cash now {EditionWriter.Money(cash ?? d.CashCents)}", 0, $"cash {EditionWriter.Money(cash ?? d.CashCents)}"));
+			parts.Add(($"suspicion: {DeskView.Talk(d.Heat)} ({d.Heat:0} of 100)", 0, $"suspicion {d.Heat:0} of 100"));
+			if (letters != null) parts.Add((letters, 0, lettersShort));
+			parts.Add(($"{d.Customers} regulars", 0, null));
 		}
 		else
 		{
@@ -864,35 +884,53 @@ public partial class Main : Control
 			// figure, so it can never seem to disagree with the cash in hand after a month's spending
 			var f = _game.Facts;
 			var printed = f.FirstEdition ? EditionWriter.FirstSaturday(f.Year, f.Month) : EditionWriter.PublicationDate(f.Year, f.Month);
-			parts.Add(($"The Gazette of {printed.ToString("MMMM d", inv)}", 0));
+			parts.Add(($"The Gazette of {printed.ToString("MMMM d", inv)}", 0, $"Gazette of {printed.ToString("MMM. d", inv).Replace("May.", "May")}"));
 			var closed = cash ?? f.CashCents;
 			var dm = _monthDelta ?? (f.FirstEdition ? (long?)null : f.CashCents - f.CashStartCents);
 			var books = dm is long m ? (m == 0 ? ", the books even" : $", the books {(m > 0 ? "up" : "down")} {EditionWriter.Money(Math.Abs(m))}") : "";
 			var since = cash == null ? d.CashCents - f.CashCents : 0;
-			if (since == 0) parts.Add(($"cash {EditionWriter.Money(closed)}{books}", 0));
+			if (since == 0) parts.Add(($"cash {EditionWriter.Money(closed)}{books}", 0, $"cash {EditionWriter.Money(closed)}"));
 			else
 			{
-				parts.Add(($"the books closed at {EditionWriter.Money(closed)}", 0));
-				parts.Add(($"cash now {EditionWriter.Money(d.CashCents)}, {EditionWriter.Money(Math.Abs(since))} {(since < 0 ? "spent" : "taken")} since", 0));
+				parts.Add(($"the books closed at {EditionWriter.Money(closed)}", 0, $"books closed at {EditionWriter.Money(closed)}"));
+				parts.Add(($"cash now {EditionWriter.Money(d.CashCents)}, {EditionWriter.Money(Math.Abs(since))} {(since < 0 ? "spent" : "taken")} since", 0, $"cash now {EditionWriter.Money(d.CashCents)}"));
 			}
-			parts.Add(($"now {month}", 2));
-			if (letters != null) parts.Add((letters, 1));
-			parts.Add(($"{d.Customers} regulars", 3));
+			parts.Add(($"now {month}", 1, $"now {shortMonth}"));
+			if (letters != null) parts.Add((letters, 0, lettersShort));
+			parts.Add(($"{d.Customers} regulars", 0, null));
 		}
 		FitStatus();
 	}
 
-	/// <summary>Sets the footer on one line, leaving out the least needed pieces until it fits.</summary>
+	/// <summary>
+	/// Sets the footer on one line. While it is too long: the decoration (the date) takes its short
+	/// form, then is left out; then the needed pieces take their short forms, one at a time from the
+	/// front. The cash, the suspicion, the letters waiting and the regulars always stay.
+	/// </summary>
 	private void FitStatus()
 	{
 		if (_status == null) return;
-		var keep = _statusParts.ToList();
+		var keep = _statusParts.Select(p => (p.Text, p.Drop, p.Short)).ToList();
 		string Line() => string.Join(" · ", keep.Select(p => p.Text));
 		var room = _status.Size.X;
 		var font = _status.GetThemeFont("font");
 		var size = _status.GetThemeFontSize("font_size");
-		while (room > 1 && keep.Any(p => p.Drop > 0) && font.GetStringSize(Line(), HorizontalAlignment.Left, -1, size).X > room)
-			keep.Remove(keep.Where(p => p.Drop > 0).OrderByDescending(p => p.Drop).First());
+		bool TooLong() => room > 1 && font.GetStringSize(Line(), HorizontalAlignment.Left, -1, size).X > room;
+		bool Shorten(Func<(string Text, int Drop, string? Short), bool> which, bool fromEnd = false)
+		{
+			var order = Enumerable.Range(0, keep.Count).Where(k => keep[k].Short != null && keep[k].Short != keep[k].Text && which(keep[k]));
+			foreach (var k in fromEnd ? order.Reverse() : order)
+			{
+				keep[k] = (keep[k].Short!, keep[k].Drop, null);
+				return true;
+			}
+			return false;
+		}
+		// the decoration first: shortened, then left out
+		while (TooLong() && Shorten(p => p.Drop > 0, false)) { }
+		while (TooLong() && keep.Any(p => p.Drop > 0)) keep.Remove(keep.Where(p => p.Drop > 0).OrderByDescending(p => p.Drop).First());
+		// then the pieces that stay, in their short forms, the first (the date and the books' figure) first
+		while (TooLong() && Shorten(_ => true, false)) { }
 		var text = Line();
 		if (_status.Text != text) _status.Text = text;
 	}

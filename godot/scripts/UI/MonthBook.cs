@@ -46,50 +46,76 @@ public static class MonthBook
 	/// <summary>
 	/// What has been done this month, one short line each, for a proprietor coming back to the
 	/// bench: replies sent, money laid out, prices and recipes changed, fires lit, space bought.
+	/// After the money, the lines run in the order things were done, and a fire lit in a month
+	/// whose recipe changed says which recipe it was.
 	/// </summary>
 	public static List<string> SoFar(IGame game, DeskModel m)
 	{
-		var lines = new List<string>();
 		var acts = ThisMonth(game);
 		var f = game.Facts;
 		string Name(string id) => m.Formulas.FirstOrDefault(x => x.Id == id)?.Name ?? "the remedy";
+		// each line with the place in the month's log it was done at
+		var dated = new List<(int At, string Line)>();
+		int First(Func<string[], bool> p) => acts.FindIndex(e => e.Length > 0 && p(e));
+		int Last(Func<string[], bool> p) => acts.FindLastIndex(e => e.Length > 0 && p(e));
+
 		var letters = acts.Count(e => e[0] == "resolve");
-		if (letters > 0) lines.Add($"{Cap(EditionWriter.Words(letters))} letter{(letters == 1 ? "" : "s")} answered.");
+		if (letters > 0) dated.Add((First(e => e[0] == "resolve"), $"{Cap(EditionWriter.Words(letters))} letter{(letters == 1 ? "" : "s")} answered."));
 		foreach (var id in acts.Where(e => e[0] == "invest" && e.Length > 1).Select(e => e[1]).Distinct())
-			lines.Add($"Taken up: {m.Investments.FirstOrDefault(i => i.Id == id)?.Name ?? id}.");
+			dated.Add((First(e => e[0] == "invest" && e.Length > 1 && e[1] == id), $"Taken up: {m.Investments.FirstOrDefault(i => i.Id == id)?.Name ?? id}."));
 		foreach (var id in acts.Where(e => e[0] == "create" && e.Length > 1).Select(e => e[1]).Distinct())
-			lines.Add($"Entered in the book: {id}.");
-		foreach (var id in acts.Where(e => e[0] == "reformulate" && e.Length > 1).Select(e => e[1]).Distinct())
-			lines.Add($"The recipe of {Name(id)} changed.");
+			dated.Add((First(e => e[0] == "create" && e.Length > 1 && e[1] == id), $"Entered in the book: {id}."));
+		var changed = acts.Where(e => e[0] == "reformulate" && e.Length > 1).Select(e => e[1]).ToHashSet();
+		foreach (var id in changed)
+			dated.Add((First(e => e[0] == "reformulate" && e.Length > 1 && e[1] == id), $"The recipe of {Name(id)} changed."));
 		foreach (var id in acts.Where(e => e[0] == "price" && e.Length > 1).Select(e => e[1]).Distinct())
 		{
 			var was = f.Products.FirstOrDefault(p => p.Id == id)?.PriceCents;
 			var now = m.Formulas.FirstOrDefault(x => x.Id == id)?.PriceCents;
-			if (was != null && now != null && was != now) lines.Add($"Price of {Name(id)}: {EditionWriter.Money(was.Value)}, now {EditionWriter.Money(now.Value)}".TrimEnd('.') + ".");
+			if (was != null && now != null && was != now)
+				dated.Add((Last(e => e[0] == "price" && e.Length > 1 && e[1] == id), $"Price of {Name(id)}: {EditionWriter.Money(was.Value)}, now {EditionWriter.Money(now.Value)}".TrimEnd('.') + "."));
 		}
 		foreach (var id in acts.Where(e => e[0] == "claims" && e.Length > 1).Select(e => e[1]).Distinct())
-			lines.Add($"The claims on {Name(id)} reset.");
+			dated.Add((Last(e => e[0] == "claims" && e.Length > 1 && e[1] == id), $"The claims on {Name(id)} reset."));
 		if (acts.Any(e => e[0] == "ads") && m.AdSpendCents != f.AdSpendCents)
 		{
 			var t = AdSpace.Tiers[AdSpace.TierFor(m.AdSpendCents)];
-			lines.Add(m.AdSpendCents == 0 ? "The notice in the Gazette stopped." : $"Space in the Gazette: {t.Short.ToLowerInvariant()}, {EditionWriter.Money(t.Cents)} at press.");
+			dated.Add((Last(e => e[0] == "ads"), m.AdSpendCents == 0 ? "The notice in the Gazette stopped." : $"Space in the Gazette: {t.Short.ToLowerInvariant()}, {EditionWriter.Money(t.Cents)} at press."));
 		}
-		foreach (var g in acts.Where(e => e[0] == "brew" && e.Length > 2).GroupBy(e => e[1]))
+		// fires, run together while the recipe stayed the same; a change of recipe starts a new line
+		var recipe = new Dictionary<string, int>();
+		var fires = new List<(int At, string Formula, int Recipe, int Fires, int Bottles)>();
+		for (var k = 0; k < acts.Count; k++)
 		{
-			var n = g.Sum(e => int.TryParse(e[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out var b) ? b : 0);
-			var fires = g.Count();
-			lines.Add($"{(fires == 1 ? "A fire" : Cap(EditionWriter.Words(fires)) + " fires")} lit: {n} bottles of {Name(g.Key)}.");
+			var e = acts[k];
+			if (e.Length > 1 && e[0] == "reformulate") recipe[e[1]] = recipe.GetValueOrDefault(e[1]) + 1;
+			if (e.Length <= 2 || e[0] != "brew") continue;
+			var n = int.TryParse(e[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out var b) ? b : 0;
+			var r = recipe.GetValueOrDefault(e[1]);
+			var at = fires.FindIndex(x => x.Formula == e[1] && x.Recipe == r);
+			if (at < 0) fires.Add((k, e[1], r, 1, n));
+			else fires[at] = fires[at] with { Fires = fires[at].Fires + 1, Bottles = fires[at].Bottles + n };
 		}
-		// what the orders cost at today's prices (the free water from the pump is not an order)
-		long ordered = 0;
-		foreach (var e in acts.Where(e => e[0] == "buy" && e.Length > 2))
+		foreach (var g in fires)
 		{
-			var i = m.Ingredients.FirstOrDefault(x => x.Id == e[1]);
-			if (i == null || i.CostPerOunceCents == 0) continue;
-			if (double.TryParse(e[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var oz))
-				ordered += (long)Math.Round(Math.Round(oz) * i.CostPerOunceCents);
+			var which = !changed.Contains(g.Formula) ? ""
+				: g.Recipe == 0 ? ", to the old recipe"
+				: g.Recipe == recipe.GetValueOrDefault(g.Formula) ? ", to the new recipe"
+				: ", to a recipe since changed";
+			dated.Add((g.At, $"{(g.Fires == 1 ? "A fire" : Cap(EditionWriter.Words(g.Fires)) + " fires")} lit: {g.Bottles} bottles of {Name(g.Formula)}{which}."));
 		}
-		if (ordered > 0) lines.Add($"Stock ordered from Pearl street: {EditionWriter.Money(ordered)}".TrimEnd('.') + ".");
+		// what the orders cost, as the books record it (the free water from the pump is not an order)
+		var ordered = m.StockOrderedCents;
+		if (game is not SimGame)
+			foreach (var e in acts.Where(e => e[0] == "buy" && e.Length > 2))
+			{
+				var i = m.Ingredients.FirstOrDefault(x => x.Id == e[1]);
+				if (i == null || i.Free) continue;
+				if (double.TryParse(e[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var oz)) ordered += i.OrderCents(oz);
+			}
+		if (ordered > 0) dated.Add((Math.Max(0, First(e => e[0] == "buy" && e.Length > 1 && !(m.Ingredients.FirstOrDefault(i => i.Id == e[1])?.Free ?? false))), $"Stock ordered from {m.Supplier.Street}: {EditionWriter.Money(ordered)}".TrimEnd('.') + "."));
+
+		var lines = dated.OrderBy(x => x.At).Select(x => x.Line).ToList();
 		var laid = f.CashCents - m.CashCents;
 		if (laid > 0) lines.Insert(0, $"Laid out so far: {EditionWriter.Money(laid)} ({EditionWriter.Money(f.CashCents)} when the month opened).");
 		else if (laid < 0) lines.Insert(0, $"Taken in so far: {EditionWriter.Money(-laid)}".TrimEnd('.') + ".");

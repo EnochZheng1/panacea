@@ -9,8 +9,8 @@ using Panacea.Paper;
 namespace Panacea.UI;
 
 /// <summary>
-/// Supplies, ordered the way a druggist did: a printed order form from the wholesale house on
-/// Pearl street. Mark quantities against each article (they are written in by hand), see the
+/// Supplies, ordered the way a druggist did: a printed order form from the wholesale house the
+/// shop deals with (Hobart's of Pearl street, or a rival on trial). Mark quantities against each article (they are written in by hand), see the
 /// amount and the total, and send the order in one go. The form comes back stamped.
 /// </summary>
 public partial class OrderForm : VBoxContainer
@@ -45,12 +45,15 @@ public partial class OrderForm : VBoxContainer
 		var head = new HBoxContainer();
 		var names = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
 		names.AddThemeConstantOverride("separation", -2);
-		names.AddChild(Print.Label("J. & W. HOBART & CO.", Print.Rye, 26));
-		names.AddChild(Print.Label("Wholesale Druggists & Importers of Drugs · 81 Pearl Street, New-York", Print.FellIt, 14));
-		// the house's seal, a mortar and pestle, beside its name
-		var seal = LettersDesk.Seal("seal_hobart", 76);
-		seal.RotationDegrees = 0;
-		head.AddChild(seal);
+		names.AddChild(Print.Label(d.Supplier.Name, Print.Rye, 26));
+		names.AddChild(Print.Label(d.Supplier.Address, Print.FellIt, 14));
+		// the house's seal, a mortar and pestle, beside its name (a house without one prints none)
+		if (d.Supplier.Seal.Length > 0)
+		{
+			var seal = LettersDesk.Seal(d.Supplier.Seal, 76);
+			seal.RotationDegrees = 0;
+			head.AddChild(seal);
+		}
 		head.AddThemeConstantOverride("separation", 12);
 		head.AddChild(names);
 		var no = new VBoxContainer();
@@ -75,7 +78,8 @@ public partial class OrderForm : VBoxContainer
 		foreach (var i in d.Ingredients)
 		{
 			var oz = _order.GetValueOrDefault(i.Id);
-			var amount = oz * i.CostPerOunceCents;
+			// billed as the books will record it: the house's price, discount and all, to the cent
+			var amount = i.Free ? 0 : i.OrderCents(oz);
 			total += amount;
 			var name = new Leader { Text = i.Name };
 			name.AddThemeFontOverride("font", Print.Fell);
@@ -85,18 +89,20 @@ public partial class OrderForm : VBoxContainer
 			name.TooltipText = i.Description;
 			name.MouseFilter = MouseFilterEnum.Pass;
 			grid.AddChild(name);
-			grid.AddChild(Print.Label(i.CostPerOunceCents == 0 ? "free" : EditionWriter.Money(i.CostPerOunceCents), Print.Fell, 14, HorizontalAlignment.Right, wrap: false));
+			grid.AddChild(Print.Label(i.Free ? "free" : PerOunce(i.CostPerOunce), Print.Fell, 14, HorizontalAlignment.Right, wrap: false));
 			// what is free comes from the pump, and is always on hand: THE STILL draws it as it lights
-			grid.AddChild(Print.Label(i.CostPerOunceCents == 0 ? "the pump" : $"{i.OnHand:0.#} oz", Print.Fell, 14, HorizontalAlignment.Right, wrap: false));
+			grid.AddChild(Print.Label(i.Free ? "the pump" : $"{i.OnHand:0.#} oz", Print.Fell, 14, HorizontalAlignment.Right, wrap: false));
 			var q = new HBoxContainer();
 			q.AddThemeConstantOverride("separation", 3);
 			// the quantity is written in, by hand, between the marks
 			var written = Print.Label(oz == 0 ? "" : $"{oz} oz", Print.FellIt, 16, HorizontalAlignment.Center, wrap: false);
 			written.CustomMinimumSize = new Vector2(62, 0);
-			foreach (var step in new[] { -8, 8, 32 })
+			// the house sells nothing that comes free from the pump: no marks to make against it
+			if (i.Free) q.AddChild(Print.Label("not ordered", Print.FellIt, 13, HorizontalAlignment.Center, wrap: false));
+			foreach (var step in i.Free ? Array.Empty<int>() : new[] { -8, 8, 32 })
 			{
 				var b = Print.Button(step < 0 ? "−" : $"+{step}", 11, sound: "tick");
-				b.TooltipText = step < 0 ? "Strike out 8 oz" : $"{step} oz: {EditionWriter.Money(step * i.CostPerOunceCents)}";
+				b.TooltipText = step < 0 ? "Strike out 8 oz" : $"{step} oz: {EditionWriter.Money(i.OrderCents(step))}";
 				var id = i.Id; var s = step;
 				b.Pressed += () => { _order[id] = Math.Max(0, _order.GetValueOrDefault(id) + s); _note = null; Refresh(); };
 				if (step < 0) { Print.SetLive(b, oz > 0); q.AddChild(b); q.AddChild(written); }
@@ -125,7 +131,9 @@ public partial class OrderForm : VBoxContainer
 			{
 				foreach (var (id, per) in f.Components)
 				{
-					var have = d.Ingredients.FirstOrDefault(x => x.Id == id)?.OnHand ?? 0;
+					var art = d.Ingredients.FirstOrDefault(x => x.Id == id);
+					if (art == null || art.Free) continue;
+					var have = art.OnHand;
 					var need = (int)Math.Ceiling(Math.Max(0, per * 24 - have));
 					if (need > 0) _order[id] = need;
 				}
@@ -168,6 +176,21 @@ public partial class OrderForm : VBoxContainer
 			: $"Received with thanks: {EditionWriter.Money(total)}, paid on delivery. The goods are on your shelf.";
 		Refresh();
 		if (bought > 0) Changed?.Invoke();
+	}
+
+	/// <summary>A price current's figure for an ounce: whole cents as the paper prints money, a fraction
+	/// as the trade wrote it ("½c.", "4.6c.").</summary>
+	public static string PerOunce(double cents)
+	{
+		var whole = Math.Round(cents);
+		if (Math.Abs(cents - whole) < 0.005) return EditionWriter.Money((long)whole);
+		if (cents >= 100) return "$" + (cents / 100).ToString("#,0.00#", CultureInfo.InvariantCulture);
+		var frac = cents - Math.Floor(cents);
+		var head = Math.Floor(cents) > 0 ? ((long)Math.Floor(cents)).ToString(CultureInfo.InvariantCulture) : "";
+		if (Math.Abs(frac - 0.5) < 0.005) return $"{head}½c.";
+		if (Math.Abs(frac - 0.25) < 0.005) return $"{head}¼c.";
+		if (Math.Abs(frac - 0.75) < 0.005) return $"{head}¾c.";
+		return cents.ToString(cents < 10 ? "0.##" : "0.#", CultureInfo.InvariantCulture) + "c.";
 	}
 
 	private static string Short(string name) => (name.Length > 18 ? name[..16].TrimEnd() + "…" : name).ToUpperInvariant();

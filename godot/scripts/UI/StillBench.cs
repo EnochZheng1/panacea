@@ -101,10 +101,10 @@ public partial class StillBench : HBoxContainer
 
 		var stock = d.Ingredients.ToDictionary(i => i.Id, i => i);
 		// what the shelf allows, counting the free things (water from the pump) as always on hand
-		int Allows() => f.Components.Where(c => c.Ounces > 0 && !(stock.TryGetValue(c.IngredientId, out var fi) && fi.CostPerOunceCents == 0))
+		int Allows() => f.Components.Where(c => c.Ounces > 0 && !(stock.TryGetValue(c.IngredientId, out var fi) && fi.Free))
 			.Select(c => stock.TryGetValue(c.IngredientId, out var i) ? (int)Math.Floor(i.OnHand / c.Ounces + 1e-9) : 0)
 			.DefaultIfEmpty(int.MaxValue).Min();
-		var freeComps = f.Components.Where(c => c.Ounces > 0 && stock.TryGetValue(c.IngredientId, out var fi) && fi.CostPerOunceCents == 0).ToList();
+		var freeComps = f.Components.Where(c => c.Ounces > 0 && stock.TryGetValue(c.IngredientId, out var fi) && fi.Free).ToList();
 		var pumpLimit = freeComps.Select(c => (int)Math.Floor(stock[c.IngredientId].OnHand / c.Ounces + 1e-9)).DefaultIfEmpty(int.MaxValue).Min();
 		// the sim's figure, unless the water is what holds it back: then the shelf, the still and the cash for the glass
 		var perBottle = d.BottleCostCents + (f.ProcessId switch { "steep" => 1, "percolate" => 2, _ => 0 });
@@ -123,7 +123,7 @@ public partial class StillBench : HBoxContainer
 
 		// the bottling shelf: a mark for every bottle the stock allows; click to choose the batch
 		_right.AddChild(Print.Label("THE BATCH", Print.Rye, 14));
-		_right.AddChild(Print.Label("Click a bottle to mark the batch, or with the keyboard: ◀ ▶ a bottle at a time, ▲ ▼ a dozen.", Print.FellIt, 13));
+		_right.AddChild(Print.Label("Click a bottle to mark the batch, or with the keyboard: ▶ a bottle more, ◀ one fewer; ▲ a dozen more, ▼ a dozen fewer.", Print.FellIt, 13));
 		var shelf = new BottleShelf { Count = want, Max = max, Capacity = ((cap + 11) / 12) * 12 };
 		shelf.Picked += k => { _counts[f.Id] = k; Sfx.Play("tick", -6f, 0.1f); Refresh(); };
 		_right.AddChild(shelf);
@@ -138,9 +138,10 @@ public partial class StillBench : HBoxContainer
 			{
 				var have = stock.TryGetValue(c.IngredientId, out var i) ? i.OnHand : 0;
 				var need = Math.Ceiling(Math.Max(0, c.Ounces * batch - have));
-				if (need <= 0 || (i != null && i.CostPerOunceCents == 0)) continue;
+				if (need <= 0 || (i != null && i.Free)) continue;
 				list.Add((c.IngredientId, need));
-				total += (long)Math.Round(need * (i?.CostPerOunceCents ?? 0));
+				// what the house will bill: the discounted price, each article rounded to the cent, as the books record it
+				total += i?.OrderCents(need) ?? 0;
 			}
 			return (list, total);
 		}
@@ -152,7 +153,7 @@ public partial class StillBench : HBoxContainer
 			string? err = null;
 			foreach (var c in f.Components.Where(c => c.Ounces > 0))
 			{
-				if (!stock.TryGetValue(c.IngredientId, out var i) || i.CostPerOunceCents != 0) continue;
+				if (!stock.TryGetValue(c.IngredientId, out var i) || !i.Free) continue;
 				var need = Math.Ceiling(Math.Max(0, c.Ounces * batch - i.OnHand));
 				if (need > 0) err ??= _game.Buy(c.IngredientId, need);
 			}
@@ -183,7 +184,7 @@ public partial class StillBench : HBoxContainer
 		buy.CustomMinimumSize = new Vector2(0, 0);
 		buy.SizeFlagsHorizontal = SizeFlags.ExpandFill;
 		Print.SetLive(buy, needs.Count > 0);
-		buy.TooltipText = needs.Count > 0 ? $"Orders from Pearl street whatever the recipe is short of, for a batch of {Batch}: {EditionWriter.Money(cost)} of stock. The glass ({EditionWriter.Money(Batch * d.BottleCostCents)}) is paid when the fire is lit." : "There is enough on the shelf for this batch.";
+		buy.TooltipText = needs.Count > 0 ? $"Orders from {d.Supplier.Street} whatever the recipe is short of, for a batch of {Batch}: {EditionWriter.Money(cost)} of stock. The glass ({EditionWriter.Money(Batch * d.BottleCostCents)}) is paid when the fire is lit." : "There is enough on the shelf for this batch.";
 		buy.Pressed += () =>
 		{
 			string? err = null;
@@ -241,7 +242,7 @@ public partial class StillBench : HBoxContainer
 			? $"You have marked {want}; the ingredients on hand make {(max == 0 ? "none" : max.ToString(CultureInfo.InvariantCulture))}. {(max == 0 ? "Order the rest to light the fire." : $"Order the rest, or light the fire for {max}.")}"
 			: $"{n} bottle{(n == 1 ? "" : "s")} · {EditionWriter.Money(bottles)} for bottles and corks when lit · {(stuff > 0 ? $"takes {EditionWriter.Money(stuff)} of stock off the shelf · " : "")}most the stock allows: {max}", Print.Fell, 15));
 		// (the water is not short: it comes from the pump)
-		var limits = f.Components.Where(c => c.Ounces > 0 && !(stock.TryGetValue(c.IngredientId, out var fr) && fr.CostPerOunceCents == 0)).Select(c => (c, can: stock.TryGetValue(c.IngredientId, out var i) ? (int)Math.Floor(i.OnHand / c.Ounces + 1e-9) : 0)).ToList();
+		var limits = f.Components.Where(c => c.Ounces > 0 && !(stock.TryGetValue(c.IngredientId, out var fr) && fr.Free)).Select(c => (c, can: stock.TryGetValue(c.IngredientId, out var i) ? (int)Math.Floor(i.OnHand / c.Ounces + 1e-9) : 0)).ToList();
 		var shortest = limits.OrderBy(x => x.can).FirstOrDefault();
 		if (limits.Count > 0 && shortest.can < want)
 		{
@@ -266,13 +267,17 @@ public partial class StillBench : HBoxContainer
 		private float RowH => H + 14 * S;
 		public event Action<int>? Picked;
 		private int _hover = -1;
+		/// <summary>Set by a key or a click, cleared when the hand moves: the shelf is rebuilt under a resting
+		/// cursor, and the bottle under it must not stand in for the count the keys have marked.</summary>
+		private static bool _handAtRest;
+		private static Vector2 _restAt;
 
 		public BottleShelf()
 		{
 			MouseFilter = MouseFilterEnum.Stop;
 			MouseDefaultCursorShape = CursorShape.PointingHand;
 			FocusMode = FocusModeEnum.All;
-			TooltipText = "Click a bottle to fill the shelf up to it. Arrow keys change the batch by one.";
+			TooltipText = "Click a bottle to fill the shelf up to it. ▶ and ◀ change the batch by one bottle; ▲ adds a dozen, ▼ takes a dozen off.";
 		}
 
 		public override Vector2 _GetMinimumSize() => new(PerRow * (W + Gap), ((Capacity + PerRow - 1) / PerRow) * RowH);
@@ -288,13 +293,29 @@ public partial class StillBench : HBoxContainer
 
 		public override void _GuiInput(InputEvent e)
 		{
-			if (e is InputEventMouseMotion m) { var h = At(m.Position); if (h != _hover) { _hover = h; QueueRedraw(); } }
-			if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } b && At(b.Position) is var k and > 0) { GrabFocus(); Picked?.Invoke(k); AcceptEvent(); }
+			if (e is InputEventMouseMotion m)
+			{
+				// a pencilled preview follows the hand only when it really moves
+				if (_handAtRest && m.GlobalPosition.DistanceTo(_restAt) < 3) return;
+				_handAtRest = false;
+				var h = At(m.Position);
+				if (h != _hover) { _hover = h; QueueRedraw(); }
+			}
+			if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } b && At(b.Position) is var k and > 0) { Rest(b.GlobalPosition); GrabFocus(); Picked?.Invoke(k); AcceptEvent(); }
 			if (e is InputEventKey { Pressed: true } key)
 			{
-				var step = key.Keycode switch { Key.Right or Key.Plus or Key.Equal or Key.KpAdd => 1, Key.Left or Key.Minus or Key.KpSubtract => -1, Key.Up or Key.Pageup => -PerRow, Key.Down or Key.Pagedown => PerRow, _ => 0 };
-				if (step != 0) { Picked?.Invoke(Math.Clamp(Count + step, 0, Capacity)); AcceptEvent(); }
+				// ▲ is more, as on any counter: a dozen up or down; ▶ ◀ a bottle at a time
+				var step = key.Keycode switch { Key.Right or Key.Plus or Key.Equal or Key.KpAdd => 1, Key.Left or Key.Minus or Key.KpSubtract => -1, Key.Up or Key.Pageup => PerRow, Key.Down or Key.Pagedown => -PerRow, _ => 0 };
+				if (step != 0) { Rest(GetGlobalMousePosition()); Picked?.Invoke(Math.Clamp(Count + step, 0, Capacity)); AcceptEvent(); }
 			}
+		}
+
+		private void Rest(Vector2 at)
+		{
+			_handAtRest = true;
+			_restAt = at;
+			_hover = -1;
+			QueueRedraw();
 		}
 
 		public override void _Notification(int what)

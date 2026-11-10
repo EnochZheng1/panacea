@@ -162,7 +162,9 @@ public sealed class SimGame : IGame
 		foreach (var r in Desk().Regulars) _known[r.Name] = r;
 		foreach (var p in Facts.Products) _lastPrice[p.Id] = p.PriceCents;
 		var before = Facts.Sales.Sum(x => x.Bottles);
+		var shelf = ShelfBeforePress();
 		var report = Sim.Game.EndTurnInPlace(_state, _content);
+		CostSold(shelf, report);
 		Facts = BuildFacts(report);
 		Facts.SoldLastMonth = before;
 		// the best month before this one, from the books: a record is beaten, not just last month
@@ -213,7 +215,9 @@ public sealed class SimGame : IGame
 				Name = _content.Text($"ingredient.{i.Id}.name"),
 				Description = _content.Text($"ingredient.{i.Id}.description"),
 				OnHand = onHand,
-				CostPerOunceCents = (long)Math.Round(i.CostPerUnitCents),
+				// whole cents for the price current, but a good that costs anything never reads as free
+				CostPerOunceCents = i.CostPerUnitCents <= 0 ? 0 : Math.Max(1, (long)JsMath.Round(i.CostPerUnitCents)),
+				CostPerOunceExact = i.CostPerUnitCents,
 				Opacity = _content.ById.Ingredients.TryGetValue(i.Id, out var ing) ? ing.Appearance.Opacity : 0.5,
 				DrugClass = ing?.DrugClass ?? "",
 			});
@@ -247,6 +251,8 @@ public sealed class SimGame : IGame
 				Properties = Props(f.Properties),
 				Components = _state.Lab.Formulas.First(x => x.Id == f.Id).Components.Select(c => (c.IngredientId, c.Amount)).ToList(),
 				ProcessId = _state.Lab.Formulas.First(x => x.Id == f.Id).ProcessId,
+				SoldLastMonth = _soldCost.TryGetValue(f.Id, out var sold) ? sold.Bottles : 0,
+				SoldUnitCostCents = _soldCost.TryGetValue(f.Id, out var sc) ? sc.UnitCents : null,
 			});
 		}
 		foreach (var b in o.BatchesInProgress)
@@ -309,7 +315,47 @@ public sealed class SimGame : IGame
 				Progress = Progress(i.Progress),
 			});
 		}
+		d.Supplier = CurrentSupplier();
+		d.StockOrderedCents = StockOrdered();
 		return d;
+	}
+
+	/// <summary>The house the shop buys from: Lehmann &amp; Stroud while their trial order's discount runs, else Hobart's.</summary>
+	private Supplier CurrentSupplier() =>
+		_state.Events.LastDrawn.ContainsKey("jobber_rival") && _state.Player.TimedCapabilities.Any(t => t.Id == "ingredient_discount_pct" && t.Delta == 8)
+			? Supplier.LehmannStroud : Supplier.Hobart;
+
+	/// <summary>This month's orders of stock, to the cent, as the books book them (a letter's trial order is the letter's).</summary>
+	private long StockOrdered() =>
+		-(long)_state.Month.Deltas.Where(x => x.Metric == Metrics.Cash && x.Cause == Causes.Ingredients && x.Detail != null && _content.ById.Ingredients.ContainsKey(x.Detail)).Sum(x => x.Amount);
+
+	/// <summary>By remedy: last month's bottles sold, and what those bottles (not the recipe in the book now) cost to make.</summary>
+	private readonly Dictionary<string, (int Bottles, long UnitCents)> _soldCost = new();
+
+	/// <summary>Before the press: every lot on the shelf and every batch on the fire, with its bottles and its cost a bottle.</summary>
+	private List<(string Id, string FormulaId, int Bottles, double Unit)> ShelfBeforePress() =>
+		_state.Lab.Stock.Select(l => (l.Id, l.FormulaId, l.Bottles, Lab.FormulaUnitCost(_state, l.Components, l.ProcessId, _content)))
+			.Concat(_state.Lab.Batches.Select(b => (b.Id, b.FormulaId, b.Bottles, Lab.FormulaUnitCost(_state, b.Components, b.ProcessId, _content))))
+			.ToList();
+
+	/// <summary>After the press: what left the shelf, by remedy, at what it cost to make (a weighted mean over the batches it came from).</summary>
+	private void CostSold(List<(string Id, string FormulaId, int Bottles, double Unit)> before, LedgerEntry report)
+	{
+		_soldCost.Clear();
+		var left = _state.Lab.Stock.GroupBy(l => l.Id).ToDictionary(g => g.Key, g => g.Sum(l => l.Bottles));
+		foreach (var g in before.GroupBy(x => x.FormulaId))
+		{
+			var sold = report.Sales.Where(x => x.FormulaId == g.Key).Sum(x => x.Bottles);
+			if (sold <= 0) continue;
+			double bottles = 0, cents = 0;
+			foreach (var lot in g)
+			{
+				var gone = Math.Max(0, lot.Bottles - left.GetValueOrDefault(lot.Id));
+				bottles += gone;
+				cents += gone * lot.Unit;
+			}
+			if (bottles > 0) _soldCost[g.Key] = (sold, (long)Math.Ceiling(cents / bottles - 1e-9));
+		}
 	}
 
 	/// <summary>The career in figures, and what the chief remedy's label would have to admit.</summary>
@@ -370,7 +416,7 @@ public sealed class SimGame : IGame
 			"bottlesSold" => $"{N(c.Have)} of {N(c.Need)} bottles sold",
 			"regulars" => $"{N(c.Have)} of {N(c.Need)} regulars",
 			"cash" => $"{EditionWriter.Money((long)c.Have)} of {EditionWriter.Money((long)c.Need)} put by",
-			"cost" => $"{EditionWriter.Money((long)c.Have)} of the {EditionWriter.Money((long)c.Need)} in hand",
+			"cost" => $"{EditionWriter.Money((long)c.Have)} in hand of the {EditionWriter.Money((long)c.Need)}",
 			"heat" when c.Sense == "below" => $"suspicion at {N(c.Have)}; it must be under {N(c.Need)}",
 			"heat" => $"suspicion at {N(c.Have)} of {N(c.Need)}",
 			"unlocked" when c.Id != null => $"waits on {_content.Text($"unlock.{c.Id}.name").ToLowerInvariant()}",
@@ -389,7 +435,8 @@ public sealed class SimGame : IGame
 		var lines = new List<string>();
 		foreach (var v in vias)
 		{
-			var parts = open.Where(c => c.Via == v).Select(ProgressLine).Where(x => x != null).ToList();
+			// "waits on a second still" is not said inside the third still's line when the second still has a line of its own
+			var parts = open.Where(c => c.Via == v && !(c.Kind == "unlocked" && vias.Contains(c.Id ?? ""))).Select(ProgressLine).Where(x => x != null).ToList();
 			if (parts.Count > 0) lines.Add($"for {_content.Text($"unlock.{v}.name").ToLowerInvariant()}, {string.Join(" and ", parts)}");
 		}
 		// an unlock already spelled out above needs no "waits on" line of its own

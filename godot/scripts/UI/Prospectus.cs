@@ -56,7 +56,25 @@ public partial class Prospectus : VBoxContainer
 		_game = game;
 		AddThemeConstantOverride("separation", 12);
 		Refresh();
+		// the prospectus opens at its head: the drawer's first focus (and its slide in) must not leave
+		// it scrolled past the first notice
+		TreeEntered += () =>
+		{
+			if (_opened) return;
+			_opened = true;
+			GetTree().CreateTimer(0.3).Timeout += () =>
+			{
+				if (!IsInstanceValid(this)) return;
+				Node? frame = GetParent();
+				while (frame != null && frame is not ScrollContainer) frame = frame.GetParent();
+				var focus = GetViewport()?.GuiGetFocusOwner();
+				// a keyboard already on a slip's button keeps its place
+				if (frame is ScrollContainer sc && focus is not BaseButton) sc.ScrollVertical = 0;
+			};
+		};
 	}
+
+	private bool _opened;
 
 	public void Refresh()
 	{
@@ -100,12 +118,34 @@ public partial class Prospectus : VBoxContainer
 		Print.RestoreFocus(this, keep);
 	}
 
+	private static readonly System.Text.RegularExpressions.Regex MonthlySum = new(
+		@"(?:\$\d+(?:\.\d\d)?|\b(?:a|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty) dollars?)(?=(?: more)? a month)",
+		System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+	/// <summary>
+	/// The venture's description, with any sum it names "a month" set to the figure the terms
+	/// below it charge: the terms come from the numbers, and the prose may not contradict them.
+	/// </summary>
+	public static string AgreeWithTerms(InvestmentRow r)
+	{
+		if (r.UpkeepCents <= 0) return r.Description;
+		var sum = r.UpkeepCents % 100 == 0
+			? (r.UpkeepCents == 100 ? "a dollar" : $"{EditionWriter.Words((int)(r.UpkeepCents / 100))} dollars")
+			: EditionWriter.Money(r.UpkeepCents);
+		return MonthlySum.Replace(r.Description, m =>
+		{
+			var said = m.Value;
+			var keep = said.StartsWith('$') || char.IsLower(said[0]) ? sum : char.ToUpperInvariant(sum[0]) + sum[1..];
+			return keep;
+		});
+	}
+
 	private Control Notice(InvestmentRow r, DeskModel d, int index)
 	{
 		var v = new VBoxContainer();
 		v.AddThemeConstantOverride("separation", 4);
 		v.AddChild(Print.Label(r.Name.ToUpperInvariant(), Print.Rye, 18));
-		v.AddChild(Print.Body(Print.Escape(EditionWriter.Set(r.Description)), 15));
+		v.AddChild(Print.Body(Print.Escape(EditionWriter.Set(AgreeWithTerms(r))), 15));
 
 		// the terms, as a price current would set them
 		var terms = r.CostCents == 0 ? "Terms: nothing down" : $"Terms: {EditionWriter.Money(r.CostCents)} down";
@@ -134,6 +174,10 @@ public partial class Prospectus : VBoxContainer
 			if (sold < can * 0.85)
 				v.AddChild(Print.Label(EditionWriter.Set($"Mark well: your stills are not yet full. Last month the shop sold {EditionWriter.Words(sold)} bottle{(sold == 1 ? "" : "s")}, and the stills it has can make {EditionWriter.Words(can)}; this pays only once they are kept busy."), Print.FellIt, 14));
 		}
+
+		// and more room at the counter pays only once the room the shop has is taken
+		if (!r.Held && r.Id is "shop_next_door" or "branch_shop" && !(r.Refusal?.StartsWith("Not yet", StringComparison.Ordinal) ?? false) && d.CustomerCapacity > 0 && d.Customers < d.CustomerCapacity * 0.85)
+			v.AddChild(Print.Label(EditionWriter.Set($"Mark well: the shop has room for {EditionWriter.Words(d.CustomerCapacity)} regulars and has {EditionWriter.Words(d.Customers)}; more room pays only once the room it has is taken."), Print.FellIt, 14));
 
 		if (r.Held)
 		{

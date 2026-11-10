@@ -31,14 +31,15 @@ public partial class BooksDrawer : VBoxContainer
 		["Sales to druggists out of town"] = "from the druggists out of town",
 		["Orders by post"] = "by post",
 		["Paid over the price by regulars who crave it"] = "paid over the price by regulars who crave it",
-		["Ingredient purchases"] = "drugs and stock from Pearl street",
+		["Ingredient purchases"] = "drugs and stock from the wholesale house",
 		["Bottles, corks and labels"] = "bottles, corks and labels",
 		["Rent"] = "the rent",
 		["Newspaper advertising"] = "space in the Gazette",
 		["Upkeep of the ventures (rent, wages)"] = "the ventures' rent and wages",
 		["Letters answered"] = "what the letters cost",
 		["Trade given up to answer letters"] = "trade given up to answer letters",
-		["Outlays on the business"] = "ventures taken up",
+		// ventures taken up, and the letters' repairs, signs and fittings: whatever was laid out on the shop itself
+		["Outlays on the business"] = "outlays on the shop itself (ventures, repairs, signs)",
 	};
 
 	/// <summary>The charges that fall due whether a bottle is sold or not.</summary>
@@ -85,13 +86,26 @@ public partial class BooksDrawer : VBoxContainer
 		if (d.Formulas.Count == 0)
 			sheet.AddChild(Print.Body("[i]No remedy is entered yet.[/i]", 15, justify: false));
 		long bestClear = 0;
+		static string Clear(long clear) => clear > 0 ? $"{EditionWriter.Money(clear)} clear on every bottle" : "every bottle sold loses money";
 		foreach (var p in d.Formulas)
 		{
 			var clear = p.PriceCents - p.UnitCostCents;
+			// last month's margin is what last month's bottles earned: the recipe they were brewed to,
+			// at the price they went at, not the recipe or the price in the book now
+			var was = f.Products.FirstOrDefault(x => x.Id == p.Id)?.PriceCents ?? p.PriceCents;
+			if (!f.FirstEdition && p.SoldLastMonth > 0 && p.SoldUnitCostCents is long soldCost && (soldCost != p.UnitCostCents || was != p.PriceCents))
+			{
+				var soldClear = was - soldCost;
+				bestClear = Math.Max(bestClear, soldClear);
+				var now = soldCost != p.UnitCostCents && was != p.PriceCents ? $"The recipe and the price in the book now: {EditionWriter.Money(p.UnitCostCents)} to make, sold at {EditionWriter.Money(p.PriceCents)}"
+					: soldCost != p.UnitCostCents ? $"The recipe in the book now costs {EditionWriter.Money(p.UnitCostCents)} to make"
+					: $"At the price in the book now, {EditionWriter.Money(p.PriceCents)}";
+				sheet.AddChild(Print.Body(Print.Escape(
+					$"{p.Name}: the {EditionWriter.Words(p.SoldLastMonth)} bottle{(p.SoldLastMonth == 1 ? "" : "s")} sold last month went at {EditionWriter.Money(was)} and cost {EditionWriter.Money(soldCost)} each to make: {Clear(soldClear)}. {now}: {Clear(clear)}."), 15, justify: false));
+				continue;
+			}
 			bestClear = Math.Max(bestClear, clear);
-			sheet.AddChild(Print.Body(Print.Escape(clear > 0
-				? $"{p.Name} sells at {EditionWriter.Money(p.PriceCents)} and costs {EditionWriter.Money(p.UnitCostCents)} to make: {EditionWriter.Money(clear)} clear on every bottle."
-				: $"{p.Name} sells at {EditionWriter.Money(p.PriceCents)} and costs {EditionWriter.Money(p.UnitCostCents)} to make: every bottle sold loses money."), 15, justify: false));
+			sheet.AddChild(Print.Body(Print.Escape($"{p.Name} sells at {EditionWriter.Money(p.PriceCents)} and costs {EditionWriter.Money(p.UnitCostCents)} to make: {Clear(clear)}."), 15, justify: false));
 		}
 		var fixedCents = -f.CashLines.Where(x => Fixed.Contains(x.Label)).Sum(x => x.Cents);
 		if (!f.FirstEdition && fixedCents > 0 && bestClear > 0)

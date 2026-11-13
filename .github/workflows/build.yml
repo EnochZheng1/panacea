@@ -1,0 +1,125 @@
+name: Build the game
+
+# Exports the Godot game for Linux, Windows and macOS and attaches the three builds to the run,
+# so a playable copy can be downloaded from the Actions tab without installing Godot.
+on:
+  push:
+    paths:
+      - 'godot/**'
+      - 'sim-cs/**'
+      - 'packages/content/data/**'
+      - 'packages/content/strings/**'
+      - '.github/workflows/build.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GODOT_RELEASE: 4.7.2-stable
+  # Godot looks for export templates under this name
+  GODOT_TEMPLATES: 4.7.2.stable.mono
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Cache Godot and its export templates
+        id: godot-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/godot
+            ~/.local/share/godot/export_templates
+          key: godot-${{ env.GODOT_RELEASE }}-mono-linux-windows-macos
+
+      - name: Download Godot (.NET) and the export templates
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        run: |
+          base="https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}"
+          curl -fsSL --retry 3 -o godot.zip "${base}/Godot_v${GODOT_RELEASE}_mono_linux_x86_64.zip"
+          curl -fsSL --retry 3 -o templates.tpz "${base}/Godot_v${GODOT_RELEASE}_mono_export_templates.tpz"
+          mkdir -p ~/godot
+          unzip -q godot.zip -d ~/godot
+          # only the three templates the presets use (the whole archive is 2 GB unpacked)
+          templates=~/.local/share/godot/export_templates/${GODOT_TEMPLATES}
+          mkdir -p "$templates"
+          unzip -q -j templates.tpz \
+            templates/version.txt \
+            templates/linux_release.x86_64 \
+            templates/windows_release_x86_64.exe \
+            templates/windows_release_x86_64_console.exe \
+            templates/macos.zip \
+            -d "$templates"
+          rm godot.zip templates.tpz
+
+      - name: Put Godot on the path
+        run: |
+          dir=~/godot/Godot_v${GODOT_RELEASE}_mono_linux_x86_64
+          ln -sf "$dir/Godot_v${GODOT_RELEASE}_mono_linux.x86_64" "$dir/godot"
+          echo "$dir" >> "$GITHUB_PATH"
+
+      - name: Build the C# project
+        run: dotnet build godot/Panacea.csproj -c Debug
+
+      - name: Import the project
+        run: godot --headless --path godot --import
+
+      - name: Export for Linux
+        run: |
+          mkdir -p build/linux
+          godot --headless --path godot --export-release Linux ../build/linux/Panacea.x86_64
+          test -s build/linux/Panacea.x86_64 && test -s build/linux/Panacea.pck
+
+      - name: Check the Linux build starts and a save round-trips
+        run: |
+          build/linux/Panacea.x86_64 --headless --quit-after 30 -- --savetest 12 | tee smoke.log
+          grep -q "SAVETEST OK" smoke.log
+
+      - name: Export for Windows
+        run: |
+          mkdir -p build/windows
+          godot --headless --path godot --export-release Windows ../build/windows/Panacea.exe
+          test -s build/windows/Panacea.exe && test -s build/windows/Panacea.pck
+
+      - name: Export for macOS
+        run: |
+          mkdir -p build/macos
+          godot --headless --path godot --export-release macOS ../build/macos/Panacea.zip
+          test -s build/macos/Panacea.zip
+
+      # Uploading a folder drops the executable bit, so the Linux build travels as a tarball.
+      # The macOS build is already a zip that keeps the app's permissions and signature.
+      - name: Pack the Linux build
+        run: tar -C build/linux -czf Panacea-linux.tar.gz .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Panacea-linux
+          path: Panacea-linux.tar.gz
+          compression-level: 0
+          retention-days: 30
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Panacea-windows
+          path: build/windows
+          retention-days: 30
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Panacea-macos
+          path: build/macos/Panacea.zip
+          compression-level: 0
+          retention-days: 30
+          if-no-files-found: error
